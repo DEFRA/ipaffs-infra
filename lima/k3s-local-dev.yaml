@@ -1,0 +1,113 @@
+images:
+- location: "https://cloud-images.ubuntu.com/releases/24.04/release/ubuntu-24.04-server-cloudimg-amd64.img"
+  arch: "x86_64"
+- location: "https://cloud-images.ubuntu.com/releases/24.04/release/ubuntu-24.04-server-cloudimg-arm64.img"
+  arch: "aarch64"
+
+cpus: 4
+memory: "6GiB"
+disk: "50GiB"
+
+# Mounts are disabled in this template, but can be enabled optionally.
+mounts: []
+
+# containerd is managed by k3s, not by Lima, so the values are set to false here.
+containerd:
+  system: false
+  user: false
+
+provision:
+  - mode: system
+    script: |
+      #!/bin/bash
+      set -eux -o pipefail
+  
+      # Define the host.docker.internal hostname when hostResolver is disabled.
+      # It is also needed for lima 0.8.2 and earlier, which does not support hostResolver.hosts.
+      # Names defined in /etc/hosts inside the VM are not resolved inside containers when
+      # using the hostResolver; use hostResolver.hosts instead (requires lima 0.8.3 or later).
+      sed -i 's/host.lima.internal.*/host.lima.internal host.docker.internal/' /etc/hosts
+  
+      if [ ! -d /var/lib/rancher/k3s ]; then
+              curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="server --write-kubeconfig-mode 644" sh -
+      fi
+  
+      # Check for docker in path, exit if already found
+      command -v docker >/dev/null 2>&1 && exit 0
+  
+      # Install Docker
+      export DEBIAN_FRONTEND=noninteractive
+      curl -fsSL https://get.docker.com | sh
+  
+      # Disable system docker.service as we will set it up as a user service
+      systemctl disable --now docker
+      apt-get install -y uidmap dbus-user-session
+  
+  - mode: user
+    script: |
+      #!/bin/bash
+      set -eux -o pipefail
+  
+      # Configure docker daemon
+      mkdir -p ~/.config/docker
+      cat <<EOF >~/.config/docker/daemon.json
+      {
+        "insecure-registries": ["host.docker.internal:30100"]
+      }
+      EOF
+  
+      # Start user dbus service and set up docker as a user service
+      systemctl --user start dbus
+      dockerd-rootless-setuptool.sh install
+      docker context use rootless
+
+probes:
+  - script: |
+      #!/bin/bash
+      set -eux -o pipefail
+      if ! timeout 30s bash -c "until command -v docker >/dev/null 2>&1; do sleep 3; done"; then
+        echo >&2 "docker is not installed yet"
+        exit 1
+      fi
+      if ! timeout 30s bash -c "until pgrep rootlesskit; do sleep 3; done"; then
+        echo >&2 "rootlesskit (used by rootless docker) is not running"
+        exit 1
+      fi
+    hint: See "/var/log/cloud-init-output.log" in the guest
+
+  - script: |
+      #!/bin/bash
+      set -eux -o pipefail
+      if ! timeout 30s bash -c "until test -f /etc/rancher/k3s/k3s.yaml; do sleep 3; done"; then
+              echo >&2 "k3s is not running yet"
+              exit 1
+      fi
+    hint: |
+      The k3s kubeconfig file has not yet been created.
+      Run "limactl shell k3s sudo journalctl -u k3s" to check the log.
+      If that is still empty, check the bottom of the log at "/var/log/cloud-init-output.log".
+
+copyToHost:
+  - guest: "/etc/rancher/k3s/k3s.yaml"
+    host: "{{.Dir}}/copied-from-guest/kubeconfig.yaml"
+    deleteOnStop: true
+
+message: |
+  To run `kubectl` on the host (assumes kubectl is installed), run the following commands:
+  ------
+  export KUBECONFIG="{{.Dir}}/copied-from-guest/kubeconfig.yaml"
+  kubectl ...
+  ------
+
+  To run `docker` on the host (assumes docker-cli is installed), run the following commands:
+  ------
+  docker context create lima-{{.Name}} --docker "host=unix://{{.Dir}}/sock/docker.sock"
+  docker context use lima-{{.Name}}
+  ------
+
+portForwards:
+  - guestSocket: "/run/k3s/containerd/containerd.sock"
+    hostSocket: "{{.Dir}}/sock/containerd.sock"
+  - guestSocket: "/run/user/{{.UID}}/docker.sock"
+    hostSocket: "{{.Dir}}/sock/docker.sock"
+

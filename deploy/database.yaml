@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: import-notification-database
+  labels:
+    app: import-notification-database
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: import-notification-database
+  template:
+    metadata:
+      labels:
+        app: import-notification-database
+    spec:
+      containers:
+        - name: import-notification-database
+          image: registry.default.svc.cluster.local:5000/import-notification-database:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 1433
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: import-notification-database
+  labels:
+    app: import-notification-database
+spec:
+  selector:
+    app: import-notification-database
+  ports:
+    - port: 1433
+      nodePort: 31433
+  type: NodePort
+
