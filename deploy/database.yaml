@@ -1,21 +1,45 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: database-data
+  annotations:
+    volumeType: local
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 10Gi
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: database
+type: Opaque
+data:
+  sa_password: ZG9ja2VyUGFzc3dvcmQxIQ==
+
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: import-notification-database
+  name: database
   labels:
-    app: import-notification-database
+    app: database
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: import-notification-database
+      app: database
   template:
     metadata:
       labels:
-        app: import-notification-database
+        app: database
     spec:
       containers:
-        - name: import-notification-database
+        - name: database
           image: localhost:30500/import-notification-database:latest
           imagePullPolicy: Always
           ports:
@@ -23,36 +47,36 @@ spec:
           env:
             - name: ACCEPT_EULA
               value: "Y"
+            - name: MSSQL_PID
+              value: "Developer"
             - name: SA_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: import-notification-database
+                  name: database
                   key: sa_password
             - name: MSSQL_SA_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: import-notification-database
+                  name: database
                   key: sa_password
-
----
-apiVersion: v1
-kind: Secret
-metadata:
-  name: import-notification-database
-type: Opaque
-data:
-  sa_password: ZG9ja2VyUGFzc3dvcmQxIQ==
+          volumeMounts:
+            - name: mssql-data
+              mountPath: /var/opt/mssql
+      volumes:
+        - name: mssql-data
+          persistentVolumeClaim:
+            claimName: database-data
 
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: import-notification-database
+  name: database
   labels:
-    app: import-notification-database
+    app: database
 spec:
   selector:
-    app: import-notification-database
+    app: database
   ports:
     - port: 1433
       nodePort: 31433
