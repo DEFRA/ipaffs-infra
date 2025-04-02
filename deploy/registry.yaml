@@ -63,5 +63,5 @@ spec:
     app: registry
   ports:
     - port: 5000
-      nodePort: 30100
+      nodePort: 30500
   type: NodePort

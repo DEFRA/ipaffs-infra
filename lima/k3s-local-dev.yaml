@@ -52,7 +52,7 @@ provision:
       mkdir -p ~/.config/docker
       cat <<EOF >~/.config/docker/daemon.json
       {
-        "insecure-registries": ["host.docker.internal:30100"]
+        "insecure-registries": ["host.docker.internal:30500"]
       }
       EOF
   

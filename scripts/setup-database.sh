@@ -18,8 +18,8 @@ override_db_port() {
 docker build --platform=linux/amd64 -t import-notification-database "${IMPORTS_DIR}/docker-local/database" 
 
 # Tag and push database container image
-docker tag import-notification-database:latest host.docker.internal:30100/import-notification-database:latest
-docker push host.docker.internal:30100/import-notification-database:latest
+docker tag import-notification-database:latest host.docker.internal:30500/import-notification-database:latest
+docker push host.docker.internal:30500/import-notification-database:latest
 
 # Start the database container
 kubectl apply -f "${REPO_DIR}/deploy/database.yaml"

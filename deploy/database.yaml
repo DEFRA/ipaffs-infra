@@ -16,10 +16,32 @@ spec:
     spec:
       containers:
         - name: import-notification-database
-          image: registry.default.svc.cluster.local:5000/import-notification-database:latest
+          image: localhost:30500/import-notification-database:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 1433
+          env:
+            - name: ACCEPT_EULA
+              value: "Y"
+            - name: SA_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: import-notification-database
+                  key: sa_password
+            - name: MSSQL_SA_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: import-notification-database
+                  key: sa_password
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: import-notification-database
+type: Opaque
+data:
+  sa_password: ZG9ja2VyUGFzc3dvcmQxIQ==
 
 ---
 apiVersion: v1
