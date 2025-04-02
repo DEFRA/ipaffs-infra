@@ -38,4 +38,4 @@ source "${IMPORTS_DIR}/docker-local/docker_setup.sh"
 override_db_port
 
 # Load data
-#load_all_data
+load_all_data
