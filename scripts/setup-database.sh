@@ -14,6 +14,20 @@ override_db_port() {
   export DATABASE_DB_CONNECTION_STRING="jdbc:sqlserver://${DB_HOST}:${DB_PORT};database=${DB_NAME};encrypt=true;trustServerCertificate=${TRUST_SERVER_CERTIFICATE};hostNameInCertificate=*.database.windows.net;"
 }
 
+# Check prerequisites
+if ! command -v docker >/dev/null 2>&1; then
+  echo "\`docker\` not available in PATH. Please install Docker CLI" >&2
+  exit 1
+fi
+if ! command -v bcp >/dev/null 2>&1; then
+  echo "\`bcp\` not available in PATH. Please install MSSQL Command Line Tools" >&2
+  exit 1
+fi
+if ! command -v sqlcmd >/dev/null 2>&1; then
+  echo "\`sqlcmd\` not available in PATH. Please install MSSQL Command Line Tools" >&2
+  exit 1
+fi
+
 # Build SQL Server container
 docker build --platform=linux/amd64 -t import-notification-database "${IMPORTS_DIR}/docker-local/database" 
 

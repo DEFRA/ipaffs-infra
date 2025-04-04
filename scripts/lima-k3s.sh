@@ -5,8 +5,22 @@ IMPORTS_DIR="$(cd "${REPO_DIR}"/../imports && pwd)"
 
 set -e
 
+# Check prerequisites
+if ! command -v limactl >/dev/null 2>&1; then
+  echo "\`limactl\` not available in PATH. Please install Lima" >&2
+  exit 1
+fi
+if ! command -v kubectl >/dev/null 2>&1; then
+  echo "\`kubectl\` not available in PATH. Please install Kubernetes command-line interface" >&2
+  exit 1
+fi
+if ! command -v openssl >/dev/null 2>&1; then
+  echo "\`openssl\` not available in PATH. Please install OpenSSL" >&2
+  exit 1
+fi
+
 # Create VM using lima if not already present
-if limactl list ipaffs 2>&1 | grep -q "No instance found"; then
+if limactl list ipaffs 2>&1 | grep -q "No instance"; then
   limactl create --name=ipaffs --vm-type=vz --rosetta --tty=false "${REPO_DIR}/lima/k3s-local-dev.yaml"
 fi
 
