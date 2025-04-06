@@ -35,7 +35,7 @@ export KUBECONFIG="/${HOME}/.lima/ipaffs/copied-from-guest/kubeconfig.yaml"
 # Generate TLS certificate and key if missing
 [[ -e "${REPO_DIR}/tls/traefik.pem" ]] || \
   openssl req -x509 -nodes -newkey rsa:2048 -keyout "${REPO_DIR}/tls/traefik-key.pem" -out "${REPO_DIR}/tls/traefik.pem" \
-    -days 3650 -subj "/C=GB/ST=England/L=Leeds/O=DEFRA/OU=IPAFFS/CN=imports-proxy-feature.azurewebsites.net"
+    -days 3650 -subj "/C=GB/ST=England/L=Leeds/O=DEFRA/OU=IPAFFS/CN=*.local.imp.azure.defra.cloud"
 
 # Create kubernetes secrets
 kubectl create secret tls imports-proxy-tls --cert "${REPO_DIR}/tls/traefik.pem" \
