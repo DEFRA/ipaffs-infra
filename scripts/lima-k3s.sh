@@ -33,16 +33,19 @@ fi
 export KUBECONFIG="/${HOME}/.lima/ipaffs/copied-from-guest/kubeconfig.yaml"
 
 # Generate TLS certificate and key if missing
-[[ -e "${REPO_DIR}/tls/traefik.pem" ]] || \
-  openssl req -x509 -nodes -newkey rsa:2048 -keyout "${REPO_DIR}/tls/traefik-key.pem" -out "${REPO_DIR}/tls/traefik.pem" \
-    -days 3650 -subj "/C=GB/ST=England/L=Leeds/O=DEFRA/OU=IPAFFS/CN=*.local.imp.azure.defra.cloud"
+if ! [[ -e "${REPO_DIR}/tls/imp.dev.azure.defra.cloud.pem" ]]; then
+  openssl req -x509 -nodes -newkey rsa:2048 -days 3650 \
+    -keyout "${REPO_DIR}/tls/imp.dev.azure.defra.cloud-key.pem" \
+    -out "${REPO_DIR}/tls/imp.dev.azure.defra.cloud.pem" \
+    -subj "/C=GB/ST=England/L=Leeds/O=DEFRA/OU=IPAFFS/CN=*.imp.dev.azure.defra.cloud"
+
+  # Trust the certificate on macOS
+  [[ "$(uname)" == "Darwin" ]] && security add-trusted-cert -d -r trustRoot -k "${HOME}/Library/Keychains/login.keychain-db" "${REPO_DIR}/tls/imp.dev.azure.defra.cloud.pem"
+fi
 
 # Create kubernetes secrets
-kubectl create secret tls imports-proxy-tls --cert "${REPO_DIR}/tls/traefik.pem" \
-  --key "${REPO_DIR}/tls/traefik-key.pem" --dry-run=client -o yaml | kubectl apply -f -
-
-# Configure Traefik ingress controller
-#kubectl apply -f "${REPO_DIR}/deploy/traefik.yaml"
+kubectl create secret tls imports-proxy-tls --cert "${REPO_DIR}/tls/imp.dev.azure.defra.cloud.pem" \
+  --key "${REPO_DIR}/tls/imp.dev.azure.defra.cloud-key.pem" --dry-run=client -o yaml | kubectl apply -f -
 
 # Create persistent storage directory for registry
 limactl shell ipaffs sudo mkdir -p /srv/registry
