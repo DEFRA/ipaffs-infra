@@ -21,7 +21,8 @@ fi
 
 # Create VM using lima if not already present
 if limactl list ipaffs 2>&1 | grep -q "No instance"; then
-  limactl create --name=ipaffs --vm-type=vz --rosetta --tty=false "${REPO_DIR}/lima/k3s-local-dev.yaml"
+  [[ "$(uname)" == "Darwin" ]] && VZARGS="--vm-type=vz --rosetta"
+  limactl create --name=ipaffs ${VZARGS} --tty=false "${REPO_DIR}/lima/k3s-local-dev.yaml"
 fi
 
 # Start the VM if not running
