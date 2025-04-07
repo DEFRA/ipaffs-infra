@@ -31,7 +31,7 @@ if ! limactl list ipaffs | grep -q Running; then
 fi
 
 # Configure kubectl to connect to IPAFFS VM
-export KUBECONFIG="/${HOME}/.lima/ipaffs/copied-from-guest/kubeconfig.yaml"
+export KUBECONFIG="${HOME}/.lima/ipaffs/copied-from-guest/kubeconfig.yaml"
 
 # Generate TLS certificate and key if missing
 if ! [[ -e "${REPO_DIR}/tls/imp.dev.azure.defra.cloud.pem" ]]; then
