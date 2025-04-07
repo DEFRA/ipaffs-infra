@@ -28,6 +28,9 @@ if ! command -v sqlcmd >/dev/null 2>&1; then
   exit 1
 fi
 
+# Use correct Docker context
+docker context use lima-ipaffs
+
 # Build SQL Server container
 docker build --platform=linux/amd64 -t import-notification-database "${IMPORTS_DIR}/docker-local/database" 
 
