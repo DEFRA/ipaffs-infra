@@ -46,7 +46,7 @@ validate our plans and assumptions, port IPAFFS to Kubernetes, and overhaul the 
 4. Set the `DEFRA_WORKSPACE` environment variable to the parent directory of your `docker-local` clone.
 
    ```shell
-   export DEFRA_WORKSPACE=~/git/imports
+   export DEFRA_WORKSPACE="${HOME}/git/imports"
    ```
    
 5. Run the Lima/K3S setup script.
@@ -59,7 +59,7 @@ validate our plans and assumptions, port IPAFFS to Kubernetes, and overhaul the 
 6. Follow the printed instructions to set the `KUBECONFIG` environment variable and configure a Docker context.
 
    ```shell
-   export KUBECONFIG=~/.lima/ipaffs/copied-from-guest/kubeconfig.yaml
+   export KUBECONFIG="${HOME}/.lima/ipaffs/copied-from-guest/kubeconfig.yaml"
    docker context create lima-ipaffs --docker "host=unix://${HOME}/.lima/ipaffs/sock/docker.sock"
    docker context use lima-ipaffs
    ```
