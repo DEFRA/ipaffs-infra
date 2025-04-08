@@ -64,7 +64,7 @@ validate our plans and assumptions, port IPAFFS to Kubernetes, and overhaul the 
    docker context use lima-ipaffs
    ```
    
-7. Run the database setup script.
+7. Run the database setup script to build, push and run the SQL Server container, and populate the databases.
 
    ```shell
    scripts/setup-database.sh
