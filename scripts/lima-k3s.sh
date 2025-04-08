@@ -1,7 +1,7 @@
 #!/bin/bash
 
 REPO_DIR="$(cd "$(dirname $0)"/.. && pwd)"
-IMPORTS_DIR="$(cd "${REPO_DIR}"/../imports && pwd)"
+IMPORTS_DIR="${DEFRA_WORKSPACE}"
 
 set -e
 

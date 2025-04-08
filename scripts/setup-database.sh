@@ -1,10 +1,7 @@
 #!/bin/bash
 
 REPO_DIR="$(cd "$(dirname $0)"/.. && pwd)"
-IMPORTS_DIR="$(cd "${REPO_DIR}"/../imports && pwd)"
-
-# DEFRA_WORKSPACE is needed by downstream setup scripts
-export DEFRA_WORKSPACE="${IMPORTS_DIR}"
+IMPORTS_DIR="${DEFRA_WORKSPACE}"
 
 override_db_port() {
   export DATABASE_DB_HOST=127.0.0.1
