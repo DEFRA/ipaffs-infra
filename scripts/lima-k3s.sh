@@ -54,4 +54,7 @@ limactl shell ipaffs sudo mkdir -p /srv/registry
 # Deploy a registry service
 kubectl apply -f "${REPO_DIR}/deploy/registry.yaml"
 
+# Configure service account for IPAFFS
+kubectl apply -f "${REPO_DIR}/deploy/serviceaccount.yaml"
+
 # vim: set ts=2 sts=2 sw=2 et:
