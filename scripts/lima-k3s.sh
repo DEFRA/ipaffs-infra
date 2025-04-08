@@ -3,13 +3,13 @@
 REPO_DIR="$(cd "$(dirname $0)"/.. && pwd)"
 IMPORTS_DIR="${DEFRA_WORKSPACE}"
 
-if ! [[ -d "${DEFRA_WORKSPACE}" ]]; then {
+if ! [[ -d "${DEFRA_WORKSPACE}" ]]; then
   echo "DEFRA_WORKSPACE environment variable not set." >&2
   echo >&2
   echo "Please set this to the directory where the \`imports\` repositories are checked out." >&2
   echo "e.g. \`export DEFRA_WORKSPACE=/path/to/imports\`" >&2
   exit 1
-}
+fi
 
 set -e
 
