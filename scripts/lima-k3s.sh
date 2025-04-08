@@ -45,7 +45,7 @@ if ! [[ -e "${REPO_DIR}/tls/imp.dev.azure.defra.cloud.pem" ]]; then
 fi
 
 # Create kubernetes secrets
-kubectl create secret tls imports-proxy-tls --cert "${REPO_DIR}/tls/imp.dev.azure.defra.cloud.pem" \
+kubectl create secret tls ipaffs-tls --cert "${REPO_DIR}/tls/imp.dev.azure.defra.cloud.pem" \
   --key "${REPO_DIR}/tls/imp.dev.azure.defra.cloud-key.pem" --dry-run=client -o yaml | kubectl apply -f -
 
 # Create persistent storage directory for registry
