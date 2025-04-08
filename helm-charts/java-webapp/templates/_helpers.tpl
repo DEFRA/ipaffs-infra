@@ -1,24 +1,4 @@
 {{/*
-Expand the name of the chart.
-*/}}
-{{- define "deploy.name" -}}
-{{- .Chart.Name | trunc 63 | trimSuffix "-" }}
-{{- end }}
-
-{{/*
-Set a fully qualified app name.
-We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
-If release name contains chart name it will be used as a full name.
-*/}}
-{{- define "deploy.fullname" -}}
-{{- if contains .Chart.Name .Release.Name }}
-{{- .Release.Name | trunc 63 | trimSuffix "-" }}
-{{- else }}
-{{- printf "%s-%s" .Release.Name .Chart.Name | trunc 63 | trimSuffix "-" }}
-{{- end }}
-{{- end }}
-
-{{/*
 Create chart name and version as used by the chart label.
 */}}
 {{- define "deploy.chart" -}}
@@ -50,10 +30,9 @@ app.kubernetes.io/part-of: {{ .Values.project }}
 Ingress hosts
 */}}
 {{- define "deploy.ingressHosts" -}}
-  {{- $environment := .Values.environment -}}
   {{- $hosts := list -}}
   {{- range .Values.ingress.hosts }}
-    {{- $host := printf "%s.imp.%s.azure.defra.cloud" . $environment -}}
+    {{- $host := printf "%s.imp.%s.azure.defra.cloud" . $.Values.environment -}}
     {{- $hosts = append $hosts $host }}
   {{- end -}}
   {{- $hosts | join "\n" -}}

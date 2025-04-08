@@ -2,7 +2,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{ include "deploy.fullname" . }}
+  name: {{ .Release.Name }}
   labels:
     {{- include "deploy.labels" . | nindent 4 }}
   {{- with .Values.ingress.annotations }}
@@ -25,7 +25,7 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: {{ include "deploy.fullname" $ }}
+                name: {{ $.Release.Name }}
                 port:
                   number: 80
     {{- end }}
