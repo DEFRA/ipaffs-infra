@@ -1,0 +1,8 @@
+{{- $hosts := include "deploy.ingressHosts" . | splitList "\n" }}
+Access the service at the following URL(s):
+{{- range $hosts }}
+> https://{{ . }}
+{{- end }}
+
+You can connect a debugger by first forwarding a port:
+$ kubectl port-forward deployment/{{ include "deploy.fullname" . }} 5005
