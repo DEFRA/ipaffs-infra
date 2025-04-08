@@ -3,6 +3,9 @@ kind: PersistentVolumeClaim
 metadata:
   name: database-data
   annotations:
+    app.kubernetes.io/name: mssql
+    app.kubernetes.io/component: database
+    app.kubernetes.io/part-of: ipaffs
     volumeType: local
 spec:
   accessModes:
@@ -22,22 +25,43 @@ data:
   sa_password: ZG9ja2VyUGFzc3dvcmQxIQ==
 
 ---
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: v1
+kind: Service
 metadata:
   name: database
   labels:
     app: database
 spec:
-  replicas: 1
+  selector:
+    app.kubernetes.io/component: database
+    app.kubernetes.io/part-of: ipaffs
+  ports:
+    - port: 1433
+      nodePort: 31433
+  type: NodePort
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: database
+  labels:
+    app: database
+spec:
   selector:
     matchLabels:
-      app: database
+      app.kubernetes.io/component: database
+      app.kubernetes.io/part-of: ipaffs
+  serviceName: database
+  replicas: 1
+  minReadySeconds: 60
   template:
     metadata:
       labels:
-        app: database
+        app.kubernetes.io/component: database
+        app.kubernetes.io/part-of: ipaffs
     spec:
+      terminationGracePeriodSeconds: 60
       containers:
         - name: database
           image: localhost:30500/import-notification-database:latest
@@ -66,19 +90,4 @@ spec:
         - name: mssql-data
           persistentVolumeClaim:
             claimName: database-data
-
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: database
-  labels:
-    app: database
-spec:
-  selector:
-    app: database
-  ports:
-    - port: 1433
-      nodePort: 31433
-  type: NodePort
 
