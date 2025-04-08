@@ -81,3 +81,12 @@ validate our plans and assumptions, port IPAFFS to Kubernetes, and overhaul the 
    ```
    
 8. Once the database has been initialized and populated, you are ready to begin building and deploying services!
+
+### Migrating Services to Kubernetes
+
+Things are moving along quickly. At the time of writing, migration of imports-proxy is well underway and can be tested.
+
+* Check out the `spike/dev-containers` branch of `imports-proxy`
+* Ensure your development VM is set up with K3S as detailed above.
+* Run `scripts/build.sh` to build the service, package a container and push to the local registry.
+* Run `scripts/deploy.sh` to deploy the latest built container image and run with remote debugger enabled.
