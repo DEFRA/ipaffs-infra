@@ -29,7 +29,7 @@ validate our plans and assumptions, port IPAFFS to Kubernetes, and overhaul the 
    ```shell
    brew tap microsoft/mssql-release https://github.com/Microsoft/homebrew-mssql-release
    brew update
-   HOMEBREW_ACCEPT_EULA=Y brew install msodbcsql17 mssql-tools17
+   HOMEBREW_ACCEPT_EULA=Y brew install microsoft/mssql-release/msodbcsql17 microsoft/mssql-release/mssql-tools
    brew install lima kubectl docker docker-buildx
    ```
    
