@@ -6,6 +6,12 @@
       "required": [
         "registry"
       ]
+    },
+    "ingress": {
+      "type": "object",
+      "required": [
+        "hosts"
+      ]
     }
   },
   "required": [
