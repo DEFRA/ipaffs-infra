@@ -49,7 +49,8 @@ docker push host.docker.internal:30500/import-notification-database:latest
 kubectl apply -f "${REPO_DIR}/deploy/database.yaml"
 
 # Wait for MSSQL to start up
-sleep 60
+echo "Waiting 2 minutes for database..."
+sleep 120
 
 # Source database go script and override database port number
 cd "${IMPORTS_DIR}/docker-local/database"
