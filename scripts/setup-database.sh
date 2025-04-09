@@ -48,6 +48,9 @@ docker push host.docker.internal:30500/import-notification-database:latest
 # Start the database container
 kubectl apply -f "${REPO_DIR}/deploy/database.yaml"
 
+# Wait for MSSQL to start up
+sleep 60
+
 # Source database go script and override database port number
 cd "${IMPORTS_DIR}/docker-local/database"
 source "${IMPORTS_DIR}/docker-local/database/go"
