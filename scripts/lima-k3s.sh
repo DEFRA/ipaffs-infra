@@ -35,6 +35,9 @@ fi
 
 # Start the VM if not running
 if ! limactl list ipaffs | grep -q Running; then
+  ## allow privileged port access for none sudo user
+  [[ "$(uname)" == "Linux" ]] && sudo setcap 'cap_net_bind_service=+ep' /usr/bin/ssh
+
   limactl start ipaffs
 fi
 
