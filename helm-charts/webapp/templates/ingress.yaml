@@ -1,4 +1,6 @@
-{{- $hosts := include "deploy.ingressHosts" . | splitList "\n" }}
+{{- $hosts := trim (include "deploy.ingressHosts" .) }}
+{{- if not (empty $hosts) }}
+{{- $hostsList := splitList "\n" $hosts }}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -11,13 +13,13 @@ metadata:
   {{- end }}
 spec:
   tls:
-    {{- range $hosts }}
+    {{- range $hostsList }}
     - hosts:
         - {{ . | quote }}
       secretName: ipaffs-tls
     {{- end }}
   rules:
-    {{- range $hosts }}
+    {{- range $hostsList }}
     - host: {{ . | quote }}
       http:
         paths:
@@ -29,3 +31,4 @@ spec:
                 port:
                   number: 80
     {{- end }}
+{{- end }}

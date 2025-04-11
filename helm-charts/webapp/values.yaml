@@ -28,6 +28,7 @@ ingress:
     #ingress.kubernetes.io/proxy-headers: X-Original-Host
     #ingress.kubernetes.io/custom-request-headers: X-Original-Host:proxy.imp.dev.azure.defra.cloud
     #traefik.ingress.kubernetes.io/router.middlewares: kube-system/original-host
+  hosts: []
 
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious
