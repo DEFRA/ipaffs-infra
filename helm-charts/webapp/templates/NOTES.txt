@@ -1,8 +1,18 @@
-{{- $hosts := include "deploy.ingressHosts" . | splitList "\n" }}
+
+{{- $hosts := trim (include "deploy.ingressHosts" .) }}
+{{- if not (empty $hosts) }}
+{{- $hostsList := splitList "\n" $hosts }}
 Access the service at the following URL(s):
-{{- range $hosts }}
+{{- range $hostsList }}
 > https://{{ . }}
 {{- end }}
+{{- end }}
+
+This service can now be accessed inside the cluster at the following URLs:
+> http://{{ .Release.Name }}
+> http://{{ .Release.Name }}.{{ .Release.Namespace }}
+> http://{{ .Release.Name }}.{{ .Release.Namespace }}.svc.cluster.local
 
 You can connect a debugger by first forwarding a port:
 $ kubectl port-forward deployment/{{ .Release.Name }} 5005
+
