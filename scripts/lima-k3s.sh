@@ -41,31 +41,24 @@ if ! limactl list ipaffs | grep -q Running; then
   limactl start ipaffs
 fi
 
-# Configure kubectl to connect to IPAFFS VM
-export KUBECONFIG="${HOME}/.lima/ipaffs/copied-from-guest/kubeconfig.yaml"
-
 # Generate TLS certificate and key if missing
-if ! [[ -e "${REPO_DIR}/tls/imp.dev.azure.defra.cloud.pem" ]]; then
+if ! [[ -e "${REPO_DIR}/deploy/tls/imp.dev.azure.defra.cloud.pem" ]]; then
   openssl req -x509 -nodes -newkey rsa:2048 -days 3650 \
-    -keyout "${REPO_DIR}/tls/imp.dev.azure.defra.cloud-key.pem" \
-    -out "${REPO_DIR}/tls/imp.dev.azure.defra.cloud.pem" \
+    -keyout "${REPO_DIR}/deploy/tls/imp.dev.azure.defra.cloud-key.pem" \
+    -out "${REPO_DIR}/deploy/tls/imp.dev.azure.defra.cloud.pem" \
     -subj "/C=GB/ST=England/L=Leeds/O=DEFRA/OU=IPAFFS/CN=*.imp.dev.azure.defra.cloud"
 
   # Trust the certificate on macOS
-  [[ "$(uname)" == "Darwin" ]] && security add-trusted-cert -d -r trustRoot -k "${HOME}/Library/Keychains/login.keychain-db" "${REPO_DIR}/tls/imp.dev.azure.defra.cloud.pem"
+  [[ "$(uname)" == "Darwin" ]] && security add-trusted-cert -d -r trustRoot -k "${HOME}/Library/Keychains/login.keychain-db" "${REPO_DIR}/deploy/tls/imp.dev.azure.defra.cloud.pem"
 fi
-
-# Create kubernetes secrets
-kubectl create secret tls ipaffs-tls --cert "${REPO_DIR}/tls/imp.dev.azure.defra.cloud.pem" \
-  --key "${REPO_DIR}/tls/imp.dev.azure.defra.cloud-key.pem" --dry-run=client -o yaml | kubectl apply -f -
 
 # Create persistent storage directory for registry
 limactl shell ipaffs sudo mkdir -p /srv/registry
 
-# Deploy a registry service
-kubectl apply -f "${REPO_DIR}/deploy/registry.yaml"
+# Configure kubectl to connect to IPAFFS VM
+export KUBECONFIG="${HOME}/.lima/ipaffs/copied-from-guest/kubeconfig.yaml"
 
-# Configure service account for IPAFFS
-kubectl apply -f "${REPO_DIR}/deploy/serviceaccount.yaml"
+# Deploy base services
+kubectl apply -k "${REPO_DIR}/deploy"
 
 # vim: set ts=2 sts=2 sw=2 et:

@@ -66,6 +66,7 @@ spec:
   selector:
     app: registry
   ports:
-    - port: 5000
+    - name: registry
+      port: 5000
       nodePort: 30500
   type: NodePort

@@ -46,7 +46,7 @@ docker tag import-notification-database:latest host.docker.internal:30500/import
 docker push host.docker.internal:30500/import-notification-database:latest
 
 # Start the database container
-kubectl apply -f "${REPO_DIR}/deploy/database.yaml"
+kubectl apply -f "${REPO_DIR}/deploy/database/database.yaml"
 
 # Wait for MSSQL to start up
 echo "Waiting 2 minutes for database..."
