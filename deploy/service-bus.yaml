@@ -11,8 +11,6 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: service-bus
-  labels:
-    app: service-bus
 spec:
   selector:
     matchLabels:
@@ -49,14 +47,14 @@ spec:
               value: "20"
           resources:
             limits:
-              memory: "2Gi"
-              cpu: "2"
+              memory: "1Gi"
+              cpu: "1"
           volumeMounts:
             - name: service-bus-config
               mountPath: /ServiceBus_Emulator/ConfigFiles/Config.json
               subPath: Config.json
 
-        - name: sql-edge
+        - name: mssql-server
           image: mcr.microsoft.com/mssql/server:2022-latest
           imagePullPolicy: IfNotPresent
           env:
@@ -67,6 +65,10 @@ spec:
                 secretKeyRef:
                   name: service-bus
                   key: sa_password
+          resources:
+            limits:
+              memory: "2Gi"
+              cpu: "2"
 
       volumes:
         - name: service-bus-config
@@ -80,7 +82,8 @@ metadata:
   name: service-bus
 spec:
   selector:
-    app: service-bus
+    app.kubernetes.io/component: service-bus
+    app.kubernetes.io/part-of: ipaffs
   ports:
     - name: amqp
       port: 5672
