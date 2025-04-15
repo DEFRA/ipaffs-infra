@@ -6,6 +6,11 @@ resources:
   - service-bus.yaml
   - serviceaccount.yaml
 
+configMapGenerator:
+  - name: service-bus
+    files:
+      - Config.json=service-bus-config.json
+
 secretGenerator:
   - name: ipaffs-tls
     type: kubernetes.io/tls
