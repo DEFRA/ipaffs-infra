@@ -60,7 +60,6 @@ spec:
           resources:
             limits:
               memory: "2Gi"
-              cpu: "2"
           volumeMounts:
             - name: mssql-data
               mountPath: /var/opt/mssql
