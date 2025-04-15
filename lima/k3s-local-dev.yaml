@@ -1,3 +1,5 @@
+minimumLimaVersion: "1.0.6"
+
 images:
 - location: "https://cloud-images.ubuntu.com/releases/24.04/release/ubuntu-24.04-server-cloudimg-amd64.img"
   arch: "x86_64"
@@ -21,33 +23,71 @@ provision:
     script: |
       #!/bin/bash
       set -eux -o pipefail
-  
-      # Define the host.docker.internal hostname when hostResolver is disabled.
-      # It is also needed for lima 0.8.2 and earlier, which does not support hostResolver.hosts.
-      # Names defined in /etc/hosts inside the VM are not resolved inside containers when
-      # using the hostResolver; use hostResolver.hosts instead (requires lima 0.8.3 or later).
-      sed -i 's/host.lima.internal.*/host.lima.internal host.docker.internal/' /etc/hosts
-  
+
+      # Script to update our internal hostnames in /etc/hosts with the specified IP address
+      cat <<'EOF' >/usr/local/bin/patch-hostsfile.sh
+      #!/bin/bash
+      set -eux -o pipefail
+
+      # IP address should be provided as first argument
+      ip="${1}"
+
+      # The hostnames we want to manage in /etc/hosts
+      hosts=("host.lima.internal" "host.docker.internal")
+
+      # Iterate the hosts and build a hostsfile entry for each one
+      for host in "${hosts[@]}"; do
+        entry="${ip} ${host}"
+
+        # Check if there is already an entry for this host
+        if egrep -q "\s${host}" /etc/hosts; then
+          # Replace the existing host entry
+          sed -i "/\s${host}/c\\${entry}" /etc/hosts
+        else
+          # Append new host entry
+          echo "${entry}" >>/etc/hosts
+        fi
+      done
+      EOF
+      chmod +x /usr/local/bin/patch-hostsfile.sh
+
+      # networkd hook script to invoke hostsfile updater script when an interface configuration
+      # changes, so that our internal hostnames always point to the routable address of the primary
+      # interface and don't become stale after reboots etc.
+      cat <<'EOF' >/etc/networkd-dispatcher/routable.d/10-ip-change
+      #!/bin/bash
+      set -eux -o pipefail
+
+      # This script is run by networkd-dispatcher whenever an interface is fully configured, and therefore
+      # will be run whenever the IP address changes. The IFACE and ADDR environment variables are provided
+      # by networkd-dispatcher when running hook scripts.
+      # Ref: https://manpages.ubuntu.com/manpages/noble/man8/networkd-dispatcher.8.html
+      [[ "${IFACE}" == "eth0" ]] && patch-hostsfile.sh "${ADDR}"
+
+      exit 0
+      EOF
+      chmod +x /etc/networkd-dispatcher/routable.d/10-ip-change
+
+      # Restart networkd-dispatcher to pick up the hook script (and run it for the first time)
+      systemctl restart networkd-dispatcher
+
+      # Install k3s
       if [ ! -d /var/lib/rancher/k3s ]; then
         curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="server --write-kubeconfig-mode 644" sh -
       fi
-  
-      # Check for docker in path, exit if already found
-      command -v docker >/dev/null 2>&1 && exit 0
-  
-      # Install Docker
-      export DEBIAN_FRONTEND=noninteractive
-      curl -fsSL https://get.docker.com | sh
-  
+
+      # Install Docker if not already present
+      command -v docker >/dev/null 2>&1 || DEBIAN_FRONTEND=noninteractive curl -fsSL https://get.docker.com | sh
+
       # Disable system docker.service as we will set it up as a user service
       systemctl disable --now docker
       apt-get install -y uidmap dbus-user-session
-  
+
   - mode: user
     script: |
       #!/bin/bash
       set -eux -o pipefail
-  
+
       # Configure docker daemon
       mkdir -p ~/.config/docker
       cat <<EOF >~/.config/docker/daemon.json
@@ -55,7 +95,7 @@ provision:
         "insecure-registries": ["host.docker.internal:30500"]
       }
       EOF
-  
+
       # Start user dbus service and set up docker as a user service
       systemctl --user start dbus
       dockerd-rootless-setuptool.sh install
