@@ -58,7 +58,7 @@ spec:
                   name: database
                   key: sa_password
           resources:
-            limits:
+            requests:
               memory: "2Gi"
           volumeMounts:
             - name: mssql-data

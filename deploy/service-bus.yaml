@@ -1,12 +1,4 @@
-apiVersion: v1
-kind: Secret
-metadata:
-  name: service-bus
-type: Opaque
-data:
-  sa_password: c2VydmljZUJ1c1Bhc3N3b3JkMSE=
 
----
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -39,34 +31,19 @@ spec:
             - name: MSSQL_SA_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: service-bus
+                  name: database
                   key: sa_password
             - name: SQL_SERVER
-              value: "localhost"
+              value: "database"
             - name: SQL_WAIT_INTERVAL
               value: "20"
           resources:
-            limits:
+            requests:
               memory: "1Gi"
           volumeMounts:
             - name: service-bus-config
               mountPath: /ServiceBus_Emulator/ConfigFiles/Config.json
               subPath: Config.json
-
-        - name: mssql-server
-          image: mcr.microsoft.com/mssql/server:2022-latest
-          imagePullPolicy: IfNotPresent
-          env:
-            - name: ACCEPT_EULA
-              value: "Y"
-            - name: MSSQL_SA_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: service-bus
-                  key: sa_password
-          resources:
-            limits:
-              memory: "2Gi"
 
       volumes:
         - name: service-bus-config
