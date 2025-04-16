@@ -6,6 +6,7 @@ resources:
   - registry.yaml
   - service-bus.yaml
   - serviceaccount.yaml
+  - storage.yaml
 
 configMapGenerator:
   - name: service-bus
