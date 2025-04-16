@@ -14,6 +14,16 @@ spec:
 
 ---
 apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: database-scripts
+data:
+  graceful-shutdown.sh: |
+    #!/bin/bash
+    /opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P "${MSSQL_SA_PASSWORD}" -Q "SHUTDOWN"
+
+---
+apiVersion: v1
 kind: Secret
 metadata:
   name: database
@@ -57,17 +67,27 @@ spec:
                 secretKeyRef:
                   name: database
                   key: sa_password
+          lifecycle:
+            preStop:
+              exec:
+                command: ["/opt/mssql-scripts/graceful-shutdown.sh"]
           resources:
             requests:
               memory: "2Gi"
           volumeMounts:
             - name: mssql-data
               mountPath: /var/opt/mssql
+            - name: mssql-scripts
+              mountPath: /opt/mssql-scripts
 
       volumes:
         - name: mssql-data
           persistentVolumeClaim:
             claimName: database-data
+        - name: mssql-scripts
+          configMap:
+            name: database-scripts
+            defaultMode: 0755
 
 ---
 apiVersion: v1
