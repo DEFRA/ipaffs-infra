@@ -47,19 +47,6 @@ fi
 echo -e "${BLUE}:: Switching Docker context to \`lima-ipaffs\`${NC}"
 docker context use lima-ipaffs
 
-# Build SQL Server container
-echo -e "${BLUE}:: Building database container image${NC}"
-docker build --platform=linux/amd64 -t import-notification-database "${IMPORTS_DIR}/docker-local/database"
-
-# Tag and push database container image
-echo -e "${BLUE}:: Pushing database container image to local registry${NC}"
-docker tag import-notification-database:latest host.docker.internal:30500/import-notification-database:latest
-docker push host.docker.internal:30500/import-notification-database:latest
-
-# Start the database container
-echo -e "${BLUE}:: Deploying the database service${NC}"
-kubectl apply -f "${REPO_DIR}/deploy/database/database.yaml"
-
 # Wait for MSSQL to start up
 echo -e "${BLUE}:: Waiting for database to become available${NC}"
 export_db_conn

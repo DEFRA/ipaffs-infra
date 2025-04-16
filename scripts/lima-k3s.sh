@@ -59,10 +59,6 @@ if ! limactl list ipaffs | grep -q Running; then
   limactl start ipaffs
 fi
 
-# Use correct Docker context
-echo -e "${BLUE}:: Switching Docker context to \`lima-ipaffs\`${NC}"
-docker context use lima-ipaffs
-
 # Generate TLS certificate and key if missing
 if ! [[ -e "${REPO_DIR}/deploy/tls/imp.dev.azure.defra.cloud.pem" ]]; then
   echo -e "${BLUE}:: Creating self-signed wildcard certificate${NC}"
@@ -81,8 +77,21 @@ fi
 # Create persistent storage directory for registry
 limactl shell ipaffs sudo mkdir -p /srv/registry
 
+# Use correct Docker context
+echo -e "${BLUE}:: Switching Docker context to \`lima-ipaffs\`${NC}"
+docker context use lima-ipaffs
+
 # Configure kubectl to connect to IPAFFS VM
 export KUBECONFIG="${HOME}/.lima/ipaffs/copied-from-guest/kubeconfig.yaml"
+
+# Build SQL Server container
+echo -e "${BLUE}:: Building database container image${NC}"
+docker build --platform=linux/amd64 -t import-notification-database "${IMPORTS_DIR}/docker-local/database"
+
+# Tag and push database container image
+echo -e "${BLUE}:: Pushing database container image to local registry${NC}"
+docker tag import-notification-database:latest host.docker.internal:30500/import-notification-database:latest
+docker push host.docker.internal:30500/import-notification-database:latest
 
 # Deploy base services
 echo -e "${BLUE}:: Deploying base services to Kubernetes${NC}"
