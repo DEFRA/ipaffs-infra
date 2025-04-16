@@ -1,0 +1,89 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: service-bus
+type: Opaque
+data:
+  sa_password: c2VydmljZUJ1c1Bhc3N3b3JkMSE=
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: service-bus
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: service-bus
+      app.kubernetes.io/part-of: ipaffs
+  serviceName: service-bus
+  replicas: 1
+  minReadySeconds: 60
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: service-bus
+        app.kubernetes.io/part-of: ipaffs
+    spec:
+      terminationGracePeriodSeconds: 60
+      containers:
+        - name: service-bus
+          image: mcr.microsoft.com/azure-messaging/servicebus-emulator:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: amqp
+              containerPort: 5672
+          env:
+            - name: ACCEPT_EULA
+              value: "Y"
+            - name: MSSQL_SA_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: service-bus
+                  key: sa_password
+            - name: SQL_SERVER
+              value: "localhost"
+            - name: SQL_WAIT_INTERVAL
+              value: "20"
+          resources:
+            limits:
+              memory: "1Gi"
+          volumeMounts:
+            - name: service-bus-config
+              mountPath: /ServiceBus_Emulator/ConfigFiles/Config.json
+              subPath: Config.json
+
+        - name: mssql-server
+          image: mcr.microsoft.com/mssql/server:2022-latest
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: ACCEPT_EULA
+              value: "Y"
+            - name: MSSQL_SA_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: service-bus
+                  key: sa_password
+          resources:
+            limits:
+              memory: "2Gi"
+
+      volumes:
+        - name: service-bus-config
+          configMap:
+            name: service-bus
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: service-bus
+spec:
+  selector:
+    app.kubernetes.io/component: service-bus
+    app.kubernetes.io/part-of: ipaffs
+  ports:
+    - name: amqp
+      port: 5672
+      nodePort: 30672
+  type: NodePort

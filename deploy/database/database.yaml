@@ -3,9 +3,6 @@ kind: PersistentVolumeClaim
 metadata:
   name: database-data
   annotations:
-    app.kubernetes.io/name: mssql
-    app.kubernetes.io/component: database
-    app.kubernetes.io/part-of: ipaffs
     volumeType: local
 spec:
   accessModes:
@@ -25,28 +22,10 @@ data:
   sa_password: ZG9ja2VyUGFzc3dvcmQxIQ==
 
 ---
-apiVersion: v1
-kind: Service
-metadata:
-  name: database
-  labels:
-    app: database
-spec:
-  selector:
-    app.kubernetes.io/component: database
-    app.kubernetes.io/part-of: ipaffs
-  ports:
-    - port: 1433
-      nodePort: 31433
-  type: NodePort
-
----
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: database
-  labels:
-    app: database
 spec:
   selector:
     matchLabels:
@@ -73,21 +52,33 @@ spec:
               value: "Y"
             - name: MSSQL_PID
               value: "Developer"
-            - name: SA_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: database
-                  key: sa_password
             - name: MSSQL_SA_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: database
                   key: sa_password
+          resources:
+            limits:
+              memory: "2Gi"
           volumeMounts:
             - name: mssql-data
               mountPath: /var/opt/mssql
+
       volumes:
         - name: mssql-data
           persistentVolumeClaim:
             claimName: database-data
 
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: database
+spec:
+  selector:
+    app.kubernetes.io/component: database
+    app.kubernetes.io/part-of: ipaffs
+  ports:
+    - port: 1433
+      nodePort: 31433
+  type: NodePort

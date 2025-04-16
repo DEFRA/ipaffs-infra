@@ -1,0 +1,19 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - registry.yaml
+  - service-bus.yaml
+  - serviceaccount.yaml
+
+configMapGenerator:
+  - name: service-bus
+    files:
+      - Config.json=service-bus-config.json
+
+secretGenerator:
+  - name: ipaffs-tls
+    type: kubernetes.io/tls
+    files:
+      - tls.crt=tls/imp.dev.azure.defra.cloud.pem
+      - tls.key=tls/imp.dev.azure.defra.cloud-key.pem
