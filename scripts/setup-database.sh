@@ -96,6 +96,8 @@ echo -e "${BLUE}:: Loading fixture data${NC}"
 load_all_data
 
 # Done \o/
+echo
 echo -e "${GREEN}:: IPAFFS Database creation is complete!${NC}"
+echo
 
 # vim: set ts=2 sts=2 sw=2 et:
