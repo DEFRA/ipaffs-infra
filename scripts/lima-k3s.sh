@@ -42,6 +42,10 @@ if ! command -v openssl >/dev/null 2>&1; then
   echo -e "${RED}Error: \`openssl\` not available in PATH. Please install OpenSSL.${NC}" >&2
   exit 1
 fi
+if ! command -v helm >/dev/null 2>&1; then
+  echo -e "${RED}Error: \`helm\` not available in PATH. Please install helm.${NC}" >&2
+  exit 1
+fi
 
 # Create VM using lima if not already present
 if limactl list ipaffs 2>&1 | grep -q "No instance"; then
