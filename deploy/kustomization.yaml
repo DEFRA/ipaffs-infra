@@ -7,6 +7,9 @@ resources:
   - service-bus.yaml
   - serviceaccount.yaml
 
+generatorOptions:
+  disableNameSuffixHash: true
+
 configMapGenerator:
   - name: service-bus
     files:
