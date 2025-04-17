@@ -88,6 +88,10 @@ export KUBECONFIG="${HOME}/.lima/ipaffs/copied-from-guest/kubeconfig.yaml"
 echo -e "${BLUE}\n:: Installing nginx-ingress controller${NC}"
 helm upgrade --install nginx ingress-nginx --repo https://kubernetes.github.io/ingress-nginx --namespace kube-system --values "${REPO_DIR}/deploy/nginx-ingress/values.yaml"
 
+# Deploy base services
+echo -e "${BLUE}\n:: Deploying base services to Kubernetes${NC}"
+kubectl apply -k "${REPO_DIR}/deploy"
+
 # Build SQL Server container
 echo -e "${BLUE}\n:: Building database container image${NC}"
 docker build --platform=linux/amd64 -t import-notification-database "${IMPORTS_DIR}/docker-local/database"
@@ -96,10 +100,6 @@ docker build --platform=linux/amd64 -t import-notification-database "${IMPORTS_D
 echo -e "${BLUE}\n:: Pushing database container image to local registry${NC}"
 docker tag import-notification-database:latest host.docker.internal:30500/import-notification-database:latest
 docker push host.docker.internal:30500/import-notification-database:latest
-
-# Deploy base services
-echo -e "${BLUE}\n:: Deploying base services to Kubernetes${NC}"
-kubectl apply -k "${REPO_DIR}/deploy"
 
 # Done \o/
 echo
