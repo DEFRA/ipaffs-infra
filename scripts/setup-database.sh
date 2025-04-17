@@ -44,11 +44,11 @@ if ! command -v sqlcmd >/dev/null 2>&1; then
 fi
 
 # Use correct Docker context
-echo -e "${BLUE}:: Switching Docker context to \`lima-ipaffs\`${NC}"
+echo -e "${BLUE}\n:: Switching Docker context to \`lima-ipaffs\`${NC}"
 docker context use lima-ipaffs
 
 # Wait for MSSQL to start up
-echo -e "${BLUE}:: Waiting for database to become available${NC}"
+echo -e "${BLUE}\n:: Waiting for database to become available${NC}"
 export_db_conn
 _starttime="$(date +%s)"
 while true; do
@@ -70,7 +70,7 @@ source "${IMPORTS_DIR}/docker-local/database/go"
 export_db_conn
 
 # Initialize the database
-echo -e "${BLUE}:: Initializing IPAFFS database${NC}"
+echo -e "${BLUE}\n:: Initializing IPAFFS database${NC}"
 initialize_database
 
 # Source setup script and override database port number
@@ -79,12 +79,12 @@ source "${IMPORTS_DIR}/docker-local/docker_setup.sh"
 export_db_conn
 
 # Load data
-echo -e "${BLUE}:: Loading fixture data${NC}"
+echo -e "${BLUE}\n:: Loading fixture data${NC}"
 load_all_data
 
 # Done \o/
 echo
-echo -e "${GREEN}:: IPAFFS Database creation is complete!${NC}"
+echo -e "${GREEN}\n:: IPAFFS Database creation is complete!${NC}"
 echo
 
 # vim: set ts=2 sts=2 sw=2 et:

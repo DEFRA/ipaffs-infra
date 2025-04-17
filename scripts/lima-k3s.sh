@@ -45,14 +45,14 @@ fi
 
 # Create VM using lima if not already present
 if limactl list ipaffs 2>&1 | grep -q "No instance"; then
-  echo -e "${BLUE}:: Creating virtual machine using \`limactl\`${NC}"
+  echo -e "${BLUE}\n:: Creating virtual machine using \`limactl\`${NC}"
   [[ "$(uname)" == "Darwin" ]] && VZARGS="--vm-type=vz --rosetta"
   limactl create --name=ipaffs ${VZARGS} --tty=false "${REPO_DIR}/lima/k3s-local-dev.yaml"
 fi
 
 # Start the VM if not running
 if ! limactl list ipaffs | grep -q Running; then
-  echo -e "${BLUE}:: Starting virtual machine using \`limactl\`${NC}"
+  echo -e "${BLUE}\n:: Starting virtual machine using \`limactl\`${NC}"
   ## allow privileged port access for none sudo user
   [[ "$(uname)" == "Linux" ]] && sudo setcap 'cap_net_bind_service=+ep' /usr/bin/ssh
 
@@ -61,7 +61,7 @@ fi
 
 # Generate TLS certificate and key if missing
 if ! [[ -e "${REPO_DIR}/deploy/tls/imp.dev.azure.defra.cloud.pem" ]]; then
-  echo -e "${BLUE}:: Creating self-signed wildcard certificate${NC}"
+  echo -e "${BLUE}\n:: Creating self-signed wildcard certificate${NC}"
   openssl req -x509 -nodes -newkey rsa:2048 -days 3650 \
     -keyout "${REPO_DIR}/deploy/tls/imp.dev.azure.defra.cloud-key.pem" \
     -out "${REPO_DIR}/deploy/tls/imp.dev.azure.defra.cloud.pem" \
@@ -69,7 +69,7 @@ if ! [[ -e "${REPO_DIR}/deploy/tls/imp.dev.azure.defra.cloud.pem" ]]; then
 
   # Trust the certificate on macOS
   if [[ "$(uname)" == "Darwin" ]]; then
-    echo -e "${BLUE}:: Adding the self-signed certificate to the MacOS Login Keychain${NC}"
+    echo -e "${BLUE}\n:: Adding the self-signed certificate to the MacOS Login Keychain${NC}"
     security -v add-trusted-cert -d -r trustRoot -k "${HOME}/Library/Keychains/login.keychain-db" "${REPO_DIR}/deploy/tls/imp.dev.azure.defra.cloud.pem"
   fi
 fi
@@ -78,32 +78,32 @@ fi
 limactl shell ipaffs sudo mkdir -p /srv/registry
 
 # Use correct Docker context
-echo -e "${BLUE}:: Switching Docker context to \`lima-ipaffs\`${NC}"
+echo -e "${BLUE}\n:: Switching Docker context to \`lima-ipaffs\`${NC}"
 docker context use lima-ipaffs
 
 # Configure kubectl to connect to IPAFFS VM
 export KUBECONFIG="${HOME}/.lima/ipaffs/copied-from-guest/kubeconfig.yaml"
 
 # Install nginx ingress controller
-echo -e "${BLUE}:: Installing nginx-ingress controller${NC}"
+echo -e "${BLUE}\n:: Installing nginx-ingress controller${NC}"
 helm upgrade --install nginx ingress-nginx --repo https://kubernetes.github.io/ingress-nginx --namespace kube-system --values "${REPO_DIR}/deploy/nginx-ingress/values.yaml"
 
 # Build SQL Server container
-echo -e "${BLUE}:: Building database container image${NC}"
+echo -e "${BLUE}\n:: Building database container image${NC}"
 docker build --platform=linux/amd64 -t import-notification-database "${IMPORTS_DIR}/docker-local/database"
 
 # Tag and push database container image
-echo -e "${BLUE}:: Pushing database container image to local registry${NC}"
+echo -e "${BLUE}\n:: Pushing database container image to local registry${NC}"
 docker tag import-notification-database:latest host.docker.internal:30500/import-notification-database:latest
 docker push host.docker.internal:30500/import-notification-database:latest
 
 # Deploy base services
-echo -e "${BLUE}:: Deploying base services to Kubernetes${NC}"
+echo -e "${BLUE}\n:: Deploying base services to Kubernetes${NC}"
 kubectl apply -k "${REPO_DIR}/deploy"
 
 # Done \o/
 echo
-echo -e "${GREEN}:: IPAFFS development VM is provisioned and ready to use!${NC}"
+echo -e "${GREEN}\n:: IPAFFS development VM is provisioned and ready to use!${NC}"
 echo
 echo "Don't forget to configure kubectl and docker - consider adding these to your shell profile:"
 echo '  $ export KUBECONFIG="${HOME}/.lima/ipaffs/copied-from-guest/kubeconfig.yaml'
