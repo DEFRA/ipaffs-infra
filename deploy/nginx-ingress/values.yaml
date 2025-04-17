@@ -1,0 +1,3 @@
+controller:
+  proxySetHeaders:
+    X-Original-Host: "$host"

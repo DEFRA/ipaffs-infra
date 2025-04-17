@@ -85,7 +85,7 @@ docker context use lima-ipaffs
 export KUBECONFIG="${HOME}/.lima/ipaffs/copied-from-guest/kubeconfig.yaml"
 
 # Install nginx ingress controller
-helm upgrade --install nginx ingress-nginx --repo https://kubernetes.github.io/ingress-nginx --namespace kube-system
+helm upgrade --install nginx ingress-nginx --repo https://kubernetes.github.io/ingress-nginx --namespace kube-system --values "${REPO_DIR}/deploy/nginx-ingress/values.yaml"
 
 # Build SQL Server container
 echo -e "${BLUE}:: Building database container image${NC}"
