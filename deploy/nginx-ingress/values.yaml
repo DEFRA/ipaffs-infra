@@ -1,3 +1,4 @@
+# See https://artifacthub.io/packages/helm/ingress-nginx/ingress-nginx#values for configuration reference
 controller:
   proxySetHeaders:
     X-Original-Host: "$host"
