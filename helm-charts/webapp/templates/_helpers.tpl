@@ -32,9 +32,9 @@ Ingress hosts
   {{- if gt (len .Values.ingress.hosts) 0 -}}
     {{- $hosts := list -}}
     {{- range .Values.ingress.hosts }}
-      {{- $hosts = append $hosts $host }}
-      {{- $hostWithSuffix := printf "%s.imp.%s.azure.defra.cloud" . $.Values.environment -}}
-      {{- $hosts = append $hosts $hostWithSuffix }}
+      {{- $host := $.Values.environment -}}
+      {{- $hostWithSuffix := printf "%s.imp.%s.azure.defra.cloud" . $host -}}
+      {{- $hosts = append $hosts $host $hostWithSuffix }}
     {{- end -}}
     {{- $hosts | join "\n" -}}
   {{- end -}}
