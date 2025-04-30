@@ -1,1 +1,0 @@
-applicationName: {{- printf "%s-%s" .Release.Name | replace "-proxy" "" }}
