@@ -1,7 +1,7 @@
 kind: Service
 apiVersion: v1
 metadata:
-  name: {{ .Values.applicationName }}
+  name: {{ .Values.application.name }}
 spec:
   ports:
     - protocol: TCP
