@@ -8,3 +8,14 @@ steps:
 - script: echo Hello, world!
   displayName: 'Run a one-line script'
 
+steps:
+- task: AzureResourceManagerTemplateDeployment@3
+  inputs:
+    deploymentScope: 'Subscription'
+    subscriptionId: 'cfa4ccd1-5a5e-420c-9bca-03218a43e46d'
+    location: 'North Europe'
+    templateLocation: 'Linked artifact'
+    csmFile: 'bicep/test.bicep'
+    deploymentMode: 'Incremental'
+
+# vim: set ft=yaml ts=2 sts=2 sw=2 et:
