@@ -21,10 +21,10 @@ for service in "${SERVICES[@]}"; do
   echo ":: Deploying pod for $service..."
   cd "$IMPORTS_DIR/$service" || { echo "Failed to cd into $service"; exit 1; }
   if [ "$VERBOSE" = true ]; then
-    git pull && git checkout spike/dev-containers
+    git checkout spike/dev-containers && git pull
     ./scripts/build.sh && ./scripts/deploy.sh
   else
-    git pull >/dev/null 2>&1 && git checkout spike/dev-containers >/dev/null 2>&1 
+    git checkout spike/dev-containers >/dev/null 2>&1 && git pull >/dev/null 2>&1
     ./scripts/build.sh >/dev/null 2>&1 && ./scripts/deploy.sh >/dev/null 2>&1
   fi
   echo ":: Deployed pod for $service"
