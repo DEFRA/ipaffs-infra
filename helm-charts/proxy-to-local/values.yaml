@@ -1,1 +1,1 @@
-applicationName: {{ printf "%s-%s" .Release.Name | replace "-proxy" "" }}
+applicationName: {{- printf "%s-%s" .Release.Name | replace "-proxy" "" }}
