@@ -1,9 +1,9 @@
 apiVersion: discovery.k8s.io/v1
 kind: EndpointSlice
 metadata:
-  name: {{ .Values.application.name }}
+  name: {{ .Values.applicationName }}
   labels:
-    kubernetes.io/service-name: {{ .Values.application.name }}
+    kubernetes.io/service-name: {{ .Values.applicationName }}
 endpoints:
   - addresses:
       - 192.168.5.2 # IP address of the host from with in the lima vm

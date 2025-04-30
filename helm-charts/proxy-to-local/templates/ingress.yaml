@@ -3,17 +3,17 @@ kind: Ingress
 metadata:
   annotations:
     nginx.ingress.kubernetes.io/ssl-redirect: "false"
-  name: {{ .Values.application.name }}
+  name: {{ .Values.applicationName }}
   namespace: default
 spec:
   ingressClassName: nginx
   rules:
-    - host: {{ .Values.application.name }}
+    - host: {{ .Values.applicationName }}
       http:
         paths:
           - backend:
               service:
-                name: {{ .Values.application.name }}
+                name: {{ .Values.applicationName }}
                 port:
                   number: 80
             path: /
