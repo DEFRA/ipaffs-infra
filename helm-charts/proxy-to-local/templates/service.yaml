@@ -1,0 +1,8 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: {{ .Release.Name }}
+spec:
+  ports:
+    - protocol: TCP
+      port: 80
