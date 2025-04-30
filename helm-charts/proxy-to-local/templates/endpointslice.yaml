@@ -9,4 +9,4 @@ endpoints:
       - 192.168.5.2 # IP address of the host from with in the lima vm
 addressType: IPv4
 ports:
-  - port: {{ .Values.local.port }}
+  - port: {{ $.Values.local.port }}
