@@ -13,7 +13,7 @@ steps:
 - task: AzureResourceManagerTemplateDeployment@3
   inputs:
     deploymentScope: 'Subscription'
-    azureResourceManagerConnection: 'ADO-DefraGovUK-AZR-IMP-SND1'
+    azureResourceManagerConnection: 'ADO-DefraGovUK-AZR-POC_IMP'
     subscriptionId: 'cfa4ccd1-5a5e-420c-9bca-03218a43e46d'
     location: 'North Europe'
     templateLocation: 'Linked artifact'
