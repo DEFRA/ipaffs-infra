@@ -1,5 +1,7 @@
 trigger:
-  - main
+  branches:
+    include:
+      - main
 
 pool:
   name: DEFRA-COMMON-ubuntu2204-SSV5
