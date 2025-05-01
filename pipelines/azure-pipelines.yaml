@@ -1,0 +1,29 @@
+trigger:
+  branches:
+    include:
+      - main
+
+pool:
+  name: DEFRA-COMMON-ubuntu2204-SSV5
+
+variables:
+  azureSubscription: 'ADO-DefraGovUK-AZR-POC_IMP' # Name of service connection
+  resourceGroupName: 'POCIMPINFRGP001'
+  location: 'North Europe'
+
+stages:
+  - stage: DeployAKS
+    jobs:
+      - job: Deploy
+        steps:
+          - task: AzureCLI@2
+            inputs:
+              azureSubscription: $(azureSubscription)
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                az group create --name $(resourceGroupName) --location $(location)
+                az deployment group create \
+                  --resource-group $(resourceGroupName) \
+                  --template-file aks.bicep \
+                  --parameters @aks.parameters.json
