@@ -1,0 +1,21 @@
+apiVersion: v2
+name: ipaffs-backend
+description: A meta-package that installs all IPAFFS backend services
+type: application
+version: 0.1.0
+dependencies:
+  - name: bip-service
+    version: 0.1.0
+    repository: "git+ssh://git@giteux.azure.defra.cloud/imports/bip-microservice.git@/deploy?ref=spike/dev-containers&sparse=1"
+  - name: countries-service
+    version: 0.1.0
+    repository: "git+ssh://git@giteux.azure.defra.cloud/imports/countries-microservice.git@/deploy?ref=spike/dev-containers&sparse=1"
+  - name: customer-service
+    version: 0.1.0
+    repository: "git+ssh://git@giteux.azure.defra.cloud/imports/customer-microservice.git@/deploy?ref=spike/dev-containers&sparse=1"
+  - name: notification-service
+    version: 0.1.0
+    repository: "git+ssh://git@giteux.azure.defra.cloud/imports/notification-microservice.git@/deploy?ref=spike/dev-containers&sparse=1"
+  - name: permissions-service
+    version: 0.1.0
+    repository: "git+ssh://git@giteux.azure.defra.cloud/imports/permissions.git@/deploy?ref=spike/dev-containers&sparse=1"
