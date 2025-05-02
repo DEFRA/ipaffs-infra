@@ -1,0 +1,6 @@
+dependencies:
+- name: notification-frontend
+  repository: git+ssh://git@giteux.azure.defra.cloud/imports/frontend-notification.git@/deploy?ref=spike/dev-containers&sparse=1
+  version: 0.1.0
+digest: sha256:1558b3f72d69189241cf3655845ab3707b869e5f987d7601175a8f734e6277bd
+generated: "2025-05-02T15:51:19.521348+01:00"
