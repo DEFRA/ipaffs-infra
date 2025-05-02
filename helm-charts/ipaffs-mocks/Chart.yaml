@@ -1,0 +1,14 @@
+apiVersion: v2
+name: ipaffs-mocks
+description: A meta-package that installs all IPAFFS mocks
+type: application
+version: 0.1.0
+dependencies:
+  - name: customer-wiremock
+    version: 0.1.0
+    repository: "git+ssh://git@giteux.azure.defra.cloud/imports/customer-wiremock-microservice.git@/deploy?ref=spike/dev-containers&sparse=1"
+  - name: rds-wiremock
+    version: 0.1.0
+    repository: "git+ssh://git@giteux.azure.defra.cloud/imports/rds-wiremock-microservice@/deploy?ref=spike/dev-containers&sparse=1"
+
+
