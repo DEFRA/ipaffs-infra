@@ -15,4 +15,4 @@ dependencies:
   repository: git+ssh://git@giteux.azure.defra.cloud/imports/permissions.git@/deploy?ref=spike/dev-containers&sparse=1
   version: 0.1.0
 digest: sha256:3149e8eefe3901c711cc14d16d10a91dc48499b7a3bc91b8f2b951a10dcd0a66
-generated: "2025-05-03T13:35:16.895189+01:00"
+generated: "2025-05-02T15:52:00.602959+01:00"
