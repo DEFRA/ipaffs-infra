@@ -33,22 +33,29 @@ retrieve_secret() {
 }
 
 echo -e "${BLUE}:: Refreshing developer secrets from Key Vault${NC}"
+echo -n >"${SECRETS_FILE}"
 
-echo "secrets:" >"${SECRETS_FILE}"
+# Iterate over service types (corresponds to first-child charts, hardcoded for now)
+for service_type in "backend" "frontend"; do
+  echo "${service_type}:" >>"${SECRETS_FILE}"
 
-# Iterate over services in config file
-yq eval 'keys | .[]' "${SECRETS_CONFIG}" | while IFS= read -r service_name; do
-  echo -e "${BLUE}:: Retrieving secrets for ${service_name}..${NC}"
-  echo "  ${service_name}:" >>"${SECRETS_FILE}"
+  # Iterate over services in config file
+  yq eval ".${service_type} | keys | .[]" "${SECRETS_CONFIG}" | while IFS= read -r service_name; do
+    echo -e "${BLUE}:: Retrieving secrets for ${service_name}..${NC}"
+    echo "  ${service_name}:" >>"${SECRETS_FILE}"
+    echo "    secrets:" >>"${SECRETS_FILE}"
 
-  # Iterate over secret names for each service
-  yq eval ".${service_name}[]" "${SECRETS_CONFIG}" | while IFS= read -r secret_name; do
-    value="$(retrieve_secret "${secret_name}")"
+    # Iterate over secret names for each service
+    yq eval ".${service_type}.${service_name}[]" "${SECRETS_CONFIG}" | while IFS= read -r secret_name; do
+      value="$(retrieve_secret "${secret_name}")"
 
-    # Replace double quote (") with backslash double quote (\") in the secret value, to avoid badyaml
-    escaped_value="${value//\"/\\\"}"
+      # Replace double quote (") with backslash double quote (\") in the secret value, to avoid badyaml
+      escaped_value="${value//\"/\\\"}"
 
-    # Replace hyphen (-) with underscore (_) in secret name
-    echo "    ${secret_name//-/_}: \"${escaped_value}\"" >>"${SECRETS_FILE}"
+      # Replace hyphen (-) with underscore (_) in secret name
+      echo "      ${secret_name//-/_}: \"${escaped_value}\"" >>"${SECRETS_FILE}"
+    done
+    echo >>"${SECRETS_FILE}"
   done
+  echo >>"${SECRETS_FILE}"
 done

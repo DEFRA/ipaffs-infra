@@ -41,6 +41,8 @@ while getopts "bdhv" OPT; do
   esac
 done
 
+[[ -s "${REPO_DIR}/helm-charts/ipaffs/dev-secrets.yaml" ]] || "${REPO_DIR}"/scripts/refresh-dev-secrets.sh
+
 if [ "$COMMAND" = "build" ]; then
   echo -e "${BLUE}\n:: Creating ipaffs-backend chart... ${YELLOW}(this operation might take a little while)${NC}"
   helm dependency update "$HELM_PACKAGE_DIR/ipaffs-backend" --burst-limit -1
