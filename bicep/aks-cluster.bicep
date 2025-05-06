@@ -16,15 +16,32 @@ resource aks 'Microsoft.ContainerService/managedClusters@2023-01-01' = {
     kubernetesVersion: '1.32'
 
     agentPoolProfiles: [
+      // System node pool
       {
-        name: 'agentpool'
-        count: 2
+        name: 'systemnp'
         vmSize: 'Standard_DS2_v2'
         osType: 'Linux'
-        mode: 'System'
         type: 'VirtualMachineScaleSets'
+        mode: 'System'
         vnetSubnetID: subnetId
         enableNodePublicIP: false
+        minCount: 1
+        maxCount: 3
+        enableAutoScaling: true
+      }
+
+      // User/worker node pool
+      {
+        name: 'workernp'
+        vmSize: 'Standard_DS2_v2'
+        osType: 'Linux'
+        type: 'VirtualMachineScaleSets'
+        mode: 'User'
+        vnetSubnetID: subnetId
+        enableNodePublicIP: false
+        minCount: 1
+        maxCount: 5
+        enableAutoScaling: true
       }
     ]
 
