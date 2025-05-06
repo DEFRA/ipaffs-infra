@@ -1,6 +1,5 @@
 deploy/tls/*
-**/.idea/
-*.iml
 helm-charts/*/charts/
 helm-charts/*/tmpcharts*
-
+**/.idea/
+*.iml
