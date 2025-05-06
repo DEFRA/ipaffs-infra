@@ -4,7 +4,7 @@ set -e
 
 # === Configuration ===
 AKS_RG_NAME="POCIMPINFRGP001"
-LOCATION="uksouth"
+LOCATION="northeurope"
 DNS_PREFIX="ipaffsaks"
 ADMIN_USERNAME="ipaffsadmin"
 SSH_KEY_PATH="$HOME/defra/ipaffs-infra/bicep/aks_id_rsa.pub"
