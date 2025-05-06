@@ -4,36 +4,12 @@ description: A meta-package that installs all IPAFFS dependencies
 type: application
 version: 0.1.0
 dependencies:
-#  - name: bip-service
-#    version: 0.1.0
-#    repository: "git+ssh://git@giteux.azure.defra.cloud/imports/bip-microservice.git@/deploy?ref=spike/dev-containers&sparse=1"
-#  - name: countries-service
-#    version: 0.1.0
-#    repository: "git+ssh://git@giteux.azure.defra.cloud/imports/countries-microservice.git@/deploy?ref=spike/dev-containers&sparse=1"
-#  - name: customer-service
-#    version: 0.1.0
-#    repository: "git+ssh://git@giteux.azure.defra.cloud/imports/customer-microservice.git@/deploy?ref=spike/dev-containers&sparse=1"
-#  - name: customer-wiremock
-#    version: 0.1.0
-#    repository: "git+ssh://git@giteux.azure.defra.cloud/imports/customer-wiremock-microservice.git@/deploy?ref=spike/dev-containers&sparse=1"
-#  - name: rds-wiremock
-#    version: 0.1.0
-#    repository: "git+ssh://git@giteux.azure.defra.cloud/imports/rds-wiremock-microservice@/deploy?ref=spike/dev-containers&sparse=1"
-#  - name: notification-service
-#    version: 0.1.0
-#    repository: "git+ssh://git@giteux.azure.defra.cloud/imports/notification-microservice.git@/deploy?ref=spike/dev-containers&sparse=1"
-#  - name: notification-frontend
-#    version: 0.1.0
-#    repository: "git+ssh://git@giteux.azure.defra.cloud/imports/frontend-notification.git@/deploy?ref=spike/dev-containers&sparse=1"
-#  - name: permissions-service
-#    version: 0.1.0
-#    repository: "git+ssh://git@giteux.azure.defra.cloud/imports/permissions.git@/deploy?ref=spike/dev-containers&sparse=1"
   - name: ipaffs-backend
     version: 0.1.0
-    repository: "git+https://github.com/DEFRA/ipaffs-infra.git@/helm-charts/?ref=feature/imta-20071-helm-meta-package&sparse=1"
+    repository: "git+ssh://github.com/DEFRA/ipaffs-infra.git@/helm-charts/?ref=feature/imta-20071-helm-meta-package&sparse=1"
   - name: ipaffs-frontend
     version: 0.1.0
-    repository: "git+https://github.com/DEFRA/ipaffs-infra.git@/helm-charts/?ref=feature/imta-20071-helm-meta-package&sparse=1"
+    repository: "git+ssh://git@github.com/DEFRA/ipaffs-infra.git@/helm-charts/?ref=feature/imta-20071-helm-meta-package&sparse=1"
   - name: ipaffs-mocks
     version: 0.1.0
-    repository: "git+https://github.com/DEFRA/ipaffs-infra.git@/helm-charts/?ref=feature/imta-20071-helm-meta-package&sparse=1"
+    repository: "git+ssh://git@github.com/DEFRA/ipaffs-infra.git@/helm-charts/?ref=feature/imta-20071-helm-meta-package&sparse=1"

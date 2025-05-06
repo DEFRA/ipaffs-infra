@@ -7,6 +7,11 @@ dependencies:
   - name: bip-service
     version: 0.1.0
     repository: "git+ssh://git@giteux.azure.defra.cloud/imports/bip-microservice.git@/deploy?ref=spike/dev-containers&sparse=1"
+#    import-values:
+#      - child: config
+#        parent: bip-service.webapp
+#      - child: secrets
+#        parent: bip-service.secrets
   - name: countries-service
     version: 0.1.0
     repository: "git+ssh://git@giteux.azure.defra.cloud/imports/countries-microservice.git@/deploy?ref=spike/dev-containers&sparse=1"
