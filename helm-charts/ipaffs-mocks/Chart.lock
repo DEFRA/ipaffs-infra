@@ -1,9 +1,0 @@
-dependencies:
-- name: customer-wiremock
-  repository: git+ssh://git@giteux.azure.defra.cloud/imports/customer-wiremock-microservice.git@/deploy?ref=spike/dev-containers&sparse=1
-  version: 0.1.0
-- name: rds-wiremock
-  repository: git+ssh://git@giteux.azure.defra.cloud/imports/rds-wiremock-microservice@/deploy?ref=spike/dev-containers&sparse=1
-  version: 0.1.0
-digest: sha256:98801be4ef8c2ef082b9db35c48fda58da78102bf7754644f00a5d8505fec446
-generated: "2025-05-02T15:19:21.683496+01:00"
