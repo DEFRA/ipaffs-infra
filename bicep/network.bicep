@@ -3,7 +3,7 @@ param vnetName string = 'ipaffs-vnet'
 param subnetName string = 'aks-subnet'
 param natGatewayName string = 'ipaffs-nat'
 param publicIPName string = 'ipaffs-nat-ip'
-
+/*
 resource publicIP 'Microsoft.Network/publicIPAddresses@2022-07-01' = {
   name: publicIPName
   location: location

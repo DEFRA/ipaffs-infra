@@ -5,9 +5,9 @@ set -e
 # === Configuration ===
 AKS_RG_NAME="POCIMPINFRGP001"
 LOCATION="northeurope"
-DNS_PREFIX="ipaffsaks"
-ADMIN_USERNAME="ipaffsadmin"
-SSH_KEY_PATH="$HOME/defra/ipaffs-infra/bicep/aks_id_rsa.pub"
+#DNS_PREFIX="ipaffsaks"
+#ADMIN_USERNAME="ipaffsadmin"
+#SSH_KEY_PATH="$HOME/defra/ipaffs-infra/bicep/aks_id_rsa.pub"
 
 # === Resource Group for actual AKS and network resources ===
 echo "🔧 Ensuring AKS resource group exists: $AKS_RG_NAME"
@@ -16,6 +16,7 @@ echo "✅ Resource group '$AKS_RG_NAME' is ready."
 
 # === Deploy main.bicep which triggers network + AKS module ===
 echo "🚀 Deploying Bicep templates to $AKS_RG_NAME..."
+<<'END'
 az deployment group create \
   --resource-group $AKS_RG_NAME \
   --template-file main.bicep \
@@ -24,6 +25,13 @@ az deployment group create \
                sshRSAPublicKey="$(cat $SSH_KEY_PATH)" \
                location=$LOCATION \
                aksResourceGroupName=$AKS_RG_NAME \
+  --output json | tee deployment-output.json
+END
+
+az deployment group create \
+  --resource-group $AKS_RG_NAME \
+  --template-file main.bicep \
+  --parameters location=$LOCATION \
   --output json | tee deployment-output.json
 
 echo "✅ Bicep deployment initiated."

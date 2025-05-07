@@ -1,10 +1,12 @@
-param dnsPrefix string
+/*param dnsPrefix string
 param linuxAdminUsername string
 @secure()
 param sshRSAPublicKey string
+*/
 param location string = resourceGroup().location
-param aksResourceGroupName string = 'POCIMPINFRGP001'
 
+param aksResourceGroupName string = 'POCIMPINFRG1401'
+/*
 module network 'network.bicep' = {
   name: 'deployNetwork'
   scope: resourceGroup(aksResourceGroupName)
@@ -22,5 +24,16 @@ module aks 'aks-cluster.bicep' = {
     sshRSAPublicKey: sshRSAPublicKey
     subnetId: network.outputs.subnetId
     location: location
+  }
+}
+*/
+module acr 'acr.bicep' = {
+  name: 'createAcr'
+  scope: resourceGroup(aksResourceGroupName)
+  params: {
+    name: 'POCIMPINFAC1401'
+    location: location
+    sku: 'Premium' // or 'Premium' if you need private endpoints
+    adminEnabled: true
   }
 }
