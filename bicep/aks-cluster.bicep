@@ -33,7 +33,7 @@ resource aks 'Microsoft.ContainerService/managedClusters@2023-01-01' = {
       // User/worker node pool
       {
         name: 'POCIMPINFAK1401-userpool'
-        vmSize: 'Standard_DS2_v2'
+        vmSize: 'Standard_E16as_v6'
         osType: 'Linux'
         type: 'VirtualMachineScaleSets'
         mode: 'User'
