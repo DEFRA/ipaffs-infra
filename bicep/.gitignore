@@ -5,11 +5,3 @@ aks_id_rsa.pub
 
 # Exclude output/deployment files
 *.json
-
-# macOS system files
-.DS_Store
-
-# IDE/editor settings (optional)
-.vscode/
-.idea/
-*.swp
