@@ -6,7 +6,7 @@ param subnetId string
 param location string = resourceGroup().location
 
 resource aks 'Microsoft.ContainerService/managedClusters@2023-01-01' = {
-  name: 'pocimpinfak1401'
+  name: 'POCIMPINFAK1401'
   location: location
   identity: {
     type: 'SystemAssigned'
