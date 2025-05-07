@@ -1,4 +1,3 @@
 deploy/tls/*
 **/.idea/
 *.iml
-tls/*
