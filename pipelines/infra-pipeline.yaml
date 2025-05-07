@@ -1,0 +1,28 @@
+trigger:
+  branches:
+    include:
+      - main
+
+pool:
+  name: DEFRA-COMMON-ubuntu2204-SSV5
+
+variables:
+  azureSubscription: 'ADO-DefraGovUK-AZR-POC_IMP' # Name of service connection
+  resourceGroupName: 'POCIMPINFRG1401'
+  location: 'uksouth'
+
+stages:
+  - stage: DeployACR
+    jobs:
+      - job: Deploy
+        steps:
+          - task: AzureCLI@2
+            inputs:
+              azureSubscription: $(azureSubscription)
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                az deployment group create \
+                  --resource-group $(resourceGroupName) \
+                  --template-file bicep/main.bicep \
+                  --parameters location=$(location)
