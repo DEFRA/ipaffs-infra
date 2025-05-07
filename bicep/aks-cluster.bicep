@@ -18,7 +18,7 @@ resource aks 'Microsoft.ContainerService/managedClusters@2023-01-01' = {
     agentPoolProfiles: [
       // System node pool
       {
-        name: 'systemnp'
+        name: 'POCIMPINFAK1401-systempool'
         vmSize: 'Standard_DS2_v2'
         osType: 'Linux'
         type: 'VirtualMachineScaleSets'
