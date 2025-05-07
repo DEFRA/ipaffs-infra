@@ -19,7 +19,7 @@ resource aks 'Microsoft.ContainerService/managedClusters@2023-01-01' = {
       // System node pool
       {
         name: 'POCIMPINFAK1401-systempool'
-        vmSize: 'Standard_DS2_v2'
+        vmSize: 'Standard_E16as_v6'
         osType: 'Linux'
         type: 'VirtualMachineScaleSets'
         mode: 'System'
