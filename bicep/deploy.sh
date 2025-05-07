@@ -37,7 +37,7 @@ az deployment group create \
 echo "✅ Bicep deployment initiated."
 
 # === Optional: Wait for AKS readiness ===
-AKS_NAME="pocimpinfaks001"
+AKS_NAME="POCIMPINFAK1401"
 echo "⏳ Waiting for AKS cluster '$AKS_NAME' provisioning..."
 
 for i in {1..30}; do
