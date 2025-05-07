@@ -3,7 +3,7 @@
 set -e
 
 AKS_RG="POCIMPINFRGP001"
-LOCATION="uksouth"
+LOCATION="northeurope"
 VNET_NAME="ipaffs-vnet"
 SUBNET_NAME="aks-subnet"
 VM_NAME="aks-jumpbox"
