@@ -8,11 +8,11 @@ pool:
 
 variables:
   azureSubscription: 'ADO-DefraGovUK-AZR-POC_IMP' # Name of service connection
-  resourceGroupName: 'POCIMPINFRGP001'
-  location: 'North Europe'
+  resourceGroupName: 'POCIMPINFRG1401'
+  location: 'uksouth'
 
 stages:
-  - stage: DeployAKS
+  - stage: DeployACR
     jobs:
       - job: Deploy
         steps:
@@ -22,8 +22,7 @@ stages:
               scriptType: bash
               scriptLocation: inlineScript
               inlineScript: |
-                az group create --name $(resourceGroupName) --location $(location)
                 az deployment group create \
                   --resource-group $(resourceGroupName) \
-                  --template-file aks.bicep \
-                  --parameters @aks.parameters.json
+                  --template-file main.bicep \
+                  --parameters location=$(location)
