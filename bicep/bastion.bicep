@@ -1,55 +1,32 @@
 param location string = resourceGroup().location
-//param aksVnetId string
-param bastionVnetName string = 'bastion-vnet'
+param bastionVnetName string = 'POCIMPINFVN1042'
+param bastionSubnetName string = 'AzureBastionSubnet'
+param bastionPublicIPName string = 'POCIMPINFPI1042'
+param bastionHostName string = 'POCIMPINFBS1401'
 
-var bastionSubnetName = 'AzureBastionSubnet'
-var bastionSubnetPrefix = '10.100.0.0/24'
-var bastionAddressSpace = '10.100.0.0/16'
-var publicIpName = 'bastion-pip'
-var bastionHostName = 'bastion-host'
-
-// Create Bastion VNet
-resource bastionVnet 'Microsoft.Network/virtualNetworks@2022-07-01' = {
+resource bastionVnet 'Microsoft.Network/virtualNetworks@2024-05-01' existing = {
   name: bastionVnetName
-  location: location
-  properties: {
-    addressSpace: {
-      addressPrefixes: [ bastionAddressSpace ]
-    }
-    subnets: [
-      {
-        name: bastionSubnetName
-        properties: {
-          addressPrefix: bastionSubnetPrefix
-        }
-      }
-    ]
-  }
 }
 
-// Public IP for Bastion
-resource publicIp 'Microsoft.Network/publicIPAddresses@2022-07-01' = {
-  name: publicIpName
-  location: location
-  sku: {
-    name: 'Standard'
-  }
-  properties: {
-    publicIPAllocationMethod: 'Static'
-  }
+resource bastionSubnet 'Microsoft.Network/virtualNetworks/subnets@2024-05-01' existing = {
+  name: bastionSubnetName
+  parent: bastionVnet
 }
 
-// Bastion Host
-resource bastionHost 'Microsoft.Network/bastionHosts@2022-07-01' = {
+resource publicIp 'Microsoft.Network/publicIPAddresses@2024-05-01' existing = {
+  name: bastionPublicIPName
+}
+
+resource bastion 'Microsoft.Network/bastionHosts@2022-07-01' = {
   name: bastionHostName
   location: location
   properties: {
     ipConfigurations: [
       {
-        name: 'bastion-ipconfig'
+        name: '${bastionHostName}-ip-config'
         properties: {
           subnet: {
-            id: bastionVnet.properties.subnets[0].id
+            id: bastionSubnet.id
           }
           publicIPAddress: {
             id: publicIp.id
@@ -59,7 +36,3 @@ resource bastionHost 'Microsoft.Network/bastionHosts@2022-07-01' = {
     ]
   }
 }
-
-output bastionHostName string = bastionHost.name
-output bastionPublicIp string = publicIp.properties.ipAddress
-output bastionVnetId string = bastionVnet.id

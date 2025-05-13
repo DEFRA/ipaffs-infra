@@ -1,22 +1,36 @@
-param location string = resourceGroup().location
-param vnetName string = 'ipaffs-vnet'
-param subnetName string = 'aks-subnet'
-param vmName string = 'aks-jumpbox'
-param adminUsername string
+param location string
+param aksVnetName string
+param aksSubnetName string
+param adminUsername string = 'ipaffsadmin'
+param keyVaultName string = 'pocimpinfkv1401'
+//param sshKeySecretName string = 'aks-ssh-public'
+
 @secure()
-param adminPassword string
+param sshPublicKey string
+
+
+resource vnet 'Microsoft.Network/virtualNetworks@2024-05-01' existing = {
+  name: aksVnetName
+}
+
+resource subnet 'Microsoft.Network/virtualNetworks/subnets@2024-05-01' existing = {
+  name: aksSubnetName
+  parent: vnet
+}
+
+resource keyVault 'Microsoft.KeyVault/vaults@2023-02-01' existing = {
+  name: keyVaultName
+}
 
 resource nic 'Microsoft.Network/networkInterfaces@2022-07-01' = {
-  name: '${vmName}-nic'
+  name: 'jumpbox-nic'
   location: location
   properties: {
     ipConfigurations: [
       {
         name: 'ipconfig1'
         properties: {
-          subnet: {
-            id: resourceId('Microsoft.Network/virtualNetworks/subnets', vnetName, subnetName)
-          }
+          subnet: { id: subnet.id }
           privateIPAllocationMethod: 'Dynamic'
         }
       }
@@ -24,26 +38,35 @@ resource nic 'Microsoft.Network/networkInterfaces@2022-07-01' = {
   }
 }
 
-resource vm 'Microsoft.Compute/virtualMachines@2022-11-01' = {
-  name: vmName
+resource vm 'Microsoft.Compute/virtualMachines@2023-03-01' = {
+  name: 'jumpbox-vm'
   location: location
   properties: {
     hardwareProfile: {
       vmSize: 'Standard_B2s'
     }
     osProfile: {
-      computerName: vmName
+      computerName: 'jumpbox'
       adminUsername: adminUsername
-      adminPassword: adminPassword
       linuxConfiguration: {
-        disablePasswordAuthentication: false
+        disablePasswordAuthentication: true
+        ssh: {
+          publicKeys: [
+            {
+              path: '/home/${adminUsername}/.ssh/authorized_keys'
+//              keyData: '@Microsoft.KeyVault(SecretUri=${keyVault.properties.vaultUri}${sshKeySecretName})'
+//              keyData: '@Microsoft.KeyVault(SecretUri=${keyVault.properties.vaultUri}secrets/${sshKeySecretName})'
+              keyData: sshPublicKey
+            }
+          ]
+        }
       }
     }
     storageProfile: {
       imageReference: {
         publisher: 'Canonical'
-        offer: '0001-com-ubuntu-server-focal-daily'
-        sku: '20_04-daily-lts-gen2'
+        offer: '0001-com-ubuntu-server-focal'
+        sku: '20_04-lts'
         version: 'latest'
       }
       osDisk: {
@@ -59,5 +82,3 @@ resource vm 'Microsoft.Compute/virtualMachines@2022-11-01' = {
     }
   }
 }
-
-output vmName string = vm.name

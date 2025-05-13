@@ -25,4 +25,4 @@ stages:
                 az deployment group create \
                   --resource-group $(resourceGroupName) \
                   --template-file bicep/main.bicep \
-                  --parameters location=$(location)
+                  --parameters location=$(location) tenantId=$(az account show --query tenantId -o tsv) objectId=$(az ad signed-in-user show --query id -o tsv)

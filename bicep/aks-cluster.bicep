@@ -1,9 +1,9 @@
 param dnsPrefix string
 param linuxAdminUsername string
 @secure()
-param sshRSAPublicKey string
+param sshPublicKey string
 param subnetId string
-param location string = resourceGroup().location
+param location string
 
 resource aks 'Microsoft.ContainerService/managedClusters@2023-01-01' = {
   name: 'POCIMPINFAK1401'
@@ -18,8 +18,10 @@ resource aks 'Microsoft.ContainerService/managedClusters@2023-01-01' = {
     agentPoolProfiles: [
       // System node pool
       {
-        name: 'POCIMPINFAK1401-systempool'
+//        name: 'POCIMPINFAK1401-systempool'
+        name: 'ak1401sysnp'
         vmSize: 'Standard_E16as_v6'
+//        vmSize: 'Standard_B2s'
         osType: 'Linux'
         type: 'VirtualMachineScaleSets'
         mode: 'System'
@@ -27,20 +29,24 @@ resource aks 'Microsoft.ContainerService/managedClusters@2023-01-01' = {
         enableNodePublicIP: false
         minCount: 1
         maxCount: 3
+//        maxCount: 1
         enableAutoScaling: true
       }
 
       // User/worker node pool
       {
-        name: 'POCIMPINFAK1401-userpool'
+//        name: 'POCIMPINFAK1401-userpool'
+        name: 'ak1401usernp'
         vmSize: 'Standard_E16as_v6'
+//        vmSize: 'Standard_B2s'
         osType: 'Linux'
         type: 'VirtualMachineScaleSets'
         mode: 'User'
         vnetSubnetID: subnetId
         enableNodePublicIP: false
         minCount: 1
-        maxCount: 5
+        maxCount: 3
+//        maxCount: 1
         enableAutoScaling: true
       }
     ]
@@ -50,7 +56,7 @@ resource aks 'Microsoft.ContainerService/managedClusters@2023-01-01' = {
       ssh: {
         publicKeys: [
           {
-            keyData: sshRSAPublicKey
+            keyData: sshPublicKey
           }
         ]
       }
