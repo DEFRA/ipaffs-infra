@@ -47,7 +47,7 @@ module acr 'acr.bicep' = {
   name: 'createAcr'
   scope: resourceGroup(aksResourceGroupName)
   params: {
-    name: 'POCIMPINFAC1401p'
+    name: 'POCIMPINFAC1401'
     location: location
     sku: 'Premium' // or 'Premium' if you need private endpoints
     adminEnabled: true
