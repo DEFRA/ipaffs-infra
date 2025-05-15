@@ -7,7 +7,7 @@ param aksVnetName string = 'POCIMPINFVN1401'
 param aksSubnetName string = 'POCIMPINFSU1401'
 param bastionVnetName string = 'POCIMPINFVN1042'
 param bastionSubnetName string = 'AzureBastionSubnet'
-param keyVaultName string = 'pocimpinfkv1401'
+param keyVaultName string = 'POCIMPINFKV1401'
 param sshKeySecretName string = 'aks-ssh-public'
 @description('Admin username for AKS nodes and jumpbox')
 param linuxAdminUsername string = 'ipaffsadmin'
@@ -16,7 +16,8 @@ param linuxAdminUsername string = 'ipaffsadmin'
 @secure()
 param sshPublicKey string = loadTextContent('aks_id_rsa.pub')
 //param sshRSAPublicKey string = '@Microsoft.KeyVault(SecretUri=https://pocimpinfkv1401.vault.azure.net/secrets/aks-ssh-public)'
-
+@secure()
+param jumpboxPassword string = '@Microsoft.KeyVault(SecretUri=https://POCIMPINFKV1401.vault.azure.net/secrets/jumpbox-password)'
 
 module network 'network.bicep' = {
   name: 'deployNetwork'
@@ -87,6 +88,7 @@ module jumpbox 'jumpbox.bicep' = {
     aksVnetName: aksVnetName
     aksSubnetName: aksSubnetName
     adminUsername: 'ipaffsadmin'
+    jumpboxPassword: jumpboxPassword
     sshPublicKey: sshPublicKey
 //    keyVaultName: keyVaultName
 //    sshKeySecretName: sshKeySecretName

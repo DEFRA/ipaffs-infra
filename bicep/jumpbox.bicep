@@ -2,6 +2,9 @@ param location string
 param aksVnetName string
 param aksSubnetName string
 param adminUsername string = 'ipaffsadmin'
+@secure()
+param jumpboxPassword string
+
 //param keyVaultName string = 'pocimpinfkv1401'
 //param sshKeySecretName string = 'aks-ssh-public'
 
@@ -49,8 +52,9 @@ resource vm 'Microsoft.Compute/virtualMachines@2023-03-01' = {
     osProfile: {
       computerName: 'jumpbox'
       adminUsername: adminUsername
+      adminPassword: jumpboxPassword
       linuxConfiguration: {
-        disablePasswordAuthentication: true
+        disablePasswordAuthentication: false
         ssh: {
           publicKeys: [
             {
