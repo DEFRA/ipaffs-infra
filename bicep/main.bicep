@@ -8,7 +8,7 @@ param aksResourceGroupName string = 'POCIMPINFRG1401'
 param tenantId string
 param objectId string
 param dnsPrefix string = 'ipaffsaks'
-param acrName string = 'POCIMPINFAC1401p'
+param acrName string = 'POCIMPINFAC1401'
 //param bastionVnetName string = 'POCIMPINFVN1042'
 //param bastionSubnetName string = 'AzureBastionSubnet'
 
