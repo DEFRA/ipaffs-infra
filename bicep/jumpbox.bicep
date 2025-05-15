@@ -2,7 +2,7 @@ param location string
 param aksVnetName string
 param aksSubnetName string
 param adminUsername string = 'ipaffsadmin'
-param keyVaultName string = 'pocimpinfkv1401'
+//param keyVaultName string = 'pocimpinfkv1401'
 //param sshKeySecretName string = 'aks-ssh-public'
 
 @secure()
@@ -17,10 +17,11 @@ resource subnet 'Microsoft.Network/virtualNetworks/subnets@2024-05-01' existing 
   name: aksSubnetName
   parent: vnet
 }
-
+/*
 resource keyVault 'Microsoft.KeyVault/vaults@2023-02-01' existing = {
   name: keyVaultName
 }
+*/
 
 resource nic 'Microsoft.Network/networkInterfaces@2022-07-01' = {
   name: 'jumpbox-nic'

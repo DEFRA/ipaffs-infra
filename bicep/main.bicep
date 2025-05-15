@@ -40,14 +40,15 @@ module aks 'aks-cluster.bicep' = {
     subnetId: network.outputs.aksSubnetId
     location: location
   }
-  dependsOn: [ network, acr, keyVault,  ]
+  dependsOn: [ acr, keyVault ]
 }
 
 module acr 'acr.bicep' = {
   name: 'createAcr'
   scope: resourceGroup(aksResourceGroupName)
   params: {
-    name: 'POCIMPINFAC1401'
+//    name: 'POCIMPINFAC1401'
+    name: 'POCIMPINFAC1401p'
     location: location
     sku: 'Premium' // or 'Premium' if you need private endpoints
     adminEnabled: true
