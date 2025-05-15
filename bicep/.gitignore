@@ -1,4 +1,5 @@
-# Exclude sensitive SSH keys
-aks_id_rsa
-# Exclude output/deployment files
 *.json
+*.bicep.params
+*.log
+*.sh
+aks_id_rsa*

@@ -12,7 +12,7 @@ variables:
   location: 'uksouth'
 
 stages:
-  - stage: DeployACR
+  - stage: DeployInfra
     jobs:
       - job: Deploy
         steps:

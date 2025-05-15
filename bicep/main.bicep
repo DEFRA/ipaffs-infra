@@ -1,14 +1,18 @@
 param location string = resourceGroup().location
-param dnsPrefix string = 'ipaffsaks'
+param sshKeySecretName string = 'aks-ssh-public'
+param keyVaultName string = 'POCIMPINFKV1401'
+param aksClusterName string = 'POCIMPINFAK1401'
+param aksVnetName string = 'POCIMPINFVN1401'
+param aksSubnetName string = 'POCIMPINFSU1401'
 param aksResourceGroupName string = 'POCIMPINFRG1401'
 param tenantId string
 param objectId string
-param aksVnetName string = 'POCIMPINFVN1401'
-param aksSubnetName string = 'POCIMPINFSU1401'
-param bastionVnetName string = 'POCIMPINFVN1042'
-param bastionSubnetName string = 'AzureBastionSubnet'
-param keyVaultName string = 'POCIMPINFKV1401'
-param sshKeySecretName string = 'aks-ssh-public'
+param dnsPrefix string = 'ipaffsaks'
+param acrName string = 'POCIMPINFAC1401p'
+//param bastionVnetName string = 'POCIMPINFVN1042'
+//param bastionSubnetName string = 'AzureBastionSubnet'
+
+
 @description('Admin username for AKS nodes and jumpbox')
 param linuxAdminUsername string = 'ipaffsadmin'
 //param sshPublicKey string = '@Microsoft.KeyVault(SecretUri=https://${keyVaultName}.vault.azure.net/secrets/${sshKeySecretName})'
@@ -16,8 +20,8 @@ param linuxAdminUsername string = 'ipaffsadmin'
 @secure()
 param sshPublicKey string = loadTextContent('aks_id_rsa.pub')
 //param sshRSAPublicKey string = '@Microsoft.KeyVault(SecretUri=https://pocimpinfkv1401.vault.azure.net/secrets/aks-ssh-public)'
-@secure()
-param jumpboxPassword string = '@Microsoft.KeyVault(SecretUri=https://POCIMPINFKV1401.vault.azure.net/secrets/jumpbox-password)'
+//@secure()
+//param jumpboxPassword string = '@Microsoft.KeyVault(SecretUri=https://POCIMPINFKV1401.vault.azure.net/secrets/jumpbox-password)'
 
 module network 'network.bicep' = {
   name: 'deployNetwork'
@@ -26,22 +30,9 @@ module network 'network.bicep' = {
     location: location
     aksVnetName: aksVnetName
     aksSubnetName: aksSubnetName
-    bastionVnetName: bastionVnetName
-    bastionSubnetName: bastionSubnetName
+//    bastionVnetName: bastionVnetName
+//    bastionSubnetName: bastionSubnetName
   }
-}
-
-module aks 'aks-cluster.bicep' = {
-  name: 'deployAksCluster'
-  scope: resourceGroup(aksResourceGroupName)
-  params: {
-    dnsPrefix: dnsPrefix
-    linuxAdminUsername: linuxAdminUsername
-    sshPublicKey: sshPublicKey
-    subnetId: network.outputs.aksSubnetId
-    location: location
-  }
-  dependsOn: [ acr, keyVault ]
 }
 
 module acr 'acr.bicep' = {
@@ -49,12 +40,12 @@ module acr 'acr.bicep' = {
   scope: resourceGroup(aksResourceGroupName)
   params: {
 //    name: 'POCIMPINFAC1401'
-    name: 'POCIMPINFAC1401p'
+    acrName: acrName
     location: location
     sku: 'Premium' // or 'Premium' if you need private endpoints
     adminEnabled: true
   }
-  dependsOn: [ network ]
+//  dependsOn: [ network ]
 }
 
 module keyVault 'keyvault.bicep' = {
@@ -66,9 +57,24 @@ module keyVault 'keyvault.bicep' = {
     tenantId: tenantId
     objectId: objectId
   }
-  dependsOn: [ network ]
+//  dependsOn: [ network ]
 }
 
+module aks 'aks-cluster.bicep' = {
+  name: 'deployAksCluster'
+  scope: resourceGroup(aksResourceGroupName)
+  params: {
+    clusterName: aksClusterName
+    dnsPrefix: dnsPrefix
+    linuxAdminUsername: linuxAdminUsername
+    sshPublicKey: sshPublicKey
+    subnetId: network.outputs.aksSubnetId
+    location: location
+    acrName: acr.outputs.acrName
+  }
+  dependsOn: [keyVault]
+}
+/*
 module bastion 'bastion.bicep' = {
   name: 'deployBastion'
   scope: resourceGroup(aksResourceGroupName)
@@ -95,7 +101,7 @@ module jumpbox 'jumpbox.bicep' = {
   }
   dependsOn: [ network, keyVault ]
 }
-
+*/
 module uploadSsh 'upload-ssh.bicep' = {
   name: 'uploadSshKey'
   scope: resourceGroup(aksResourceGroupName)
@@ -106,7 +112,7 @@ module uploadSsh 'upload-ssh.bicep' = {
   }
   dependsOn: [ keyVault ]
 }
-
+/*
 module aksPeering 'aks-to-bastion.bicep' = {
   name: 'peerFromAks'
   scope: resourceGroup(aksResourceGroupName)
@@ -126,7 +132,7 @@ module bastionPeering 'bastion-to-aks.bicep' = {
   }
   dependsOn: [ network, bastion ]
 }
-
+*/
 
 
 

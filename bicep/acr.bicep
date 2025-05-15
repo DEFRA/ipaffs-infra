@@ -1,10 +1,10 @@
-param name string
+param acrName string
 param location string = resourceGroup().location
 param sku string = 'Premium' // Options: Basic, Standard, Premium
 param adminEnabled bool = true
 
 resource acr 'Microsoft.ContainerRegistry/registries@2023-01-01-preview' = {
-  name: name
+  name: acrName
   location: location
   sku: {
     name: sku
