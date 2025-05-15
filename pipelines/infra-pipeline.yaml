@@ -8,6 +8,8 @@ pool:
 
 variables:
   azureSubscription: 'ADO-DefraGovUK-AZR-POC_IMP' # Name of service connection
+  spObjectId: '7ad856a1-208f-4932-9d37-93c1cabd761c'
+  tenantId: '770a2450-0227-4c62-90c7-4e38537f1102'
   resourceGroupName: 'POCIMPINFRG1401'
   location: 'uksouth'
 
@@ -25,4 +27,4 @@ stages:
                 az deployment group create \
                   --resource-group $(resourceGroupName) \
                   --template-file bicep/main.bicep \
-                  --parameters location=$(location) tenantId=$(az account show --query tenantId -o tsv) objectId=$(az ad signed-in-user show --query id -o tsv)
+                  --parameters location=$(location) tenantId=$(tenantId) objectId=$(spObjectId)
