@@ -41,7 +41,15 @@ resource routeTable 'Microsoft.Network/routeTables@2024-05-01' = {
   location: location
   properties: {
     disableBgpRoutePropagation: false
-    routes: []
+    routes: [
+      {
+        name: 'defaultRoute'
+        properties: {
+          addressPrefix: '0.0.0.0/0'
+          nextHopType: 'Internet'
+        }
+      }
+    ]
   }
 }
 
