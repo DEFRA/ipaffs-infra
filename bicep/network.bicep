@@ -35,7 +35,7 @@ resource natGateway 'Microsoft.Network/natGateways@2024-05-01' = {
     idleTimeoutInMinutes: 10
   }
 }
-*/
+
 resource routeTable 'Microsoft.Network/routeTables@2024-05-01' = {
   name: '${aksVnetName}-rt'
   location: location
@@ -52,7 +52,7 @@ resource routeTable 'Microsoft.Network/routeTables@2024-05-01' = {
     ]
   }
 }
-
+*/
 resource aksVnet 'Microsoft.Network/virtualNetworks@2024-05-01' = {
   name: aksVnetName
   location: location
@@ -70,9 +70,9 @@ resource aksVnet 'Microsoft.Network/virtualNetworks@2024-05-01' = {
 //          natGateway: {
 //            id: natGateway.id
 //          }
-          routeTable: {
-            id: routeTable.id
-          }
+//          routeTable: {
+//            id: routeTable.id
+//          }
         }
       }
     ]
