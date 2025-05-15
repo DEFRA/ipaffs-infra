@@ -1,0 +1,8 @@
+bip-service:
+  webapp:
+    image:
+      registry: localhost:30500
+      tag: latest
+    environment: dev
+  secrets:
+    devDatabasePassword: "dockerPassword1!"
