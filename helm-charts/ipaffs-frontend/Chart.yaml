@@ -1,9 +1,0 @@
-apiVersion: v2
-name: ipaffs-frontend
-description: A meta-package that installs all IPAFFS frontend services
-type: application
-version: 0.1.0
-dependencies:
-  - name: notification-frontend
-    version: 0.1.0
-    repository: "git+ssh://git@giteux.azure.defra.cloud/imports/frontend-notification.git@/deploy?ref=spike/dev-containers&sparse=1"
