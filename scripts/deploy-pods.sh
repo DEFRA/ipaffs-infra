@@ -16,7 +16,7 @@ while getopts "v" opt; do
   esac
 done
 
-SERVICES=("imports-proxy" "bip-microservice" "countries-microservice" "customer-microservice" "customer-wiremock-microservice" "rds-wiremock-microservice" "notification-microservice" "frontend-notification" "permissions" "frontend-control" "risk-assessment-microservice" "fieldconfig-microservice" "file-upload-microservice" "commoditycode-microservice" "frontend-upload" "checks-microservice" "economicoperator-microservice" "in-service-messaging-microservice")
+SERVICES=("imports-proxy" "bip-microservice" "countries-microservice" "customer-microservice" "customer-wiremock-microservice" "rds-wiremock-microservice" "notification-microservice" "frontend-notification" "permissions" "frontend-control" "risk-assessment-microservice" "fieldconfig-microservice" "file-upload-microservice" "commoditycode-microservice" "frontend-upload" "checks-microservice" "economicoperator-microservice" "in-service-messaging-microservice" "frontend-decision")
 for service in "${SERVICES[@]}"; do
   echo ":: Deploying pod for $service..."
   cd "$IMPORTS_DIR/$service" || { echo "Failed to cd into $service"; exit 1; }
@@ -29,4 +29,3 @@ for service in "${SERVICES[@]}"; do
   fi
   echo ":: Deployed pod for $service"
 done
-
