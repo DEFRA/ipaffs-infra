@@ -1,5 +1,6 @@
 trigger:
   - main
+  - feature/imta-20071-helm-meta-package
 
 pool:
   name: 'DEFRA-COMMON-ubuntu2204-SSV5'
