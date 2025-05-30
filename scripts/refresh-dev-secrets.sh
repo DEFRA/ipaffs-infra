@@ -2,7 +2,7 @@
 
 REPO_DIR="$(cd "$(dirname $0)"/.. && pwd)"
 SECRETS_CONFIG="${REPO_DIR}/scripts/secrets.yaml"
-SECRETS_FILE="${REPO_DIR}/helm-charts/ipaffs/dev-secrets.yaml"
+SECRETS_FILE="${REPO_DIR}/helm-charts/dev-secrets-values.yaml"
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -37,13 +37,11 @@ echo -n >"${SECRETS_FILE}"
 
 # Iterate over service types (corresponds to first-child charts, hardcoded for now)
 for service_type in "backend" "frontend"; do
-  echo "${service_type}:" >>"${SECRETS_FILE}"
-
   # Iterate over services in config file
   yq eval ".${service_type} | keys | .[]" "${SECRETS_CONFIG}" | while IFS= read -r service_name; do
     echo -e "${BLUE}:: Retrieving secrets for ${service_name}..${NC}"
-    echo "  ${service_name}:" >>"${SECRETS_FILE}"
-    echo "    secrets:" >>"${SECRETS_FILE}"
+    echo "${service_name}:" >>"${SECRETS_FILE}"
+    echo "  secrets:" >>"${SECRETS_FILE}"
 
     # Iterate over secret names for each service
     yq eval ".${service_type}.${service_name}[]" "${SECRETS_CONFIG}" | while IFS= read -r secret_name; do
@@ -53,7 +51,7 @@ for service_type in "backend" "frontend"; do
       escaped_value="${value//\"/\\\"}"
 
       # Replace hyphen (-) with underscore (_) in secret name
-      echo "      ${secret_name//-/_}: \"${escaped_value}\"" >>"${SECRETS_FILE}"
+      echo "    ${secret_name//-/_}: \"${escaped_value}\"" >>"${SECRETS_FILE}"
     done
     echo >>"${SECRETS_FILE}"
   done
