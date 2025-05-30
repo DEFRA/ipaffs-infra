@@ -2,3 +2,5 @@
 controller:
   proxySetHeaders:
     X-Original-Host: "$host"
+  progressDeadlineSeconds: null # Workaround: Please see https://github.com/helm/helm/issues/30878
+
