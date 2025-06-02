@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Release.Name }}
+  name: {{ .Values.name }}
   labels:
     {{- include "deploy.labels" . | nindent 4 }}
 spec:
@@ -15,9 +15,11 @@ spec:
         {{- include "deploy.labels" . | nindent 8 }}
     spec:
       serviceAccountName: ipaffs
+      imagePullSecrets:
+        - name: ipaffs
       containers:
         - name: {{ .Chart.Name }}
-          image: "{{ .Values.image.registry }}/{{ .Release.Name }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          image: "{{ .Values.image.registry }}/{{ .Values.image.name }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - name: http
@@ -29,6 +31,6 @@ spec:
           {{- end }}
           envFrom:
             - configMapRef:
-                name: {{ .Release.Name }}
+                name: {{ .Values.name }}
             - secretRef:
-                name: {{ .Release.Name }}
+                name: {{ .Values.name }}

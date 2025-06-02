@@ -1,0 +1,21 @@
+apiVersion: v2
+name: ipaffs-backend
+description: A meta-package that installs all IPAFFS backend services
+type: application
+version: 0.1.0
+dependencies:
+  - name: bip-service
+    version: "0.1.0"
+    repository: "oci://pocimpinfac1401.azurecr.io/helm/v1/repo"
+#  - name: countries-service
+#    version: "0.1.0"
+#    repository: "oci://pocimpinfac1401.azurecr.io/helm/v1/repo"
+#  - name: customer-service
+#    version: "0.1.0"
+#    repository: "oci://pocimpinfac1401.azurecr.io/helm/v1/repo"
+#  - name: notification-service
+#    version: "0.1.0"
+#    repository: "oci://pocimpinfac1401.azurecr.io/helm/v1/repo"
+#  - name: permissions-service
+#    version: "0.1.0"
+#    repository: "oci://pocimpinfac1401.azurecr.io/helm/v1/repo"

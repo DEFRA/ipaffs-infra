@@ -1,5 +1,6 @@
 deploy/tls/*
 helm-charts/*/charts/
 helm-charts/*/tmpcharts*
+helm-charts/*-secrets-values.yaml
 **/.idea/
 *.iml

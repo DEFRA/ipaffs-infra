@@ -1,0 +1,29 @@
+trigger:
+  - main
+  - feature/imta-20084-ado-pipelines-and-helm-packaging
+
+pool:
+  name: 'DEFRA-COMMON-ubuntu2204-SSV5'
+
+variables:
+  azureSubscription: 'ADO-DefraGovUK-AZR-POC_IMP'
+  acrName: 'pocimpinfac1401'
+  helmChartPath: './helm-charts/webapp'
+  helmChartName: 'webapp'
+  helmChartVersion: '0.1.0'
+
+steps:
+  - task: AzureCLI@2
+    inputs:
+      azureSubscription: $(azureSubscription)
+      scriptType: bash
+      scriptLocation: inlineScript
+      inlineScript: |
+        echo "Logging in to ACR."
+        az acr login --name $(acrName)
+        
+        echo "Packaging Helm Chart."
+        helm package $(helmChartPath) --version $(helmChartVersion)
+
+        echo "Pushing Helm chart to ACR."
+        helm push $(helmChartName)-$(helmChartVersion).tgz oci://$(acrName).azurecr.io/helm/v1/repo
