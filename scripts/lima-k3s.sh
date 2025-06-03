@@ -17,6 +17,14 @@ if ! [[ -d "${DEFRA_WORKSPACE}" ]]; then
   exit 1
 fi
 
+if [[ -z "${IPAFFS_KEYVAULT}" ]]; then
+  echo "IPAFFS_KEYVAULT environment variable not set." >&2
+  echo >&2
+  echo "Please set this to name of the Key Vault from which to retrieve development secrets." >&2
+  echo "e.g. \`export IPAFFS_KEYVAULT=fortknox\`" >&2
+  exit 1
+fi
+
 if [[ "${http_proxy}${https_proxy}" != "" ]]; then
   echo -e "${YELLOW}Warning: You have set the \`http_proxy\` or \`https_proxy\` environment variable(s).${NC}" >&2
   echo "These will be translated and set in your IPAFFS virtual machine by Lima. This may or may not be what you want, noting that any TLS interception is likely to break provisioning of the VM. To prevent this, simply unset both of these environment variables and re-provision the VM:" >&2
@@ -95,6 +103,14 @@ helm upgrade --install nginx ingress-nginx --repo https://kubernetes.github.io/i
 # Deploy base services
 echo -e "${BLUE}\n:: Deploying base services to Kubernetes${NC}"
 kubectl apply -k "${REPO_DIR}/deploy"
+
+# Create Secret for ACR token
+echo -e "${BLUE}\n:: Creating Secret for ACR Token${NC}"
+kubectl delete secret ipaffs-acr > /dev/null 2>&1
+kubectl create secret docker-registry ipaffs-acr \
+    --docker-server=pocimpinfac1401.azurecr.io \
+    --docker-username=ipaffs \
+    --docker-password="$(az keyvault secret show --vault-name "${IPAFFS_KEYVAULT}" -n ipaffsAcrTokenPassword --query value -o tsv)"
 
 # Build SQL Server container
 echo -e "${BLUE}\n:: Building database container image${NC}"
