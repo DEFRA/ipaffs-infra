@@ -9,10 +9,10 @@ Access the service at the following URL(s):
 {{- end }}
 
 This service can now be accessed inside the cluster at the following URLs:
-> http://{{ .Release.Name }}
-> http://{{ .Release.Name }}.{{ .Release.Namespace }}
-> http://{{ .Release.Name }}.{{ .Release.Namespace }}.svc.cluster.local
+> http://{{ .Values.name }}
+> http://{{ .Values.name }}.{{ .Release.Namespace }}
+> http://{{ .Values.name }}.{{ .Release.Namespace }}.svc.cluster.local
 
 You can connect a debugger by first forwarding a port:
-$ kubectl port-forward deployment/{{ .Release.Name }} 5005
+$ kubectl port-forward deployment/{{ .Values.name }} 5005
 

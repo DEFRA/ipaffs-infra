@@ -21,7 +21,7 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 Selector labels
 */}}
 {{- define "deploy.selectorLabels" -}}
-app.kubernetes.io/name: {{ .Release.Name }}
+app.kubernetes.io/name: {{ .Values.name }}
 app.kubernetes.io/part-of: {{ .Values.project }}
 {{- end }}
 
