@@ -1,6 +1,5 @@
 trigger:
   - main
-  - feature/imta-20084-ado-pipelines-and-helm-packaging
 
 pool:
   name: 'DEFRA-COMMON-ubuntu2204-SSV5'
