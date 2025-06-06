@@ -106,7 +106,7 @@ kubectl apply -k "${REPO_DIR}/deploy"
 
 # Create Secret for ACR token
 echo -e "${BLUE}\n:: Creating Secret for ACR Token${NC}"
-kubectl delete secret ipaffs-acr || echo "Deleting secret ipaffs-acr"> /dev/null 2>&1
+kubectl delete secret ipaffs-acr 2>/dev/null || true
 kubectl create secret docker-registry ipaffs-acr \
     --docker-server=pocimpinfac1401.azurecr.io \
     --docker-username=ipaffs \
