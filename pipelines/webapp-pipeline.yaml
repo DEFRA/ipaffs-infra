@@ -28,6 +28,7 @@ stages:
         displayName: Compute version
       - job: BuildFeatureBranchArtifactWebApp
         condition: ne(variables['Build.SourceBranch'], 'refs/heads/main')
+        dependsOn: ExtractVersionFromChart
         steps:
           - task: AzureCLI@2
             inputs:
