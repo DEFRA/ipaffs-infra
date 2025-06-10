@@ -26,8 +26,7 @@ stages:
             workingDirectory: ${helmChartPath}
         displayName: Compute version
       - job: BuildFeatureBranchArtifactWebApp
-        condition:
-          - ne(variables['Build.SourceBranch'], 'refs/heads/main')
+        condition: ne(variables['Build.SourceBranch'], 'refs/heads/main')
         steps:
           - task: AzureCLI@2
             inputs:
@@ -51,6 +50,7 @@ stages:
         steps:
           - task: AzureCLI@2
             inputs:
+              azureSubscription: $(azureSubscription)
               scriptType: bash
               scriptLocation: inlineScript
               inlineScript: |
