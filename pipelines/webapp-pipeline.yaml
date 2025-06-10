@@ -68,14 +68,13 @@ stages:
                 CURRENT_VERSION=$(helmChartVersion)
                 NEW_VERSION="${CURRENT_VERSION%.*}.$((${CURRENT_VERSION##*.} + 1))"
                 yq -i ".version = \"${NEW_VERSION}\"" $(helmChartPath)/Chart.yaml
-                cat $(helmChartPath)/Chart.yaml
                 
                 echo Committing Chart
                 git config user.name "$(gitUserName)"
                 git config user.email "$(gitUserEmail)"
               
                 git add $(helmChartPath)/Chart.yaml
-                git diff --cached --quiet || git commit -m "[skip ci] build(deps): bump Chart version from $(helmChartVersion) to ${NEW_VERSION}"
-                git status
-                git log
+                git diff --cached || git commit -m "[skip ci] build(deps): bump Chart version from $(helmChartVersion) to ${NEW_VERSION}"
+                
+                git push
             displayName: 'Commit and push version bump'
