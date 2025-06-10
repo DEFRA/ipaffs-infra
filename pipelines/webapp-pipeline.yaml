@@ -53,6 +53,8 @@ stages:
       - job: BuildMainBranchArtifactWebApp
         condition: ne(variables['Build.SourceBranch'], 'refs/heads/main')
         dependsOn: ExtractVersionFromChart
+        variables:
+          helmChartVersion: $[ dependencies.ExtractVersionFromChart.outputs['ComputeVersion.helmChartVersion'] ]
         steps:
           - task: AzureCLI@2
             inputs:
@@ -60,24 +62,23 @@ stages:
               scriptType: bash
               scriptLocation: inlineScript
               inlineScript: |
-                
-                NEW_VERSION="${version%.*}.$((${version##*.} + 1))"
-                yq -i ".version = \"NEW_VERSION\"" $(helmChartPath)/Chart.yaml
+                echo Bumping Chart Version
+                CURRENT_VERSION=$(helmChartVersion)
+                NEW_VERSION="${CURRENT_VERSION%.*}.$((${CURRENT_VERSION##*.} + 1))"
+                yq -i ".version = \"${NEW_VERSION}\"" $(helmChartPath)/Chart.yaml
                 cat $(helmChartPath)/Chart.yaml
                 
-                echo Debugging
-                git -v
+                echo Committing Chart
+                git add $(helmChartPath)/Chart.yaml
+                git commit -m "[skip ci] build(deps): bump Chart version from $(helmChartVersion) to ${NEW_VERSION}"
                 git status
-
-                echo "Logging in to ACR."
+                git log
+              
+                echo Logging in to ACR
                 az acr login --name $(acrName)
                 
-                echo "Generating Version Label"  
-                VERSION="$(helmChartVersion)+build.$(Build.BuildNumber)"
-                echo "Version Label: ${VERSION}"
+                echo Packaging Helm Chart
+                helm package $(helmChartPath) --version "${NEW_VERSION}"
                 
-                echo "Packaging Helm Chart."
-                helm package $(helmChartPath) --version ${VERSION}
-                
-                echo "Pushing Helm chart to ACR."
-                helm push $(helmChartName)-${VERSION}.tgz oci://$(acrName).azurecr.io/helm/v1/repo
+                echo Pushing Helm chart to ACR
+                helm push $(helmChartName)-"${NEW_VERSION}".tgz oci://$(acrName).azurecr.io/helm/v1/repo
