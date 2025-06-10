@@ -22,7 +22,6 @@ stages:
         steps:
           - script: |
               version=$(yq '.version' Chart.yaml)
-              echo ${version}
               echo "##vso[task.setvariable variable=helmChartVersion;isOutput=true]version"
             workingDirectory: $(helmChartPath)
         displayName: Compute version
@@ -39,6 +38,7 @@ stages:
                 az acr login --name $(acrName)
                   
                 echo "Generating Version Label"
+                echo $(helmChartVersion)
                 VERSION="$(helmChartVersion)+build.$(Build.BuildNumber)"
                 echo "Version Label: ${VERSION}"
                 
