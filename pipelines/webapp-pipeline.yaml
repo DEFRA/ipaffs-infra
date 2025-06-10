@@ -55,6 +55,9 @@ stages:
         dependsOn: ExtractVersionFromChart
         variables:
           helmChartVersion: $[ dependencies.ExtractVersionFromChart.outputs['ComputeVersion.helmChartVersion'] ]
+          gitUserName: 'IPAFFS CI Bot'
+          gitUserEmail: 'ipaffs-ci-bot@defra.gov.uk'
+
         steps:
           - task: AzureCLI@2
             inputs:
@@ -69,12 +72,21 @@ stages:
                 cat $(helmChartPath)/Chart.yaml
                 
                 echo Committing Chart
+                git config user.name "$(gitUserName)"
+                git config user.email "$(gitUserEmail)"
+              
                 git add $(helmChartPath)/Chart.yaml
-                git commit -m "[skip ci] build(deps): bump Chart version from $(helmChartVersion) to ${NEW_VERSION}"
+                git diff --cached --quiet || git commit -m "[skip ci] build(deps): bump Chart version from $(helmChartVersion) to ${NEW_VERSION}"
                 git status
                 git log
-              
-                echo Logging in to ACR
+            displayName: 'Commit and push version bump'
+
+  - stage: Deploy
+    dependsOn: Build
+    jobs:
+
+
+      echo Logging in to ACR
                 az acr login --name $(acrName)
                 
                 echo Packaging Helm Chart
