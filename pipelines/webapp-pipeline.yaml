@@ -29,6 +29,8 @@ stages:
       - job: BuildFeatureBranchArtifactWebApp
         condition: ne(variables['Build.SourceBranch'], 'refs/heads/main')
         dependsOn: ExtractVersionFromChart
+        variables:
+          helmChartVersion: $[ dependencies.ExtractVersionFromChart.outputs['ComputeVersion.helmChartVersion'] ]
         steps:
           - task: AzureCLI@2
             inputs:
@@ -39,9 +41,7 @@ stages:
                 echo "Logging in to ACR."
                 az acr login --name $(acrName)
                   
-                echo "Generating Version Label"
-                
-                echo $[ dependencies.ExtractVersionFromChart.outputs['ComputeVersion.helmChartVersion'] ]
+                echo "Generating Version Label"  
                 VERSION="$(helmChartVersion)+build.$(Build.BuildNumber)"
                 echo "Version Label: ${VERSION}"
                 
