@@ -38,7 +38,7 @@ stages:
                 az acr login --name $(acrName)
                   
                 echo "Generating Version Label"
-                VERSION="$(helmChartVersion)+build.$(Build.BuildNumber)"
+                VERSION="${helmChartVersion}+build.$(Build.BuildNumber)"
                 echo "Version Label: ${VERSION}"
                 
                 echo "Packaging Helm Chart."
