@@ -23,7 +23,7 @@ stages:
           - script: |
               version=$(yq '.version' Chart.yaml)
               echo "##vso[task.setvariable variable=helmChartVersion;isOutput=true]$version"
-            workingDirectory: "./helm-charts/webapp"
+            workingDirectory: $(helmChartPath)
         displayName: Compute version
       - job: BuildFeatureBranchArtifactWebApp
         condition: ne(variables['Build.SourceBranch'], 'refs/heads/main')
