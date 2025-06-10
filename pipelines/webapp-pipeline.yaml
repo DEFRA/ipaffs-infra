@@ -57,7 +57,6 @@ stages:
           helmChartVersion: $[ dependencies.ExtractVersionFromChart.outputs['ComputeVersion.helmChartVersion'] ]
           gitUserName: 'IPAFFS CI Bot'
           gitUserEmail: 'ipaffs-ci-bot@defra.gov.uk'
-
         steps:
           - task: AzureCLI@2
             inputs:
@@ -80,17 +79,3 @@ stages:
                 git status
                 git log
             displayName: 'Commit and push version bump'
-
-  - stage: Deploy
-    dependsOn: Build
-    jobs:
-
-
-      echo Logging in to ACR
-                az acr login --name $(acrName)
-                
-                echo Packaging Helm Chart
-                helm package $(helmChartPath) --version "${NEW_VERSION}"
-                
-                echo Pushing Helm chart to ACR
-                helm push $(helmChartName)-"${NEW_VERSION}".tgz oci://$(acrName).azurecr.io/helm/v1/repo
