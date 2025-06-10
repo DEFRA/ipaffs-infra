@@ -39,13 +39,13 @@ stages:
                   
                 echo "Generating Version Label"
                 VERSION="$(helmChartVersion)+build.$(Build.BuildNumber)"
-                echo "Version Label: $(VERSION)"
+                echo "Version Label: ${VERSION}"
                 
                 echo "Packaging Helm Chart."
-                helm package $(helmChartPath) --version $(VERSION)
+                helm package $(helmChartPath) --version ${VERSION}
                 
                 echo "Pushing Helm chart to ACR."
-                helm push $(helmChartName)-$(VERSION).tgz oci://$(acrName).azurecr.io/helm/v1/repo
+                helm push $(helmChartName)-${VERSION}.tgz oci://$(acrName).azurecr.io/helm/v1/repo
       - job: BuildMainBranchArtifactWebApp
         condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
         steps:
