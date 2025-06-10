@@ -39,7 +39,7 @@ stages:
                 echo "Logging in to ACR."
                 az acr login --name $(acrName)
                   
-                echo "Generating Version Label"]
+                echo "Generating Version Label"
                 
                 echo $[ dependencies.ExtractVersionFromChart.outputs['ComputeVersion.helmChartVersion'] ]
                 VERSION="$(helmChartVersion)+build.$(Build.BuildNumber)"
