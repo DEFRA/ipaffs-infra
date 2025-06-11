@@ -38,17 +38,17 @@ stages:
               scriptType: bash
               scriptLocation: inlineScript
               inlineScript: |
-                echo "Logging in to ACR."
+                echo Logging in to ACR
                 az acr login --name $(acrName)
                   
-                echo "Generating Version Label"  
+                echo Generating Version Label
                 VERSION="$(helmChartVersion)+build.$(Build.BuildNumber)"
                 echo "Version Label: ${VERSION}"
                 
-                echo "Packaging Helm Chart."
+                echo Packaging Helm Chart
                 helm package $(helmChartPath) --version ${VERSION}
                 
-                echo "Pushing Helm chart to ACR."
+                echo Pushing Helm chart to ACR
                 helm push $(helmChartName)-${VERSION}.tgz oci://$(acrName).azurecr.io/helm/v1/repo
       - job: BuildMainBranchArtifactWebApp
         condition: ne(variables['Build.SourceBranch'], 'refs/heads/main')
@@ -79,5 +79,11 @@ stages:
                
                 git add $(helmChartPath)/Chart.yaml
                 git diff --cached
-                git commit -m "[skip ci] build(deps): bump Chart version from $(helmChartVersion) to ${NEW_VERSION}"
+                git commit -m "[skip ci] build(deps): Bumping Chart version from $(helmChartVersion) to ${NEW_VERSION}"
                 git push
+                
+                echo Packaging Helm Chart
+                helm package $(helmChartPath) --version ${NEW_VERSION}
+
+                echo Pushing Helm chart to ACR
+                helm push $(helmChartName)-${NEW_VERSION}.tgz oci://$(acrName).azurecr.io/helm/v1/repo
