@@ -24,11 +24,12 @@ stages:
               version=$(yq '.version' Chart.yaml)
               echo "##vso[task.setvariable variable=helmChartVersion;isOutput=true]$version"
             workingDirectory: $(helmChartPath)
-            name: ComputeVersion
+            name: Extract Chart version
         displayName: Compute version
       - job: PackageFeatureBranch
         condition: ne(variables['Build.SourceBranch'], 'refs/heads/main')
         dependsOn: ExtractVersionFromChart
+        displayName: Package feature branch
         variables:
           helmChartVersion: $[ dependencies.ExtractVersionFromChart.outputs['ComputeVersion.helmChartVersion'] ]
         steps:
@@ -53,6 +54,7 @@ stages:
       - job: PackageMainBranch
         condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
         dependsOn: ExtractVersionFromChart
+        displayName: Bump chart version and package main branch
         variables:
           helmChartVersion: $[ dependencies.ExtractVersionFromChart.outputs['ComputeVersion.helmChartVersion'] ]
           gitUserName: 'IPAFFS CI Bot'
