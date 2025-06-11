@@ -70,6 +70,7 @@ stages:
                 echo Bumping Chart Version
                 git config user.name "$(gitUserName)"
                 git config user.email "$(gitUserEmail)"
+                git fetch origin
                 git checkout main
                 
                 CURRENT_VERSION=$(helmChartVersion)
