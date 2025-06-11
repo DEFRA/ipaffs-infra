@@ -69,24 +69,28 @@ stages:
               scriptType: bash
               scriptLocation: inlineScript
               inlineScript: |
+                git config -l
+                git remote -v
+                get branch -a
                 git status
-                echo Bumping Chart Version
-                CURRENT_VERSION=$(helmChartVersion)
-                NEW_VERSION="${CURRENT_VERSION%.*}.$((${CURRENT_VERSION##*.} + 1))"
-                yq -i ".version = \"${NEW_VERSION}\"" $(helmChartPath)/Chart.yaml
-                
-                echo Committing Chart
-                #git remote add origin https://$(gitUsername):$(gitToken)@github.com/DEFRA/ipaffs-infra
 
-                git config user.name "$(gitUserName)"
-                git config user.email "$(gitUserEmail)"
-                git fetch origin
-                git checkout main
-                git add $(helmChartPath)/Chart.yaml
-                git diff --cached 
-                git commit -m "[skip ci] build(deps): bump Chart version from $(helmChartVersion) to ${NEW_VERSION}"
-                git status
-                echo about to push
-                git push
-                
+#                echo Bumping Chart Version
+#                CURRENT_VERSION=$(helmChartVersion)
+#                NEW_VERSION="${CURRENT_VERSION%.*}.$((${CURRENT_VERSION##*.} + 1))"
+#                yq -i ".version = \"${NEW_VERSION}\"" $(helmChartPath)/Chart.yaml
+#
+#                echo Committing Chart
+#                #git remote add origin https://$(gitUsername):$(gitToken)@github.com/DEFRA/ipaffs-infra
+#
+#                git config user.name "$(gitUserName)"
+#                git config user.email "$(gitUserEmail)"
+##                git fetch origin
+#                git checkout main
+#                git add $(helmChartPath)/Chart.yaml
+#                git diff --cached
+#                git commit -m "[skip ci] build(deps): bump Chart version from $(helmChartVersion) to ${NEW_VERSION}"
+#                git status
+#                echo about to push
+#                git push
+#
 
