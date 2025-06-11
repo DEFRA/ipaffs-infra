@@ -68,6 +68,7 @@ stages:
               scriptType: bash
               scriptLocation: inlineScript
               inlineScript: |
+                git status
                 echo Bumping Chart Version
                 CURRENT_VERSION=$(helmChartVersion)
                 NEW_VERSION="${CURRENT_VERSION%.*}.$((${CURRENT_VERSION##*.} + 1))"
@@ -78,7 +79,6 @@ stages:
 
                 #git config user.name "$(gitUserName)"
                 #git config user.email "$(gitUserEmail)"
-              
                 #git fetch origin
                 #git checkout main
                 git add $(helmChartPath)/Chart.yaml
