@@ -55,7 +55,7 @@ stages:
         dependsOn: ExtractVersionFromChart
         variables:
           helmChartVersion: $[ dependencies.ExtractVersionFromChart.outputs['ComputeVersion.helmChartVersion'] ]
-          gitUserName: 'IPAFFS CI Bot'
+#          gitUserName: 'IPAFFS CI Bot'
           gitUserEmail: 'ipaffs-ci-bot@defra.gov.uk'
           gitUsername: $('GitHub Enterprise (DEFRA)'.Username)
           gitToken: $('GitHub Enterprise (DEFRA)'.Password)
