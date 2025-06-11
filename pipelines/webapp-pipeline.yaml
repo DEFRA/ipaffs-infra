@@ -16,7 +16,7 @@ variables:
   helmChartName: 'webapp'
 
 stages:
-  - stage: Build
+  - stage: Package
     jobs:
       - job: ExtractVersionFromChart
         steps:
@@ -26,8 +26,8 @@ stages:
             workingDirectory: $(helmChartPath)
             name: ComputeVersion
         displayName: Compute version
-      - job: BuildFeatureBranchArtifactWebApp
-        condition: false #ne(variables['Build.SourceBranch'], 'refs/heads/main')
+      - job: PackageFeatureBranch
+        condition: ne(variables['Build.SourceBranch'], 'refs/heads/main')
         dependsOn: ExtractVersionFromChart
         variables:
           helmChartVersion: $[ dependencies.ExtractVersionFromChart.outputs['ComputeVersion.helmChartVersion'] ]
@@ -50,8 +50,8 @@ stages:
                 
                 echo Pushing Helm chart to ACR
                 helm push $(helmChartName)-${VERSION}.tgz oci://$(acrName).azurecr.io/helm/v1/repo
-      - job: BuildMainBranchArtifactWebApp
-        condition: ne(variables['Build.SourceBranch'], 'refs/heads/main')
+      - job: PackageMainBranch
+        condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
         dependsOn: ExtractVersionFromChart
         variables:
           helmChartVersion: $[ dependencies.ExtractVersionFromChart.outputs['ComputeVersion.helmChartVersion'] ]
