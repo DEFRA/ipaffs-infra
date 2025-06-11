@@ -55,8 +55,8 @@ stages:
         dependsOn: ExtractVersionFromChart
         variables:
           helmChartVersion: $[ dependencies.ExtractVersionFromChart.outputs['ComputeVersion.helmChartVersion'] ]
-#          gitUserName: 'IPAFFS CI Bot'
-          #gitUserEmail: 'ipaffs-ci-bot@defra.gov.uk'
+          gitUserName: 'IPAFFS CI Bot'
+          gitUserEmail: 'ipaffs-ci-bot@defra.gov.uk'
           #gitUsername: $('GitHub Enterprise (DEFRA)'.Username)
           #gitToken: $('GitHub Enterprise (DEFRA)'.Password)
         steps:
@@ -78,8 +78,8 @@ stages:
                 echo Committing Chart
                 #git remote add origin https://$(gitUsername):$(gitToken)@github.com/DEFRA/ipaffs-infra
 
-                #git config user.name "$(gitUserName)"
-                #git config user.email "$(gitUserEmail)"
+                git config user.name "$(gitUserName)"
+                git config user.email "$(gitUserEmail)"
                 git fetch origin
                 git checkout main
                 git add $(helmChartPath)/Chart.yaml
