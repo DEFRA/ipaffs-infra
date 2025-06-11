@@ -82,6 +82,9 @@ stages:
                 git commit -m "[skip ci] build(deps): Bumping Chart version from $(helmChartVersion) to ${NEW_VERSION}"
                 git push
                 
+                echo Logging in to ACR
+                az acr login --name $(acrName)
+                
                 echo Packaging Helm Chart
                 helm package $(helmChartPath) --version ${NEW_VERSION}
 
