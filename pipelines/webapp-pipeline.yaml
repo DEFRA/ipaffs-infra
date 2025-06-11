@@ -62,6 +62,7 @@ stages:
         steps:
           - checkout: self
             persistCredentials: true
+            clean: true
           - task: AzureCLI@2
             inputs:
               azureSubscription: $(azureSubscription)
