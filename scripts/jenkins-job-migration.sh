@@ -18,6 +18,12 @@ XPATHS=(
   '/org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject/sources/data/jenkins.branch.BranchSource/source/remote'
 )
 
+if sed --version 2>&1 1>/dev/null; then
+  SED="sed -E -i" # GNU
+else
+  SED="sed -E -i ''" # BSD
+fi
+
 while getopts "d:" opt; do
   case $opt in
     d)
@@ -36,19 +42,11 @@ function usage() {
 }
 
 function modify_version_start() {
-  if sed --version >/dev/null 2>&1; then
-        sed -E -i 's/(<\?xml version=)(["'\''])1\.1/\1\21.0/' "$1" # GNU
-    else
-        sed -E -i '' 's/(<\?xml version=)(["'\''])1\.1/\1\21.0/' "$1" # BSD
-    fi
+  $SED 's/(<\?xml version=)(["'\''])1\.1/\1\21.0/' "$1"
 }
 
 function modify_version_end() {
-  if sed --version >/dev/null 2>&1; then
-       sed -E -i 's/(<\?xml version=)(["'\''])1\.0/\1\21.1/' "$1"
-    else
-      sed -E -i '' 's/(<\?xml version=)(["'\''])1\.0/\1\21.1/' "$1"
-    fi
+  $SED 's/(<\?xml version=)(["'\''])1\.0/\1\21.1/' "$1"
 }
 
 function update_xml_element() {
