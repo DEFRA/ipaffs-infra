@@ -30,17 +30,21 @@ SED() {
 }
 
 function usage() {
-  echo "Usage: $0 -d directory" >&2
+  echo "Usage: $0 ( -d /path/to/directory | -f /path/to/file )" >&2
   echo >&2
 }
 
-dirName=
+dirname=
+filename=
 revert=
 
-while getopts "d:rh" opt; do
+while getopts "d:f:rh" opt; do
   case $opt in
     d)
-      dirName="$OPTARG"
+      dirname="$OPTARG"
+      ;;
+    f)
+      filename="$OPTARG"
       ;;
     r)
       revert=1
@@ -52,8 +56,14 @@ while getopts "d:rh" opt; do
   esac
 done
 
-if [[ -z "${dirName}" ]]; then
+if [[ -z "${dirname}" && -z "${filename}" ]]; then
   usage
+  exit 1
+elif [[ -n "${dirname}" && ! -d "${dirname}" ]]; then
+  echo -e "\n${RED}:: \`${dirname}\` is not a directory ${NC}"
+  exit 1
+elif [[ -n "${filename}" && ! -r "${filename}" ]]; then
+  echo -e "\n${RED}:: \`${filename}\` does not exist ${NC}"
   exit 1
 fi
 
@@ -71,7 +81,7 @@ function modify_version_end() {
 }
 
 function update_git_remote_for_github() {
-  filename="${1}"
+  local filename="${1}"
 
   trap "modify_version_end '${filename}'" RETURN
   modify_version_start "${filename}"
@@ -89,7 +99,7 @@ function update_git_remote_for_github() {
 }
 
 function revert_git_remote_for_gitlab() {
-  filename="${1}"
+  local filename="${1}"
 
   trap "modify_version_end '${filename}'" RETURN
   modify_version_start "${filename}"
@@ -108,42 +118,42 @@ function revert_git_remote_for_gitlab() {
 }
 
 migrate() {
-  declare -i counter=0
-  declare -i failed=0
-  while read -r filename; do
-    echo -e ":: Processing file: ${filename}"
-      counter=$((counter + 1))
-      echo -e "\n${BLUE}:: Updating git remote to use GitHub for \`${filename}\` ${NC}\n"
-      if ! update_git_remote_for_github "${filename}"; then
-        echo -e "\n${RED}:: No elements to update have been found. ${NC}" >&2
-        failed=$((failed + 1))
-      fi
-  done < <(find "$dirName" -type f -name "config.xml") # don't subshell we want to track counters
-  echo -e "Operation completed.\n\nJobs migrated     : $counter\nJobs not migrated : $failed" >&2
+  local filename="${1}"
+  echo -e "\n${BLUE}:: Updating git remote to use GitHub for \`${filename}\` ${NC}\n"
+  if ! update_git_remote_for_github "${filename}"; then
+    echo -e "\n${RED}:: No elements to update have been found. ${NC}" >&2
+    return 1
+  fi
+  return 0
 }
 
 revert() {
+  local filename="${1}"
+  echo -e "\n${BLUE}:: Reverting git remote to use GitLab for \`${filename}\` ${NC}\n"
+  if ! revert_git_remote_for_gitlab "${filename}"; then
+    echo -e "\n${RED}:: No elements to update have been found. ${NC}" >&2
+    return 1
+  fi
+  return 0
+}
+
+if [[ -n "${filename}" ]]; then
+  if [[ -z "${revert}" ]]; then
+    migrate "${filename}"
+  else
+    revert "${filename}"
+  fi
+elif [[ -n "${dirname}" ]]; then
   declare -i counter=0
   declare -i failed=0
   while read -r filename; do
     echo -e ":: Processing file: ${filename}"
-      counter=$((counter + 1))
-      echo -e "\n${BLUE}:: Updating git remote to use GitHub for \`${filename}\` ${NC}\n"
-      if ! revert_git_remote_for_gitlab "${filename}"; then
-        echo -e "\n${RED}:: No elements to update have been found. ${NC}" >&2
-        failed=$((failed + 1))
-      fi
-  done < <(find "$dirName" -type f -name "config.xml") # don't subshell we want to track counters
+    counter=$((counter + 1))
+    if [[ -z "${revert}" ]]; then
+      migrate "${filename}"
+    else
+      revert "${filename}"
+    fi
+  done < <(find "${dirname}" -type f -name "config.xml") # don't subshell we want to track counters
   echo -e "Operation completed.\n\nJobs migrated     : $counter\nJobs not migrated : $failed" >&2
-}
-
-if [[ -d "${dirName}" ]]; then
-  if [[ -z "${revert}" ]]; then
-    migrate
-  else
-    revert
-  fi
-else
-  echo -e "\n${RED}:: \`${dirName}\` is not a directory ${NC}"
-  exit 1
 fi
