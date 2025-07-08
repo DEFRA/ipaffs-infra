@@ -30,21 +30,34 @@ SED() {
 }
 
 function usage() {
-  echo "Usage: $0 ( -d /path/to/directory | -f /path/to/file )" >&2
+  echo "Usage: $0 (-d /path/to/directory | -f /path/to/file) [-c /path/to/source/file]" >&2
+  echo >&2
+  echo "  -d  Specify path to a directory in which to update job configurations" >&2
+  echo "  -f  Specify single job configuration file to create/update" >&2
+  echo "  -c  Copy an existing job configuration when creating a new job"
+  echo "  -r  Revert configuration to use GitLab" >&2
   echo >&2
 }
 
 dirname=
 filename=
+copy_file=
+project_name=
 revert=
 
-while getopts "d:f:rh" opt; do
+while getopts "c:d:f:p:rh" opt; do
   case $opt in
     d)
-      dirname="$OPTARG"
+      dirname="${OPTARG}"
       ;;
     f)
-      filename="$OPTARG"
+      filename="${OPTARG}"
+      ;;
+    c)
+      copy_file="${OPTARG}"
+      ;;
+    p)
+      project_name="${OPTARG}"
       ;;
     r)
       revert=1
@@ -59,11 +72,21 @@ done
 if [[ -z "${dirname}" && -z "${filename}" ]]; then
   usage
   exit 1
-elif [[ -n "${dirname}" && ! -d "${dirname}" ]]; then
+fi
+if [[ -n "${dirname}" && ! -d "${dirname}" ]]; then
   echo -e "\n${RED}:: \`${dirname}\` is not a directory ${NC}"
   exit 1
-elif [[ -n "${filename}" && ! -r "${filename}" ]]; then
+fi
+if [[ -z "${copy_file}" && -n "${filename}" && ! -r "${filename}" ]]; then
   echo -e "\n${RED}:: \`${filename}\` does not exist ${NC}"
+  exit 1
+fi
+if [[ -n "${copy_file}" && ! -r "${copy_file}" ]]; then
+  echo -e "\n${RED}:: Source file \`${copy_file}\` does not exist ${NC}"
+  exit 1
+fi
+if [[ -n "${copy_file}" && -z "${filename}" ]]; then
+  echo -e "\n${RED}:: \`-f\` must be specified with \`-c\` ${NC}"
   exit 1
 fi
 
@@ -82,66 +105,81 @@ function modify_version_end() {
 
 function update_git_remote_for_github() {
   local filename="${1}"
+  local project="${2}"
 
   trap "modify_version_end '${filename}'" RETURN
   modify_version_start "${filename}"
 
   for xpath in "${remote_xpaths[@]}"; do
-    currentRemote=$(xmlstarlet sel -t -v "${xpath}" "${filename}")
-    [[ -z "${currentRemote:-}" ]] && continue
-    updatedRemote="https://github.com/DEFRA/ipaffs-${currentRemote##*/}"
-    xmlstarlet ed -L -u "${xpath}" -v "${updatedRemote}" "${filename}"
-    echo "${updatedRemote}"
-    return 0
+    if [[ -n "${project}" ]]; then
+      updatedRemote="${project}"
+    else
+      currentRemote=$(xmlstarlet sel -t -v "${xpath}" "${filename}")
+      [[ -z "${currentRemote:-}" ]] && continue
+      updatedRemote="${currentRemote##*/}"
+    fi
+    updatedRemote="https://github.com/DEFRA/ipaffs-${updatedRemote##ipaffs-}"
+    xmlstarlet ed -L -u "${xpath}" -v "${updatedRemote}" "${filename}" || return 1
   done
 
-  return 1
+  return 0
 }
 
 function revert_git_remote_for_gitlab() {
   local filename="${1}"
+  local project="${2}"
 
   trap "modify_version_end '${filename}'" RETURN
   modify_version_start "${filename}"
 
   for xpath in "${remote_xpaths[@]}"; do
-    currentRemote=$(xmlstarlet sel -t -v "${xpath}" "${filename}")
-    [[ -z "${currentRemote:-}" ]] && continue
-    updatedRemote="${currentRemote##https://github.com/DEFRA/ipaffs-}"
+    if [[ -n "${project}" ]]; then
+      updatedRemote="${project}"
+    else
+      currentRemote=$(xmlstarlet sel -t -v "${xpath}" "${filename}")
+      [[ -z "${currentRemote:-}" ]] && continue
+      updatedRemote="${currentRemote##*/}"
+      updatedRemote="${updatedRemote##ipaffs-}"
+    fi
     updatedRemote="https://giteux.azure.defra.cloud/imports/${updatedRemote}"
-    xmlstarlet ed -L -u "${xpath}" -v "${updatedRemote}" "${filename}"
-    echo "${updatedRemote}"
-    return 0
+    xmlstarlet ed -L -u "${xpath}" -v "${updatedRemote}" "${filename}" || return 1
   done
 
-  return 1
+  return 0
 }
 
-migrate() {
+migrate_job() {
   local filename="${1}"
+  local project="${2:-}"
   echo -e "\n${BLUE}:: Updating git remote to use GitHub for \`${filename}\` ${NC}\n"
-  if ! update_git_remote_for_github "${filename}"; then
+  if ! update_git_remote_for_github "${filename}" "${project}"; then
     echo -e "\n${RED}:: No elements to update have been found. ${NC}" >&2
     return 1
   fi
   return 0
 }
 
-revert() {
+revert_job() {
   local filename="${1}"
+  local project="${2:-}"
   echo -e "\n${BLUE}:: Reverting git remote to use GitLab for \`${filename}\` ${NC}\n"
-  if ! revert_git_remote_for_gitlab "${filename}"; then
+  if ! revert_git_remote_for_gitlab "${filename}" "${project}"; then
     echo -e "\n${RED}:: No elements to update have been found. ${NC}" >&2
     return 1
   fi
   return 0
 }
+
+if [[ -n "${copy_file}" ]]; then
+  mkdir -p "${filename%/*}"
+  cp "${copy_file}" "${filename}"
+fi
 
 if [[ -n "${filename}" ]]; then
   if [[ -z "${revert}" ]]; then
-    migrate "${filename}"
+    migrate_job "${filename}" "${project_name}"
   else
-    revert "${filename}"
+    revert_job "${filename}" "${project_name}"
   fi
 elif [[ -n "${dirname}" ]]; then
   declare -i counter=0
@@ -150,9 +188,9 @@ elif [[ -n "${dirname}" ]]; then
     echo -e ":: Processing file: ${filename}"
     counter=$((counter + 1))
     if [[ -z "${revert}" ]]; then
-      migrate "${filename}"
+      migrate_job "${filename}" || true
     else
-      revert "${filename}"
+      revert_job "${filename}" || true
     fi
   done < <(find "${dirname}" -type f -name "config.xml") # don't subshell we want to track counters
   echo -e "Operation completed.\n\nJobs migrated     : $counter\nJobs not migrated : $failed" >&2
