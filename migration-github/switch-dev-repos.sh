@@ -1,18 +1,42 @@
 NOT_TO_MIGRATE=(
-"git@giteux.azure.defra.cloud:imports/ansible.git",
-"git@giteux.azure.defra.cloud:imports/ansible-jenkins.git",
-"git@giteux.azure.defra.cloud:imports/terraform.git",
-"git@giteux.azure.defra.cloud:imports/ArchiveNotificationFunction.git"
+"git@giteux.azure.defra.cloud:imports/ansible.git", ## Not to migrate
+"git@giteux.azure.defra.cloud:imports/ansible-jenkins.git", ## Not to migrate
+"git@giteux.azure.defra.cloud:imports/terraform.git", ## Not to migrate
+"git@giteux.azure.defra.cloud:imports/ArchiveNotificationFunction.git", ## Not to migrate
+"git@giteux.azure.defra.cloud:imports/docker-local.git", ## TODO Broken
+"git@giteux.azure.defra.cloud:imports/economicoperator-microservice.git", ## TODO Broken
+"git@giteux.azure.defra.cloud:imports/fieldconfig-microservice.git", ## TODO Broken
+"git@giteux.azure.defra.cloud:imports/ipaffs-files.git", ## TODO Broken
+"git@giteux.azure.defra.cloud:imports/referencedata-microservice.git", ## TODO Broken
+"git@giteux.azure.defra.cloud:imports/scrapy-traces.git" ## TODO Broken
+"git@giteux.azure.defra.cloud:imports/imports-notification-schema.git", ## TODO Public
+"git@giteux.azure.defra.cloud:imports/notify-microservice.git", ## TODO Public
+"git@giteux.azure.defra.cloud:imports/soaprequest-microservice.git", ## TODO Public
+"git@giteux.azure.defra.cloud:imports/spring-boot-common.git", ## TODO Public
+"git@giteux.azure.defra.cloud:imports/spring-boot-common-security.git", ## TODO Public
+"git@giteux.azure.defra.cloud:imports/spring-boot-parent.git", ## TODO Public
 )
 
-echo This script will point existing local gitlab repos to the corresponding github repo.
+SPECIAL_CASE=(
+"import-notification-schema.git"
+)
+
+new_repo_name_from_old() {
+  if [[ ${SPECIAL_CASE[@]} =~ "${1}" ]]; then
+    echo "git@github.com:DEFRA/ipaffs-x-${1}"
+  else
+     echo "git@github.com:DEFRA/ipaffs-${1}"
+  fi
+}
+
+echo This script will point existing local gitlab repos to the corresponding github repo and switch from master to main.
 read -p "Do you wish to continue? <y/N> " PROMPT
 if [[ "${PROMPT}" -ne "y" ]]; then
   echo exiting;
   exit
 fi
 
-## See if the DEFRA_WORKSPACE variable is set and that it is a valid path
+## See if the DEFRA_WORKSPACE variable is set and that it is a valid path.
 echo Checking DEFRA_WORKSPACE variable:
 if [[ -z ${DEFRA_WORKSPACE} ]]; then
   echo You need to set the DEFRA_WORKSPACE variable e.g.:
@@ -50,13 +74,10 @@ else
 fi
 
 ## Make a backup.
-echo Making a backup.
 DEFRA_WORKSPACE_WITHOUT_TRALING_SLASH=$(echo ${DEFRA_WORKSPACE} | sed 's:/*$::')
-cp -R "${DEFRA_WORKSPACE_WITHOUT_TRALING_SLASH}" "${DEFRA_WORKSPACE_WITHOUT_TRALING_SLASH}"-BACKUP
-
-## TODO remove below
-cd /home/richard/Desktop/imports
-## TODO remove above
+DEFRA_WORKSPACE_BACKUP="${DEFRA_WORKSPACE_WITHOUT_TRALING_SLASH}"-BACKUP-$(date '+%Y%m%d-%H%M%S')
+echo Backing up to: "${DEFRA_WORKSPACE_BACKUP}"
+cp -R "${DEFRA_WORKSPACE_WITHOUT_TRALING_SLASH}" "${DEFRA_WORKSPACE_BACKUP}"
 
 ## For each directory change the remote.
 cd "${DEFRA_WORKSPACE}"
@@ -64,35 +85,19 @@ for DIRECTORY in */ ; do
     cd "${DIRECTORY}"
     echo Currently in directory: "${DIRECTORY}"
     CURRENT_REMOTE=$(git config --get remote.origin.url)
-    CURRENT_REPO_NAME=$(echo ${CURRENT_REMOTE} | sed 's:.*/::')
     echo The current remote is: "${CURRENT_REMOTE}".
     if [[ -z "${CURRENT_REMOTE}" ]]; then
-      ## Not a git repo
       echo This is not a git repo. Skipping.
     elif [[ ${NOT_TO_MIGRATE[@]} =~ "${CURRENT_REMOTE}" ]]; then
-      ## A git repo that we are not going to migrate.
-      echo Repo "${CURRENT_REPO_NAME}" is not to be migrated. Skipping.
+      echo Repo "${CURRENT_REMOTE}" is not to be migrated. Skipping.
     elif [[ "${CURRENT_REMOTE}" == *"git@giteux.azure.defra.cloud:imports"* ]]; then
-      ## The default case.
-      NEW_REMOTE="git@github.com:DEFRA/ipaffs-${CURRENT_REPO_NAME}"
-      ## We need to check for special case.
-      if [[ "${CURRENT_REMOTE}" == "git@giteux.azure.defra.cloud:imports/import-notification-schema.git" ]]; then
-        NEW_REMOTE="git@github.com:DEFRA/ipaffs-x-import-notification-schema"
-      fi
-      ## Set the new remote
+      CURRENT_REPO_NAME=$(echo ${CURRENT_REMOTE} | sed 's:.*/::')
+      NEW_REMOTE=$(new_repo_name_from_old "${CURRENT_REPO_NAME}")
       git remote set-url origin ${NEW_REMOTE}
-      ## fetch from origin
-      git fetch > /dev/null 2>&1
-      RET=$?
-      if [[ "${RET}" -ne 0 ]]; then
-        echo There has been an error. The remote is set to ${NEW_REMOTE} but fetching failed.
-      else
-        ## Rename local master to main
-        git branch -m master main > /dev/null 2>&1
-        ## Set main to track main
-        git branch -u origin/main main > /dev/null 2>&1
-        echo The new remote is now "${NEW_REMOTE}", master has been renamed to main and track origin main.
-      fi
+      git fetch --quiet
+      git branch -m master main > /dev/null 2>&1 ## Fail silently if the repo does not have a master.
+      git branch -u origin/main main
+      echo The new remote is now "${NEW_REMOTE}", master has been renamed to main and track origin main.
     else
       echo This git repo is not set to track git lab. Skipping.
     fi
