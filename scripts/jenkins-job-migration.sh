@@ -171,7 +171,7 @@ revert_job() {
 }
 
 if [[ -n "${copy_file}" ]]; then
-  mkdir -p "${filename%/*}"
+  mkdir -p "${filename%/*}/builds"
   cp "${copy_file}" "${filename}"
 fi
 
