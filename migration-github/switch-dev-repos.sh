@@ -22,7 +22,7 @@ SPECIAL_CASE=(
 )
 
 new_repo_name_from_old() {
-  if [[ ${SPECIAL_CASE[@]} =~ "${1}" ]]; then
+  if [[ "${SPECIAL_CASE[@]}" =~ "${1}" ]]; then
     echo "git@github.com:DEFRA/ipaffs-x-${1}"
   else
      echo "git@github.com:DEFRA/ipaffs-${1}"
@@ -38,7 +38,7 @@ fi
 
 ## See if the DEFRA_WORKSPACE variable is set and that it is a valid path.
 echo Checking DEFRA_WORKSPACE variable:
-if [[ -z ${DEFRA_WORKSPACE} ]]; then
+if [[ -z "${DEFRA_WORKSPACE}" ]]; then
   echo You need to set the DEFRA_WORKSPACE variable e.g.:
   echo export DEFRA_WORKSPACE=\"PATH_TO_YOUR_IMPORTS_WORKSPACE\" - exiting
   exit
@@ -74,13 +74,14 @@ else
 fi
 
 ## Make a backup.
-DEFRA_WORKSPACE_WITHOUT_TRALING_SLASH=$(echo ${DEFRA_WORKSPACE} | sed 's:/*$::')
+DEFRA_WORKSPACE_WITHOUT_TRALING_SLASH=$(echo "${DEFRA_WORKSPACE}" | sed 's:/*$::')
 DEFRA_WORKSPACE_BACKUP="${DEFRA_WORKSPACE_WITHOUT_TRALING_SLASH}"-BACKUP-$(date '+%Y%m%d-%H%M%S')
 echo Backing up to: "${DEFRA_WORKSPACE_BACKUP}"
 cp -R "${DEFRA_WORKSPACE_WITHOUT_TRALING_SLASH}" "${DEFRA_WORKSPACE_BACKUP}"
 
 ## For each directory change the remote.
 cd "${DEFRA_WORKSPACE}"
+
 for DIRECTORY in */ ; do
     cd "${DIRECTORY}"
     echo Currently in directory: "${DIRECTORY}"
@@ -88,12 +89,12 @@ for DIRECTORY in */ ; do
     echo The current remote is: "${CURRENT_REMOTE}".
     if [[ -z "${CURRENT_REMOTE}" ]]; then
       echo This is not a git repo. Skipping.
-    elif [[ ${NOT_TO_MIGRATE[@]} =~ "${CURRENT_REMOTE}" ]]; then
+    elif [[ "${NOT_TO_MIGRATE[@]}" =~ "${CURRENT_REMOTE}" ]]; then
       echo Repo "${CURRENT_REMOTE}" is not to be migrated. Skipping.
     elif [[ "${CURRENT_REMOTE}" == *"git@giteux.azure.defra.cloud:imports"* ]]; then
-      CURRENT_REPO_NAME=$(echo ${CURRENT_REMOTE} | sed 's:.*/::')
+      CURRENT_REPO_NAME=$(echo "${CURRENT_REMOTE}" | sed 's:.*/::')
       NEW_REMOTE=$(new_repo_name_from_old "${CURRENT_REPO_NAME}")
-      git remote set-url origin ${NEW_REMOTE}
+      git remote set-url origin "${NEW_REMOTE}"
       git fetch --quiet
       git branch -m master main > /dev/null 2>&1 ## Fail silently if the repo does not have a master.
       git branch -u origin/main main
