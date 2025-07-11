@@ -16,6 +16,7 @@ readonly DOCUMENT1_XPATH2='/org.jenkinsci.plugins.workflow.multibranch.WorkflowM
 readonly DOCUMENT1_XPATH3='/org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject/sources/data/jenkins.branch.BranchSource/source/remote'
 readonly DOCUMENT1_XPATH4='/org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject/sources/data/jenkins.branch.BranchSource/source/credentialsId'
 
+readonly DEFRA_GITHUB_PATH_PREFIX='https://github.com/DEFRA/ipaffs-'
 readonly CREDENTIALS_ID='github-token'
 readonly XPATHS=(
   "$DOCUMENT1_XPATH1 $DOCUMENT1_XPATH2 $DOCUMENT1_XPATH3 $DOCUMENT1_XPATH4"
@@ -52,7 +53,7 @@ SED() {
   fi
 }
 
-while getopts "d:f" opt; do
+while getopts "d:f:" opt; do
   case $opt in
     d)
       dirname="${OPTARG}"
@@ -69,6 +70,10 @@ done
 
 if [[ -z "${dirname}" && -z "${filename}" ]]; then
   usage
+  exit 1
+fi
+if [[ -n "${dirname}" && -n "${filename}" ]]; then
+  echo -e "${RED}:: Can't specify both -d and -f${NC}" >&2;
   exit 1
 fi
 if [[ -n "${dirname}" && ! -d "${dirname}" ]]; then
@@ -89,7 +94,7 @@ function modify_version_end() {
 }
 
 function update_element() {
-  local xpath="${1:?"Value expected for argument: xpath"}"
+  local docment_xpaths="${1:?"Value expected for argument: docment_xpaths"}"
   local filename="${2?"Value expected for argument: filename"}"
 
   trap 'modify_version_end "${filename}"' RETURN
@@ -98,9 +103,9 @@ function update_element() {
   elementValue=$(xmlstarlet sel -t -v "$1" "$2")
   if [[ -z "${elementValue:-}" ]]; then return 1; fi
 
-  case "${xpath##*/}" in
+  case "${docment_xpaths##*/}" in
     remote)
-      updatedElementValue="https://github.com/DEFRA/ipaffs-${elementValue##*/}"
+      updatedElementValue="${DEFRA_GITHUB_PATH_PREFIX}${elementValue##*/}"
       ;;
     credentialsId)
       updatedElementValue=${CREDENTIALS_ID}
@@ -115,10 +120,29 @@ function update_element() {
   return 0
 }
 
+if [[ -n "${filename}" ]]; then
+  cp "${filename}" "${filename}.bak"
+  echo -e ":: Created backup: ${filename}.bak"
+  echo -e ":: Processing file ${filename}"
+  success=false
+  for docment_xpaths in "${XPATHS[@]}"; do
+    for xpath in ${docment_xpaths}; do
+       if result=$(update_element "${xpath}" "${filename}"); then
+        echo -e "${GREEN}:: Updated elementValue '${xpath##*/}' to value \`${result}\`${NC}"
+        success=true
+      fi
+    done
+  done
+  if [[ "${success}" == "false" ]]; then
+      echo -e "${BLUE}:: No elements to update have been found${NC}" >&2
+  fi
+  echo -e "Operation completed.\n"
+fi
+
 if [[ -n "${dirname}" ]]; then
   tarball="${dirname}-$(date +%Y%m%d).tar.gz"
-  echo -e ":: Creating backup file: ${tarball}"
-  tar czf "$tarball" "${dirname}"
+  tar czf "${tarball}" "${dirname}"
+  echo -e ":: Created backup: ${tarball}"
 
   declare -i counter=0
   declare -i skipped=0
@@ -126,10 +150,10 @@ if [[ -n "${dirname}" ]]; then
     echo -e ":: Processing file ${file}"
       counter=$((counter + 1))
       success=false
-      for xpath in "${XPATHS[@]}"; do
-        for xpath2 in ${xpath}; do
-           if result=$(update_element "${xpath2}" "${file}"); then
-            echo -e "${GREEN}:: Updated elementValue '${xpath2##*/}' to value \`${result}\`${NC}"
+      for docment_xpaths in "${XPATHS[@]}"; do
+        for xpath in ${docment_xpaths}; do
+           if result=$(update_element "${xpath}" "${file}"); then
+            echo -e "${GREEN}:: Updated elementValue '${xpath##*/}' to value \`${result}\`${NC}"
             success=true
           fi
         done
@@ -139,8 +163,5 @@ if [[ -n "${dirname}" ]]; then
         skipped=$((skipped + 1))
       fi
   done < <(find "${dirname}" -type f -name "config.xml" ! -path "${PATH_EXCLUSION_MASK}") # don't subshell
-  echo -e "Operation completed.\n\nJobs Migrated : ${counter}\nJobs Skipped  : ${BLUE}${skipped}${NC}" >&2
-else
-  echo -e "${RED}:: ${dirname} is not a directory${NC}"
-  exit 1
+  echo -e "Operation completed.\n\nJobs Migrated : ${counter}\nJobs Skipped  : ${BLUE}${skipped}${NC}"
 fi
