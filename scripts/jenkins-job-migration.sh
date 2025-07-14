@@ -131,7 +131,7 @@ function update_element() {
       ;;
   esac
   if ! (( dry_run )); then
-    # xmlstarlet ed -L -u "$1" -v "$updatedElementValue" "$file"
+    xmlstarlet ed -L -u "$1" -v "$updatedElementValue" "$file"
     echo "${updatedElementValue}"
   else
     echo "${updatedElementValue}"
