@@ -26,6 +26,7 @@ readonly XPATHS=(
   "$DOCUMENT1_XPATH1 $DOCUMENT1_XPATH2 $DOCUMENT1_XPATH3 $DOCUMENT1_XPATH4 $DOCUMENT1_XPATH5 $DOCUMENT1_XPATH6"
 )
 
+dry_run=0
 dirname=
 filename=
 
@@ -40,10 +41,11 @@ fi
 
 function usage() {
   cat >&2 <<EOF
-Usage: $0 (-d /path/to/directory | -f /path/to/file) [-c /path/to/source/file]
+Usage: $0 (-d /path/to/directory | -f /path/to/file) [-c /path/to/source/file] [-n]
 
 -d  Specify path to a directory in which to update job configurations
 -f  Specify single job configuration file to create/update
+-n  Dry run: show what would be done, but make no changes
 EOF
 }
 
@@ -57,13 +59,16 @@ SED() {
   fi
 }
 
-while getopts "d:f:" opt; do
+while getopts "d:f:n" opt; do
   case $opt in
     d)
       dirname="${OPTARG}"
       ;;
     f)
       filename="${OPTARG}"
+      ;;
+    n)
+      dry_run=1
       ;;
     \?)
       usage
@@ -125,8 +130,13 @@ function update_element() {
       exit 1
       ;;
   esac
-  # xmlstarlet ed -L -u "$1" -v $updatedElementValue $file
-  echo "${updatedElementValue}"
+  if ! (( dry_run )); then
+    # xmlstarlet ed -L -u "$1" -v "$updatedElementValue" "$file"
+    echo "${updatedElementValue}"
+  else
+    echo "${updatedElementValue}"
+  fi
+
   return 0
 }
 
