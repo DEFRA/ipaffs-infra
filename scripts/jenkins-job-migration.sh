@@ -15,11 +15,15 @@ readonly DOCUMENT1_XPATH1='/org.jenkinsci.plugins.workflow.multibranch.WorkflowM
 readonly DOCUMENT1_XPATH2='/org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject/properties/org.jenkinsci.plugins.workflow.libs.FolderLibraries/libraries/org.jenkinsci.plugins.workflow.libs.LibraryConfiguration/retriever/scm/credentialsId'
 readonly DOCUMENT1_XPATH3='/org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject/sources/data/jenkins.branch.BranchSource/source/remote'
 readonly DOCUMENT1_XPATH4='/org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject/sources/data/jenkins.branch.BranchSource/source/credentialsId'
+readonly DOCUMENT1_XPATH5='/org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject/properties/org.jenkinsci.plugins.workflow.libs.FolderLibraries/libraries/org.jenkinsci.plugins.workflow.libs.LibraryConfiguration/defaultVersion'
+readonly DOCUMENT1_XPATH6='/org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject/sources/data/jenkins.branch.BranchSource/source/traits/jenkins.scm.impl.trait.RegexSCMHeadFilterTrait/regex'
 
 readonly DEFRA_GITHUB_PATH_PREFIX='https://github.com/DEFRA/ipaffs-'
 readonly CREDENTIALS_ID='github-token'
+readonly DEFAULT_VERSION='main'
+
 readonly XPATHS=(
-  "$DOCUMENT1_XPATH1 $DOCUMENT1_XPATH2 $DOCUMENT1_XPATH3 $DOCUMENT1_XPATH4"
+  "$DOCUMENT1_XPATH1 $DOCUMENT1_XPATH2 $DOCUMENT1_XPATH3 $DOCUMENT1_XPATH4 $DOCUMENT1_XPATH5 $DOCUMENT1_XPATH6"
 )
 
 dirname=
@@ -108,7 +112,13 @@ function update_element() {
       updatedElementValue="${DEFRA_GITHUB_PATH_PREFIX}${elementValue##*/}"
       ;;
     credentialsId)
-      updatedElementValue=${CREDENTIALS_ID}
+      updatedElementValue="${CREDENTIALS_ID}"
+      ;;
+    defaultVersion)
+      updatedElementValue="${DEFAULT_VERSION}"
+      ;;
+    regex)
+      updatedElementValue="${elementValue//master/main}"
       ;;
     *)
       echo -e "${RED}:: Unmatched element ${elementValue}${NC}" >&2
@@ -153,7 +163,7 @@ if [[ -n "${dirname}" ]]; then
       for docment_xpaths in "${XPATHS[@]}"; do
         for xpath in ${docment_xpaths}; do
            if result=$(update_element "${xpath}" "${file}"); then
-            echo -e "${GREEN}:: Updated elementValue '${xpath##*/}' to value \`${result}\`${NC}"
+            echo -e "${GREEN}:: Updated element '${xpath##*/}' to value \`${result}\`${NC}"
             success=true
           fi
         done
