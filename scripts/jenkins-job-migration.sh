@@ -105,6 +105,7 @@ function modify_version_end() {
 function update_element() {
   local docment_xpaths="${1:?"Value expected for argument: docment_xpaths"}"
   local filename="${2?"Value expected for argument: filename"}"
+  local updatedElementValue=
 
   trap 'modify_version_end "${filename}"' RETURN
   modify_version_start "${filename}"
@@ -131,7 +132,7 @@ function update_element() {
       ;;
   esac
   if ! (( dry_run )); then
-    xmlstarlet ed -L -u "$1" -v "$updatedElementValue" "$file"
+    xmlstarlet ed -L -u "$1" -v "${updatedElementValue}" "${filename}"
     echo "${updatedElementValue}"
   else
     echo "${updatedElementValue}"
@@ -141,9 +142,12 @@ function update_element() {
 }
 
 if [[ -n "${filename}" ]]; then
-  cp "${filename}" "${filename}.bak"
-  echo -e ":: Created backup: ${filename}.bak"
-  echo -e ":: Processing file ${filename}"
+  if ! ((dry_run)); then
+    cp "${filename}" "${filename}.bak"
+    echo -e ":: Created backup: ${filename}.bak"
+    echo -e ":: Processing file ${filename}"
+  fi
+
   success=false
   for docment_xpaths in "${XPATHS[@]}"; do
     for xpath in ${docment_xpaths}; do
@@ -160,9 +164,11 @@ if [[ -n "${filename}" ]]; then
 fi
 
 if [[ -n "${dirname}" ]]; then
-  tarball="${dirname}-$(date +%Y%m%d).tar.gz"
-  tar czf "${tarball}" "${dirname}"
-  echo -e ":: Created backup: ${tarball}"
+  if ! ((dry_run)); then
+    tarball="${dirname}-$(date +%Y%m%d).tar.gz"
+    tar czf "${tarball}" "${dirname}"
+    echo -e ":: Created backup: ${tarball}"
+  fi
 
   declare -i counter=0
   declare -i skipped=0
