@@ -9,6 +9,7 @@ pool:
 variables:
   azureSubscription: 'ADO-DefraGovUK-AZR-POC_IMP' # Name of service connection
   resourceGroupName: 'POCIMPINFRG1401'
+  networkresourceGroupName: 'POCIMPNETNS1401'
   location: 'uksouth'
 
 stages:
@@ -22,7 +23,26 @@ stages:
               scriptType: bash
               scriptLocation: inlineScript
               inlineScript: |
+                az group create \
+                  --name $(networkresourceGroupName) \
+                  --location $(location)
+          - task: AzureCLI@2
+            inputs:
+              azureSubscription: $(azureSubscription)
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
                 az deployment group create \
                   --resource-group $(resourceGroupName) \
                   --template-file bicep/main.bicep \
                   --parameters location=$(location)
+          - task: AzureCLI@2
+            inputs:
+              azureSubscription: $(azureSubscription)
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                az deployment group create \
+                  --resource-group $(resourceGroupName) \
+                  --template-file bicep/network-security-group.json \
+                  --parameters @bicep/network-security-group.parameters.json
