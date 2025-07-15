@@ -31,7 +31,7 @@ var tags = union(loadJsonContent('default-tags.json'), commonTags)
 module route_aks 'br/SharedDefraRegistry:network.route-table:0.4.2' = {
   name: 'route-table-aks-${deploymentDate}'
   params: {
-    name: '${routeTable.name}-AKS'
+    name: '${routeTable.name}'
     lock: resourceLockEnabled ? 'CanNotDelete' : null
     location: location
     tags: tags
