@@ -2,7 +2,7 @@
 param nsgList array = []
 
 @description('Required. The Azure region where the resources will be deployed.')
-param location string
+param location string = resourceGroup().location
 @description('Required. Environment name.')
 param environment string
 @description('Required. Boolean value to enable or disable resource lock.')
