@@ -6,7 +6,7 @@
       "value": {
         "name": "POCIMPNETVN1401",
         "addressPrefixes": ["10.179.104.0/22"],
-        "dnsServers": "10.176.0.4, 10.176.0.5"
+        "dnsServers": ["10.176.0.4, 10.176.0.5"]
       }
     },
     "routeTable": {
