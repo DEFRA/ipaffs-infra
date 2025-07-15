@@ -5,7 +5,7 @@ param vnet object
 param subnets array
 
 @allowed([
-  'UKSouth'
+  'uksouth'
 ])
 @description('Required. The Azure region where the resources will be deployed.')
 param location string

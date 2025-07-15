@@ -12,7 +12,7 @@
     "routeTable": {
       "value": {
         "name": "UDR-Spoke-Route-From-POCIMPNETVN1401-01",
-        "virtualApplicanceIp": "#{{ virtualApplianceIp }}"
+        "virtualApplicanceIp": "10.176.0.100"
       }
     },
     
