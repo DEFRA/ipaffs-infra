@@ -34,5 +34,5 @@ stages:
               inlineScript: |
                 az deployment group create \
                   --resource-group $(resourceGroupName) \
-                  --template-file bicep/network-security-group.json \
+                  --template-file bicep/network-security-group.bicep \
                   --parameters @bicep/network-security-group.parameters.json
