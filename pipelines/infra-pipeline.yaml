@@ -38,3 +38,15 @@ stages:
                   --template-file bicep/network-security-group.bicep \
                   --parameters @bicep/network-security-group.parameters.json \
                   --debug
+          - task: AzureCLI@2
+            inputs:
+              azureSubscription: $(azureSubscription)
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                set -x
+                az deployment group create \
+                  --resource-group $(networkresourceGroupName) \
+                  --template-file bicep/virtual-network.bicep \
+                  --parameters @bicep/virtual-network-poc.parameters.json \
+                  --debug
