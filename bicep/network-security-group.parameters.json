@@ -62,8 +62,8 @@
                                 "destinationPortRanges": [],
                                 "sourceAddressPrefixes": [],
                                 "destinationAddressPrefixes": [
-                                    "#{{ subnet3AddressPrefix }}",
-                                    "#{{ aksClusterPodCidr }}"
+                                    "10.179.105.0/24",
+                                    "172.16.0.0/16"
                                 ],
                                 "description": "Allow Any Tcp Outbound from VirtualNetwork to npUser01cmn and Pod CIDR Ranges"
                             }
@@ -105,7 +105,7 @@
                                 "sourcePortRanges": [],
                                 "destinationPortRanges": [],
                                 "sourceAddressPrefixes": [
-                                    "#{{ aksClusterPodCidr }}"
+                                    "172.16.0.0/16"
                                 ],
                                 "destinationAddressPrefixes": [],
                                 "description": "Allow Any port and any protocol Inbound from Pod CIDR Ranges to VirtualNetwork. This is required to allow POD to POD communication."
@@ -421,7 +421,7 @@
                                 "sourcePortRanges": [],
                                 "destinationPortRanges": [],
                                 "sourceAddressPrefixes": [
-                                    "#{{ aksClusterPodCidr }}"
+                                    "172.16.0.0/16"
                                 ],
                                 "destinationAddressPrefixes": [],
                                 "description": "Allow Any port and any protocol Inbound from Pod CIDR Ranges to VirtualNetwork. This is required to allow POD to POD communication."
