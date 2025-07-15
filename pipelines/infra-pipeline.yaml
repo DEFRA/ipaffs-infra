@@ -32,10 +32,13 @@ stages:
               scriptType: bash
               scriptLocation: inlineScript
               inlineScript: |
-                az deployment group validate \
+                echo debug
+                set -x
+                az deployment group create \
                   --resource-group $(resourceGroupName) \
                   --template-file bicep/main.bicep \
-                  --parameters location=$(location)
+                  --parameters location=$(location) \
+                  --debug
           - task: AzureCLI@2
             inputs:
               azureSubscription: $(azureSubscription)
