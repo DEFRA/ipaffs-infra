@@ -33,6 +33,6 @@ stages:
               scriptLocation: inlineScript
               inlineScript: |
                 az deployment group create \
-                  --resource-group $(resourceGroupName) \
+                  --resource-group $(networkresourceGroupName) \
                   --template-file bicep/network-security-group.bicep \
                   --parameters @bicep/network-security-group.parameters.json
