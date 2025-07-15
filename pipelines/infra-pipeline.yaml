@@ -36,5 +36,5 @@ stages:
                 az deployment group create \
                   --resource-group $(networkresourceGroupName) \
                   --template-file bicep/network-security-group.bicep \
-                  --parameters @bicep/network-security-group.parameters.json
+                  --parameters @bicep/network-security-group.parameters.json \
                   --debug
