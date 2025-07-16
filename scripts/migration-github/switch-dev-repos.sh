@@ -70,6 +70,8 @@ gitlab_name_from_github_name() {
 point_to_remote() {
   REMOTE="${1}"
   git remote set-url origin "${REMOTE}"
+  git fetch --quiet
+  git remote prune origin > /dev/null 2>&1
   echo The new remote is now: "${REMOTE}"
 }
 
