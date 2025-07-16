@@ -171,19 +171,15 @@ for DIRECTORY in */ ; do
     elif [[ "${CURRENT_REMOTE}" == *"giteux.azure.defra.cloud:imports"* ]] && [[ -z "${REVERSE}" ]]; then
       NEW_REMOTE=$(github_remote_from_gitlab_remote "${CURRENT_REMOTE}")
       git remote set-url origin "${NEW_REMOTE}"
-      git branch -m master main --quiet
       git fetch --quiet
-      git branch -u origin/main main
       git remote prune origin > /dev/null 2>&1
-      echo The new remote is now: "${NEW_REMOTE}", master has been renamed to main and track origin main.
+      echo The new remote is now: "${NEW_REMOTE}" and track origin master.
     elif [[ "${CURRENT_REMOTE}" == *"github.com:DEFRA"* ]] && [[ "${REVERSE}" ]]; then
       NEW_REMOTE=$(gitlab_remote_from_github_remote "${CURRENT_REMOTE}")
       git remote set-url origin "${NEW_REMOTE}"
-      git branch -m main master --quiet
       git fetch --quiet
-      git branch -u origin/master master
       git remote prune origin > /dev/null 2>&1
-      echo The new remote is now: "${NEW_REMOTE}", main has been renamed to master and track origin master.
+      echo The new remote is now: "${NEW_REMOTE}" and track origin master.
     else
       echo Not chaging the remote on repo: "${CURRENT_REPO_NAME}". Skipping.
     fi
