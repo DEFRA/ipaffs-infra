@@ -99,7 +99,7 @@ done
 ## -------------
 ## Warn the user
 ## -------------
-echo This script will point existing local gitlab repos to the corresponding github repo and switch from master to main.
+echo This script will point existing local gitlab repos to the corresponding github repo.
 if [[ -z "$BACKUP" ]]; then
   echo No backup is being taken. If you wish to do so retun this script with the backup flag set.
 fi
