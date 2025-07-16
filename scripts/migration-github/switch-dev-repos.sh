@@ -67,6 +67,12 @@ gitlab_name_from_github_name() {
   echo "${NAME#*ipaffs-*}"
 }
 
+point_to_remote() {
+  REMOTE="${1}"
+  git remote set-url origin "${REMOTE}"
+  echo The new remote is now: "${REMOTE}"
+}
+
 ## -------------------
 ## Start of the script
 ## -------------------
@@ -124,22 +130,22 @@ echo
 ## ---------------------------
 ## Check the github connection
 ## ---------------------------
-echo Checking connection to github 
+echo Checking connection to github
 ssh -T git@github.com > /dev/null 2>&1
 RET=$?
 if [[ $RET == 1 ]]; then
   echo Authenticated - continuing
   echo
 elif [[ $RET == 255 ]]; then
-  echo User is not authenicated. 
-  echo Please follow the instructions here to allow connecting via ssh 
+  echo User is not authenicated.
+  echo Please follow the instructions here to allow connecting via ssh
   echo https://docs.github.com/en/authentication/connecting-to-github-with-ssh
   echo You will need to have TFA enabled on your github account
   echo If you would also like to sign your commits with your ssh key see instructions here:
   echo https://docs.github.com/en/authentication/managing-commit-signature-verification/telling-git-about-your-signing-key#telling-git-about-your-ssh-key
   echo exiting
   exit
-else 
+else
   echo Unable to get a connection to github exiting
   exit
 fi
@@ -170,16 +176,10 @@ for DIRECTORY in */ ; do
       echo Repo "${CURRENT_REMOTE}" is not to be migrated. Skipping.
     elif [[ "${CURRENT_REMOTE}" == *"giteux.azure.defra.cloud:imports"* ]] && [[ -z "${REVERSE}" ]]; then
       NEW_REMOTE=$(github_remote_from_gitlab_remote "${CURRENT_REMOTE}")
-      git remote set-url origin "${NEW_REMOTE}"
-      git fetch --quiet
-      git remote prune origin > /dev/null 2>&1
-      echo The new remote is now: "${NEW_REMOTE}" and track origin master.
+      point_to_remote "${NEW_REMOTE}"
     elif [[ "${CURRENT_REMOTE}" == *"github.com:DEFRA"* ]] && [[ "${REVERSE}" ]]; then
       NEW_REMOTE=$(gitlab_remote_from_github_remote "${CURRENT_REMOTE}")
-      git remote set-url origin "${NEW_REMOTE}"
-      git fetch --quiet
-      git remote prune origin > /dev/null 2>&1
-      echo The new remote is now: "${NEW_REMOTE}" and track origin master.
+      point_to_remote "${NEW_REMOTE}"
     else
       echo Not chaging the remote on repo: "${CURRENT_REPO_NAME}". Skipping.
     fi
