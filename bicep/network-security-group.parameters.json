@@ -9,7 +9,7 @@
             "value": [
                 {
                     "name": "POCIMPNETNS1401",
-                    "purpose": "ADP AKS ILB NSG",
+                    "purpose": "AKS ILB NSG",
                     "securityRules": [
                         
                         {
@@ -90,7 +90,7 @@
                 },
                 {
                     "name": "POCIMPNETNS1402",
-                    "purpose": "ADP AKS System Node Pool NSG",
+                    "purpose": "AKS System Node Pool NSG",
                     "securityRules": [
                         {
                             "name": "AllowPodCidrAnyInbound",
