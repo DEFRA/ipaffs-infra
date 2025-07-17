@@ -1,0 +1,76 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "vnet": {
+      "value": {
+        "name": "POCIMPNETVN1401",
+        "addressPrefixes": ["10.179.104.0/22"],
+        "dnsServers": [
+          "10.176.0.4",
+          "10.176.0.5"
+        ]
+      }
+    },
+    "routeTable": {
+      "value": {
+        "name": "UDR-Spoke-Route-From-POCIMPNETVN1401-01",
+        "virtualApplicanceIp": "10.176.0.100"
+      }
+    },
+    
+    "subnets": {
+      "value": [
+        {
+          "name": "POCIMPNETSU4401",
+          "addressPrefix": "10.179.104.0/27",
+          "serviceEndpoints": [],
+          "routeTableId": "/subscriptions/cfa4ccd1-5a5e-420c-9bca-03218a43e46d/resourceGroups/POCIMPNETNS1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-POCIMPNETVN1401-01",
+          "networkSecurityGroupId":"/subscriptions/cfa4ccd1-5a5e-420c-9bca-03218a43e46d/resourceGroups/POCIMPNETNS1401/providers/Microsoft.Network/networkSecurityGroups/POCIMPNETNS1401"
+        },
+        {
+          "name": "POCIMPNETSU4402",
+          "addressPrefix": "10.179.104.128/25",
+          "serviceEndpoints": [],
+          "routeTableId": "/subscriptions/cfa4ccd1-5a5e-420c-9bca-03218a43e46d/resourceGroups/POCIMPNETNS1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-POCIMPNETVN1401-01",
+          "networkSecurityGroupId": "/subscriptions/cfa4ccd1-5a5e-420c-9bca-03218a43e46d/resourceGroups/POCIMPNETNS1401/providers/Microsoft.Network/networkSecurityGroups/POCIMPNETNS1402"
+        },
+        {
+          "name": "POCIMPNETSU4403",
+          "addressPrefix": "10.179.105.0/24",
+          "serviceEndpoints": [],
+          "routeTableId": "/subscriptions/cfa4ccd1-5a5e-420c-9bca-03218a43e46d/resourceGroups/POCIMPNETNS1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-POCIMPNETVN1401-01",
+          "networkSecurityGroupId": "/subscriptions/cfa4ccd1-5a5e-420c-9bca-03218a43e46d/resourceGroups/POCIMPNETNS1401/providers/Microsoft.Network/networkSecurityGroups/POCIMPNETNS1403"
+        },
+        {
+          "name": "POCIMPNETSU4404",
+          "addressPrefix": "10.179.106.0/25",
+          "serviceEndpoints": [],
+          "routeTableId": "/subscriptions/cfa4ccd1-5a5e-420c-9bca-03218a43e46d/resourceGroups/POCIMPNETNS1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-POCIMPNETVN1401-01"
+        },
+        {
+          "name": "POCIMPNETSU4405",
+          "addressPrefix": "10.179.106.128/25",
+          "serviceEndpoints": [],
+          "routeTableId": "/subscriptions/cfa4ccd1-5a5e-420c-9bca-03218a43e46d/resourceGroups/POCIMPNETNS1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-POCIMPNETVN1401-01"
+        },
+        
+        {
+          "name": "POCIMPNETSU4406",
+          "addressPrefix": "10.179.107.0/24",
+          "serviceEndpoints": [],
+          "routeTableId": "/subscriptions/cfa4ccd1-5a5e-420c-9bca-03218a43e46d/resourceGroups/POCIMPNETNS1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-POCIMPNETVN1401-01"
+        }
+      ]
+    },
+    "location": {
+      "value": "uksouth"
+    },
+    "environment": {
+      "value": "POC"
+    },
+    "resourceLockEnabled": {
+      "value": false
+    }
+  }
+}
