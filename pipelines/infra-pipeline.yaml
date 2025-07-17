@@ -16,9 +16,9 @@ stages:
   - stage: DeployBaseInfrastructure
     jobs:
       - job: Deploy
-        name: PrepareResourceGroups
         steps:
           - task: AzureCLI@2
+            name: PrepareResourceGroups
             inputs:
               azureSubscription: $(azureSubscription)
               scriptType: bash
