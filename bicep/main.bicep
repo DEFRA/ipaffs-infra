@@ -6,22 +6,15 @@ param sshRSAPublicKey string
 param location string = resourceGroup().location
 
 param aksResourceGroupName string = 'POCIMPINFRG1401'
-param networkResourceGroupName string = 'POCIMPINFRG1401'
-
-module network 'virtual-network.bicep' = {
+/*
+module network 'network.bicep' = {
   name: 'deployNetwork'
-  scope: resourceGroup(networkResourceGroupName)
+  scope: resourceGroup(aksResourceGroupName)
   params: {
     location: location
-    environment: 'dev' // or your environment value
-    resourceLockEnabled: false // or true, as needed
-    subnets: [] // or your subnets array
-    vnet: {} // or your vnet object
-    routeTable: {}
   }
 }
 
-/*
 module aks 'aks-cluster.bicep' = {
   name: 'deployAksCluster'
   scope: resourceGroup(aksResourceGroupName)
