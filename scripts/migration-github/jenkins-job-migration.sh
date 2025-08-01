@@ -16,16 +16,15 @@ readonly DOCUMENT1_XPATH2='/org.jenkinsci.plugins.workflow.multibranch.WorkflowM
 readonly DOCUMENT1_XPATH3='/org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject/sources/data/jenkins.branch.BranchSource/source/remote'
 readonly DOCUMENT1_XPATH4='/org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject/sources/data/jenkins.branch.BranchSource/source/credentialsId'
 readonly DOCUMENT1_XPATH5='/org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject/properties/org.jenkinsci.plugins.workflow.libs.FolderLibraries/libraries/org.jenkinsci.plugins.workflow.libs.LibraryConfiguration/defaultVersion'
-readonly DOCUMENT1_XPATH6='/org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject/sources/data/jenkins.branch.BranchSource/source/traits/jenkins.scm.impl.trait.RegexSCMHeadFilterTrait/regex'
-readonly DOCUMENT1_XPATH7='/flow-definition/definition/scm/userRemoteConfigs/hudson.plugins.git.UserRemoteConfig/url'
-readonly DOCUMENT1_XPATH8='/flow-definition/definition/scm/userRemoteConfigs/hudson.plugins.git.UserRemoteConfig/credentialsId'
+readonly DOCUMENT1_XPATH6='/flow-definition/definition/scm/userRemoteConfigs/hudson.plugins.git.UserRemoteConfig/url'
+readonly DOCUMENT1_XPATH7='/flow-definition/definition/scm/userRemoteConfigs/hudson.plugins.git.UserRemoteConfig/credentialsId'
 
 readonly DEFRA_GITHUB_PATH_PREFIX='https://github.com/DEFRA/ipaffs-'
 readonly CREDENTIALS_ID='github-migration-token'
 readonly DEFAULT_VERSION='main'
 
 readonly XPATHS=(
-  "$DOCUMENT1_XPATH1 $DOCUMENT1_XPATH2 $DOCUMENT1_XPATH3 $DOCUMENT1_XPATH4 $DOCUMENT1_XPATH5 $DOCUMENT1_XPATH6 $DOCUMENT1_XPATH7 $DOCUMENT1_XPATH8"
+  "$DOCUMENT1_XPATH1 $DOCUMENT1_XPATH2 $DOCUMENT1_XPATH3 $DOCUMENT1_XPATH4 $DOCUMENT1_XPATH5 $DOCUMENT1_XPATH6 $DOCUMENT1_XPATH7"
 )
 
 dry_run=0
@@ -128,9 +127,6 @@ function update_element() {
       ;;
     defaultVersion)
       updatedElementValue="${DEFAULT_VERSION}"
-      ;;
-    regex)
-      updatedElementValue="${elementValue//master/main}"
       ;;
     *)
       echo -e "${RED}:: Unmatched element ${elementValue}${NC}" >&2
