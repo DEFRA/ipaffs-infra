@@ -21,7 +21,7 @@ readonly DOCUMENT1_XPATH7='/flow-definition/definition/scm/userRemoteConfigs/hud
 
 readonly DEFRA_GITHUB_PATH_PREFIX='https://github.com/DEFRA/ipaffs-'
 readonly CREDENTIALS_ID='github-migration-token'
-readonly DEFAULT_VERSION='main'
+readonly DEFAULT_VERSION='master'
 
 readonly XPATHS=(
   "$DOCUMENT1_XPATH1 $DOCUMENT1_XPATH2 $DOCUMENT1_XPATH3 $DOCUMENT1_XPATH4 $DOCUMENT1_XPATH5 $DOCUMENT1_XPATH6 $DOCUMENT1_XPATH7"
