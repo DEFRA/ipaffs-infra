@@ -1,33 +1,31 @@
 #!/bin/bash
 
+set -e
+
 readonly RED='\033[0;31m'
 readonly RRED='\033[0;91m'
 readonly GREEN='\033[0;32m'
 readonly GGREEN='\033[0;92m'
 readonly YELLOW='\033[1;33m'
 readonly BLUE='\033[0;34m'
+readonly PURPLE='\033[0;35m'
 readonly NC='\033[0m'
 
 NOT_TO_MIGRATE_GITLAB=(
   "ansible" ## Not to migrate
   "ansible-jenkins" ## Not to migrate
   "terraform" ## Not to migrate
-  "ArchiveNotificationFunction" ## Not to migrate
-  "docker-local" ## TODO Broken
-  "economicoperator-microservice" ## TODO Broken
-  "fieldconfig-microservice" ## TODO Broken
-  "ipaffs-files" ## TODO Broken
-  "referencedata-microservice" ## TODO Broken
-  "scrapy-traces" ## TODO Broken
-  "imports-notification-schema" ## TODO Public
-  "notify-microservice" ## TODO Public
-  "soaprequest-microservice" ## TODO Public
-  "spring-boot-common" ## TODO Public
-  "spring-boot-common-security" ## TODO Public
-  "spring-boot-parent" ## TODO Public
 )
 
-SPECIAL_CASES=(
+RECLONE_REPOS=(
+  "docker-local" ## LFS
+  "fieldconfig-microservice" ## LFS
+  "files" "ipaffs-files" ## LFS
+  "referencedata-microservice" ## LFS
+  "scrapy-traces" ## LFS
+)
+
+RENAME_REPOS=(
   "ArchiveNotificationFunction,ipaffs-archive-notification-function"
   "import-notification-schema,ipaffs-x-import-notification-schema"
 )
@@ -67,11 +65,11 @@ gitlab_remote_from_github_remote() {
 
 github_name_from_gitlab_name() {
   NAME="${1}"
-  for SPECIAL_CASE in "${SPECIAL_CASES[@]}"
+  for RENAME_REPO in "${RENAME_REPOS[@]}"
   do
-    CASE=(${SPECIAL_CASE//,/ })
-    if [[ "${NAME}" == "${CASE[0]}" ]]; then
-      echo "${CASE[1]}"
+    REPO=(${RENAME_REPO//,/ })
+    if [[ "${NAME}" == "${REPO[0]}" ]]; then
+      echo "${REPO[1]}"
       return
     fi
   done
@@ -80,11 +78,11 @@ github_name_from_gitlab_name() {
 
 gitlab_name_from_github_name() {
   NAME="${1}"
-  for SPECIAL_CASE in "${SPECIAL_CASES[@]}"
+  for RENAME_REPO in "${RENAME_REPOS[@]}"
     do
-      CASE=(${SPECIAL_CASE//,/ })
-      if [[ "${NAME}" == "${CASE[1]}" ]]; then
-        echo "${CASE[0]}"
+      REPO=(${RENAME_REPO//,/ })
+      if [[ "${NAME}" == "${REPO[1]}" ]]; then
+        echo "${REPO[0]}"
         return
       fi
   done
@@ -92,12 +90,55 @@ gitlab_name_from_github_name() {
 }
 
 point_to_remote() {
-  REMOTE="${1}"
-  echo -e "Setting remote \`origin\` to: ${REMOTE}"
-  git remote set-url origin "${REMOTE}"
-  git fetch --quiet
-  git remote prune origin > /dev/null 2>&1
-  echo The new remote is now: "${REMOTE}"
+  REMOTE_NAME="${1}"
+  REMOTE_URL="${2}"
+  if git remote | grep -q "^${REMOTE_NAME}$"; then
+    echo -e "${BLUE}:: Setting remote \`${REMOTE_NAME}\` to: ${REMOTE_URL}${NC}"
+    git remote set-url "${REMOTE_NAME}" "${REMOTE_URL}"
+    git fetch --quiet "${REMOTE_NAME}" || true
+    git remote prune "${REMOTE_NAME}" > /dev/null 2>&1
+    echo "Remote updated"
+  else
+    echo -e "${BLUE}:: Adding remote \`${REMOTE_NAME}\` to point to: ${REMOTE_URL}${NC}"
+    git remote add "${REMOTE_NAME}" "${REMOTE_URL}"
+    git fetch --quiet "${REMOTE_NAME}" || true
+    echo "Remote added"
+  fi
+}
+
+remove_remote() {
+  REMOTE_NAME="${1}"
+  echo -e "${BLUE}:: Removing remote \`${REMOTE_NAME}\`${NC}"
+  if git remote | grep -q "^${REMOTE_NAME}$"; then
+    git remote remove "${REMOTE_NAME}"
+    echo "Remote removed"
+  else
+    echo "Remote not found, skipping"
+  fi
+}
+
+reclone_from_github() {
+  REPO="${1}"
+  REMOTE="${2}"
+  echo -e "${BLUE}:: Re-cloning \`${REPO}\` from GitHub${NC}"
+  [[ -d "${REPO}.backup-gitlab" ]] && rm -rf "${REPO}.backup-gitlab"
+  mv -v "${REPO}" "${REPO}.backup-gitlab"
+  echo "Original clone renamed"
+  git clone "${NEW_REMOTE}" "${REPO}"
+  echo "Repository re-cloned"
+}
+
+restore_original_clone() {
+  REPO="${1}"
+  echo -e "${BLUE}:: Restoring original repo: ${REPO}${NC}"
+  if [[ -d "${REPO}.backup-gitlab" ]]; then
+    rm -r "${REPO}"
+    echo -e "Restoring backup clone of ${REPO}"
+    mv "${REPO}.backup-gitlab" "${REPO}"
+    echo "Clone renamed"
+  else
+    echo -e "${YELLOW}Warning: backup for \`${REPO}\` not found, so not deleting GitHub clone${NC}"
+  fi
 }
 
 ## -------------------
@@ -180,7 +221,7 @@ fi
 ## ----------------------------------------------------------------------
 ## See if the DEFRA_WORKSPACE variable is set and that it is a valid path
 ## ----------------------------------------------------------------------
-echo -e "${BLUE}Checking DEFRA_WORKSPACE variable:${NC}"
+echo -e "${BLUE}:: Checking DEFRA_WORKSPACE variable:${NC}"
 if [[ -z "${DEFRA_WORKSPACE}" ]]; then
   echo -e "${RED}You need to set the DEFRA_WORKSPACE variable${NC}"
   echo
@@ -200,8 +241,8 @@ echo
 ## Check the github connection
 ## ---------------------------
 echo -e "${BLUE}:: Checking connection to GitHub${NC}"
-ssh -T git@github.com > /dev/null 2>&1
-RET=$?
+RET=0
+ssh -T git@github.com > /dev/null 2>&1 || RET=$?
 if [[ $RET == 1 ]]; then
   echo -e "${GREEN}Authenticated - continuing${NC}"
   echo
@@ -236,31 +277,58 @@ fi
 ## For each directory change the remote
 ## ------------------------------------
 cd "${DEFRA_WORKSPACE}"
-find -s "${DEFRA_WORKSPACE}" -type d -mindepth 1 -maxdepth 1 -print0 | while IFS= read -r -d '' DIRECTORY; do
+find -s "${DEFRA_WORKSPACE}" -type d -mindepth 1 -maxdepth 1 ! -name '*.backup*' -print0 | while IFS= read -r -d '' DIRECTORY; do
   cd "${DIRECTORY}"
-  echo -e "${BLUE}:: Currently in directory: ${DIRECTORY}${NC}"
+  echo -e "${PURPLE}:: Currently in directory: ${DIRECTORY}${NC}"
   CURRENT_REMOTE="$(git config --get remote.origin.url)"
   CURRENT_REPO_NAME="$(repo_name_from_remote "${CURRENT_REMOTE}")"
+
   for IGNORE in "${NOT_TO_MIGRATE_GITLAB[@]}"; do
     if [[ "${IGNORE}" == "${CURRENT_REPO_NAME}" ]]; then
-      echo -e "${YELLOW}Repo "${CURRENT_REMOTE}" is not to be migrated. Skipping.${NC}"
+      echo -e "${YELLOW}Repo "${CURRENT_REMOTE}" is not to be migrated. Can't touch this.${NC}"
       echo
       continue 2
     fi
   done
+
+  reclone=
+  for RECLONE in "${RECLONE_REPOS[@]}"; do
+    if [[ "${RECLONE}" == "${CURRENT_REPO_NAME}" ]] || [[ "ipaffs-${RECLONE}" == "${CURRENT_REPO_NAME}" ]]; then
+      echo -e "${YELLOW}Repo "${CURRENT_REMOTE}" must be re-cloned${NC}"
+      reclone=1
+      break
+    fi
+  done
+
   echo The current remote \`origin\` is: "${CURRENT_REMOTE}".
   if [[ -z "${CURRENT_REMOTE}" ]]; then
     echo -e "${YELLOW}This is not a git repo. Skipping.${NC}"
   elif [[ "${CURRENT_REMOTE}" == *"giteux.azure.defra.cloud:imports"* ]] && [[ -z "${REVERSE}" ]]; then
     NEW_REMOTE="$(github_remote_from_gitlab_remote "${CURRENT_REMOTE}")"
-    point_to_remote "${NEW_REMOTE}"
+    if [[ -n "${reclone}" ]]; then
+      cd ../
+      reclone_from_github "${CURRENT_REPO_NAME}" "${NEW_REMOTE}"
+    else
+      point_to_remote origin "${NEW_REMOTE}"
+      point_to_remote gitlab "${CURRENT_REMOTE}"
+      remove_remote github
+      cd ../
+    fi
   elif [[ "${CURRENT_REMOTE}" == *"github.com:DEFRA"* ]] && [[ "${REVERSE}" ]]; then
     NEW_REMOTE="$(gitlab_remote_from_github_remote "${CURRENT_REMOTE}")"
-    point_to_remote "${NEW_REMOTE}"
+    if [[ -n "${reclone}" ]]; then
+      cd ../
+      restore_original_clone "${CURRENT_REPO_NAME}"
+    else
+      point_to_remote origin "${NEW_REMOTE}"
+      point_to_remote github "${CURRENT_REMOTE}"
+      remove_remote gitlab
+      cd ../
+    fi
   else
     echo -e "${YELLOW}Not changing the remote on repo: "${CURRENT_REPO_NAME}". Skipping.${NC}"
+    cd ../
   fi
-  cd ../
   echo
 done
 
