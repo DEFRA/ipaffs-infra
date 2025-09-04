@@ -277,7 +277,7 @@ fi
 ## For each directory change the remote
 ## ------------------------------------
 cd "${DEFRA_WORKSPACE}"
-find -s "${DEFRA_WORKSPACE}" -type d -mindepth 1 -maxdepth 1 -print0 | while IFS= read -r -d '' DIRECTORY; do
+find -s "${DEFRA_WORKSPACE}" -type d -mindepth 1 -maxdepth 1 ! -name '*.backup*' -print0 | while IFS= read -r -d '' DIRECTORY; do
   cd "${DIRECTORY}"
   echo -e "${PURPLE}:: Currently in directory: ${DIRECTORY}${NC}"
   CURRENT_REMOTE="$(git config --get remote.origin.url)"
