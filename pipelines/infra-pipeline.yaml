@@ -16,8 +16,8 @@ parameters:
 - name: templates
   type: object
   default:
-    - virtual-network.bicep
-    - network-security-group.bicep
+    - virtual-network
+    - network-security-group
 
 stages:
   - stage: DeployBaseInfrastructure
@@ -46,5 +46,5 @@ stages:
                   az deployment group create \
                     --name "${{ replace(template, '.bicep', '') }}-$(Build.BuildId)" \
                     --resource-group $(networkresourceGroupName) \
-                    --template-file bicep/${{ template }} \
+                    --template-file bicep/${{ template }}.bicep \
                     --parameters @bicep/envs/${{ template }}.parameters.json
