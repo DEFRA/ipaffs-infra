@@ -11,6 +11,12 @@ resource aks 'Microsoft.ContainerService/managedClusters@2023-01-01' = {
     dnsPrefix: aksCluster.dnsPrefix
     kubernetesVersion: aksCluster.version
 
+    aadProfile: {
+      managed: true
+      enableAzureRBAC: true
+      adminGroupObjectIDs: aksCluster.adminGroupObjectIDs
+    }
+
     agentPoolProfiles: [
       // System node pool
       {
