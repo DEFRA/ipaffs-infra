@@ -47,4 +47,4 @@ stages:
                     --name "${{ replace(template, '.bicep', '') }}-$(Build.BuildId)" \
                     --resource-group $(networkresourceGroupName) \
                     --template-file bicep/${{ template }}.bicep \
-                    --parameters @bicep/envs/${{ template }}.parameters.json
+                    --parameters @bicep/envs/poc/${{ template }}.parameters.json
