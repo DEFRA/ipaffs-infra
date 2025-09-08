@@ -39,7 +39,6 @@ stages:
                 az group create \
                   --name $(networkresourceGroupName) \
                   --location $(location)
-                az network private-dns zone create -g $(resourceGroupName) -n "privatelink.azurecr.io"
           
 
           - ${{ each template in parameters.network }}:

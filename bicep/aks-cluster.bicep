@@ -53,6 +53,7 @@ resource aks 'Microsoft.ContainerService/managedClusters@2023-01-01' = {
 
     apiServerAccessProfile: {
       enablePrivateCluster: true
+      privateDNSZone: "none"
     }
 
     addonProfiles: {}
