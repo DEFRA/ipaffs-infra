@@ -18,8 +18,6 @@ parameters:
   default:
     - virtual-network.bicep
     - network-security-group.bicep
-    - acr.bicep
-    - aks-cluster.bicep
 
 stages:
   - stage: DeployBaseInfrastructure
@@ -49,4 +47,4 @@ stages:
                     --name "${{ replace(template, '.bicep', '') }}-$(Build.BuildId)" \
                     --resource-group $(networkresourceGroupName) \
                     --template-file bicep/${{ template }} \
-                    --parameters @bicep/envs/poc.json
+                    --parameters @bicep/envs/${{ template }}.parameters.json
