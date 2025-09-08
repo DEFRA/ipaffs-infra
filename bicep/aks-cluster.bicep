@@ -14,7 +14,7 @@ resource aks 'Microsoft.ContainerService/managedClusters@2023-01-01' = {
     agentPoolProfiles: [
       // System node pool
       {
-        name: '${aksCluster.name}-systempool'
+        name: 'system'
         vmSize: 'Standard_E16as_v6'
         osType: 'Linux'
         type: 'VirtualMachineScaleSets'
@@ -28,7 +28,7 @@ resource aks 'Microsoft.ContainerService/managedClusters@2023-01-01' = {
 
       // User/worker node pool
       {
-        name: '${aksCluster.name}-userpool'
+        name: 'user'
         vmSize: 'Standard_E16as_v6'
         osType: 'Linux'
         type: 'VirtualMachineScaleSets'
@@ -40,17 +40,6 @@ resource aks 'Microsoft.ContainerService/managedClusters@2023-01-01' = {
         enableAutoScaling: true
       }
     ]
-    
-    //linuxProfile: {
-    //  adminUsername: aksCluster.adminUserName
-    //  ssh: {
-    //    publicKeys: [
-    //      {
-    //        keyData: sshRSAPublicKey
-    //      }
-    //    ]
-    //  }
-    //}
 
     networkProfile: {
       networkPlugin: 'azure'

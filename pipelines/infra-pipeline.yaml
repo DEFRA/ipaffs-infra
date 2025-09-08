@@ -39,6 +39,7 @@ stages:
                 az group create \
                   --name $(networkresourceGroupName) \
                   --location $(location)
+          
           - ${{ each template in parameters.network }}:
             - task: AzureCLI@2
               displayName: Deloy_${{ template }}
@@ -53,6 +54,7 @@ stages:
                     --resource-group $(networkresourceGroupName) \
                     --template-file bicep/${{ template }}.bicep \
                     --parameters @bicep/envs/poc/${{ template }}.parameters.json
+          
           - ${{ each template in parameters.infra }}:
             - task: AzureCLI@2
               displayName: Deloy_${{ template }}
