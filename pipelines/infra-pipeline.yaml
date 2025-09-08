@@ -12,6 +12,15 @@ variables:
   networkresourceGroupName: 'POCIMPNETNS1401'
   location: 'UKSouth'
 
+parameters:
+- name: templates
+  type: object
+  default:
+    - virtual-network.bicep
+    - network-security-group.bicep
+    - acr.bicep
+    - aks-cluster.bicep
+
 stages:
   - stage: DeployBaseInfrastructure
     jobs:
@@ -27,25 +36,16 @@ stages:
                 az group create \
                   --name $(networkresourceGroupName) \
                   --location $(location)
-          - task: AzureCLI@2
-            name: DeloyNSG
-            inputs:
-              azureSubscription: $(azureSubscription)
-              scriptType: bash
-              scriptLocation: inlineScript
-              inlineScript: |
-                az deployment group create \
-                  --resource-group $(networkresourceGroupName) \
-                  --template-file bicep/network-security-group.bicep \
-                  --parameters @bicep/network-security-group.parameters.json 
-          - task: AzureCLI@2
-            name: DeployVNet
-            inputs:
-              azureSubscription: $(azureSubscription)
-              scriptType: bash
-              scriptLocation: inlineScript
-              inlineScript: |
-                az deployment group create \
-                  --resource-group $(networkresourceGroupName) \
-                  --template-file bicep/virtual-network.bicep \
-                  --parameters @bicep/virtual-network-poc.parameters.json
+          - ${{ each template in parameters.templates }}:
+            - task: AzureCLI@2
+              displayName: Deloy_${{ template }}
+              inputs:
+                azureSubscription: $(azureSubscription)
+                scriptType: bash
+                scriptLocation: inlineScript
+                inlineScript: |
+                  az deployment group create \
+                    --name "${{ replace(template, '.bicep', '') }}-$(Build.BuildId)" \
+                    --resource-group $(networkresourceGroupName) \
+                    --template-file bicep/${{ template }} \
+                    --parameters @bicep/envs/poc.json

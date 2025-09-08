@@ -1,4 +1,6 @@
+param name string
 param dnsPrefix string
+param version string
 param linuxAdminUsername string
 @secure()
 param sshRSAPublicKey string
@@ -6,19 +8,19 @@ param subnetId string
 param location string = resourceGroup().location
 
 resource aks 'Microsoft.ContainerService/managedClusters@2023-01-01' = {
-  name: 'POCIMPINFAK1401'
+  name: name
   location: location
   identity: {
     type: 'SystemAssigned'
   }
   properties: {
     dnsPrefix: dnsPrefix
-    kubernetesVersion: '1.32'
+    kubernetesVersion: version
 
     agentPoolProfiles: [
       // System node pool
       {
-        name: 'POCIMPINFAK1401-systempool'
+        name: '${name}-systempool'
         vmSize: 'Standard_E16as_v6'
         osType: 'Linux'
         type: 'VirtualMachineScaleSets'
@@ -32,7 +34,7 @@ resource aks 'Microsoft.ContainerService/managedClusters@2023-01-01' = {
 
       // User/worker node pool
       {
-        name: 'POCIMPINFAK1401-userpool'
+        name: '${name}-userpool'
         vmSize: 'Standard_E16as_v6'
         osType: 'Linux'
         type: 'VirtualMachineScaleSets'
