@@ -40,17 +40,17 @@ resource aks 'Microsoft.ContainerService/managedClusters@2023-01-01' = {
         enableAutoScaling: true
       }
     ]
-
-    linuxProfile: {
-      adminUsername: aksCluster.adminUserName
-      ssh: {
-        publicKeys: [
-          {
-            keyData: sshRSAPublicKey
-          }
-        ]
-      }
-    }
+    
+    //linuxProfile: {
+    //  adminUsername: aksCluster.adminUserName
+    //  ssh: {
+    //    publicKeys: [
+    //      {
+    //        keyData: sshRSAPublicKey
+    //      }
+    //    ]
+    //  }
+    //}
 
     networkProfile: {
       networkPlugin: 'azure'
