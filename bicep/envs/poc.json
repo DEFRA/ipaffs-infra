@@ -79,6 +79,7 @@
         "version": "1.32",
         "sshRSAPublicKey": "ssh-rsa AAAA...",
         "subnetId": "",
+        "adminUserName": "adminuser"
       }
     },
     "nsgList": {

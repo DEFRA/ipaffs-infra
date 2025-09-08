@@ -42,7 +42,7 @@ resource aks 'Microsoft.ContainerService/managedClusters@2023-01-01' = {
     ]
 
     linuxProfile: {
-      adminUsername: 'admin'
+      adminUsername: aksCluster.adminUserName
       ssh: {
         publicKeys: [
           {
