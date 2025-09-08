@@ -39,6 +39,7 @@ stages:
           - ${{ each template in parameters.templates }}:
             - task: AzureCLI@2
               displayName: Deloy_${{ template }}
+              condition: ne(variables['Build.SourceBranch'], 'refs/heads/main')
               inputs:
                 azureSubscription: $(azureSubscription)
                 scriptType: bash
