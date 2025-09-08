@@ -18,6 +18,7 @@ parameters:
   default:
     - virtual-network
     - network-security-group
+    - aks-cluster
 
 stages:
   - stage: DeployBaseInfrastructure
