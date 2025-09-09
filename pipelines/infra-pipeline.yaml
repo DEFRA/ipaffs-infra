@@ -12,6 +12,18 @@ variables:
   networkresourceGroupName: 'POCIMPNETNS1401'
   location: 'UKSouth'
 
+parameters:
+- name: network
+  type: object
+  default:
+    - virtual-network
+    - network-security-group
+- name: infra
+  type: object
+  default:
+    - aks-cluster
+
+
 stages:
   - stage: DeployBaseInfrastructure
     jobs:
@@ -27,25 +39,34 @@ stages:
                 az group create \
                   --name $(networkresourceGroupName) \
                   --location $(location)
-          - task: AzureCLI@2
-            name: DeloyNSG
-            inputs:
-              azureSubscription: $(azureSubscription)
-              scriptType: bash
-              scriptLocation: inlineScript
-              inlineScript: |
-                az deployment group create \
-                  --resource-group $(networkresourceGroupName) \
-                  --template-file bicep/network-security-group.bicep \
-                  --parameters @bicep/network-security-group.parameters.json 
-          - task: AzureCLI@2
-            name: DeployVNet
-            inputs:
-              azureSubscription: $(azureSubscription)
-              scriptType: bash
-              scriptLocation: inlineScript
-              inlineScript: |
-                az deployment group create \
-                  --resource-group $(networkresourceGroupName) \
-                  --template-file bicep/virtual-network.bicep \
-                  --parameters @bicep/virtual-network-poc.parameters.json
+          
+
+          - ${{ each template in parameters.network }}:
+            - task: AzureCLI@2
+              displayName: Deloy_${{ template }}
+              condition: ne(variables['Build.SourceBranch'], 'refs/heads/main')
+              inputs:
+                azureSubscription: $(azureSubscription)
+                scriptType: bash
+                scriptLocation: inlineScript
+                inlineScript: |
+                  az deployment group create \
+                    --name "${{ replace(template, '.bicep', '') }}-$(Build.BuildId)" \
+                    --resource-group $(networkresourceGroupName) \
+                    --template-file bicep/${{ template }}.bicep \
+                    --parameters @bicep/envs/poc/${{ template }}.parameters.json
+          
+          - ${{ each template in parameters.infra }}:
+            - task: AzureCLI@2
+              displayName: Deloy_${{ template }}
+              condition: ne(variables['Build.SourceBranch'], 'refs/heads/main')
+              inputs:
+                azureSubscription: $(azureSubscription)
+                scriptType: bash
+                scriptLocation: inlineScript
+                inlineScript: |
+                  az deployment group create \
+                    --name "${{ replace(template, '.bicep', '') }}-$(Build.BuildId)" \
+                    --resource-group $(resourceGroupName) \
+                    --template-file bicep/${{ template }}.bicep \
+                    --parameters @bicep/envs/poc/${{ template }}.parameters.json

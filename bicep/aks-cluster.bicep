@@ -1,29 +1,31 @@
-param dnsPrefix string
-param linuxAdminUsername string
-@secure()
-param sshRSAPublicKey string
-param subnetId string
-param location string = resourceGroup().location
+param location string
+param aksCluster object
 
 resource aks 'Microsoft.ContainerService/managedClusters@2023-01-01' = {
-  name: 'POCIMPINFAK1401'
+  name: aksCluster.name
   location: location
   identity: {
     type: 'SystemAssigned'
   }
   properties: {
-    dnsPrefix: dnsPrefix
-    kubernetesVersion: '1.32'
+    dnsPrefix: aksCluster.dnsPrefix
+    kubernetesVersion: aksCluster.version
+
+    aadProfile: {
+      managed: true
+      enableAzureRBAC: true
+      adminGroupObjectIDs: aksCluster.adminGroupObjectIDs
+    }
 
     agentPoolProfiles: [
       // System node pool
       {
-        name: 'POCIMPINFAK1401-systempool'
+        name: 'system'
         vmSize: 'Standard_E16as_v6'
         osType: 'Linux'
         type: 'VirtualMachineScaleSets'
         mode: 'System'
-        vnetSubnetID: subnetId
+        vnetSubnetID: aksCluster.subnetId
         enableNodePublicIP: false
         minCount: 1
         maxCount: 3
@@ -32,29 +34,18 @@ resource aks 'Microsoft.ContainerService/managedClusters@2023-01-01' = {
 
       // User/worker node pool
       {
-        name: 'POCIMPINFAK1401-userpool'
+        name: 'user'
         vmSize: 'Standard_E16as_v6'
         osType: 'Linux'
         type: 'VirtualMachineScaleSets'
         mode: 'User'
-        vnetSubnetID: subnetId
+        vnetSubnetID: aksCluster.subnetId
         enableNodePublicIP: false
         minCount: 1
         maxCount: 5
         enableAutoScaling: true
       }
     ]
-
-    linuxProfile: {
-      adminUsername: linuxAdminUsername
-      ssh: {
-        publicKeys: [
-          {
-            keyData: sshRSAPublicKey
-          }
-        ]
-      }
-    }
 
     networkProfile: {
       networkPlugin: 'azure'
@@ -68,6 +59,7 @@ resource aks 'Microsoft.ContainerService/managedClusters@2023-01-01' = {
 
     apiServerAccessProfile: {
       enablePrivateCluster: true
+      privateDNSZone: 'none'
     }
 
     addonProfiles: {}

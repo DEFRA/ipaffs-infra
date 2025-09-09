@@ -1,0 +1,20 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "location": {
+      "value": "uksouth"
+    },
+    "aksCluster": {
+      "value": {
+        "name": "POCIMPINFAK1401",
+        "dnsPrefix": "POCIMPINFAK1401",
+        "version": "1.32",
+        "sshRSAPublicKey": "ssh-rsa AAAA...",
+        "subnetId": "/subscriptions/cfa4ccd1-5a5e-420c-9bca-03218a43e46d/resourceGroups/POCIMPNETNS1401/providers/Microsoft.Network/virtualNetworks/POCIMPNETVN1401/subnets/POCIMPNETSU4402",
+        "adminUserName": "adminuser",
+        "adminGroupObjectIDs": ["4b2fbef7-de9d-4836-a44e-46c56aad3d9e"]
+      }
+    }
+  }
+}
