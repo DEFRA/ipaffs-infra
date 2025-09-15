@@ -22,7 +22,14 @@ parameters:
   type: object
   default:
     - aks-cluster
-
+- name: charts
+  type: object
+  default:
+    - name: api
+      release: api
+      chartPath: charts/api
+      namespace: api
+      values: helm-values/api.yaml
 
 stages:
   - stage: DeployBaseInfrastructure
@@ -70,3 +77,24 @@ stages:
                     --resource-group $(resourceGroupName) \
                     --template-file bicep/${{ template }}.bicep \
                     --parameters @bicep/envs/poc/${{ template }}.parameters.json
+
+            ${{ each c in parameters.charts }}:
+            - task: HelmDeploy@0
+              displayName: "helm upgrade --install ${{ c.release }}"
+              inputs:
+                connectionType: 'Azure Resource Manager'
+                azureSubscription: $(azureSubscription)
+                azureResourceGroup: $(resourceGroupName)
+                kubernetesCluster: $(aksClusterName)
+                namespace: ${{ coalesce(c.namespace, variables.defaultNamespace) }}
+                command: 'upgrade'
+                chartType: 'FilePath'
+                chartPath: ${{ c.chartPath }}
+                releaseName: ${{ c.release }}
+                install: true
+                arguments: >-
+                  --values ${{ c.values }}
+                  --history-max 5
+                  --atomic
+                  --timeout 5m
+
