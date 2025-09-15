@@ -85,7 +85,7 @@ stages:
                   connectionType: 'Azure Resource Manager'
                   azureSubscription: $(azureSubscription)
                   azureResourceGroup: $(resourceGroupName)
-                  kubernetesCluster: $(aksClusterName)
+                  kubernetesCluster: POCIMPINFAK1401
                   namespace: ${{ c.namespace }}
                   command: 'upgrade'
                   chartName: ${{ c.chartPath }}
