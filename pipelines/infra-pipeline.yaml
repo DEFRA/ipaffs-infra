@@ -88,6 +88,6 @@ stages:
                   kubernetesCluster: POCIMPINFAK1401
                   namespace: ${{ c.namespace }}
                   command: 'upgrade'
-                  chartName: ${{ c.chartPath }}
+                  chartName: ${{ c.chartName }}
                   releaseName: ${{ c.release }}
                   install: true
