@@ -78,16 +78,16 @@ stages:
                     --template-file bicep/${{ template }}.bicep \
                     --parameters @bicep/envs/poc/${{ template }}.parameters.json
 
-            ${{ each c in parameters.charts }}:
-            - task: HelmDeploy@0
-              displayName: "Helm Install ${{ c.release }}"
-              inputs:
-                connectionType: 'Azure Resource Manager'
-                azureSubscription: $(azureSubscription)
-                azureResourceGroup: $(resourceGroupName)
-                kubernetesCluster: $(aksClusterName)
-                namespace: ${{ c.namespace }}
-                command: 'upgrade'
-                chartName: ${{ c.chartPath }}
-                releaseName: ${{ c.release }}
-                install: true
+          - ${{ each c in parameters.charts }}:
+              - task: HelmDeploy@0
+                displayName: "Helm Install ${{ c.release }}"
+                inputs:
+                  connectionType: 'Azure Resource Manager'
+                  azureSubscription: $(azureSubscription)
+                  azureResourceGroup: $(resourceGroupName)
+                  kubernetesCluster: $(aksClusterName)
+                  namespace: ${{ c.namespace }}
+                  command: 'upgrade'
+                  chartName: ${{ c.chartPath }}
+                  releaseName: ${{ c.release }}
+                  install: true
