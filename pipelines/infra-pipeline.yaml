@@ -79,6 +79,10 @@ stages:
                     --parameters @bicep/envs/poc/${{ template }}.parameters.json
 
           - ${{ each c in parameters.charts }}:
+              - task: Bash@3
+                inputs:
+                  script:  echo "10.179.104.132 pocimpinfak1401-qqi7f83s.hcp.uksouth.azmk8s.io" >> /etc/hosts
+
               - task: HelmDeploy@0
                 displayName: "Helm Install ${{ c.release }}"
                 inputs:
