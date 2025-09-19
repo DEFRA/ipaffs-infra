@@ -96,3 +96,4 @@ stages:
                   arguments: >-
                     --repo https://kubernetes.github.io/ingress-nginx
                     -f ${{ c.valuesFile }}
+                    --create-namespace  
