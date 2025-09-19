@@ -94,3 +94,4 @@ stages:
                   useClusterAdmin: true
                   arguments: >-
                     --repo https://kubernetes.github.io/ingress-nginx
+                    --dry-run
