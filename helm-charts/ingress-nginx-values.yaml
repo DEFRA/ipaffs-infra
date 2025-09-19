@@ -1,0 +1,24 @@
+controller:
+  enableSnippets: true
+  extraArgs:
+    update-status: ""
+  replicaCount: 2
+  nginxplus: false
+  ingressClass: nginx
+  allowSnippetAnnotations: true
+  config:
+    annotations-risk-level: Critical
+  ingressClassResource:
+    name: nginx
+  readyStatus:
+    initialDelaySeconds: 10
+  service:
+    enabled: true
+    internal:
+      enabled: true
+      type: LoadBalancer
+    annotations:
+      service.beta.kubernetes.io/azure-load-balancer-internal: "true"
+      service.beta.kubernetes.io/azure-load-balancer-health-probe-request-path: "/healthz"
+rbac:
+  create: true

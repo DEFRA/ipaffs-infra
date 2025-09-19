@@ -30,6 +30,7 @@ parameters:
       chartName: ingress-nginx
       repoUrl: https://kubernetes.github.io/ingress-nginx
       namespace: ingress-nginx
+      valuesFile: helm-charts/ingress-nginx-values.yaml
 
 stages:
   - stage: DeployBaseInfrastructure
@@ -94,4 +95,4 @@ stages:
                   useClusterAdmin: true
                   arguments: >-
                     --repo https://kubernetes.github.io/ingress-nginx
-                    --dry-run
+                    -f ${{ c.valuesFile }}
