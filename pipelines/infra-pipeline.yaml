@@ -27,7 +27,7 @@ parameters:
   default:
     - name: ingress-nginx
       release: ingress-nginx
-      chartName: ingress-nginx/ingress-nginx
+      chartName: ingress-nginx
       repoUrl: https://kubernetes.github.io/ingress-nginx
       namespace: ingress-nginx
 
