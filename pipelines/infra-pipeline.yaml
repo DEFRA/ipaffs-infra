@@ -36,10 +36,6 @@ stages:
     jobs:
       - job: Deploy
         steps:
-          - task: Bash@3
-            inputs:
-              targetType: inline
-              script: ifconfig
           - task: AzureCLI@2
             name: PrepareResourceGroups
             inputs:
@@ -96,3 +92,5 @@ stages:
                   releaseName: ${{ c.release }}
                   install: true
                   useClusterAdmin: true
+                  arguments: >-
+                    --repo https://kubernetes.github.io/ingress-nginx
