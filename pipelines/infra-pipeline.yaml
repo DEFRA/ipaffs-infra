@@ -21,6 +21,7 @@ parameters:
 - name: infra
   type: object
   default:
+    - acr
     - aks-cluster
 - name: charts
   type: object
