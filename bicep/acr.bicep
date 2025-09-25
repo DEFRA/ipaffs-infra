@@ -4,6 +4,11 @@ param sku string = 'Premium' // Options: Basic, Standard, Premium
 param adminEnabled bool = true
 param subnetId string    
 
+var acrPullRoleId = subscriptionResourceId(
+  'Microsoft.Authorization/roleDefinitions',
+  '7f951dda-4ed3-4680-a7ca-43fe172d538d' // AcrPull
+)
+
 resource acr 'Microsoft.ContainerRegistry/registries@2023-01-01-preview' = {
   name: name
   location: location
@@ -33,6 +38,22 @@ resource acrPe 'Microsoft.Network/privateEndpoints@2023-05-01' = {
         }
       }
     ]
+  }
+}
+
+resource aks 'Microsoft.ContainerService/managedClusters@2023-01-01' existing = {
+  name: aksName
+}
+
+var kubeletObjectId = aks.properties.identityProfile['kubeletidentity'].objectId
+
+resource acrPullToAks 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(acr.id, kubeletObjectId, 'acrpull')
+  scope: acr
+  properties: {
+    roleDefinitionId: acrPullRoleId
+    principalId: kubeletObjectId
+    principalType: 'ServicePrincipal'
   }
 }
 
