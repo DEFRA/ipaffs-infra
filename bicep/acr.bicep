@@ -2,6 +2,17 @@ param name string
 param location string = resourceGroup().location
 param sku string = 'Premium' // Options: Basic, Standard, Premium
 param adminEnabled bool = true
+param subnetId string  
+param aksName string  
+
+var acrPullRoleId = subscriptionResourceId(
+  'Microsoft.Authorization/roleDefinitions',
+  '7f951dda-4ed3-4680-a7ca-43fe172d538d' // AcrPull
+)
+
+resource aks 'Microsoft.ContainerService/managedClusters@2023-01-01' existing = {
+  name: aksName
+}
 
 resource acr 'Microsoft.ContainerRegistry/registries@2023-01-01-preview' = {
   name: name
@@ -11,6 +22,39 @@ resource acr 'Microsoft.ContainerRegistry/registries@2023-01-01-preview' = {
   }
   properties: {
     adminUserEnabled: adminEnabled
+  }
+}
+
+resource acrPe 'Microsoft.Network/privateEndpoints@2023-05-01' = {
+  name: name
+  location: location
+  properties: {
+    subnet: {
+      id: subnetId
+    }
+    privateLinkServiceConnections: [
+      {
+        name: 'acr-connection'
+        properties: {
+          privateLinkServiceId: acr.id
+          groupIds: [
+            'registry'
+          ]
+        }
+      }
+    ]
+  }
+}
+
+var kubeletObjectId = aks.properties.identityProfile['kubeletidentity'].objectId
+
+resource acrPullToAks 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(acr.id, acrPullRoleId)
+  scope: acr
+  properties: {
+    roleDefinitionId: acrPullRoleId
+    principalId: kubeletObjectId
+    principalType: 'ServicePrincipal'
   }
 }
 
