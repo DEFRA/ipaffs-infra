@@ -49,7 +49,7 @@ resource aks 'Microsoft.ContainerService/managedClusters@2023-01-01' existing = 
 var kubeletObjectId = aks.properties.identityProfile['kubeletidentity'].objectId
 
 resource acrPullToAks 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(acr.id, 'acrpull')
+  name: "acrpull"
   scope: acr
   properties: {
     roleDefinitionId: acrPullRoleId
