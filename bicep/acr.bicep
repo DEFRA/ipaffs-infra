@@ -43,7 +43,7 @@ resource acrPe 'Microsoft.Network/privateEndpoints@2023-05-01' = {
 }
 
 resource acrPullToAks 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: 'acrpull'
+  name: guid(acr.id, 'acrpull')
   scope: acr
   properties: {
     roleDefinitionId: acrPullRoleId
