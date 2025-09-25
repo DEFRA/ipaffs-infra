@@ -2,7 +2,8 @@ param name string
 param location string = resourceGroup().location
 param sku string = 'Premium' // Options: Basic, Standard, Premium
 param adminEnabled bool = true
-param subnetId string    
+param subnetId string
+param aksName string
 
 var acrPullRoleId = subscriptionResourceId(
   'Microsoft.Authorization/roleDefinitions',
