@@ -1,23 +1,15 @@
 param name string
 param location string = resourceGroup().location
-@allowed([
-  'Basic'
-  'Standard'
-  'Premium'
-])
-param sku string = 'Premium'
+param sku string = 'Premium' // Options: Basic, Standard, Premium
 param adminEnabled bool = true
-param subnetId string
-
-var acrPullRoleId = subscriptionResourceId(
-  'Microsoft.Authorization/roleDefinitions',
-  '7f951dda-4ed3-4680-a7ca-43fe172d538d' // AcrPull
-)
-
+param subnetId string    
+z
 resource acr 'Microsoft.ContainerRegistry/registries@2023-01-01-preview' = {
   name: name
   location: location
-  sku: { name: sku }
+  sku: {
+    name: sku
+  }
   properties: {
     adminUserEnabled: adminEnabled
   }
