@@ -44,17 +44,6 @@ resource acrPe 'Microsoft.Network/privateEndpoints@2023-05-01' = {
   }
 }
 
-resource acrPullToAks 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  // MUST be a GUID; keep it stable with deterministic inputs
-  name: guid(acr.id, 'edbbccb9-6269-43cd-ab1e-531f40df66f0', acrPullRoleId)
-  scope: acr
-  properties: {
-    roleDefinitionId: acrPullRoleId
-    principalId: 'edbbccb9-6269-43cd-ab1e-531f40df66f0'
-    principalType: 'ServicePrincipal'
-  }
-}
-
 output acrName string = acr.name
 output acrLoginServer string = acr.properties.loginServer
 output acrResourceId string = acr.id
