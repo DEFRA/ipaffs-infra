@@ -1,9 +1,13 @@
 param name string
 param location string = resourceGroup().location
-param sku string = 'Premium' // Options: Basic, Standard, Premium
+@allowed([
+  'Basic'
+  'Standard'
+  'Premium'
+])
+param sku string = 'Premium'
 param adminEnabled bool = true
 param subnetId string
-param aksName string
 
 var acrPullRoleId = subscriptionResourceId(
   'Microsoft.Authorization/roleDefinitions',
@@ -13,9 +17,7 @@ var acrPullRoleId = subscriptionResourceId(
 resource acr 'Microsoft.ContainerRegistry/registries@2023-01-01-preview' = {
   name: name
   location: location
-  sku: {
-    name: sku
-  }
+  sku: { name: sku }
   properties: {
     adminUserEnabled: adminEnabled
   }
@@ -43,7 +45,8 @@ resource acrPe 'Microsoft.Network/privateEndpoints@2023-05-01' = {
 }
 
 resource acrPullToAks 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(acr.id, 'acrpull')
+  // MUST be a GUID; keep it stable with deterministic inputs
+  name: guid(acr.id, principalId, acrPullRoleId)
   scope: acr
   properties: {
     roleDefinitionId: acrPullRoleId
