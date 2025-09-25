@@ -42,18 +42,12 @@ resource acrPe 'Microsoft.Network/privateEndpoints@2023-05-01' = {
   }
 }
 
-resource aks 'Microsoft.ContainerService/managedClusters@2023-01-01' existing = {
-  name: aksName
-}
-
-var kubeletObjectId = aks.properties.identityProfile['kubeletidentity'].objectId
-
 resource acrPullToAks 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   name: 'acrpull'
   scope: acr
   properties: {
     roleDefinitionId: acrPullRoleId
-    principalId: kubeletObjectId
+    principalId: 'edbbccb9-6269-43cd-ab1e-531f40df66f0'
     principalType: 'ServicePrincipal'
   }
 }
