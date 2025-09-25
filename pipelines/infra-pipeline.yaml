@@ -40,6 +40,7 @@ stages:
         steps:
           - task: AzureCLI@2
             name: PrepareResourceGroups
+            condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
             inputs:
               azureSubscription: $(azureSubscription)
               scriptType: bash
@@ -48,12 +49,11 @@ stages:
                 az group create \
                   --name $(networkresourceGroupName) \
                   --location $(location)
-          
 
           - ${{ each template in parameters.network }}:
             - task: AzureCLI@2
-              displayName: Deloy_${{ template }}
-              condition: ne(variables['Build.SourceBranch'], 'refs/heads/main')
+              displayName: Deploy_${{ template }}
+              condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
               inputs:
                 azureSubscription: $(azureSubscription)
                 scriptType: bash
@@ -67,8 +67,8 @@ stages:
           
           - ${{ each template in parameters.infra }}:
             - task: AzureCLI@2
-              displayName: Deloy_${{ template }}
-              condition: ne(variables['Build.SourceBranch'], 'refs/heads/main')
+              displayName: Deploy_${{ template }}
+              condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
               inputs:
                 azureSubscription: $(azureSubscription)
                 scriptType: bash
@@ -86,7 +86,7 @@ stages:
                 inputs:
                   connectionType: 'Azure Resource Manager'
                   azureSubscription: $(azureSubscription)
-                  azureResourceGroup: $(networkresourceGroupName)
+                  azureResourceGroup: $(resourceGroupName)
                   kubernetesCluster: POCIMPINFAK1401
                   namespace: ${{ c.namespace }}
                   command: 'upgrade'
