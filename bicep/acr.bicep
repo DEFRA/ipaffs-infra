@@ -66,7 +66,7 @@ resource acrPullToAks 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
 }
 
 resource acrPullToUserPool 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(acr.id, acrPullRoleId, userPoolKubeletObjectId)
+  name: guid(acr.id, acrPullRoleId, 'user')
   scope: acr
   properties: {
     roleDefinitionId: acrPullRoleId
