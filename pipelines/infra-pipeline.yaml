@@ -81,11 +81,20 @@ stages:
                     --parameters @bicep/envs/poc/${{ template }}.parameters.json
 
           - ${{ each c in parameters.charts }}:
-            - script: |
-                helm upgrade \
-                  --namespace ${{ c.namespace }} \
-                  --install --wait \
-                  --repo https://kubernetes.github.io/ingress-nginx \
-                  -f ${{ c.valuesFile }} \
-                  --create-namespace \
-                  ingress-nginx
+              - task: HelmDeploy@0
+                displayName: "Helm Install ${{ c.release }}"
+                inputs:
+                  connectionType: 'Azure Resource Manager'
+                  azureSubscription: $(azureSubscription)
+                  azureResourceGroup: $(resourceGroupName)
+                  kubernetesCluster: POCIMPINFAK1401
+                  namespace: ${{ c.namespace }}
+                  command: 'upgrade'
+                  chartName: ${{ c.chartName }}
+                  releaseName: ${{ c.release }}
+                  install: true
+                  useClusterAdmin: true
+                  arguments: >-
+                    --repo https://kubernetes.github.io/ingress-nginx
+                    -f ${{ c.valuesFile }}
+                    --create-namespace  
