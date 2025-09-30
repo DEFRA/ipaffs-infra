@@ -43,11 +43,21 @@ resource acrPe 'Microsoft.Network/privateEndpoints@2023-05-01' = {
 
 
 resource acrPullToAks1 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(acr.id, acrPullRoleId)
+  name: guid(acr.id, acrPullRoleId, 'pool1')
   scope: acr
   properties: {
     roleDefinitionId: acrPullRoleId
-    principalId: 'aba8df63-8610-4412-b138-fe612bae1def'
+    principalId: 'bcdcf4d5-13de-4ad1-a450-25146efe851c'
+    principalType: 'ServicePrincipal'
+  }
+}
+
+resource acrPullToAks1 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(acr.id, acrPullRoleId, 'pool2')
+  scope: acr
+  properties: {
+    roleDefinitionId: acrPullRoleId
+    principalId: 'edbbccb9-6269-43cd-ab1e-531f40df66f0'
     principalType: 'ServicePrincipal'
   }
 }
