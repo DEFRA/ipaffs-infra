@@ -10,14 +10,6 @@ var acrPullRoleId = subscriptionResourceId(
   '7f951dda-4ed3-4680-a7ca-43fe172d538d' // AcrPull
 )
 
-resource aks 'Microsoft.ContainerService/managedClusters@2023-01-01' existing = {
-  name: aksName
-}
-
-resource userPool 'Microsoft.ContainerService/managedClusters/agentPools@2023-08-01' existing = {
-  name: '${aksName}/user'
-}
-
 resource acr 'Microsoft.ContainerRegistry/registries@2023-01-01-preview' = {
   name: name
   location: location
@@ -50,7 +42,6 @@ resource acrPe 'Microsoft.Network/privateEndpoints@2023-05-01' = {
   }
 }
 
-var kubeletObjectId = aks.properties.identityProfile['kubeletidentity'].objectId
 
 resource acrPullToAks1 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   name: guid(acr.id, acrPullRoleId)
