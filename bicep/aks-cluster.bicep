@@ -83,6 +83,7 @@ resource acrPullToKubelet 'Microsoft.Authorization/roleAssignments@2022-04-01' =
     principalId: aks.properties.identityProfile['kubeletidentity'].objectId
     principalType: 'ServicePrincipal'
   }
+}
   
 var networkContributorRoleId = subscriptionResourceId(
   'Microsoft.Authorization/roleDefinitions',
