@@ -92,7 +92,7 @@ var networkContributorRoleId = subscriptionResourceId(
 
 resource networkContributor 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   name: guid(acr.id, acrPullRoleId, 'main')
-  scope: "/subscriptions/cfa4ccd1-5a5e-420c-9bca-03218a43e46d/resourceGroups/POCIMPNETNS1401/providers/Microsoft.Network/virtualNetworks/POCIMPNETVN1401"
+  scope: '/subscriptions/cfa4ccd1-5a5e-420c-9bca-03218a43e46d/resourceGroups/POCIMPNETNS1401/providers/Microsoft.Network/virtualNetworks/POCIMPNETVN1401'
   properties: {
     roleDefinitionId: networkContributorRoleId
     principalId: aks.properties.identityProfile['kubeletidentity'].objectId
