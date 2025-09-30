@@ -41,13 +41,12 @@ resource acrPe 'Microsoft.Network/privateEndpoints@2023-05-01' = {
   }
 }
 
-
-resource acrPullToAks3 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(acr.id, acrPullRoleId, 'pool3')
+resource kubelet 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(acr.id, acrPullRoleId, 'kubelet')
   scope: acr
   properties: {
     roleDefinitionId: acrPullRoleId
-    principalId: '3fa370b7-73dd-4ab3-a441-51354afb4b27'
+    principalId: 'bcdcf4d5-13de-4ad1-a450-25146efe851c'
     principalType: 'ServicePrincipal'
   }
 }
