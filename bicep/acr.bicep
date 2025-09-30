@@ -52,7 +52,7 @@ resource acrPullToAks1 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   }
 }
 
-resource acrPullToAks1 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+resource acrPullToAks2 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   name: guid(acr.id, acrPullRoleId, 'pool2')
   scope: acr
   properties: {
