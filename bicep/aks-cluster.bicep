@@ -76,7 +76,7 @@ var acrPullRoleId = subscriptionResourceId(
 )
 
 resource acrPullToKubelet 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(acr.id, acrPullRoleId, aks.properties.identityProfile['kubeletidentity'].objectId)
+  name: guid(acr.id, acrPullRoleId, 'main')
   scope: acr
   properties: {
     roleDefinitionId: acrPullRoleId
