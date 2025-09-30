@@ -24,6 +24,7 @@ controller:
     annotations:
       service.beta.kubernetes.io/azure-load-balancer-internal: "true"
       service.beta.kubernetes.io/azure-load-balancer-health-probe-request-path: "/healthz"
+      service.beta.kubernetes.io/do-loadbalancer-healthcheck-port: 80
   image:
     digest: ""
     pullPolicy: Always
