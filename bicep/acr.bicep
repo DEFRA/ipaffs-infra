@@ -52,16 +52,25 @@ resource acrPe 'Microsoft.Network/privateEndpoints@2023-05-01' = {
 
 var kubeletObjectId = aks.properties.identityProfile['kubeletidentity'].objectId
 
-resource acrPullToAks 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+resource acrPullToAks1 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   name: guid(acr.id, acrPullRoleId)
   scope: acr
   properties: {
     roleDefinitionId: acrPullRoleId
-    principalId: kubeletObjectId
+    principalId: 'bcdcf4d5-13de-4ad1-a450-25146efe851c'
     principalType: 'ServicePrincipal'
   }
 }
 
+resource acrPullToAks2 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(acr.id, acrPullRoleId)
+  scope: acr
+  properties: {
+    roleDefinitionId: acrPullRoleId
+    principalId: 'edbbccb9-6269-43cd-ab1e-531f40df66f0'
+    principalType: 'ServicePrincipal'
+  }
+}
 output acrName string = acr.name
 output acrLoginServer string = acr.properties.loginServer
 output acrResourceId string = acr.id
