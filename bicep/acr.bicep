@@ -41,18 +41,6 @@ resource acrPe 'Microsoft.Network/privateEndpoints@2023-05-01' = {
   }
 }
 
-
-resource kubelet2 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(acr.id, acrPullRoleId, 'kubelet2')
-  scope: acr
-  properties: {
-    roleDefinitionId: acrPullRoleId
-    principalId: '3fa370b7-73dd-4ab3-a441-51354afb4b27'
-    principalType: 'ServicePrincipal'
-  }
-}
-
-
 output acrName string = acr.name
 output acrLoginServer string = acr.properties.loginServer
 output acrResourceId string = acr.id

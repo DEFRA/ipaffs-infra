@@ -66,4 +66,24 @@ resource aks 'Microsoft.ContainerService/managedClusters@2023-01-01' = {
   }
 }
 
+resource acr 'Microsoft.ContainerRegistry/registries@2023-01-01-preview' existing = {
+  name: 'POCIMPINFAC1401'
+}
+
+var acrPullRoleId = subscriptionResourceId(
+  'Microsoft.Authorization/roleDefinitions',
+  '7f951dda-4ed3-4680-a7ca-43fe172d538d' // AcrPull
+)
+
+resource acrPullToKubelet 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(acr.id, acrPullRoleId, aks.properties.identityProfile['kubeletidentity'].objectId)
+  scope: acr
+  properties: {
+    roleDefinitionId: acrPullRoleId
+    principalId: aks.properties.identityProfile['kubeletidentity'].objectId
+    principalType: 'ServicePrincipal'
+  }
+}
+
+
 output kubeletObjectId string = aks.properties.identityProfile['kubeletidentity'].objectId
