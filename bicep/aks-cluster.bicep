@@ -84,25 +84,21 @@ resource acrPullToKubelet 'Microsoft.Authorization/roleAssignments@2022-04-01' =
     principalType: 'ServicePrincipal'
   }
 }
-  
+
+// Built-in Network Contributor
 var networkContributorRoleId = subscriptionResourceId(
   'Microsoft.Authorization/roleDefinitions',
-  '4d97b98b-1d4f-4787-a291-c67834d212e7' // Network Contributor
+  '4d97b98b-1d4f-4787-a291-c67834d212e7'
 )
 
-resource vnet 'Microsoft.Network/virtualNetworks@2023-09-01' existing = {
-  scope: resourceGroup('POCIMPNETNS1401')
-  name: 'POCIMPNETVN1401'
-}
-
-
-resource networkContributor 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(acr.id, acrPullRoleId, 'main')
-  scope: vnet
-  properties: {
+// Deploy the role assignment **into the VNet RG**
+module netRole './modules/vnet-role.bicep' = {
+  name: 'vnetNetworkContributor'
+  scope: 'POCIMPNETVN1401'
+  params: {
+    vnetName: 'POCIMPNETVN1401'
     roleDefinitionId: networkContributorRoleId
-    principalId: aks.properties.identityProfile['kubeletidentity'].objectId
-    principalType: 'ServicePrincipal'
+    principalObjectId: aks.properties.identityProfile['kubeletidentity'].objectId
   }
 }
 
