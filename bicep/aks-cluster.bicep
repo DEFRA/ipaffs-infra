@@ -88,7 +88,7 @@ module netRole './modules/vnet-role.bicep' = {
 }
 
 // Deploy the role assignment **into the VNet RG**
-module netRole './modules/vnet-role.bicep' = {
+module netRole2 './modules/vnet-role.bicep' = {
   name: 'vnetNetworkContributor'
   scope: resourceGroup('POCIMPNETNS1401')
   params: {
