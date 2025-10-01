@@ -94,7 +94,7 @@ var networkContributorRoleId = subscriptionResourceId(
 // Deploy the role assignment **into the VNet RG**
 module netRole './modules/vnet-role.bicep' = {
   name: 'vnetNetworkContributor'
-  scope: resourceGroup(POCIMPNETVN1401)
+  scope: resourceGroup('POCIMPNETNS1401')
   params: {
     vnetName: 'POCIMPNETVN1401'
     roleDefinitionId: networkContributorRoleId
