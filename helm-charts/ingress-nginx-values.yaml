@@ -6,7 +6,7 @@ controller:
   enableSnippets: true
   extraArgs:
     update-status: ""
-  replicaCount: 2
+  replicaCount: 1
   nginxplus: false
   ingressClass: nginx
   allowSnippetAnnotations: true
