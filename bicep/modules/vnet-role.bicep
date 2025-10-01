@@ -1,4 +1,4 @@
-targetScope = 'POCIMPNETVN1401'
+targetScope = 'resourceGroup'
 
 param vnetName string
 param roleDefinitionId string
