@@ -83,17 +83,6 @@ module netRole './modules/vnet-role.bicep' = {
   params: {
     vnetName: 'POCIMPNETVN1401'
     roleDefinitionId: networkContributorRoleId
-    principalObjectId: aks.properties.identityProfile['kubeletidentity'].objectId
-  }
-}
-
-// Deploy the role assignment **into the VNet RG**
-module netRole2 './modules/vnet-role.bicep' = {
-  name: 'vnetNetworkContributor'
-  scope: resourceGroup('POCIMPNETNS1401')
-  params: {
-    vnetName: 'POCIMPNETVN1401'
-    roleDefinitionId: networkContributorRoleId
     principalObjectId: '3fa370b7-73dd-4ab3-a441-51354afb4b27'
   }
 }
