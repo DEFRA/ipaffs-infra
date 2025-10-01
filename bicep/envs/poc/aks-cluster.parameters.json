@@ -15,6 +15,15 @@
         "adminUserName": "adminuser",
         "adminGroupObjectIDs": ["4b2fbef7-de9d-4836-a44e-46c56aad3d9e"]
       }
+    },
+    "vnetName": {
+      "value": "POCIMPNETVN1401"
+    },
+    "acrName": {
+      "value": "POCIMPINFAC1401"
+    },
+    "vnetRg": {
+      "value": "POCIMPNETNS1401"
     }
   }
 }

@@ -1,5 +1,8 @@
 param location string
 param aksCluster object
+param vnetName string
+param vnetRg string
+param acrName string
 
 resource aks 'Microsoft.ContainerService/managedClusters@2023-01-01' = {
   name: aksCluster.name
@@ -67,23 +70,21 @@ resource aks 'Microsoft.ContainerService/managedClusters@2023-01-01' = {
 }
 
 resource acr 'Microsoft.ContainerRegistry/registries@2023-01-01-preview' existing = {
-  name: 'POCIMPINFAC1401'
+  name: acrName
 }
 
-// Built-in Network Contributor
 var networkContributorRoleId = subscriptionResourceId(
   'Microsoft.Authorization/roleDefinitions',
   '4d97b98b-1d4f-4787-a291-c67834d212e7'
 )
 
-// Deploy the role assignment **into the VNet RG**
 module netRole './modules/vnet-role.bicep' = {
   name: 'vnetNetworkContributor'
-  scope: resourceGroup('POCIMPNETNS1401')
+  scope: resourceGroup(vnetRg)
   params: {
-    vnetName: 'POCIMPNETVN1401'
+    vnetName: vnetName
     roleDefinitionId: networkContributorRoleId
-    principalObjectId: '3fa370b7-73dd-4ab3-a441-51354afb4b27'
+    principalObjectId: aks.identity.principalId
   }
 }
 
