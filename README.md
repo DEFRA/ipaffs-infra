@@ -44,6 +44,7 @@ validate our plans and assumptions, port IPAFFS to Kubernetes, and overhaul the 
 4. Set the `DEFRA_WORKSPACE` environment variable to the parent directory of your `docker-local` clone.
 
    ```shell
+   export IPAFFS_KEYVAULT=<IPAFFS KEYVAULT> # Please populate correct key vault
    export DEFRA_WORKSPACE="${HOME}/git/defra"
    ```
    
