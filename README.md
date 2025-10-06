@@ -37,16 +37,14 @@ validate our plans and assumptions, port IPAFFS to Kubernetes, and overhaul the 
    requires access to the private repository on GitLab and is a temporary requirement we expect to eliminate in the near future.
 
    ```shell
-   mkdir -p ~/git/imports && cd ~/git/imports
-   git clone git@giteux.azure.defra.cloud:imports/docker-local
-   cd docker-local
-   git checkout feature/support-sourcing-scripts
+   mkdir -p ~/git/defra && cd ~/git/defra
+   git clone git@github.com:DEFRA/ipaffs-docker-local
    ```
 
 4. Set the `DEFRA_WORKSPACE` environment variable to the parent directory of your `docker-local` clone.
 
    ```shell
-   export DEFRA_WORKSPACE="${HOME}/git/imports"
+   export DEFRA_WORKSPACE="${HOME}/git/defra"
    ```
    
 5. Run the Lima/K3S setup script.
@@ -84,9 +82,9 @@ validate our plans and assumptions, port IPAFFS to Kubernetes, and overhaul the 
 
 ### Migrating Services to Kubernetes
 
-Things are moving along quickly. At the time of writing, migration of imports-proxy is well underway and can be tested.
+Things are moving along quickly. At the time of writing, migration of ipaffs-imports-proxy is well underway and can be tested.
 
-* Check out the `spike/dev-containers` branch of `imports-proxy`
+* Check out the `spike/dev-containers` branch of `ipaffs-imports-proxy`
 * Ensure your development VM is set up with K3S as detailed above.
 * Run `scripts/build.sh` to build the service, package a container and push to the local registry.
 * Run `scripts/deploy.sh` to deploy the latest built container image and run with remote debugger enabled.
