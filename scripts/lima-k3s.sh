@@ -138,7 +138,7 @@ echo
 echo -e "${GREEN}\n:: IPAFFS development VM is provisioned and ready to use!${NC}"
 echo
 echo "Don't forget to configure kubectl and docker - consider adding these to your shell profile:"
-echo '  $ export KUBECONFIG="${HOME}/.lima/ipaffs/copied-from-guest/kubeconfig.yaml'
+echo '  $ export KUBECONFIG="${HOME}/.lima/ipaffs/copied-from-guest/kubeconfig.yaml"'
 echo '  $ export DEFRA_WORKSPACE="${HOME}/path/to/imports"'
 echo
 
