@@ -112,9 +112,21 @@ kubectl create secret docker-registry ipaffs-acr \
     --docker-username=ipaffs \
     --docker-password="$(az keyvault secret show --vault-name "${IPAFFS_KEYVAULT}" -n ipaffsAcrTokenPassword --query value -o tsv)"
 
+# Detect docker-local directory
+if [[ -d "${IMPORTS_DIR}/ipaffs-docker-local" ]]; then
+  echo -e "${BLUE}.. using \`ipaffs-docker-local\`${NC}"
+  _docker_local_dir="${IMPORTS_DIR}/ipaffs-docker-local"
+elif [[ -d "${IMPORTS_DIR}/docker-local" ]]; then
+  echo -e "${BLUE}.. using \`docker-local\`${NC}"
+  _docker_local_dir="${IMPORTS_DIR}/docker-local"
+else
+  echo -e "${RED}No \`ipaffs-docker-local\` or \`docker-local\` directory was found${NC}"
+  exit 1
+fi
+
 # Build SQL Server container
 echo -e "${BLUE}\n:: Building database container image${NC}"
-docker build --platform=linux/amd64 -t import-notification-database "${IMPORTS_DIR}/docker-local/database"
+docker build --platform=linux/amd64 -t import-notification-database "${_docker_local_dir}/database"
 
 # Tag and push database container image
 echo -e "${BLUE}\n:: Pushing database container image to local registry${NC}"

@@ -64,18 +64,29 @@ while true; do
   sleep 5
 done
 
+# Detect docker-local directory
+if [[ -d "${IMPORTS_DIR}/ipaffs-docker-local" ]]; then
+  echo -e "${BLUE}.. using \`ipaffs-docker-local\`${NC}"
+  _docker_local_dir="${IMPORTS_DIR}/ipaffs-docker-local"
+elif [[ -d "${IMPORTS_DIR}/docker-local" ]]; then
+  echo -e "${BLUE}.. using \`docker-local\`${NC}"
+  _docker_local_dir="${IMPORTS_DIR}/docker-local"
+else
+  echo -e "${RED}No \`ipaffs-docker-local\` or \`docker-local\` directory was found${NC}"
+  exit 1
+fi
+
 # Source database go script and override database port number
-cd "${IMPORTS_DIR}/docker-local/database"
-source "${IMPORTS_DIR}/docker-local/database/go"
+cd "${_docker_local_dir}/database"
+source "${_docker_local_dir}/database/go"
 export_db_conn
 
 # Initialize the database
 echo -e "${BLUE}\n:: Initializing IPAFFS database${NC}"
 initialize_database
 
-# Source setup script and override database port number
-cd "${IMPORTS_DIR}/docker-local"
-source "${IMPORTS_DIR}/docker-local/docker_setup.sh"
+cd "${_docker_local_dir}"
+source "${_docker_local_dir}/docker_setup.sh"
 export_db_conn
 
 # Load data
