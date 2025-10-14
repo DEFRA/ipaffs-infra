@@ -4,7 +4,17 @@ trigger:
       - "*"
   paths:
     include:
-      - helm-charts/webapp/
+      - helm-charts/webapp/**
+      - pipelines/webapp-pipeline.yaml
+
+pr:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - helm-charts/webapp/**
+      - pipelines/webapp-pipeline.yaml
 
 pool:
   name: 'DEFRA-COMMON-ubuntu2204-SSV5'

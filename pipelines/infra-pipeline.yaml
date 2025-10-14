@@ -2,24 +2,39 @@ trigger:
   branches:
     include:
       - main
+  paths:
+    include:
+      - bicep/**
+      - pipelines/infra-pipeline.yaml
+
+pr:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - bicep/**
+      - pipelines/infra-pipeline.yaml
 
 pool:
   name: DEFRA-COMMON-ubuntu2204-SSV5
 
 variables:
-  azureSubscription: 'ADO-DefraGovUK-AZR-POC_IMP' # Name of service connection
-  resourceGroupName: 'POCIMPNETNS1401'
-  location: 'UKSouth'
+  azureSubscription: ADO-DefraGovUK-AZR-POC_IMP # Name of service connection
+  resourceGroupName: POCIMPNETNS1401
+  location: UKSouth
 
 parameters:
-- name: network
-  type: object
+- name: bicep_files
+  type: stringList
+  values:
+    - virtual-network
+    - network-security-group
+    - acr
+    - aks-cluster
   default:
     - virtual-network
     - network-security-group
-- name: infra
-  type: object
-  default:
     - acr
     - aks-cluster
 - name: charts
@@ -49,51 +64,71 @@ stages:
                   --name $(resourceGroupName) \
                   --location $(location)
 
-          - ${{ each template in parameters.network }}:
+          - ${{ each template in parameters.bicep_files }}:
             - task: AzureCLI@2
-              displayName: Deploy_${{ template }}
-              condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+              displayName: WhatIf_${{ template }}
+              condition: ne(variables['Build.SourceBranch'], 'refs/heads/main')
               inputs:
                 azureSubscription: $(azureSubscription)
                 scriptType: bash
                 scriptLocation: inlineScript
                 inlineScript: |
-                  az deployment group create \
-                    --name "${{ replace(template, '.bicep', '') }}-$(Build.BuildId)" \
-                    --resource-group $(resourceGroupName) \
-                    --template-file bicep/${{ template }}.bicep \
-                    --parameters @bicep/envs/poc/${{ template }}.parameters.json
-          
-          - ${{ each template in parameters.infra }}:
-            - task: AzureCLI@2
-              displayName: Deploy_${{ template }}
-              condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
-              inputs:
-                azureSubscription: $(azureSubscription)
-                scriptType: bash
-                scriptLocation: inlineScript
-                inlineScript: |
-                  az deployment group create \
-                    --name "${{ replace(template, '.bicep', '') }}-$(Build.BuildId)" \
+                  az deployment group what-if \
+                    --name "${{ template }}-$(Build.BuildId)" \
                     --resource-group $(resourceGroupName) \
                     --template-file bicep/${{ template }}.bicep \
                     --parameters @bicep/envs/poc/${{ template }}.parameters.json
 
-          - ${{ each c in parameters.charts }}:
-              - task: HelmDeploy@0
-                displayName: "Helm Install ${{ c.release }}"
-                inputs:
-                  connectionType: 'Azure Resource Manager'
-                  azureSubscription: $(azureSubscription)
-                  azureResourceGroup: $(resourceGroupName)
-                  kubernetesCluster: POCIMPINFAK1401
-                  namespace: ${{ c.namespace }}
-                  command: 'upgrade'
-                  chartName: ${{ c.chartName }}
-                  releaseName: ${{ c.release }}
-                  install: true
-                  useClusterAdmin: true
-                  arguments: >-
-                    --repo https://kubernetes.github.io/ingress-nginx
-                    -f ${{ c.valuesFile }}
-                    --create-namespace  
+            - task: AzureCLI@2
+              displayName: Deploy_${{ template }}
+              condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+              inputs:
+                azureSubscription: $(azureSubscription)
+                scriptType: bash
+                scriptLocation: inlineScript
+                inlineScript: |
+                  az deployment group create \
+                    --name "${{ template }}-$(Build.BuildId)" \
+                    --resource-group $(resourceGroupName) \
+                    --template-file bicep/${{ template }}.bicep \
+                    --parameters @bicep/envs/poc/${{ template }}.parameters.json
+
+          - ${{ each chart in parameters.charts }}:
+            - task: HelmDeploy@0
+              displayName: "HelmInstall_${{ chart.release }}"
+              condition: ne(variables['Build.SourceBranch'], 'refs/heads/main')
+              inputs:
+                connectionType: Azure Resource Manager
+                azureSubscription: $(azureSubscription)
+                azureResourceGroup: $(resourceGroupName)
+                kubernetesCluster: POCIMPINFAK1401
+                namespace: ${{ chart.namespace }}
+                command: upgrade
+                chartName: ${{ chart.chartName }}
+                releaseName: ${{ chart.release }}
+                install: true
+                useClusterAdmin: true
+                arguments: >-
+                  --repo https://kubernetes.github.io/ingress-nginx
+                  -f ${{ chart.valuesFile }}
+                  --create-namespace
+                  --dry-run
+
+            - task: HelmDeploy@0
+              displayName: "HelmInstall_${{ chart.release }}"
+              condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+              inputs:
+                connectionType: Azure Resource Manager
+                azureSubscription: $(azureSubscription)
+                azureResourceGroup: $(resourceGroupName)
+                kubernetesCluster: POCIMPINFAK1401
+                namespace: ${{ chart.namespace }}
+                command: upgrade
+                chartName: ${{ chart.chartName }}
+                releaseName: ${{ chart.release }}
+                install: true
+                useClusterAdmin: true
+                arguments: >-
+                  --repo https://kubernetes.github.io/ingress-nginx
+                  -f ${{ chart.valuesFile }}
+                  --create-namespace

@@ -4,7 +4,17 @@ trigger:
       - main
   paths:
       include:
-        - helm-charts/ipaffs-backend/*
+        - helm-charts/ipaffs-backend/**
+        - pipelines/ipaffs-backend-pipeline.yaml
+
+pr:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - helm-charts/ipaffs-backend/**
+      - pipelines/ipaffs-backend-pipeline.yaml
 
 pool:
   name: 'DEFRA-COMMON-ubuntu2204-SSV5'
