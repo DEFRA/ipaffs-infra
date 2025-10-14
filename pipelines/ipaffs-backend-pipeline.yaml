@@ -6,6 +6,14 @@ trigger:
       include:
         - helm-charts/ipaffs-backend/*
 
+pr:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - helm-charts/ipaffs-backend/*
+
 pool:
   name: 'DEFRA-COMMON-ubuntu2204-SSV5'
 

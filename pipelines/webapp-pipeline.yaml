@@ -6,6 +6,14 @@ trigger:
     include:
       - helm-charts/webapp/
 
+pr:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - helm-charts/webapp/
+
 pool:
   name: 'DEFRA-COMMON-ubuntu2204-SSV5'
 

@@ -8,7 +8,13 @@ trigger:
       - pipelines/infra-pipeline.yaml
 
 pr:
-  - main
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - bicep/**
+      - pipelines/infra-pipeline.yaml
 
 pool:
   name: DEFRA-COMMON-ubuntu2204-SSV5
