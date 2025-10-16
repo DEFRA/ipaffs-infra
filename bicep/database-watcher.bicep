@@ -47,7 +47,7 @@ resource kustoCluster 'Microsoft.Kusto/Clusters@2024-04-13' = {
 }
 
 resource kustoDataStore 'Microsoft.Kusto/Clusters/Databases@2024-04-13' = {
-  name: '${kustoCluster}-data-store'
+  name: '${kustoCluster.name}-data-store'
   location: location
   kind: 'ReadWrite'
 }
@@ -61,9 +61,6 @@ resource kustoDataStoreGroupAdmin 'Microsoft.Kusto/Clusters/Databases/PrincipalA
     principalType: 'Group'
     tenantId: '770a2450-0227-4c62-90c7-4e38537f1102'
   }
-  dependsOn: [
-    kustoCluster
-  ]
 }
 
 resource kustoDataStoreWatcherAdmin 'Microsoft.Kusto/Clusters/Databases/PrincipalAssignments@2024-04-13' = {
@@ -75,9 +72,6 @@ resource kustoDataStoreWatcherAdmin 'Microsoft.Kusto/Clusters/Databases/Principa
     principalType: 'App'
     tenantId: '770a2450-0227-4c62-90c7-4e38537f1102'
   }
-  dependsOn: [
-    kustoCluster
-  ]
 }
 
 
