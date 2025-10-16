@@ -5,6 +5,38 @@ param sqlServerElasticPoolName string
 param sqlServerResourceId string = '/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Sql/servers/tstimpdbssqa001'
 var sqlServerHostname = '${last(split(sqlServerResourceId, '/'))}${environment().suffixes.sqlServerHostname}'
 
+
+var databaseNames = [
+  'notification-microservice'
+  'approvedestablishment-microservice-blue'
+  'approvedestablishment-microservice-green'
+  'bip-microservice'
+  'bordernotification-microservice'
+  'bordernotification-refdata-microservice-blue'
+  'bordernotification-refdata-microservice-green'
+  'checks-microservice'
+  'commoditycode-microservice-blue'
+  'commoditycode-microservice-green'
+  'countries-microservice-blue'
+  'countries-microservice-green'
+  'decision-microservice-blue'
+  'decision-microservice-green'
+  'economicoperator-microservice'
+  'economicoperator-microservice-public-blue'
+  'economicoperator-microservice-public-green'
+  'enotification-event-microservice'
+  'fieldconfig-microservice-blue'
+  'fieldconfig-microservice-green'
+  'in-service-messaging-microservice'
+  'laboratories-microservice-blue'
+  'laboratories-microservice-green'
+  'permissions-blue'
+  'permissions-green'
+  'referencedataloader-microservice-blue'
+  'referencedataloader-microservice-green'
+  'soaprequest-microservice'
+]
+
 resource kustoCluster 'Microsoft.Kusto/Clusters@2024-04-13' = {
   name: name
   location: location
@@ -47,9 +79,14 @@ resource kustoCluster 'Microsoft.Kusto/Clusters@2024-04-13' = {
 }
 
 resource kustoDataStore 'Microsoft.Kusto/Clusters/Databases@2024-04-13' = {
-  name: '${kustoCluster.name}-data-store'
+  parent: kustoCluster
+  name: '${name}-data-store'
   location: location
   kind: 'ReadWrite'
+  properties: {
+    hotCachePeriod: 'P31D'
+    softDeletePeriod: 'P365D'
+  }
 }
 
 resource kustoDataStoreGroupAdmin 'Microsoft.Kusto/Clusters/Databases/PrincipalAssignments@2024-04-13' = {
@@ -117,25 +154,25 @@ resource dbWatcherPrivateEndpointKusto 'Microsoft.DatabaseWatcher/watchers/share
 
 resource dbWatcherTargetSqlEp 'Microsoft.DatabaseWatcher/watchers/targets@2024-10-01-preview' = {
   parent: dbWatcher
-  name: '064e9f56-4dc7-536c-94df-769ac8757e89'
+  name: sqlServerElasticPoolName
   properties: {
     targetAuthenticationType: 'Aad'
     connectionServerName: sqlServerHostname
     targetType: 'SqlEp'
     sqlEpResourceId: '${sqlServerResourceId}/elasticpools/${sqlServerElasticPoolName}'
-    anchorDatabaseResourceId: '${sqlServerResourceId}/databases/notification-microservice'
+    anchorDatabaseResourceId: '${sqlServerResourceId}/databases/${first(databaseNames)}'
     readIntent: false
   }
 }
 
-resource dbWatcherTargetSqlDb 'Microsoft.DatabaseWatcher/watchers/targets@2024-10-01-preview' = {
+resource dbWatcherTargetSqlDb 'Microsoft.DatabaseWatcher/watchers/targets@2024-10-01-preview' = [for db in databaseNames: {
   parent: dbWatcher
-  name: 'c40821ac-2834-55e9-ae43-00054f0209c5'
+  name: '${sqlServerElasticPoolName}-${db}'
   properties: {
     targetAuthenticationType: 'Aad'
     connectionServerName: sqlServerHostname
     targetType: 'SqlDb'
-    sqlDbResourceId: '${sqlServerResourceId}/databases/notification-microservice'
+    sqlDbResourceId: '${sqlServerResourceId}/databases/${db}'
     readIntent: false
   }
-}
+}]
