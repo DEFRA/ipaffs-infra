@@ -1,0 +1,21 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "location": {
+      "value": "northeurope"
+    },
+    "name": {
+        "value": "tstimpdbsdbw001"
+    },
+    "adminEntraGroup": {
+        "value": "AG-Azure-EUX-IPAFFS-Kainos-DevUsers"
+    },
+    "sqlServerElasticPoolName": {
+      "value": "tstimpedpsqa001"
+    },
+    "sqlServerResourceId": {
+        "value": "/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Sql/servers/tstimpdbssqa001"
+    }
+  }
+}
