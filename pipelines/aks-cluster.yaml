@@ -70,6 +70,8 @@ stages:
           runOnce:
             deploy:
               steps:
+                - checkout: self
+
                 - task: AzureCLI@2
                   name: PrepareResourceGroups
                   condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
@@ -118,6 +120,8 @@ stages:
           runOnce:
             deploy:
               steps:
+                - checkout: self
+
                 - ${{ each chart in parameters.helmCharts }}:
                     - task: HelmDeploy@0
                       displayName: "HelmInstall_${{ chart.release }}"

@@ -49,6 +49,8 @@ stages:
           runOnce:
             deploy:
               steps:
+                - checkout: self
+
                 - task: AzureCLI@2
                   name: PrepareResourceGroups
                   condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
