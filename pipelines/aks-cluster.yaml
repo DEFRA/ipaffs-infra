@@ -97,7 +97,7 @@ stages:
                           --name "${{ template }}-$(Build.BuildId)" \
                           --resource-group $(resourceGroupName) \
                           --template-file bicep/${{ template }}.bicep \
-                          --parameters @bicep/envs/${{ parameters.environmentName }}/${{ template }}.parameters.json
+                          --parameters @bicep/envs/${{ lower(parameters.environmentName) }}/${{ template }}.parameters.json
 
                   - task: AzureCLI@2
                     displayName: Deploy_${{ template }}
@@ -111,7 +111,7 @@ stages:
                           --name "${{ template }}-$(Build.BuildId)" \
                           --resource-group $(resourceGroupName) \
                           --template-file bicep/${{ template }}.bicep \
-                          --parameters @bicep/envs/${{ parameters.environmentName }}/${{ template }}.parameters.json
+                          --parameters @bicep/envs/${{ lower(parameters.environmentName) }}/${{ template }}.parameters.json
 
       - deployment: DeployHelm
         environment:
