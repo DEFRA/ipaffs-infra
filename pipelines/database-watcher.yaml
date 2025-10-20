@@ -75,7 +75,7 @@ stages:
                           --name "${{ template }}-$(Build.BuildId)" \
                           --resource-group $(resourceGroupName) \
                           --template-file bicep/${{ template }}.bicep \
-                          --parameters @bicep/envs/${{ lower(parameters.environmentName) }}/${{ lower(template }}.parameters.json
+                          --parameters @bicep/envs/${{ lower(parameters.environmentName) }}/${{ template }}.parameters.json
 
                   - task: AzureCLI@2
                     displayName: Deploy_${{ template }}
