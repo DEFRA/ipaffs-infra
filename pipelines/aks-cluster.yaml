@@ -1,0 +1,161 @@
+---
+trigger:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - bicep/**/acr*.json
+      - bicep/**/aks-cluster*.json
+      - bicep/**/network-security-group*.json
+      - bicep/**/virtual-network*.json
+      - pipelines/aks-cluster.yaml
+
+pr:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - bicep/**/acr*.json
+      - bicep/**/aks-cluster*.json
+      - bicep/**/network-security-group*.json
+      - bicep/**/virtual-network*.json
+      - pipelines/aks-cluster.yaml
+
+pool:
+  name: DEFRA-COMMON-ubuntu2204-SSV5
+
+variables:
+  - group: "${{ parameters.environmentName }}"
+  - template: "vars/common.yaml"
+  - template: "vars/${{ lower(parameters.environmentName) }}.yaml"
+
+parameters:
+  - name: environmentName
+    type: string
+    default: POC
+    values:
+      - POC
+      - TST
+  - name: bicepFiles
+    type: stringList
+    values:
+      - virtual-network
+      - network-security-group
+      - acr
+      - aks-cluster
+    default:
+      - virtual-network
+      - network-security-group
+      - acr
+      - aks-cluster
+  - name: helmCharts
+    type: object
+    default:
+      - name: ingress-nginx
+        release: ingress-nginx
+        chartName: ingress-nginx
+        repoUrl: https://kubernetes.github.io/ingress-nginx
+        namespace: ingress-nginx
+        valuesFile: helm-charts/ingress-nginx-values.yaml
+
+stages:
+  - stage: Deploy
+    jobs:
+      - deployment: DeployBicep
+        environment:
+          name: "${{ parameters.environmentName }}"
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - task: AzureCLI@2
+                  name: PrepareResourceGroups
+                  condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+                  inputs:
+                    azureSubscription: $(serviceConnection)
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      az group create \
+                        --name $(resourceGroupName) \
+                        --location $(location)
+
+                - ${{ each template in parameters.bicepFiles }}:
+                  - task: AzureCLI@2
+                    displayName: WhatIf_${{ template }}
+                    condition: ne(variables['Build.SourceBranch'], 'refs/heads/main')
+                    inputs:
+                      azureSubscription: $(serviceConnection)
+                      scriptType: bash
+                      scriptLocation: inlineScript
+                      inlineScript: |
+                        az deployment group what-if \
+                          --name "${{ template }}-$(Build.BuildId)" \
+                          --resource-group $(resourceGroupName) \
+                          --template-file bicep/${{ template }}.bicep \
+                          --parameters @bicep/envs/${{ parameters.environmentName }}/${{ template }}.parameters.json
+
+                  - task: AzureCLI@2
+                    displayName: Deploy_${{ template }}
+                    condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+                    inputs:
+                      azureSubscription: $(serviceConnection)
+                      scriptType: bash
+                      scriptLocation: inlineScript
+                      inlineScript: |
+                        az deployment group create \
+                          --name "${{ template }}-$(Build.BuildId)" \
+                          --resource-group $(resourceGroupName) \
+                          --template-file bicep/${{ template }}.bicep \
+                          --parameters @bicep/envs/${{ parameters.environmentName }}/${{ template }}.parameters.json
+
+      - deployment: DeployHelm
+        environment:
+          name: "${{ parameters.environmentName }}"
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - ${{ each chart in parameters.helmCharts }}:
+                    - task: HelmDeploy@0
+                      displayName: "HelmInstall_${{ chart.release }}"
+                      condition: ne(variables['Build.SourceBranch'], 'refs/heads/main')
+                      inputs:
+                        connectionType: Azure Resource Manager
+                        azureSubscription: $(serviceConnection)
+                        azureResourceGroup: $(resourceGroupName)
+                        kubernetesCluster: $(kubernetesCluster)
+                        namespace: ${{ chart.namespace }}
+                        command: upgrade
+                        chartName: ${{ chart.chartName }}
+                        releaseName: ${{ chart.release }}
+                        install: true
+                        useClusterAdmin: true
+                        arguments: >-
+                          --repo https://kubernetes.github.io/ingress-nginx
+                          -f ${{ chart.valuesFile }}
+                          --create-namespace
+                          --dry-run
+
+                    - task: HelmDeploy@0
+                      displayName: "HelmInstall_${{ chart.release }}"
+                      condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+                      inputs:
+                        connectionType: Azure Resource Manager
+                        azureSubscription: $(serviceConnection)
+                        azureResourceGroup: $(resourceGroupName)
+                        kubernetesCluster: $(kubernetesCluster)
+                        namespace: ${{ chart.namespace }}
+                        command: upgrade
+                        chartName: ${{ chart.chartName }}
+                        releaseName: ${{ chart.release }}
+                        install: true
+                        useClusterAdmin: true
+                        arguments: >-
+                          --repo https://kubernetes.github.io/ingress-nginx
+                          -f ${{ chart.valuesFile }}
+                          --create-namespace
+
+# vim: set ts=2 sts=2 sw=2 et:
