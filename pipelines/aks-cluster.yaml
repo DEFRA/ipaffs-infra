@@ -112,6 +112,32 @@ stages:
                           --template-file bicep/${{ template }}.bicep \
                           --parameters @bicep/envs/${{ lower(parameters.environmentName) }}/${{ template }}.parameters.json
 
+                - task: AzureCLI@2
+                  displayName: StoreACRLoginServer
+                  condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+                  inputs:
+                    azureSubscription: $(serviceConnection)
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      acrLoginServer="$(az deployment group show \
+                        --name "acr-$(Build.BuildId)" \
+                        --resource-group $(resourceGroupName) \
+                        --query properties.outputs.acrLoginServer.value \
+                        -o tsv)"
+                      groupId="$(az pipelines variable-group list \
+                        --org '$(System.CollectionUri)' \
+                        --project '$(System.TeamProject)' \
+                        --group-name '${{ parameters.environmentName }}' \
+                        --query '[0].name' \
+                        -o tsv)"
+                      az pipelines variable-group variable update \
+                        --org '$(System.CollectionUri)' \
+                        --project '$(System.TeamProject)' \
+                        --id "${groupId}" \
+                        --name acrLoginServer \
+                        --value "${acrLoginServer}"
+
       - deployment: DeployHelm
         environment:
           name: "${{ parameters.environmentName }}"
