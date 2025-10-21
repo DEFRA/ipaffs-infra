@@ -3,6 +3,8 @@ param location string = resourceGroup().location
 param sku string = 'Premium' // Options: Basic, Standard, Premium
 param adminEnabled bool = true
 param subnetIds array
+param acrPullRoleId string = '7f951dda-4ed3-4680-a7ca-43fe172d538d'
+param aksManagedIdentityName string = 'POCIMPINFAK1401-agentpool'
 
 resource acr 'Microsoft.ContainerRegistry/registries@2025-05-01-preview' = {
   name: name
@@ -37,12 +39,16 @@ resource acrPe 'Microsoft.Network/privateEndpoints@2023-05-01' = [for subnetId i
   }
 }]
 
+resource aksManagedIdentity 'Microsoft.ManagedIdentity/identities@2025-01-31-preview' existing = {
+  name: aksManagedIdentityName
+}
+
 resource acrAksRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: 'acrAksRoleAssignment'
+  name: guid(acr.id, aksManagedIdentityName, acrPullRoleId)
   scope: acr
   properties: {
-    principalId: acr.identity.principalId
-    roleDefinitionId: '7f951dda-4ed3-4680-a7ca-43fe172d538d' // AcrPull
+    principalId: aksManagedIdentity.properties.principalId
+    roleDefinitionId: acrPullRoleId
   }
 }
 

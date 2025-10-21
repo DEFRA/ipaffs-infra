@@ -56,13 +56,13 @@ parameters:
     values:
       - virtual-network
       - network-security-group
-      - acr
       - aks-cluster
+      - acr
     default:
       - virtual-network
       - network-security-group
-      - acr
       - aks-cluster
+      - acr
 
 stages:
   - stage: Deploy
