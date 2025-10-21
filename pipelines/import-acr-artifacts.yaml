@@ -39,7 +39,7 @@ parameters:
 stages:
   - stage: Deploy
     jobs:
-      - deployment: DeployBicep
+      - deployment: ImportContainerImages
         environment:
           name: "${{ parameters.environmentName }}"
         strategy:
