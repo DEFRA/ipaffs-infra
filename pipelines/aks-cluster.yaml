@@ -7,6 +7,7 @@ trigger:
     include:
       - bicep/**/acr*.json
       - bicep/**/aks-cluster*.json
+      - bicep/**/keyvault*.json
       - bicep/**/network-security-group*.json
       - bicep/**/virtual-network*.json
       - pipelines/aks-cluster.yaml
@@ -19,6 +20,7 @@ pr:
     include:
       - bicep/**/acr*.json
       - bicep/**/aks-cluster*.json
+      - bicep/**/keyvault*.json
       - bicep/**/network-security-group*.json
       - bicep/**/virtual-network*.json
       - pipelines/aks-cluster.yaml
@@ -48,11 +50,13 @@ parameters:
     values:
       - virtual-network
       - network-security-group
+      - keyvault
       - acr
       - aks-cluster
     default:
       - virtual-network
       - network-security-group
+      - keyvault
       - acr
       - aks-cluster
 
