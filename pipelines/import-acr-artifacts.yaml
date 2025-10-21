@@ -32,7 +32,8 @@ parameters:
   - name: imagesToImport
     type: object
     default:
-      - source: registry.k8s.io/ingress-nginx/controller:v1.13.3
+      - displayName: ingress-nginx
+        source: registry.k8s.io/ingress-nginx/controller:v1.13.3
         image: ingress-nginx/controller:v1.13.3
 
 stages:
@@ -49,7 +50,7 @@ stages:
 
                 - ${{ each image in parameters.imagesToImport }}:
                   - task: AzureCLI@2
-                    name: ImportImage_${{ image.image }}
+                    name: ImportImage_${{ image.displayName }}
                     condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
                     inputs:
                       azureSubscription: $(serviceConnection)
