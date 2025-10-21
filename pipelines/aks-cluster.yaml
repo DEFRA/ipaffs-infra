@@ -42,7 +42,6 @@ parameters:
     default: POC
     values:
       - POC
-      - TST
   - name: bicepFiles
     type: stringList
     values:
@@ -117,7 +116,7 @@ stages:
               steps:
                 - checkout: self
 
-                - task: HelmDeploy@0
+                - task: HelmDeploy@1
                   displayName: "HelmInstall_ingress-nginx"
                   inputs:
                     connectionType: Azure Resource Manager
@@ -126,13 +125,12 @@ stages:
                     kubernetesCluster: $(kubernetesCluster)
                     namespace: ingress-nginx
                     command: upgrade
-                    chartName: ingress-nginx
+                    chartName: "oci://$(acrLoginServer)/ingress-nginx/ingress-nginx"
                     chartVersion: 4.13.3
                     releaseName: ingress-nginx
                     install: true
                     useClusterAdmin: true
                     arguments: >-
-                      --repo https://kubernetes.github.io/ingress-nginx
                       -f helm-charts/ingress-nginx-values.yaml
                       --create-namespace
                       --set global.image.registry=$(acrLoginServer)
