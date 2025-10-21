@@ -1,7 +1,3 @@
-global:
-  image:
-    registry: pocimpinfac1401.azurecr.io
-
 controller:
   enableSnippets: true
   extraArgs:

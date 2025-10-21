@@ -30,6 +30,11 @@ variables:
   - group: "${{ parameters.environmentName }}"
   - template: "vars/common.yaml"
   - template: "vars/${{ lower(parameters.environmentName) }}.yaml"
+  - name: helmDryRun
+    ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/main') }}:
+      value: ''
+    ${{ else }}:
+      value: '--dry-run'
 
 parameters:
   - name: environmentName
@@ -50,15 +55,6 @@ parameters:
       - network-security-group
       - acr
       - aks-cluster
-  - name: helmCharts
-    type: object
-    default:
-      - name: ingress-nginx
-        release: ingress-nginx
-        chartName: ingress-nginx
-        repoUrl: https://kubernetes.github.io/ingress-nginx
-        namespace: ingress-nginx
-        valuesFile: helm-charts/ingress-nginx-values.yaml
 
 stages:
   - stage: Deploy
@@ -121,44 +117,25 @@ stages:
               steps:
                 - checkout: self
 
-                - ${{ each chart in parameters.helmCharts }}:
-                    - task: HelmDeploy@0
-                      displayName: "HelmInstall_${{ chart.release }}"
-                      condition: ne(variables['Build.SourceBranch'], 'refs/heads/main')
-                      inputs:
-                        connectionType: Azure Resource Manager
-                        azureSubscription: $(serviceConnection)
-                        azureResourceGroup: $(resourceGroupName)
-                        kubernetesCluster: $(kubernetesCluster)
-                        namespace: ${{ chart.namespace }}
-                        command: upgrade
-                        chartName: ${{ chart.chartName }}
-                        releaseName: ${{ chart.release }}
-                        install: true
-                        useClusterAdmin: true
-                        arguments: >-
-                          --repo https://kubernetes.github.io/ingress-nginx
-                          -f ${{ chart.valuesFile }}
-                          --create-namespace
-                          --dry-run
-
-                    - task: HelmDeploy@0
-                      displayName: "HelmInstall_${{ chart.release }}"
-                      condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
-                      inputs:
-                        connectionType: Azure Resource Manager
-                        azureSubscription: $(serviceConnection)
-                        azureResourceGroup: $(resourceGroupName)
-                        kubernetesCluster: $(kubernetesCluster)
-                        namespace: ${{ chart.namespace }}
-                        command: upgrade
-                        chartName: ${{ chart.chartName }}
-                        releaseName: ${{ chart.release }}
-                        install: true
-                        useClusterAdmin: true
-                        arguments: >-
-                          --repo https://kubernetes.github.io/ingress-nginx
-                          -f ${{ chart.valuesFile }}
-                          --create-namespace
+                - task: HelmDeploy@0
+                  displayName: "HelmInstall_ingress-nginx"
+                  inputs:
+                    connectionType: Azure Resource Manager
+                    azureSubscription: $(serviceConnection)
+                    azureResourceGroup: $(resourceGroupName)
+                    kubernetesCluster: $(kubernetesCluster)
+                    namespace: ingress-nginx
+                    command: upgrade
+                    chartName: ingress-nginx
+                    chartVersion: 4.13.3
+                    releaseName: ingress-nginx
+                    install: true
+                    useClusterAdmin: true
+                    arguments: >-
+                      --repo https://kubernetes.github.io/ingress-nginx
+                      -f helm-charts/ingress-nginx-values.yaml
+                      --create-namespace
+                      --set global.image.registry=$(acrLoginServer)
+                      $(helmDryRun)
 
 # vim: set ts=2 sts=2 sw=2 et:
