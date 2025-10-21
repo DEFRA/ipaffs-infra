@@ -2,7 +2,7 @@ param name string
 param location string = resourceGroup().location
 param sku string = 'Premium' // Options: Basic, Standard, Premium
 param adminEnabled bool = true
-param subnetId string  
+param subnetIds array
 
 resource acr 'Microsoft.ContainerRegistry/registries@2025-05-01-preview' = {
   name: name
@@ -16,8 +16,8 @@ resource acr 'Microsoft.ContainerRegistry/registries@2025-05-01-preview' = {
   }
 }
 
-resource acrPe 'Microsoft.Network/privateEndpoints@2023-05-01' = {
-  name: name
+resource acrPe 'Microsoft.Network/privateEndpoints@2023-05-01' = [for subnetId in subnetIds: {
+  name: '${name}-${last(split(subnetId, '/'))}'
   location: location
   properties: {
     subnet: {
@@ -35,7 +35,7 @@ resource acrPe 'Microsoft.Network/privateEndpoints@2023-05-01' = {
       }
     ]
   }
-}
+}]
 
 output acrName string = acr.name
 output acrLoginServer string = acr.properties.loginServer

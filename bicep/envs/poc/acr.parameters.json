@@ -6,13 +6,16 @@
       "value": "uksouth"
     },
     "name": {
-        "value": "POCIMPINFAC1401"
+      "value": "POCIMPINFAC1401"
     },
     "sku": {
-        "value": "Premium"
+      "value": "Premium"
     },
-    "subnetId": {
-        "value": "/subscriptions/cfa4ccd1-5a5e-420c-9bca-03218a43e46d/resourceGroups/POCIMPNETNS1401/providers/Microsoft.Network/virtualNetworks/POCIMPNETVN1401/subnets/POCIMPNETSU4402"
+    "subnetIds": {
+      "value": [
+        "/subscriptions/cfa4ccd1-5a5e-420c-9bca-03218a43e46d/resourceGroups/POCIMPNETNS1401/providers/Microsoft.Network/virtualNetworks/POCIMPNETVN1401/subnets/POCIMPNETSU4402",
+        "/subscriptions/cfa4ccd1-5a5e-420c-9bca-03218a43e46d/resourceGroups/POCIMPNETNS1401/providers/Microsoft.Network/virtualNetworks/POCIMPNETVN1401/subnets/POCIMPNETSU4403"
+      ]
     }
   }
 }
