@@ -5,10 +5,14 @@ trigger:
       - main
   paths:
     include:
-      - bicep/**/acr*.*
-      - bicep/**/aks-cluster*.*
-      - bicep/**/network-security-group*.*
-      - bicep/**/virtual-network*.*
+      - bicep/acr.bicep
+      - bicep/**/acr.parameters.json
+      - bicep/aks-cluster.bicep
+      - bicep/**/aks-cluster.parameters.json
+      - bicep/network-security-group.bicep
+      - bicep/**/network-security-group.parameters.json
+      - bicep/virtual-network.bicep
+      - bicep/**/virtual-network.parameters.json
       - pipelines/aks-cluster.yaml
 
 pr:
@@ -17,10 +21,14 @@ pr:
       - main
   paths:
     include:
-      - bicep/**/acr*.*
-      - bicep/**/aks-cluster*.*
-      - bicep/**/network-security-group*.*
-      - bicep/**/virtual-network*.*
+      - bicep/acr.bicep
+      - bicep/**/acr.parameters.json
+      - bicep/aks-cluster.bicep
+      - bicep/**/aks-cluster.parameters.json
+      - bicep/network-security-group.bicep
+      - bicep/**/network-security-group.parameters.json
+      - bicep/virtual-network.bicep
+      - bicep/**/virtual-network.parameters.json
       - pipelines/aks-cluster.yaml
 
 pool:
@@ -48,13 +56,13 @@ parameters:
     values:
       - virtual-network
       - network-security-group
-      - acr
       - aks-cluster
+      - acr
     default:
       - virtual-network
       - network-security-group
-      - acr
       - aks-cluster
+      - acr
 
 stages:
   - stage: Deploy
