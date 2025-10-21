@@ -5,10 +5,10 @@ trigger:
       - main
   paths:
     include:
-      - bicep/**/acr*.json
-      - bicep/**/aks-cluster*.json
-      - bicep/**/network-security-group*.json
-      - bicep/**/virtual-network*.json
+      - bicep/**/acr*.*
+      - bicep/**/aks-cluster*.*
+      - bicep/**/network-security-group*.*
+      - bicep/**/virtual-network*.*
       - pipelines/aks-cluster.yaml
 
 pr:
@@ -17,10 +17,10 @@ pr:
       - main
   paths:
     include:
-      - bicep/**/acr*.json
-      - bicep/**/aks-cluster*.json
-      - bicep/**/network-security-group*.json
-      - bicep/**/virtual-network*.json
+      - bicep/**/acr*.*
+      - bicep/**/aks-cluster*.*
+      - bicep/**/network-security-group*.*
+      - bicep/**/virtual-network*.*
       - pipelines/aks-cluster.yaml
 
 pool:
