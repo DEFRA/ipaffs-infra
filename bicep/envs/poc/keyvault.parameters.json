@@ -1,0 +1,22 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "location": {
+      "value": "uksouth"
+    },
+    "keyVaultProperties": {
+      "value": {
+        "name": "POCIMPINFKV1401",
+        "tenantId": "770a2450-0227-4c62-90c7-4e38537f1102",
+        "principalObjectIds": ["4b2fbef7-de9d-4836-a44e-46c56aad3d9e"]
+      }
+    },
+    "vnetId": {
+      "value": "/subscriptions/cfa4ccd1-5a5e-420c-9bca-03218a43e46d/resourceGroups/POCIMPNETNS1401/providers/Microsoft.Network/virtualNetworks/POCIMPNETVN1401"
+    },
+    "subnetId": {
+      "value": "/subscriptions/cfa4ccd1-5a5e-420c-9bca-03218a43e46d/resourceGroups/POCIMPNETNS1401/providers/Microsoft.Network/virtualNetworks/POCIMPNETVN1401/subnets/POCIMPNETSU4402"
+    }
+  }
+}
