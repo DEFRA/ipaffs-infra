@@ -37,6 +37,15 @@ resource acrPe 'Microsoft.Network/privateEndpoints@2023-05-01' = [for subnetId i
   }
 }]
 
+resource acrAksRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: 'acrAksRoleAssignment'
+  scope: acr
+  properties: {
+    principalId: acr.identity.principalId
+    roleDefinitionId: '7f951dda-4ed3-4680-a7ca-43fe172d538d' // AcrPull
+  }
+}
+
 output acrName string = acr.name
 output acrLoginServer string = acr.properties.loginServer
 output acrResourceId string = acr.id
