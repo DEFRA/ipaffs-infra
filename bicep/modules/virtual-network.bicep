@@ -41,6 +41,7 @@ module virtualNetwork 'br/SharedDefraRegistry:network.virtual-network:0.4.2' = {
   }
 }
 
-output vnetName string = virtualNetwork.name
+output vnetName string = virtualNetwork.outputs.name
+output subnetIds array = virtualNetwork.outputs.subnetResourceIds
 
 // vim: set ts=2 sts=2 sw=2 et:
