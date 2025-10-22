@@ -5,7 +5,7 @@ metadata:
   labels:
     {{- include "deploy.labels" . | nindent 4 }}
 spec:
-  replicas: {{ index .Values.environments .Values.environment "replicaCount" | default 1 }}
+  replicas: {{ .Values.replicas }}
   selector:
     matchLabels:
       {{- include "deploy.selectorLabels" . | nindent 6 }}
@@ -34,3 +34,9 @@ spec:
                 name: {{ .Values.name }}
             - secretRef:
                 name: {{ .Values.name }}
+      {{ if .Values.initContainer.enabled -}}
+      initContainers:
+        - name: {{ .Chart.Name }}-init
+          image: "{{ .Values.initContainer.image }}"
+          command: {{ .Values.initContainer.command }}
+      {{- end }}
