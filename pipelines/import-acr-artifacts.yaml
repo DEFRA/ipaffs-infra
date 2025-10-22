@@ -33,7 +33,8 @@ parameters:
       - POC
 
 stages:
-  - stage: Import ACR Artifacts
+  - stage: ImportACRArtifacts
+    displayName: Import ACR Artifacts
     jobs:
       - deployment: ImportContainerImages
         displayName: Import Container Images
