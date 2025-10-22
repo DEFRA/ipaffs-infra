@@ -49,33 +49,6 @@ stages:
                 - checkout: self
 
                 - task: AzureCLI@2
-                  displayName: WhatIf - Resource Group
-                  inputs:
-                    azureSubscription: $(serviceConnection)
-                    scriptType: bash
-                    scriptLocation: inlineScript
-                    inlineScript: |
-                      az deployment sub what-if \
-                        --name "ResourceGroup-$(Build.BuildId)" \
-                        --location $(location) \
-                        --template-file bicep/resource-group.bicep \
-                        --parameters @bicep/envs/${{ lower(parameters.environmentName) }}/resource-group.parameters.json
-
-                - task: AzureCLI@2
-                  displayName: Deploy - ResourceGroup
-                  condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
-                  inputs:
-                    azureSubscription: $(serviceConnection)
-                    scriptType: bash
-                    scriptLocation: inlineScript
-                    inlineScript: |
-                      az deployment sub create \
-                        --name "ResourceGroup-$(Build.BuildId)" \
-                        --location $(location) \
-                        --template-file bicep/resource-group.bicep \
-                        --parameters @bicep/envs/${{ lower(parameters.environmentName) }}/resource-group.parameters.json
-
-                - task: AzureCLI@2
                   displayName: WhatIf - Database Watcher
                   inputs:
                     azureSubscription: $(serviceConnection)
