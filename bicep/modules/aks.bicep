@@ -1,6 +1,6 @@
 targetScope = 'resourceGroup'
 
-param acrName
+param acrName string
 param aksParams object
 param location string
 param tags object

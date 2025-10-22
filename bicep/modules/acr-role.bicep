@@ -4,7 +4,7 @@ param acrName string
 param roleDefinitionId string
 param principalObjectId string
 
-resource acr 'Microsoft.ContainerRegistry/registries@2025-04-01' = {
+resource acr 'Microsoft.ContainerRegistry/registries@2025-04-01' existing = {
   name: acrName
 }
 
