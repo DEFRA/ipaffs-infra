@@ -14,7 +14,7 @@
       }
     },
 
-    "aksClusterParams": {
+    "aksParams": {
       "value": {
         "name": "POCIMPINFAK1401",
         "dnsPrefix": "POCIMPINFAK1401",
