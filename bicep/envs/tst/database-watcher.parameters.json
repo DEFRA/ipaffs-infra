@@ -6,16 +6,16 @@
       "value": "northeurope"
     },
     "name": {
-        "value": "tstimpdbsdbw001"
+      "value": "TSTIMPDBSDBW001"
     },
     "adminEntraGroup": {
-        "value": "AG-Azure-EUX-IPAFFS-Kainos-DevUsers"
+      "value": "AG-Azure-EUX-IPAFFS-Kainos-DevUsers"
     },
     "sqlServerElasticPoolName": {
-      "value": "tstimpedpsqa001"
+      "value": "TSTIMPEDPSQA001"
     },
     "sqlServerResourceId": {
-        "value": "/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Sql/servers/tstimpdbssqa001"
+      "value": "/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Sql/servers/TSTIMPDBSSQA001"
     }
   }
 }

@@ -6,6 +6,7 @@ trigger:
   paths:
     include:
       - pipelines/import-acr-artifacts.yaml
+      - pipelines/steps/import-container-images.yaml
 
 pr:
   branches:
@@ -14,6 +15,7 @@ pr:
   paths:
     include:
       - pipelines/import-acr-artifacts.yaml
+      - pipelines/steps/import-container-images.yaml
 
 pool:
   name: DEFRA-COMMON-ubuntu2204-SSV5
@@ -29,17 +31,13 @@ parameters:
     default: POC
     values:
       - POC
-  - name: imagesToImport
-    type: object
-    default:
-      - displayName: ingress-nginx
-        source: registry.k8s.io/ingress-nginx/controller:v1.13.3
-        image: ingress-nginx/controller:v1.13.3
 
 stages:
-  - stage: Deploy
+  - stage: Import ACR Artifacts
     jobs:
       - deployment: ImportContainerImages
+        displayName: Import Container Images
+        condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
         environment:
           name: "${{ parameters.environmentName }}"
         strategy:
@@ -47,21 +45,6 @@ stages:
             deploy:
               steps:
                 - checkout: self
-
-                - ${{ each image in parameters.imagesToImport }}:
-                  - task: AzureCLI@2
-                    displayName: ImportImage_${{ image.displayName }}
-                    condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
-                    inputs:
-                      azureSubscription: $(serviceConnection)
-                      scriptType: bash
-                      scriptLocation: inlineScript
-                      inlineScript: |
-                        az acr import \
-                          --name $(acrName) \
-                          --source ${{ image.source }} \
-                          --image ${{ image.image }} \
-                          --force \
-                          --verbose
+                - template: steps/import-container-images.yaml
 
 # vim: set ts=2 sts=2 sw=2 et:

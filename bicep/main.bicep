@@ -1,39 +1,57 @@
-/*param dnsPrefix string
-param linuxAdminUsername string
-@secure()
-param sshRSAPublicKey string
-*/
-param location string = resourceGroup().location
+targetScope = 'resourceGroup'
 
-param aksResourceGroupName string = 'POCIMPINFRG1401'
-/*
-module network 'network.bicep' = {
-  name: 'deployNetwork'
-  scope: resourceGroup(aksResourceGroupName)
+param acrParams object
+param aksParams object
+param environment string
+param location string
+param vnetParams object
+
+var tags = union(loadJsonContent('default-tags.json'), {
+  CreatedDate: utcNow('yyyy-MM-dd')
+  Environment: environment
+  Location: location
+})
+
+module acr './modules/acr.bicep' = {
+  name: 'acr'
+  scope: resourceGroup()
   params: {
+    acrParams: acrParams
     location: location
+    tags: tags
   }
 }
 
-module aks 'aks-cluster.bicep' = {
-  name: 'deployAksCluster'
-  scope: resourceGroup(aksResourceGroupName)
+module aks './modules/aks.bicep' = {
+  name: 'aks'
+  scope: resourceGroup()
   params: {
-    dnsPrefix: dnsPrefix
-    linuxAdminUsername: linuxAdminUsername
-    sshRSAPublicKey: sshRSAPublicKey
-    subnetId: network.outputs.subnetId
+    acrName: acr.outputs.acrName
+    aksParams: aksParams
     location: location
+    tags: tags
+    vnetName: vnet.outputs.vnetName
   }
 }
-*/
-module acr 'acr.bicep' = {
-  name: 'createAcr'
-  scope: resourceGroup(aksResourceGroupName)
+
+module nsg './modules/network-security-groups.bicep' = {
+  name: 'vnet'
+  scope: resourceGroup()
   params: {
-    name: 'POCIMPINFAC1401'
     location: location
-    sku: 'Premium' // or 'Premium' if you need private endpoints
-    adminEnabled: true
+    tags: tags
+    nsgParams: nsgParams
   }
 }
+
+module vnet './modules/virtual-network.bicep' = {
+  name: 'vnet'
+  scope: resourceGroup()
+  params: {
+    location: location
+    tags: tags
+    vnetParams: vnetParams
+  }
+}
+
+// vim: set ts=2 sts=2 sw=2 et:

@@ -1,0 +1,16 @@
+steps:
+  - task: AzureCLI@2
+    displayName: Import ingress-nginx/controller
+    inputs:
+      azureSubscription: $(serviceConnection)
+      scriptType: bash
+      scriptLocation: inlineScript
+      inlineScript: |
+        az acr import \
+          --name $(acrName) \
+          --source registry.k8s.io/ingress-nginx/controller:v1.13.3 \
+          --image ingress-nginx/controller:v1.13.3 \
+          --force \
+          --verbose
+
+# vim: set ts=2 sts=2 sw=2 et:
