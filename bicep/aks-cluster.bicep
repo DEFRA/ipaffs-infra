@@ -4,7 +4,7 @@ param vnetName string
 param vnetRg string
 param acrName string
 
-resource aks 'Microsoft.ContainerService/managedClusters@2023-01-01' = {
+resource aks 'Microsoft.ContainerService/managedClusters@2025-07-01' = {
   name: aksCluster.name
   location: location
   identity: {
