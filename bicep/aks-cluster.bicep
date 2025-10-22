@@ -57,7 +57,6 @@ resource aks 'Microsoft.ContainerService/managedClusters@2025-07-01' = {
       outboundType: 'userDefinedRouting'
       serviceCidr: '10.240.0.0/16'
       dnsServiceIP: '10.240.0.10'
-      dockerBridgeCidr: '172.17.0.1/16'
     }
 
     apiServerAccessProfile: {
