@@ -1,16 +1,16 @@
 targetScope = 'resourceGroup'
 
-param vnetName string
+param acrName string
 param roleDefinitionId string
 param principalObjectId string
 
-resource vnet 'Microsoft.Network/virtualNetworks@2024-10-01' existing = {
-  name: vnetName
+resource acr 'Microsoft.ContainerRegistry/registries@2025-04-01' existing = {
+  name: acrName
 }
 
 resource roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(vnet.id, roleDefinitionId, principalObjectId)
-  scope: vnet
+  name: guid(acr.id, roleDefinitionId, principalObjectId)
+  scope: acr
   properties: {
     principalId: principalObjectId
     principalType: 'ServicePrincipal'

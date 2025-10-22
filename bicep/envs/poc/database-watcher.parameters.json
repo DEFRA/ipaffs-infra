@@ -3,19 +3,19 @@
   "contentVersion": "1.0.0.0",
   "parameters": {
     "location": {
-      "value": "northeurope"
+      "value": "uksouth"
     },
     "name": {
-      "value": "TSTIMPDBSDBW001"
+      "value": "POCIMPDBSDBW001"
     },
     "adminEntraGroup": {
-      "value": "AG-Azure-EUX-IPAFFS-Kainos-DevUsers"
+      "value": "4b2fbef7-de9d-4836-a44e-46c56aad3d9e"
     },
     "sqlServerElasticPoolName": {
-      "value": "TSTIMPEDPSQA001"
+      "value": "POCIMPEDPSQA001"
     },
     "sqlServerResourceId": {
-      "value": "/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Sql/servers/TSTIMPDBSSQA001"
+      "value": "/subscriptions/cfa4ccd1-5a5e-420c-9bca-03218a43e46d/resourceGroups/POCIMPINFRGP001/providers/Microsoft.Sql/servers/POCIMPDBSSQA001"
     }
   }
 }
