@@ -8,6 +8,10 @@
 
     "location": {
       "value": "uksouth"
+    },
+
+    "name": {
+      "value": "POCIMPNETNS1401"
     }
   }
 }
