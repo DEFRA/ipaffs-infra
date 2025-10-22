@@ -39,7 +39,7 @@ resource acrPe 'Microsoft.Network/privateEndpoints@2023-05-01' = [for subnetId i
   }
 }]
 
-resource aksManagedIdentity 'Microsoft.ManagedIdentity/identities@2024-11-30' existing = {
+resource aksManagedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2024-11-30' existing = {
   name: aksManagedIdentityName
 }
 
