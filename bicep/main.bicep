@@ -4,10 +4,13 @@ param acrParams object
 param aksParams object
 param environment string
 param location string
+param nsgParams object
 param vnetParams object
 
+param createdDate string = utcNow('yyyy-MM-dd')
+
 var tags = union(loadJsonContent('default-tags.json'), {
-  CreatedDate: utcNow('yyyy-MM-dd')
+  CreatedDate: createdDate
   Environment: environment
   Location: location
 })
@@ -35,7 +38,7 @@ module aks './modules/aks.bicep' = {
 }
 
 module nsg './modules/network-security-groups.bicep' = {
-  name: 'vnet'
+  name: 'nsg'
   scope: resourceGroup()
   params: {
     location: location

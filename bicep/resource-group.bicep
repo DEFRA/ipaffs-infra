@@ -4,8 +4,10 @@ param environment string
 param name string
 param location string
 
+param createdDate string = utcNow('yyyy-MM-dd')
+
 var tags = union(loadJsonContent('default-tags.json'), {
-  CreatedDate: utcNow('yyyy-MM-dd')
+  CreatedDate: createdDate
   Environment: environment
   Location: location
 })
