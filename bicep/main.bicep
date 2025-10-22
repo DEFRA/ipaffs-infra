@@ -21,8 +21,12 @@ module acr './modules/acr.bicep' = {
   params: {
     acrParams: acrParams
     location: location
+    subnetIds: vnet.outputs.subnetIds
     tags: tags
   }
+  dependsOn: [
+    nsg
+  ]
 }
 
 module aks './modules/aks.bicep' = {
@@ -35,6 +39,9 @@ module aks './modules/aks.bicep' = {
     tags: tags
     vnetName: vnet.outputs.vnetName
   }
+  dependsOn: [
+    nsg
+  ]
 }
 
 module nsg './modules/network-security-groups.bicep' = {
@@ -45,6 +52,9 @@ module nsg './modules/network-security-groups.bicep' = {
     tags: tags
     nsgParams: nsgParams
   }
+  dependsOn: [
+    vnet
+  ]
 }
 
 module vnet './modules/virtual-network.bicep' = {

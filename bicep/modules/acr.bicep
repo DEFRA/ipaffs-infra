@@ -2,6 +2,7 @@ targetScope = 'resourceGroup'
 
 param acrParams object
 param location string
+param subnetIds array
 param tags object
 
 resource acr 'Microsoft.ContainerRegistry/registries@2025-04-01' = {
@@ -18,8 +19,7 @@ resource acr 'Microsoft.ContainerRegistry/registries@2025-04-01' = {
   }
 }
 
-// TODO get subnet IDs dynamically
-resource acrPrivateEndpoint 'Microsoft.Network/privateEndpoints@2024-10-01' = [for subnetId in acrParams.subnetIds: {
+resource acrPrivateEndpoint 'Microsoft.Network/privateEndpoints@2024-10-01' = [for subnetId in subnetIds: {
   name: '${acrParams.Name}-${last(split(subnetId, '/'))}'
   location: location
   tags: tags
