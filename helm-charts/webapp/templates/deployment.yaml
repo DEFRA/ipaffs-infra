@@ -28,11 +28,6 @@ spec:
           resources:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          envFrom:
-            - configMapRef:
-                name: {{ .Values.name }}
-            - secretRef:
-                name: {{ .Values.name }}
       {{ if .Values.initContainer.enabled -}}
       initContainers:
         - name: {{ .Chart.Name }}-init
