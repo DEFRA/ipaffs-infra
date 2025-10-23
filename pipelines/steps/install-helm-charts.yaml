@@ -43,4 +43,28 @@ steps:
         --set webhook.image.registry=$(acrLoginServer)
         $(helmDryRun)
 
+  - task: HelmDeploy@0
+    displayName: Helm Install - azure-service-operator
+    inputs:
+      connectionType: Azure Resource Manager
+      azureSubscription: $(serviceConnection)
+      azureResourceGroup: $(resourceGroupName)
+      kubernetesCluster: $(kubernetesCluster)
+      namespace: azureserviceoperator-system
+      command: upgrade
+      chartName: azure-service-operator
+      chartVersion: 2.16.0
+      releaseName: azure-service-operator
+      install: true
+      useClusterAdmin: true
+      arguments: >-
+        --repo https://raw.githubusercontent.com/Azure/azure-service-operator/main/v2/charts
+        -f helm-charts/azure-service-operator-values.yaml
+        --create-namespace
+        --set image.repositoryBase=$(acrLoginServer)/k8s/azureserviceoperator
+        --set azureSubscriptionID=$(subscriptionId)
+        --set azureTenantID=$(tenantId)
+        --set azureClientID=$(aksManagedIdentityClientId)
+        $(helmDryRun)
+
 # vim: set ts=2 sts=2 sw=2 et:
