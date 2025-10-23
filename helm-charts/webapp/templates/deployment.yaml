@@ -32,6 +32,12 @@ spec:
           resources:
             {{- toYaml . | nindent 12 }}
           {{- end }}
+          livenessProbe:
+            httpGet:
+              path: /admin/health
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 5
       {{ if .Values.initContainer.enabled -}}
       initContainers:
         - name: {{ .Chart.Name }}-init
