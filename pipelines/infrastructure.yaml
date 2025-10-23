@@ -173,15 +173,12 @@ stages:
                     install: true
                     useClusterAdmin: true
                     arguments: >-
+                      -f helm-charts/cert-manager-values.yaml
                       --create-namespace
                       --set image.registry=$(acrLoginServer)
-                      --set image.repository=jetstack/cert-manager-controller
                       --set cainjector.image.registry=$(acrLoginServer)
-                      --set cainjector.image.repository=jetstack/cert-manager-cainjector
                       --set startupapicheck.image.registry=$(acrLoginServer)
-                      --set startupapicheck.image.repository=jetstack/cert-manager-startupapicheck
                       --set webhook.image.registry=$(acrLoginServer)
-                      --set webhook.image.repository=jetstack/cert-manager-webhook
                       $(helmDryRun)
 
 # vim: set ts=2 sts=2 sw=2 et:

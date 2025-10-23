@@ -1,0 +1,20 @@
+---
+image:
+  repository: jetstack/cert-manager-controller
+
+cainjector:
+  image:
+    repository: jetstack/cert-manager-cainjector
+
+startupapicheck:
+  image:
+    repository: jetstack/cert-manager-startupapicheck
+
+webhook:
+  image:
+    repository: jetstack/cert-manager-webhook
+
+crds:
+  enabled: true
+
+# vim: set ts=2 sts=2 sw=2 et:
