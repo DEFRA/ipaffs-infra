@@ -13,4 +13,18 @@ steps:
           --force \
           --verbose
 
+  - task: AzureCLI@2
+    displayName: Import jetstack/cert-manager-controller
+    inputs:
+      azureSubscription: $(serviceConnection)
+      scriptType: bash
+      scriptLocation: inlineScript
+      inlineScript: |
+        az acr import \
+          --name $(acrName) \
+          --source quay.io/jetstack/cert-manager-controller:v1.19.1 \
+          --image jetstack/cert-manager-controller:v1.19.1 \
+          --force \
+          --verbose
+
 # vim: set ts=2 sts=2 sw=2 et:
