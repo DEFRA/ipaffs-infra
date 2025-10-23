@@ -50,8 +50,8 @@ steps:
       inlineScript: |
         az acr import \
           --name $(acrName) \
-          --source quay.io/jetstack/cert-manager-startupapicheckk:v1.19.1 \
-          --image jetstack/cert-manager-startupapicheckk:v1.19.1 \
+          --source quay.io/jetstack/cert-manager-startupapicheck:v1.19.1 \
+          --image jetstack/cert-manager-startupapicheck:v1.19.1 \
           --force \
           --verbose
 
