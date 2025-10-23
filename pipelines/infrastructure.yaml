@@ -136,49 +136,6 @@ stages:
             deploy:
               steps:
                 - checkout: self
-
-                - task: HelmDeploy@0
-                  displayName: Helm Install - nginx-ingress
-                  inputs:
-                    connectionType: Azure Resource Manager
-                    azureSubscription: $(serviceConnection)
-                    azureResourceGroup: $(resourceGroupName)
-                    kubernetesCluster: $(kubernetesCluster)
-                    namespace: ingress-nginx
-                    command: upgrade
-                    chartName: ingress-nginx
-                    chartVersion: 4.13.3
-                    releaseName: ingress-nginx
-                    install: true
-                    useClusterAdmin: true
-                    arguments: >-
-                      --repo https://kubernetes.github.io/ingress-nginx
-                      -f helm-charts/ingress-nginx-values.yaml
-                      --create-namespace
-                      --set global.image.registry=$(acrLoginServer)
-                      $(helmDryRun)
-
-                - task: HelmDeploy@0
-                  displayName: Helm Install - cert-manager
-                  inputs:
-                    connectionType: Azure Resource Manager
-                    azureSubscription: $(serviceConnection)
-                    azureResourceGroup: $(resourceGroupName)
-                    kubernetesCluster: $(kubernetesCluster)
-                    namespace: cert-manager
-                    command: upgrade
-                    chartName: "oci://quay.io/jetstack/charts/cert-manager"
-                    chartVersion: 1.19.1
-                    releaseName: cert-manager
-                    install: true
-                    useClusterAdmin: true
-                    arguments: >-
-                      -f helm-charts/cert-manager-values.yaml
-                      --create-namespace
-                      --set image.registry=$(acrLoginServer)
-                      --set cainjector.image.registry=$(acrLoginServer)
-                      --set startupapicheck.image.registry=$(acrLoginServer)
-                      --set webhook.image.registry=$(acrLoginServer)
-                      $(helmDryRun)
+                - template: steps/install-helm-charts.yaml
 
 # vim: set ts=2 sts=2 sw=2 et:
