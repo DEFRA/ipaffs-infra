@@ -27,4 +27,46 @@ steps:
           --force \
           --verbose
 
+  - task: AzureCLI@2
+    displayName: Import jetstack/cert-manager-cainjector
+    inputs:
+      azureSubscription: $(serviceConnection)
+      scriptType: bash
+      scriptLocation: inlineScript
+      inlineScript: |
+        az acr import \
+          --name $(acrName) \
+          --source quay.io/jetstack/cert-manager-cainjector:v1.19.1 \
+          --image jetstack/cert-manager-cainjector:v1.19.1 \
+          --force \
+          --verbose
+
+  - task: AzureCLI@2
+    displayName: Import jetstack/cert-manager-startupapicheck
+    inputs:
+      azureSubscription: $(serviceConnection)
+      scriptType: bash
+      scriptLocation: inlineScript
+      inlineScript: |
+        az acr import \
+          --name $(acrName) \
+          --source quay.io/jetstack/cert-manager-startupapicheckk:v1.19.1 \
+          --image jetstack/cert-manager-startupapicheckk:v1.19.1 \
+          --force \
+          --verbose
+
+  - task: AzureCLI@2
+    displayName: Import jetstack/cert-manager-webhook
+    inputs:
+      azureSubscription: $(serviceConnection)
+      scriptType: bash
+      scriptLocation: inlineScript
+      inlineScript: |
+        az acr import \
+          --name $(acrName) \
+          --source quay.io/jetstack/cert-manager-webhook:v1.19.1 \
+          --image jetstack/cert-manager-webhook:v1.19.1 \
+          --force \
+          --verbose
+
 # vim: set ts=2 sts=2 sw=2 et:
