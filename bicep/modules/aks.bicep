@@ -66,6 +66,10 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2025-07-01' = {
       privateDNSZone: 'none'
     }
 
+    oidcIssuerProfile: {
+      enabled: true
+    }
+
     addonProfiles: {}
   }
 }
