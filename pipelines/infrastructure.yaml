@@ -138,7 +138,7 @@ stages:
                 - checkout: self
 
                 - task: HelmDeploy@0
-                  displayName: "HelmInstall_ingress-nginx"
+                  displayName: Helm Install - nginx-ingress
                   inputs:
                     connectionType: Azure Resource Manager
                     azureSubscription: $(serviceConnection)
@@ -156,6 +156,32 @@ stages:
                       -f helm-charts/ingress-nginx-values.yaml
                       --create-namespace
                       --set global.image.registry=$(acrLoginServer)
+                      $(helmDryRun)
+
+                - task: HelmDeploy@0
+                  displayName: Helm Install - cert-manager
+                  inputs:
+                    connectionType: Azure Resource Manager
+                    azureSubscription: $(serviceConnection)
+                    azureResourceGroup: $(resourceGroupName)
+                    kubernetesCluster: $(kubernetesCluster)
+                    namespace: cert-manager
+                    command: upgrade
+                    chartName: "oci://quay.io/jetstack/charts/cert-manager"
+                    chartVersion: 1.19.1
+                    releaseName: cert-manager
+                    install: true
+                    useClusterAdmin: true
+                    arguments: >-
+                      --create-namespace
+                      --set image.registry=$(acrLoginServer)
+                      --set image.repository=jetstack/cert-manager-controller
+                      --set cainjector.image.registry=$(acrLoginServer)
+                      --set cainjector.image.repository=jetstack/cert-manager-cainjector
+                      --set startupapicheck.image.registry=$(acrLoginServer)
+                      --set startupapicheck.image.repository=jetstack/cert-manager-startupapicheck
+                      --set webhook.image.registry=$(acrLoginServer)
+                      --set webhook.image.repository=jetstack/cert-manager-webhook
                       $(helmDryRun)
 
 # vim: set ts=2 sts=2 sw=2 et:
