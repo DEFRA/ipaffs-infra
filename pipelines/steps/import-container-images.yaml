@@ -69,4 +69,18 @@ steps:
           --force \
           --verbose
 
+  - task: AzureCLI@2
+    displayName: Import k8s/azureserviceoperator
+    inputs:
+      azureSubscription: $(serviceConnection)
+      scriptType: bash
+      scriptLocation: inlineScript
+      inlineScript: |
+        az acr import \
+          --name $(acrName) \
+          --source mcr.microsoft.com/k8s/azureserviceoperator:v2.16.0 \
+          --image k8s/azureserviceoperator:v2.16.0 \
+          --force \
+          --verbose
+
 # vim: set ts=2 sts=2 sw=2 et:
