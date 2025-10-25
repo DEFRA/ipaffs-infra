@@ -2,7 +2,6 @@ targetScope = 'resourceGroup'
 
 param acrName string
 param aksParams object
-param asoParams object
 param location string
 param tags object
 param vnetName string
@@ -99,6 +98,6 @@ module netRole './vnet-role.bicep' = {
 }
 
 output kubeletPrincipalId string = aksCluster.properties.identityProfile.kubeletIdentity.objectId
-output oidcIssuerUrl string = aksCLuster.properties.oidcIssuerProfile.issuerURL
+output oidcIssuerUrl string = aksCluster.properties.oidcIssuerProfile.issuerURL
 
 // vim: set ts=2 sts=2 sw=2 et:

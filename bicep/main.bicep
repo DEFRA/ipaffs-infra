@@ -2,6 +2,7 @@ targetScope = 'resourceGroup'
 
 param acrParams object
 param aksParams object
+param asoParams object
 param environment string
 param location string
 param nsgParams object
