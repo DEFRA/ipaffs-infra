@@ -1,0 +1,7 @@
+---
+# See https://azure.github.io/azure-service-operator/reference/ for full list of supported services
+crdPattern: "servicebus.azure.com/*;sql.azure.com/*"
+
+useWorkloadIdentityAuth: true
+
+# vim: set ts=2 sts=2 sw=2 et:

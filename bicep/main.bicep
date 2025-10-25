@@ -2,6 +2,7 @@ targetScope = 'resourceGroup'
 
 param acrParams object
 param aksParams object
+param asoParams object
 param environment string
 param location string
 param nsgParams object
@@ -44,6 +45,17 @@ module aks './modules/aks.bicep' = {
   ]
 }
 
+module aso './modules/azure-service-operator.bicep' = {
+  name: 'aso'
+  scope: resourceGroup()
+  params: {
+    asoParams: asoParams
+    oidcIssuerUrl: aks.outputs.oidcIssuerUrl
+    location: location
+    tags: tags
+  }
+}
+
 module nsg './modules/network-security-groups.bicep' = {
   name: 'nsg'
   scope: resourceGroup()
@@ -66,5 +78,8 @@ module vnet './modules/virtual-network.bicep' = {
     vnetParams: vnetParams
   }
 }
+
+output acrLoginServer string = acr.outputs.acrLoginServer
+output azureServiceOperatorClientId string = aso.outputs.clientId
 
 // vim: set ts=2 sts=2 sw=2 et:

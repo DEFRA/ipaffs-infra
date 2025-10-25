@@ -22,6 +22,12 @@
       }
     },
 
+    "asoParams": {
+      "value": {
+        "managedIdentityName": "POCIMPINFMI1401-AzureServiceOperator"
+      }
+    },
+
     "environment": {
       "value": "POC"
     },

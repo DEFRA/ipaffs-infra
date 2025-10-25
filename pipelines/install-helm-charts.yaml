@@ -26,6 +26,12 @@ variables:
   - group: "${{ parameters.environmentName }}"
   - template: "vars/common.yaml"
   - template: "vars/${{ lower(parameters.environmentName) }}.yaml"
+  - name: helmDryRun
+    ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/main') }}:
+      value: ''
+    ${{ else }}:
+      value: '--dry-run'
+
 
 parameters:
   - name: environmentName
@@ -40,7 +46,6 @@ stages:
     jobs:
       - deployment: InstallHelmCharts
         displayName: Install Charts
-        condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
         environment:
           name: "${{ parameters.environmentName }}"
         strategy:
