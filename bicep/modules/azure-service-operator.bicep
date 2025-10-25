@@ -5,8 +5,6 @@ param location string
 param oidcIssuerUrl string
 param tags object
 
-param resourceGroupId string = resourceGroup().id
-
 var namespace = 'azureserviceoperator-system'
 var serviceAccount = 'azureserviceoperator-default'
 
@@ -29,7 +27,7 @@ resource credential 'Microsoft.ManagedIdentity/userAssignedIdentities/federatedI
 }
 
 resource roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(resourceGroupId, contributorRoleId, managedIdentity.properties.principalId)
+  name: guid(resourceGroup().id, contributorRoleId, asoParams.managedIdentityName)
   properties: {
     principalId: managedIdentity.properties.principalId
     principalType: 'ServicePrincipal'
