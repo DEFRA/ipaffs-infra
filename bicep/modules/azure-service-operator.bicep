@@ -8,7 +8,7 @@ param tags object
 var namespace = 'azureserviceoperator-system'
 var serviceAccount = 'azureserviceoperator-default'
 
-var contributorRoleId = 'b24988ac-6180-42a0-ab88-20f7382dd24c'
+var contributorRoleId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b24988ac-6180-42a0-ab88-20f7382dd24c')
 
 resource managedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2024-11-30' = {
   name: asoParams.managedIdentityName
