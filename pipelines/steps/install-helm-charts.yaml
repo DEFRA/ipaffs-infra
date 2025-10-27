@@ -43,7 +43,27 @@ steps:
         --set webhook.image.registry=$(acrLoginServer)
         $(helmDryRun)
 
-  # TODO: Figure out why ASO can't talk to cert-manager
+  - task: HelmDeploy@0
+    displayName: Helm Install - azure-service-operator-config
+    inputs:
+      connectionType: Azure Resource Manager
+      azureSubscription: $(serviceConnection)
+      azureResourceGroup: $(resourceGroupName)
+      kubernetesCluster: $(kubernetesCluster)
+      namespace: azureserviceoperator-system
+      command: upgrade
+      chartName: ./helm-charts/azure-service-operator-config
+      releaseName: azure-service-operator-config
+      install: true
+      useClusterAdmin: true
+      arguments: >-
+        -f helm-charts/azure-service-operator-config-values.yaml
+        --create-namespace
+        --set azureSubscriptionID=$(subscriptionId)
+        --set azureTenantID=$(tenantId)
+        --set azureClientID=$(azureServiceOperatorClientId)
+        $(helmDryRun)
+
   - task: HelmDeploy@0
     displayName: Helm Install - azure-service-operator
     inputs:
@@ -63,9 +83,6 @@ steps:
         -f helm-charts/azure-service-operator-values.yaml
         --create-namespace
         --set image.repositoryBase=$(acrLoginServer)/k8s/azureserviceoperator
-        --set azureSubscriptionID=$(subscriptionId)
-        --set azureTenantID=$(tenantId)
-        --set azureClientID=$(azureServiceOperatorClientId)
         $(helmDryRun)
 
 # vim: set ts=2 sts=2 sw=2 et:

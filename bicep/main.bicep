@@ -6,9 +6,11 @@ param asoParams object
 param environment string
 param location string
 param nsgParams object
+param sqlParams object
 param vnetParams object
 
 param createdDate string = utcNow('yyyy-MM-dd')
+param tenantId string
 
 var tags = union(loadJsonContent('default-tags.json'), {
   CreatedDate: createdDate
@@ -67,6 +69,18 @@ module nsg './modules/network-security-groups.bicep' = {
   dependsOn: [
     vnet
   ]
+}
+
+module sql './modules/sql.bicep' = {
+  name: 'sql'
+  scope: resourceGroup()
+  params: {
+    location: location
+    sqlParams: sqlParams
+    subnetIds: vnet.outputs.subnetIds
+    tags: tags
+    tenantId: tenantId
+  }
 }
 
 module vnet './modules/virtual-network.bicep' = {

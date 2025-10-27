@@ -681,6 +681,19 @@
       }
     },
 
+    "sqlParams": {
+      "value": {
+        "serverName": "POCIMPDBSSQ1401",
+        "elasticPoolName": "POCIMPDBSEP1401",
+        "administratorLogin": "AG-Azure-IMP_POC1-Contributors",
+        "administratorType": "Group",
+        "administratorObjectId": "4b2fbef7-de9d-4836-a44e-46c56aad3d9e",
+        "maxSizeGiB": 10,
+        "tenantId": "",
+        "vCores": 2
+      }
+    },
+
     "vnetParams": {
       "value": {
         "name": "POCIMPNETVN1401",
