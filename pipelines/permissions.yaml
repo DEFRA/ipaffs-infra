@@ -1,0 +1,52 @@
+---
+trigger:
+  branches:
+    include:
+      - permissions
+  paths:
+    include:
+      - bicep/permissions.bicep
+      - bicep/**/permissions.parameters.json
+      - pipelines/permissions.yaml
+
+pool:
+  name: DEFRA-COMMON-ubuntu2204-SSV5
+
+variables:
+  - group: "${{ parameters.environmentName }}"
+  - template: "vars/common.yaml"
+  - template: "vars/${{ lower(parameters.environmentName) }}.yaml"
+
+parameters:
+  - name: environmentName
+    type: string
+    default: POC
+    values:
+      - POC
+      - TST
+
+stages:
+  - stage: Deploy
+    jobs:
+      - deployment: Deploy
+        environment:
+          name: "${{ parameters.environmentName }}"
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+
+                - task: AzureCLI@2
+                  displayName: Deploy
+                  inputs:
+                    azureSubscription: $(serviceConnection)
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      az role assignment create \
+                        --role Owner \
+                        --assignee tom.bamford@defra.onmicrosoft.com \
+                        --scope /subscriptions/cfa4ccd1-5a5e-420c-9bca-03218a43e46d/resourceGroups/POCIMPNETNS1401
+
+# vim: set ts=2 sts=2 sw=2 et:
