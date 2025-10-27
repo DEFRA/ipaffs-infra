@@ -1,0 +1,97 @@
+# azureTenantID is the Entra tenant that the subscription is in
+azureTenantID: ""
+
+# azureAdditionalTenants is the list of (comma-separated) additional tenants the operator can authenticate with.
+# This is required when performing cross-tenant authentication. See
+# https://learn.microsoft.com/entra/external-id/cross-tenant-access-overview for more details.
+azureAdditionalTenants: ""
+
+# azureSubscriptionID is the Azure Subscription the operator will act against.
+azureSubscriptionID: ""
+
+# azureClientID is the client ID of the Azure Service Principal or Managed Identity to use to authenticate with Azure.
+azureClientID: ""
+
+# azureSyncPeriod is the frequency at which resources are re-reconciled with Azure
+# when there have been no triggering changes in the Kubernetes resources. This sync
+# exists to detect and correct changes that happened in Azure that Kubernetes is not
+# aware about. BE VERY CAREFUL setting this value low - even a modest number of resources
+# can cause subscription level throttling if they are re-synced frequently.
+# Durations are specified as "1h", "15m", or "60s". Specify the special value "never" to prevent
+# syncing. See https://pkg.go.dev/time#ParseDuration for more details.
+azureSyncPeriod: ""
+
+# useWorkloadIdentityAuth can be set to use workload identity authentication
+# See https://azure.github.io/azure-workload-identity/docs/introduction.html for more details about Azure Workload Identity.
+# See https://azure.github.io/azure-service-operator/guide/authentication/ for details on setting up Workload Identity with ASO
+useWorkloadIdentityAuth: false
+
+# azureUserAgentSuffix is appended to the default User-Agent for Azure HTTP clients.
+azureUserAgentSuffix: ""
+
+# azureAuthorityHost is the URL of the AAD authority. If not specified, the default
+# is the AAD URL for the public cloud: https://login.microsoftonline.com/. See
+# https://docs.microsoft.com/azure/active-directory/develop/authentication-national-cloud
+azureAuthorityHost: ""
+
+# azureResourceManagerEndpoint is the Azure Resource Manager endpoint.
+# If not specified, the default is the Public cloud resource manager endpoint.
+# See https://docs.microsoft.com/cli/azure/manage-clouds-azure-cli#list-available-clouds for details
+# about how to find available resource manager endpoints for your cloud. Note that the resource manager
+# endpoint is referred to as "resourceManager" in the Azure CLI.
+azureResourceManagerEndpoint: ""
+
+# azureResourceManagerAudience is the Azure Resource Manager AAD audience.
+# If not specified, the default is the Public cloud resource manager audience https://management.core.windows.net/.
+# See https://docs.microsoft.com/cli/azure/manage-clouds-azure-cli#list-available-clouds for details
+# about how to find available resource manager audiences for your cloud. Note that the resource manager
+# audience is referred to as "activeDirectoryResourceId" in the Azure CLI.
+azureResourceManagerAudience: ""
+
+# azureTargetNamespaces lists the namespaces the operator will watch
+# for Azure resources (if the mode includes running watchers). If
+# it's empty the operator will watch all namespaces.
+azureTargetNamespaces: []
+
+# azureOperatorMode determines whether the operator should run
+# watchers, webhooks or both.
+azureOperatorMode: ""
+
+# defaultReconcilePolicy specifies the reconcile strategy to be used by the operator.
+# See https://azure.github.io/azure-service-operator/guide/annotations/#serviceoperatorazurecomreconcile-policy
+defaultReconcilePolicy: "manage"
+
+# MaxConcurrentReconciles is the number of threads/goroutines dedicated to reconciling each resource type.
+# If not specified, the default is 1.
+# IMPORTANT: Having MaxConcurrentReconciles set to N does not mean that ASO is limited to N interactions with
+# Azure at any given time, because the control loop yields to another resource while it is not actively issuing HTTP
+# calls to Azure. Any single resource only blocks the control-loop for its resource-type for as long as it takes to issue
+# an HTTP call to Azure, view the result, and make a decision. In most cases the time taken to perform these actions
+# (and thus how long the loop is blocked and preventing other resources from being acted upon) is a few hundred
+# milliseconds to at most a second or two. In a typical 60s period, many hundreds or even thousands of resources
+# can be managed with this set to 1.
+# MaxConcurrentReconciles applies to every registered resource type being watched/managed by ASO.
+maxConcurrentReconciles: 1
+
+rateLimit:
+  # mode configures the internal rate-limiting mode.
+  # Valid values are [disabled, bucket]
+  # * disabled: No ASO-controlled rate-limiting occurs. ASO will attempt to communicate with Azure and
+  #   kube-apiserver as much as needed based on load. It will back off based on throttling from
+  #   either kube-apiserver or Azure, but will not artificially limit its throughput.
+  # * bucket: Uses a token-bucket algorithm to rate-limit reconciliations. Note that this limits how often
+  #   the operator performs a reconciliation, but not every reconciliation triggers a call to kube-apiserver
+  #   or Azure (though many do). Since this controls reconciles it can be used to coarsely control throughput
+  #   and CPU usage of the operator, as well as the number of requests that the operator issues to Azure.
+  #   Keep in mind that the Azure throttling limits (defined at
+  #   https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/request-limits-and-throttling)
+  #   differentiate between request types. Since a given reconcile for a resource may result in polling (a GET) or
+  #   modification (a PUT) it's not possible to entirely avoid Azure throttling by tuning these bucket limits.
+  #   We don't recommend enabling this mode by default.
+  #   If enabling this mode, we strongly recommend doing some experimentation to tune these values to something to
+  #   works for your specific need.
+  mode: disabled
+  # The rate (per second) that the bucket is refilled. This value only has an effect if mode is 'bucket'.
+  qps: 5
+  # The size of the bucket. This value only has an effect if mode is 'bucket'.
+  bucketSize: 100
