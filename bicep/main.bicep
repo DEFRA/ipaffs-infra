@@ -77,6 +77,7 @@ module sql './modules/sql.bicep' = {
   params: {
     location: location
     sqlParams: sqlParams
+    subnetIds: vnet.outputs.subnetIds
     tags: tags
     tenantId: tenantId
   }
