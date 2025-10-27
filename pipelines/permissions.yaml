@@ -46,7 +46,8 @@ stages:
                     inlineScript: |
                       az role assignment create \
                         --role Owner \
-                        --assignee tom.bamford@defra.onmicrosoft.com \
+                        --assignee-object-id 199e9bba-b7cc-47ff-935b-1ca4d964b048 \
+                        --assignee-principal-type User \
                         --scope /subscriptions/cfa4ccd1-5a5e-420c-9bca-03218a43e46d/resourceGroups/POCIMPNETNS1401
 
 # vim: set ts=2 sts=2 sw=2 et:
