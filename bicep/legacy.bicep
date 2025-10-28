@@ -1,4 +1,5 @@
 param dbwParams object
+param sejParams object
 
 @allowed(['SND', 'TST'])
 param environment string
@@ -54,5 +55,14 @@ module dbw './modules/database-watcher.bicep' = {
   }
 }
 
+module sej './modules/sql-elastic-jobs.bicep' = {
+  name: 'sej'
+  scope: resourceGroup()
+  params: {
+    location: location
+    sejParams: sejParams
+    tags: tags
+  }
+}
 
 // vim: set ts=2 sts=2 sw=2 et:
