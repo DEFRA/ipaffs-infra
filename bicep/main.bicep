@@ -1,16 +1,19 @@
 targetScope = 'resourceGroup'
 
+@allowed(['POC', 'TST'])
+param environment string
+
+param tenantId string
+
 param acrParams object
 param aksParams object
 param asoParams object
-param environment string
-param location string
 param nsgParams object
 param sqlParams object
 param vnetParams object
 
+param location string = resourceGroup().location
 param createdDate string = utcNow('yyyy-MM-dd')
-param tenantId string
 
 var tags = union(loadJsonContent('default-tags.json'), {
   CreatedDate: createdDate
