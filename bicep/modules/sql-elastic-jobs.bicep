@@ -21,7 +21,7 @@ resource database 'Microsoft.Sql/servers/databases@2023-08-01' = {
     zoneRedundant: false
     readScale: 'Disabled'
     requestedBackupStorageRedundancy: 'Local'
-    maintenanceConfigurationId: subscriptionResourceId('Microsoft.Maintenance', 'publicMaintenanceConfigurations', 'SQL_Default')
+    maintenanceConfigurationId: '${subscription().id}/providers/Microsoft.Maintenance/publicMaintenanceConfigurations/SQL_Default'
     isLedgerOn: false
     availabilityZone: 'NoPreference'
   }
