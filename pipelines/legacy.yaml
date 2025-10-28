@@ -5,9 +5,9 @@ trigger:
       - main
   paths:
     include:
-      - bicep/database-watcher.bicep
-      - bicep/**/database-watcher.bicepparam
-      - pipelines/database-watcher.yaml
+      - bicep/legacy.bicep
+      - bicep/**/legacy.bicepparam
+      - pipelines/legacy.yaml
 
 pr:
   branches:
@@ -15,9 +15,9 @@ pr:
       - main
   paths:
     include:
-      - bicep/database-watcher.bicep
-      - bicep/**/database-watcher.bicepparam
-      - pipelines/database-watcher.yaml
+      - bicep/legacy.bicep
+      - bicep/**/legacy.bicepparam
+      - pipelines/legacy.yaml
 
 pool:
   name: DEFRA-COMMON-ubuntu2204-SSV5
@@ -30,9 +30,9 @@ variables:
 parameters:
   - name: environmentName
     type: string
-    default: POC
+    default: SND
     values:
-      - POC
+      - SND
       - TST
 
 stages:
@@ -50,20 +50,20 @@ stages:
                 - checkout: self
 
                 - task: AzureCLI@2
-                  displayName: WhatIf - Database Watcher
+                  displayName: WhatIf - Legacy
                   inputs:
                     azureSubscription: $(serviceConnection)
                     scriptType: bash
                     scriptLocation: inlineScript
                     inlineScript: |
                       az deployment group what-if \
-                        --name "DatabaseWatcher-$(Build.BuildId)" \
+                        --name "Legacy-$(Build.BuildId)" \
                         --resource-group $(resourceGroupName) \
-                        --template-file bicep/database-watcher.bicep \
-                        --parameters bicep/envs/${{ lower(parameters.environmentName) }}/database-watcher.bicepparam
+                        --template-file bicep/legacy.bicep \
+                        --parameters bicep/envs/${{ lower(parameters.environmentName) }}/legacy.bicepparam
 
                 - task: AzureCLI@2
-                  displayName: Deploy - Database Watcher
+                  displayName: Deploy - Legacy
                   condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
                   inputs:
                     azureSubscription: $(serviceConnection)
@@ -71,9 +71,9 @@ stages:
                     scriptLocation: inlineScript
                     inlineScript: |
                       az deployment group create \
-                        --name "DatabaseWatcher-$(Build.BuildId)" \
+                        --name "Legacy-$(Build.BuildId)" \
                         --resource-group $(resourceGroupName) \
-                        --template-file bicep/database-watcher.bicep \
-                        --parameters bicep/envs/${{ lower(parameters.environmentName) }}/database-watcher.bicepparam
+                        --template-file bicep/legacy.bicep \
+                        --parameters bicep/envs/${{ lower(parameters.environmentName) }}/legacy.bicepparam
 
 # vim: set ts=2 sts=2 sw=2 et:

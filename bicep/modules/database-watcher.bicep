@@ -1,51 +1,23 @@
-param name string
-param location string = resourceGroup().location
-param adminEntraGroup string
-param sqlServerElasticPoolName string
-param sqlServerResourceId string = '/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Sql/servers/tstimpdbssqa001'
-var sqlServerHostname = '${last(split(sqlServerResourceId, '/'))}${environment().suffixes.sqlServerHostname}'
+targetScope = 'resourceGroup'
 
-var databaseNames = [
-  'notification-microservice'
-  'approvedestablishment-microservice-blue'
-  'approvedestablishment-microservice-green'
-  'bip-microservice'
-  'bordernotification-microservice'
-  'bordernotification-refdata-microservice-blue'
-  'bordernotification-refdata-microservice-green'
-  'checks-microservice'
-  'commoditycode-microservice-blue'
-  'commoditycode-microservice-green'
-  'countries-microservice-blue'
-  'countries-microservice-green'
-  'decision-microservice-blue'
-  'decision-microservice-green'
-  'economicoperator-microservice'
-  'economicoperator-microservice-public-blue'
-  'economicoperator-microservice-public-green'
-  'enotification-event-microservice'
-  'fieldconfig-microservice-blue'
-  'fieldconfig-microservice-green'
-  'in-service-messaging-microservice'
-  'laboratories-microservice-blue'
-  'laboratories-microservice-green'
-  'permissions-blue'
-  'permissions-green'
-  'referencedataloader-microservice-blue'
-  'referencedataloader-microservice-green'
-  'soaprequest-microservice'
-]
+param databaseNames array
+param dbwParams object
+param location string
+param tags object
+
+var sqlServerHostname = '${last(split(dbwParams.sqlServerResourceId, '/'))}${environment().suffixes.sqlServerHostname}'
 
 resource kustoCluster 'Microsoft.Kusto/Clusters@2024-04-13' = {
-  name: name
+  name: dbwParams.name
   location: location
+  tags: tags
   sku: {
-    name: 'Standard_E2ads_v5'
-    tier: 'Standard'
-    capacity: 2
+    name: dbwParams.kustoSku.name
+    tier: dbwParams.kustoSku.tier
+    capacity: dbwParams.kustoSku.capacity
   }
   identity: {
-    type: 'None'
+    type: 'SystemAssigned'
   }
   properties: {
     trustedExternalTenants: [
@@ -79,7 +51,7 @@ resource kustoCluster 'Microsoft.Kusto/Clusters@2024-04-13' = {
 
 resource kustoDataStore 'Microsoft.Kusto/Clusters/Databases@2024-04-13' = {
   parent: kustoCluster
-  name: '${name}-data-store'
+  name: '${dbwParams.name}-data-store'
   location: location
   kind: 'ReadWrite'
   properties: {
@@ -90,9 +62,9 @@ resource kustoDataStore 'Microsoft.Kusto/Clusters/Databases@2024-04-13' = {
 
 resource kustoDataStoreGroupAdmin 'Microsoft.Kusto/Clusters/Databases/PrincipalAssignments@2024-04-13' = {
   parent: kustoDataStore
-  name: adminEntraGroup
+  name: dbwParams.adminEntraGroup
   properties: {
-    principalId: adminEntraGroup
+    principalId: dbwParams.adminEntraGroup
     role: 'Admin'
     principalType: 'Group'
     tenantId: '770a2450-0227-4c62-90c7-4e38537f1102'
@@ -111,18 +83,20 @@ resource kustoDataStoreWatcherAdmin 'Microsoft.Kusto/Clusters/Databases/Principa
 }
 
 
+// watchers@2025-01-02 is not available in northeurope
 resource dbWatcher 'Microsoft.DatabaseWatcher/watchers@2024-10-01-preview' = {
-  name: name
+  name: dbwParams.name
   location: location
+  tags: tags
   identity: {
     type: 'SystemAssigned'
   }
   properties: {
     datastore: {
       adxClusterResourceId: kustoCluster.id
-      kustoClusterDisplayName: 'tstimpdbsdbw001'
-      kustoClusterUri: 'https://tstimpdbsdbw001.northeurope.kusto.windows.net'
-      kustoDataIngestionUri: 'https://ingest-tstimpdbsdbw001.northeurope.kusto.windows.net'
+      kustoClusterDisplayName: kustoCluster.name
+      kustoClusterUri: kustoCluster.properties.uri
+      kustoDataIngestionUri: kustoCluster.properties.dataIngestionUri
       kustoDatabaseName: kustoDataStore.name
       kustoManagementUrl: 'https://portal.azure.com/resource/subscriptions${kustoCluster.id}/overview'
       kustoOfferingType: 'adx'
@@ -132,9 +106,9 @@ resource dbWatcher 'Microsoft.DatabaseWatcher/watchers@2024-10-01-preview' = {
 
 resource dbWatcherPrivateEndpointSql 'Microsoft.DatabaseWatcher/watchers/sharedPrivateLinkResources@2024-10-01-preview' = {
   parent: dbWatcher
-  name: name
+  name: dbwParams.name
   properties: {
-    privateLinkResourceId: sqlServerResourceId
+    privateLinkResourceId: dbwParams.sqlServerResourceId
     groupId: 'sqlServer'
     requestMessage: 'please'
   }
@@ -142,7 +116,7 @@ resource dbWatcherPrivateEndpointSql 'Microsoft.DatabaseWatcher/watchers/sharedP
 
 resource dbWatcherPrivateEndpointKusto 'Microsoft.DatabaseWatcher/watchers/sharedPrivateLinkResources@2024-10-01-preview' = {
   parent: dbWatcher
-  name: '${name}-kusto'
+  name: '${dbwParams.name}-kusto'
   properties: {
     privateLinkResourceId: kustoCluster.id
     groupId: 'cluster'
@@ -153,25 +127,25 @@ resource dbWatcherPrivateEndpointKusto 'Microsoft.DatabaseWatcher/watchers/share
 
 resource dbWatcherTargetSqlEp 'Microsoft.DatabaseWatcher/watchers/targets@2024-10-01-preview' = {
   parent: dbWatcher
-  name: sqlServerElasticPoolName
+  name: dbwParams.sqlServerElasticPoolName
   properties: {
     targetAuthenticationType: 'Aad'
     connectionServerName: sqlServerHostname
     targetType: 'SqlEp'
-    sqlEpResourceId: '${sqlServerResourceId}/elasticpools/${sqlServerElasticPoolName}'
-    anchorDatabaseResourceId: '${sqlServerResourceId}/databases/${first(databaseNames)}'
+    sqlEpResourceId: '${dbwParams.sqlServerResourceId}/elasticpools/${dbwParams.sqlServerElasticPoolName}'
+    anchorDatabaseResourceId: '${dbwParams.sqlServerResourceId}/databases/${first(databaseNames)}'
     readIntent: false
   }
 }
 
 resource dbWatcherTargetSqlDb 'Microsoft.DatabaseWatcher/watchers/targets@2024-10-01-preview' = [for db in databaseNames: {
   parent: dbWatcher
-  name: '${sqlServerElasticPoolName}-${db}'
+  name: '${dbwParams.sqlServerElasticPoolName}-${db}'
   properties: {
     targetAuthenticationType: 'Aad'
     connectionServerName: sqlServerHostname
     targetType: 'SqlDb'
-    sqlDbResourceId: '${sqlServerResourceId}/databases/${db}'
+    sqlDbResourceId: '${dbwParams.sqlServerResourceId}/databases/${db}'
     readIntent: false
   }
 }]
