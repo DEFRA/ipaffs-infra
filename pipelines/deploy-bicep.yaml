@@ -1,0 +1,54 @@
+---
+trigger:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - bicep/*.bicep
+      - bicep/**/*.bicep
+      - bicep/**/main.parameters.json
+      - pipelines/deploy-bicep.yaml
+
+pr:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - bicep/*.bicep
+      - bicep/**/*.bicep
+      - bicep/**/main.parameters.json
+      - pipelines/deploy-bicep.yaml
+
+pool:
+  name: DEFRA-COMMON-ubuntu2204-SSV5
+
+variables:
+  - group: "${{ parameters.environmentName }}"
+  - template: "vars/common.yaml"
+  - template: "vars/${{ lower(parameters.environmentName) }}.yaml"
+
+parameters:
+  - name: environmentName
+    type: string
+    default: POC
+    values:
+      - POC
+
+stages:
+  - stage: DeployInfrastructure
+    displayName: Deploy Infrastructure
+    jobs:
+      - deployment: DeployBicep
+        displayName: Deploy Bicep Templates
+        environment:
+          name: "${{ parameters.environmentName }}"
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+                - template: steps/deploy-bicep.yaml
+
+# vim: set ts=2 sts=2 sw=2 et:
