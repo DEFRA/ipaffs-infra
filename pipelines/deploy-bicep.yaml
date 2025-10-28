@@ -5,8 +5,9 @@ trigger:
       - main
   paths:
     include:
-      - bicep/*.bicep
-      - bicep/**/*.bicep
+      - bicep/main.bicep
+      - bicep/resource-group.bicep
+      - bicep/modules/*.bicep
       - bicep/**/main.bicepparam
       - bicep/**/resource-group.bicepparam
       - pipelines/deploy-bicep.yaml
@@ -18,11 +19,13 @@ pr:
       - main
   paths:
     include:
-      - bicep/*.bicep
-      - bicep/**/*.bicep
+      - bicep/main.bicep
+      - bicep/resource-group.bicep
+      - bicep/modules/*.bicep
       - bicep/**/main.bicepparam
       - bicep/**/resource-group.bicepparam
       - pipelines/deploy-bicep.yaml
+      - pipelines/steps/deploy-bicep.yaml
 
 pool:
   name: DEFRA-COMMON-ubuntu2204-SSV5
