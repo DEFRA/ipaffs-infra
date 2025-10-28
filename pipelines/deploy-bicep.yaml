@@ -9,6 +9,7 @@ trigger:
       - bicep/**/*.bicep
       - bicep/**/main.parameters.json
       - pipelines/deploy-bicep.yaml
+      - pipelines/steps/deploy-bicep.yaml
 
 pr:
   branches:
