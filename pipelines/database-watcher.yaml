@@ -6,7 +6,7 @@ trigger:
   paths:
     include:
       - bicep/database-watcher.bicep
-      - bicep/**/database-watcher.parameters.json
+      - bicep/**/database-watcher.bicepparam
       - pipelines/database-watcher.yaml
 
 pr:
@@ -15,7 +15,8 @@ pr:
       - main
   paths:
     include:
-      - bicep/**/database-watcher*.json
+      - bicep/database-watcher.bicep
+      - bicep/**/database-watcher.bicepparam
       - pipelines/database-watcher.yaml
 
 pool:
@@ -59,7 +60,7 @@ stages:
                         --name "DatabaseWatcher-$(Build.BuildId)" \
                         --resource-group $(resourceGroupName) \
                         --template-file bicep/database-watcher.bicep \
-                        --parameters @bicep/envs/${{ lower(parameters.environmentName) }}/database-watcher.parameters.json
+                        --parameters bicep/envs/${{ lower(parameters.environmentName) }}/database-watcher.bicepparam
 
                 - task: AzureCLI@2
                   displayName: Deploy - Database Watcher
@@ -73,6 +74,6 @@ stages:
                         --name "DatabaseWatcher-$(Build.BuildId)" \
                         --resource-group $(resourceGroupName) \
                         --template-file bicep/database-watcher.bicep \
-                        --parameters @bicep/envs/${{ lower(parameters.environmentName) }}/database-watcher.parameters.json
+                        --parameters bicep/envs/${{ lower(parameters.environmentName) }}/database-watcher.bicepparam
 
 # vim: set ts=2 sts=2 sw=2 et:

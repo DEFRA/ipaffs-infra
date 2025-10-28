@@ -5,7 +5,6 @@ param sqlServerElasticPoolName string
 param sqlServerResourceId string = '/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Sql/servers/tstimpdbssqa001'
 var sqlServerHostname = '${last(split(sqlServerResourceId, '/'))}${environment().suffixes.sqlServerHostname}'
 
-
 var databaseNames = [
   'notification-microservice'
   'approvedestablishment-microservice-blue'
@@ -176,3 +175,5 @@ resource dbWatcherTargetSqlDb 'Microsoft.DatabaseWatcher/watchers/targets@2024-1
     readIntent: false
   }
 }]
+
+// vim: set ts=2 sts=2 sw=2 et:

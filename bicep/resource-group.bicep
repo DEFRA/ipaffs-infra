@@ -1,7 +1,11 @@
 targetScope = 'subscription'
 
-param environment string
 param name string
+
+@allowed(['POC', 'TST'])
+param environment string
+
+@allowed(['northeuropa', 'uksouth'])
 param location string
 
 param createdDate string = utcNow('yyyy-MM-dd')
