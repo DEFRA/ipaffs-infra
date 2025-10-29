@@ -1,0 +1,8 @@
+---
+# Do not adopt resources by default
+defaultReconcilePolicy: "skip"
+
+# Enable authentication using AKS Workload Identity (OIDC)
+useWorkloadIdentityAuth: true
+
+# vim: set ts=2 sts=2 sw=2 et:
