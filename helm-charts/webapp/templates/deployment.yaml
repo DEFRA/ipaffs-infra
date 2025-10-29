@@ -18,12 +18,12 @@ spec:
         - name: ipaffs-acr
       containers:
         - name: {{ .Chart.Name }}
-          image: "{{ .Values.image }}"
+          image: "{{ .Values.container.image }}"
           imagePullPolicy: {{ .Values.imagePullPolicy }}
-          {{- with .Values.env }}
+          {{ with .Values.env }}
           env:
             {{- toYaml . | nindent 12 }}
-          {{- end }}
+          {{ end }}
           ports:
             - name: http
               containerPort: 8000
@@ -32,15 +32,13 @@ spec:
           resources:
             {{- toYaml . | nindent 12 }}
           {{- end }}
+          {{ with .Values.livenessProbe }}
           livenessProbe:
-            httpGet:
-              path: /admin/health
-              port: 8000
-            initialDelaySeconds: 10
-            periodSeconds: 5
+            {{- toYaml . | nindent 12 }}
+          {{ end }}
       {{ if .Values.initContainer.enabled -}}
       initContainers:
         - name: {{ .Chart.Name }}-init
           image: "{{ .Values.initContainer.image }}"
           command: {{ .Values.initContainer.command }}
-      {{- end }}
+      {{ end }}
