@@ -694,7 +694,7 @@ param vnetParams = {
       addressPrefix: '10.179.104.0/27'
       serviceEndpoints: []
       routeTableId: '/subscriptions/cfa4ccd1-5a5e-420c-9bca-03218a43e46d/resourceGroups/POCIMPNETNS1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-POCIMPNETVN1401-01'
-      'networkSecurityGroupId':'/subscriptions/cfa4ccd1-5a5e-420c-9bca-03218a43e46d/resourceGroups/POCIMPNETNS1401/providers/Microsoft.Network/networkSecurityGroups/POCIMPNETNS1401'
+      networkSecurityGroupId: '/subscriptions/cfa4ccd1-5a5e-420c-9bca-03218a43e46d/resourceGroups/POCIMPNETNS1401/providers/Microsoft.Network/networkSecurityGroups/POCIMPNETNS1401'
     }
     {
       name: 'POCIMPNETSU4402'
