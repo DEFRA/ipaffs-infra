@@ -27,9 +27,9 @@ stages:
               scriptType: bash
               scriptLocation: inlineScript
               inlineScript: |
-                az ad group member add -g 4b2fbef7-de9d-4836-a44e-46c56aad3d9e --member-id 4b2fbef7-de9d-4836-a44e-46c56aad3d9e
-                az ad group member add -g 4b2fbef7-de9d-4836-a44e-46c56aad3d9e --member-id d7806931-a3ca-42ee-83ef-6b3060845b2b
-                az ad group owner add -g 4b2fbef7-de9d-4836-a44e-46c56aad3d9e --owner-object-id ed3eec58-96fd-4c14-9a5c-933608b9c678
-                az ad group owner add -g 4b2fbef7-de9d-4836-a44e-46c56aad3d9e --owner-object-id d7806931-a3ca-42ee-83ef-6b3060845b2b
+                az ad group member add -g 65c89463-4af9-4520-bc82-77f0ead4e424 --member-id 4b2fbef7-de9d-4836-a44e-46c56aad3d9e
+                az ad group member add -g 65c89463-4af9-4520-bc82-77f0ead4e424 --member-id d7806931-a3ca-42ee-83ef-6b3060845b2b
+                az ad group owner add -g 65c89463-4af9-4520-bc82-77f0ead4e424 --owner-object-id ed3eec58-96fd-4c14-9a5c-933608b9c678
+                az ad group owner add -g 65c89463-4af9-4520-bc82-77f0ead4e424 --owner-object-id d7806931-a3ca-42ee-83ef-6b3060845b2b
 
 # vim: set ts=2 sts=2 sw=2 et:
