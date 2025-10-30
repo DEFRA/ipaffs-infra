@@ -32,9 +32,9 @@ variables:
     ${{ else }}:
       value: '--dry-run'
 
-
 parameters:
   - name: environmentName
+    displayName: Environment
     type: string
     default: POC
     values:

@@ -29,6 +29,7 @@ variables:
 
 parameters:
   - name: environmentName
+    displayName: Environment
     type: string
     default: SND
     values:
