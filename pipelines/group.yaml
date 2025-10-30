@@ -19,12 +19,14 @@ stages:
   - stage: DeployInfrastructure
     displayName: Deploy Infrastructure
     jobs:
-      - task: AzureCLI@2
-        inputs:
-          azureSubscription: $(serviceConnection)
-          scriptType: bash
-          scriptLocation: inlineScript
-          inlineScript: |
-            az rest --method patch --url 'https://graph.microsoft.com/v1.0/groups/65c89463-4af9-4520-bc82-77f0ead4e424' --body '{"uniqueName": "AG-Azure-IMP_POC-SQLAdmins"}' --headers 'content-type=application/json'
+      - job:
+        steps:
+          - task: AzureCLI@2
+            inputs:
+              azureSubscription: $(serviceConnection)
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                az rest --method patch --url 'https://graph.microsoft.com/v1.0/groups/65c89463-4af9-4520-bc82-77f0ead4e424' --body '{"uniqueName": "AG-Azure-IMP_POC-SQLAdmins"}' --headers 'content-type=application/json'
 
 # vim: set ts=2 sts=2 sw=2 et:
