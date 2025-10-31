@@ -18,7 +18,6 @@ steps:
         -f helm-charts/ingress-nginx-values.yaml
         --create-namespace
         --set global.image.registry=$(acrLoginServer)
-        $(helmDryRun)
 
   - task: HelmDeploy@0
     displayName: Helm Install - cert-manager
