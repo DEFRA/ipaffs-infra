@@ -27,10 +27,7 @@ variables:
   - template: "vars/common.yaml"
   - template: "vars/${{ lower(parameters.environmentName) }}.yaml"
   - name: helmDryRun
-    ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/main') }}:
-      value: ''
-    ${{ else }}:
-      value: '--dry-run'
+    value: ''
 
 parameters:
   - name: environmentName
