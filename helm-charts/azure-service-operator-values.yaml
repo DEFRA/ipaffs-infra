@@ -1,6 +1,6 @@
 ---
 # See https://azure.github.io/azure-service-operator/reference/ for full list of supported services
-crdPattern: "managedidentity.azure.com/*;resources.azure.com/*;servicebus.azure.com/*;sql.azure.com/*"
+crdPattern: "cache.azure.com/*;insights.azure.com/*;managedidentity.azure.com/*;resources.azure.com/*;search.azure.com/*;servicebus.azure.com/*;sql.azure.com/*;storage.azure.com/*;keyvault.azure.com/*"
 
 # We supply our own configuration secret separately, see `azure-service-operator-config` chart
 createAzureOperatorSecret: false
