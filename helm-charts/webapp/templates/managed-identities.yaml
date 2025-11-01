@@ -4,7 +4,6 @@ metadata:
   name: pocimpnetns1401
 spec:
   location: uksouth
-
 ---
 apiVersion: managedidentity.azure.com/v1api20230131
 metadata:
@@ -15,3 +14,10 @@ spec:
   location: uksouth
   owner:
     name: pocimpnetns1401
+    configMapExpressions:
+      - name: managed-identity
+        key: clientId
+        value: self.status.clientId
+      - name: managed-identity
+        key: principalId
+        value: self.status.principalId
