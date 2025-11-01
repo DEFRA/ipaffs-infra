@@ -27,8 +27,11 @@ stages:
               scriptType: bash
               scriptLocation: inlineScript
               inlineScript: |
-                az ad group member add -g 65c89463-4af9-4520-bc82-77f0ead4e424 --member-id 4b2fbef7-de9d-4836-a44e-46c56aad3d9e
-                az ad group member add -g 65c89463-4af9-4520-bc82-77f0ead4e424 --member-id d7806931-a3ca-42ee-83ef-6b3060845b2b
-                az ad group owner add -g 65c89463-4af9-4520-bc82-77f0ead4e424 --owner-object-id d7806931-a3ca-42ee-83ef-6b3060845b2b
+                if ! az ad group member check --group "65c89463-4af9-4520-bc82-77f0ead4e424" --member-id "4b2fbef7-de9d-4836-a44e-46c56aad3d9e" --query value -o tsv | grep -qi '^true$'; then 
+                  az ad group member add -g 65c89463-4af9-4520-bc82-77f0ead4e424 --member-id 4b2fbef7-de9d-4836-a44e-46c56aad3d9e
+                fi
+                fi
+#                az ad group member add -g 65c89463-4af9-4520-bc82-77f0ead4e424 --member-id d7806931-a3ca-42ee-83ef-6b3060845b2b
+#                az ad group owner add -g 65c89463-4af9-4520-bc82-77f0ead4e424 --owner-object-id d7806931-a3ca-42ee-83ef-6b3060845b2b
 
 # vim: set ts=2 sts=2 sw=2 et:
