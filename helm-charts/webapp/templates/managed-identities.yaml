@@ -1,0 +1,17 @@
+apiVersion: resources.azure.com/v1api20200601
+kind: ResourceGroup
+metadata:
+  name: pocimpnetns1401
+spec:
+  location: uksouth
+
+---
+apiVersion: managedidentity.azure.com/v1api20230131
+metadata:
+  name: pocimpdbsmi1401-migrations-countries-ipaffs-dev
+  annotations:
+    serviceoperator.azure.com/reconcile-policy: manage
+spec:
+  location: uksouth
+  owner:
+    name: pocimpnetns1401
