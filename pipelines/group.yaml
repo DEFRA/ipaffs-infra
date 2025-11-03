@@ -26,7 +26,7 @@ stages:
         steps:
           - task: AzureCLI@2
             env:
-              lowerResourceGroupName: ${{ lower(variables['resourceGroupName']) }}
+              lowerResourceGroupName: $[lower(variables.resourceGroupName)]
             inputs:
               azureSubscription: $(serviceConnection)
               scriptType: bash
