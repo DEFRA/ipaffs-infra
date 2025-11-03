@@ -28,7 +28,7 @@ stages:
           - name: lowerResourceGroupName
             value: $[lower(variables.resourceGroupName)]
         env:
-          MANAGED_IDENTITY_NAME=$(lowerResourceGroupName)-migrations-$(serviceName)-ipaffs-test
+          MANAGED_IDENTITY_NAME: $(lowerResourceGroupName)-migrations-$(serviceName)-ipaffs-test
         steps:
           - task: AzureCLI@2
             inputs:
