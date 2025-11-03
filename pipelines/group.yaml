@@ -30,7 +30,7 @@ stages:
         steps:
           - task: AzureCLI@2
             env:
-              MANAGED_IDENTITY_NAME: $(lowerResourceGroupName)-migrations-$(serviceName)-ipaffs-test
+              MANAGED_IDENTITY_NAME: $(lowerResourceGroupName)-migrations-${{ parameters.environmentName }}-ipaffs-test
             inputs:
               azureSubscription: $(serviceConnection)
               scriptType: bash
