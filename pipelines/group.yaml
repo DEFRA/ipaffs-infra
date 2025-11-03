@@ -24,9 +24,9 @@ stages:
     jobs:
       - job:
         variables:
-          - group: "${{ parameters.environmentName }}"
-          - name: lowerResourceGroupName
-            value: ${{ lower(variables.resourceGroupName) }}
+#          - group: "${{ parameters.environmentName }}"
+          - name: resourceGroupName
+            value: $[lower(variables.resourceGroupName)]
         steps:
           - task: AzureCLI@2
 #            env:
