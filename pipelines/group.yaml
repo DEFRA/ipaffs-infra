@@ -24,7 +24,7 @@ stages:
     jobs:
       - job:
         variables:
-#          - group: "${{ parameters.environmentName }}"
+          - group: "${{ parameters.environmentName }}"
           - name: resourceGroupName
             value: $[lower(variables.resourceGroupName)]
         steps:
