@@ -39,8 +39,7 @@ stages:
                 set -euo pipefail
                 set -x
                 
-                az identity create --name "$MANAGED_IDENTITY_NAME --resource-group $(lowerResourceGroupName)
-                az identity federated-credential create --identity-name uami-tst --resource-group pocimpnetns1401 --name test2 --issuer "https://uksouth.oic.prod-aks.azure.com/770a2450-0227-4c62-90c7-4e38537f1102/ab13df23-1cbe-49a9-80da-f9b1546658c0/" --audiences "api://AzureADTokenExchange" --subject "system:serviceaccount:ipaffs-dev:service-account"
+                az identity create --name "$MANAGED_IDENTITY_NAME" --resource-group $(lowerResourceGroupName)
 #                RESULT="$(az ad group member add -g $(sqlAdminGroupId) --member-id 4b2fbef7-de9d-4836-a44e-46c56aad3d9e 2>&1)"
 #                if [[ "$RESULT" =~ "One or more added object references already exist" ]]; then exit 0; fi
 #                exit 1
