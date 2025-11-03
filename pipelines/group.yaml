@@ -25,13 +25,15 @@ stages:
       - job:
         steps:
           - task: AzureCLI@2
+            env:
+              lowerResourceGroupName: ${{ lower(variables.resourceGroupName) }}
             inputs:
               azureSubscription: $(serviceConnection)
               scriptType: bash
               scriptLocation: inlineScript
               inlineScript: |   
                 set -xe
-                az identity create --name "$(lower(resourceGroupName))-migrations-$(serviceName)-ipaffs-test" --resource-group $(resourceGroupName)
+                az identity create --name "$(lowerResourceGroupName)-migrations-$(serviceName)-ipaffs-test" --resource-group $(resourceGroupName)
 
 #                RESULT="$(az ad group member add -g $(sqlAdminGroupId) --member-id 4b2fbef7-de9d-4836-a44e-46c56aad3d9e 2>&1)"
 #                if [[ "$RESULT" =~ "One or more added object references already exist" ]]; then exit 0; fi
