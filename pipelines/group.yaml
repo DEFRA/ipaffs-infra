@@ -44,11 +44,12 @@ stages:
                 set -x                            
                             
                 # Create Managed Identity and Federated Credential
-                az identity create --name "${MANAGED_IDENTITY_NAME}" --resource-group $(lowerResourceGroupName)
+                PRINCIPAL_ID=$(az identity create --name "${MANAGED_IDENTITY_NAME}" --resource-group $(lowerResourceGroupName) --query principalId --output tsv)
                 az identity federated-credential create --identity-name "${MANAGED_IDENTITY_NAME}" --resource-group $(lowerResourceGroupName) --name "${AKS_MIGRATION_CREDENTIAL}" --issuer "${AKS_MIGRATION_ISSUER}" --audiences "${AKS_MIGRATION_AUDIENCES}" --subject "${AKS_MIGRATION_SUBJECT}"
                 
                 # Add Managed Identity to SQL Admin Group
-                RESULT="$(az ad group member add -g $(sqlAdminGroupId) --member-id 4b2fbef7-de9d-4836-a44e-46c56aad3d9e 2>&1)"
+                RESULT="$(az ad group member add -g $(sqlAdminGroupId) --member-id ${PRINCIPAL_ID} 2>&1)"
                 if [[ "$RESULT" =~ "One or more added object references already exist" ]]; then exit 0; fi
                 exit 1
+
 # vim: set ts=2 sts=2 sw=2 et:
