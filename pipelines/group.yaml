@@ -49,13 +49,13 @@ stages:
                 PRINCIPAL_ID="$(az identity create --name "${MANAGED_IDENTITY_NAME}" --resource-group "${RESOURCE_GROUP_NAME}" --query principalId --output tsv)"
                 az identity federated-credential create --identity-name "${MANAGED_IDENTITY_NAME}" --resource-group "${RESOURCE_GROUP_NAME}" --name "${AKS_MIGRATION_CREDENTIAL}" --issuer "${AKS_MIGRATION_ISSUER}" --audiences "${AKS_MIGRATION_AUDIENCES}" --subject "${AKS_MIGRATION_SUBJECT}"
                 echo "##vso[task.setvariable variable=principalId;]$PRINCIPAL_ID"
-                echo "Value of variable principalId is $(principalId)"
           - task: AzureCLI@2
             inputs:
               azureSubscription: $(serviceConnection)
               scriptType: bash
               scriptLocation: inlineScript
               inlineScript: |
+                echo "Value of variable principalId is $(principalId)"
                 sleep 30
 
 # vim: set ts=2 sts=2 sw=2 et:
