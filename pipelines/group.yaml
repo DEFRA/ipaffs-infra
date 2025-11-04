@@ -55,7 +55,7 @@ stages:
               scriptType: bash
               scriptLocation: inlineScript
               inlineScript: |
-                sleep 30
+                sleep 60
           - task: AzureCLI@2
             inputs:
               azureSubscription: $(serviceConnection)
