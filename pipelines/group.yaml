@@ -50,8 +50,12 @@ stages:
                 az identity federated-credential create --identity-name "${MANAGED_IDENTITY_NAME}" --resource-group "${RESOURCE_GROUP_NAME}" --name "${AKS_MIGRATION_CREDENTIAL}" --issuer "${AKS_MIGRATION_ISSUER}" --audiences "${AKS_MIGRATION_AUDIENCES}" --subject "${AKS_MIGRATION_SUBJECT}"
                 echo "##vso[task.setvariable variable=principalId;]$(PRINCIPAL_ID)"
                 echo "Value of variable principalId is $(principalId)"
-          - task: Delay@1
+          - task: AzureCLI@2
             inputs:
-              delayForMinutes: '0' # string. Required. Delay Time (minutes). Default: 0.
+              azureSubscription: $(serviceConnection)
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                sleep 30
 
 # vim: set ts=2 sts=2 sw=2 et:
