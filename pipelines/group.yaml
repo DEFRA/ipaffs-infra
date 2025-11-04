@@ -57,6 +57,8 @@ stages:
               inlineScript: |
                 sleep 60
           - task: AzureCLI@2
+            env:
+              SQL_ADMIN_GROUP_ID: $(sqlAdminGroupId)
             inputs:
               azureSubscription: $(serviceConnection)
               scriptType: bash
