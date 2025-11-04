@@ -40,7 +40,7 @@ stages:
               scriptType: bash
               scriptLocation: inlineScript
               inlineScript: |
-                set -euo pipefail
+                #set -euo pipefail
                 set -x                            
                             
                 # Create Managed Identity and Federated Credential
