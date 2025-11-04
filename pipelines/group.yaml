@@ -55,7 +55,7 @@ stages:
               scriptType: bash
               scriptLocation: inlineScript
               inlineScript: |
-                sleep 30
+                sleep 120
           - task: AzureCLI@2
             displayName: Add Managed Identity to SQL Admin Group
             env:
