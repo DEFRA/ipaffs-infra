@@ -23,6 +23,12 @@ stages:
     displayName: Deploy Infrastructure
     jobs:
       - job:
+        variables:
+          - group: "${{ parameters.environmentName }}"
+          - template: "vars/common.yaml"
+          - template: "vars/${{ lower(parameters.environmentName) }}.yaml"
+          - name: lowerResourceGroupName
+            value: $[lower(variables.resourceGroupName)]
         steps:
           - task: AzureCLI@2
             env:
