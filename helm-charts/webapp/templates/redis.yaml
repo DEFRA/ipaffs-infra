@@ -1,0 +1,26 @@
+{{ if .Values.redis.enabled }}
+
+apiVersion: cache.azure.com/v1api20241101
+kind: Redis
+metadata:
+  name: {{- template "deploy.azure.redisName" }}
+  annotations:
+    serviceoperator.azure.com/reconcile-policy: manage
+spec:
+  location: {{ .Values.azure.location }}
+  owner:
+    name: {{- template "deploy.azure.resourceGroup" }}
+  sku:
+    family: C
+    name: Basic
+    capacity: 1
+  enableNonSslPort: false
+  minimumTlsVersion: "1.2"
+  redisConfiguration:
+    maxmemory-delta: "100"
+    maxmemory-policy: allkeys-lru
+  redisVersion: "6"
+
+{{ end }}
+
+# vim: set ts=2 sts=2 sw=2 et:
