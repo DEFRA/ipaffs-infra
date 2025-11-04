@@ -1,8 +1,5 @@
 project: ipaffs
-environment: dev
-resourceGroup: pocimpnetns1401
-databaseServer: pocimpdbssq1401
-databaseRegion: uksouth
+environment: poc
 
 container:
   image: ""
@@ -20,6 +17,9 @@ initContainer:
   enabled: false
   image: ""
   command: ""
+
+azure:
+  location: uksouth
 
 database:
   enabled: false
@@ -48,3 +48,13 @@ resources: {}
   # requests:
   #   cpu: 100m
   #   memory: 128Mi
+
+redis:
+  enabled: true
+
+serviceBus:
+  enabled: false
+  queues: []
+  topics: []
+
+# vim: set ts=2 sts=2 sw=2 et:

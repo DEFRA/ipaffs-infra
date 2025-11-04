@@ -1,29 +1,27 @@
 {{ if .Values.database.enabled }}
-apiVersion: resources.azure.com/v1api20200601
-kind: ResourceGroup
-metadata:
-  name: {{ .Values.resourceGroup }}
-spec:
-  location: {{ .Values.databaseRegion }}
----
+
 apiVersion: sql.azure.com/v1api20211101
 kind: Server
 metadata:
-  name: {{ .Values.databaseServer }}
+  name: {{- template "deploy.azure.sqlServer" }}
 spec:
   owner:
-    name: {{ .Values.resourceGroup }}
-  location: {{ .Values.databaseRegion }}
+    name: {{- template "deploy.azure.resourceGroup" }}
+  location: {{ .Values.azure.location }}
+
 ---
 apiVersion: sql.azure.com/v1api20211101
 kind: ServersDatabase
 metadata:
-  name: {{ .Values.name }}-{{ .Values.environment }}
+  name: {{- template "deploy.azure.databaseName" }}
   annotations:
     serviceoperator.azure.com/reconcile-policy: manage
 spec:
   owner:
-    name: {{ .Values.databaseServer }}
+    name: {{- template "deploy.azure.sqlServer" }}
   collation: SQL_Latin1_General_CP1_CI_AS
-  location: {{ .Values.databaseRegion }}
+  location: {{ .Values.azure.location }}
+
 {{ end }}
+
+# vim: set ts=2 sts=2 sw=2 et:

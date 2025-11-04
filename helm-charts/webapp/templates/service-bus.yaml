@@ -1,0 +1,47 @@
+{{ if .Values.serviceBus.enabled }}
+
+apiVersion: servicebus.azure.com/v1api20240101
+kind: Namespace
+metadata:
+  name: {{- template "deploy.azure.serviceBusNamespace" }}
+  annotations:
+    serviceoperator.azure.com/reconcile-policy: detach-on-delete
+spec:
+  location: {{ .Values.azure.location }}
+  owner:
+    name: {{- template "deploy.azure.resourceGroup" }}
+  sku:
+    name: Standard
+  zoneRedundant: false
+
+{{ range .Values.serviceBus.queues }}
+---
+apiVersion: servicebus.azure.com/v1api20240101
+kind: NamespacesQueue
+metadata:
+  name: {{ . }}
+  annotations:
+    serviceoperator.azure.com/reconcile-policy: manage
+spec:
+  owner:
+    name: {{- template "deploy.azure.serviceBusNamespace" }}
+
+{{ end }}
+
+{{ range .Values.serviceBus.topics }}
+---
+apiVersion: servicebus.azure.com/v1api20240101
+kind: NamespacesTopic
+metadata:
+  name: {{ . }}
+  annotations:
+    serviceoperator.azure.com/reconcile-policy: manage
+spec:
+  owner:
+    name: {{- template "deploy.azure.serviceBusNamespace" }}
+
+{{ end }}
+
+{{ end }}
+
+# vim: set ts=2 sts=2 sw=2 et:
