@@ -44,7 +44,6 @@ stages:
               scriptType: bash
               scriptLocation: inlineScript
               inlineScript: |  
-                set -x
                 # Create Managed Identity and Federated Credential
                 PRINCIPAL_ID="$(az identity create --name "${MANAGED_IDENTITY_NAME}" --resource-group "${RESOURCE_GROUP_NAME}" --query principalId --output tsv)"
                 az identity federated-credential create --identity-name "${MANAGED_IDENTITY_NAME}" --resource-group "${RESOURCE_GROUP_NAME}" --name "${AKS_MIGRATION_CREDENTIAL}" --issuer "${AKS_MIGRATION_ISSUER}" --audiences "${AKS_MIGRATION_AUDIENCES}" --subject "${AKS_MIGRATION_SUBJECT}"
@@ -67,11 +66,9 @@ stages:
               scriptType: bash
               scriptLocation: inlineScript
               inlineScript: |
-                set -x
                 # Add Managed Identity to SQL Admin Group  
                 RESULT="$(az ad group member add -g "${SQL_ADMIN_GROUP_ID}" --member-id "${PRINCIPAL_ID}" 2>&1)"
                 [[ "$RESULT" =~ "One or more added object references already exist" ]] && exit 0
                 exit 1
-          
 
 # vim: set ts=2 sts=2 sw=2 et:
