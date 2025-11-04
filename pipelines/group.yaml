@@ -55,9 +55,10 @@ stages:
               scriptType: bash
               scriptLocation: inlineScript
               inlineScript: |
-                sleep 300
+                sleep 60
           - task: AzureCLI@2
             displayName: Add Managed Identity to SQL Admin Group
+            retryCountOnTaskFailure: 2
             env:
               SQL_ADMIN_GROUP_ID: $(sqlAdminGroupId)
               PRINCIPAL_ID: $(principalId)
