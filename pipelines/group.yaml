@@ -31,7 +31,7 @@ stages:
             value: $[lower(variables.resourceGroupName)]
         steps:
           - task: AzureCLI@2
-            name: Create Managed Identity and Federated Credential
+            displayName: Create Managed Identity and Federated Credential
             env:
               MANAGED_IDENTITY_NAME: $(lowerResourceGroupName)-migrations-${{ parameters.serviceName }}-ipaffs-test
               RESOURCE_GROUP_NAME: $(resourceGroupName)
@@ -50,7 +50,7 @@ stages:
                 az identity federated-credential create --identity-name "${MANAGED_IDENTITY_NAME}" --resource-group "${RESOURCE_GROUP_NAME}" --name "${AKS_MIGRATION_CREDENTIAL}" --issuer "${AKS_MIGRATION_ISSUER}" --audiences "${AKS_MIGRATION_AUDIENCES}" --subject "${AKS_MIGRATION_SUBJECT}"
                 echo "##vso[task.setvariable variable=principalId;]$PRINCIPAL_ID"
           - task: AzureCLI@2
-            name: Wait for Managed Identity to be created
+            displayName: Wait for Managed Identity to be created
             inputs:
               azureSubscription: $(serviceConnection)
               scriptType: bash
@@ -58,7 +58,7 @@ stages:
               inlineScript: |
                 sleep 30
           - task: AzureCLI@2
-            name: Add Managed Identity to SQL Admin Group
+            displayName: Add Managed Identity to SQL Admin Group
             env:
               SQL_ADMIN_GROUP_ID: $(sqlAdminGroupId)
               PRINCIPAL_ID: $(principalId)
