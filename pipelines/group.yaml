@@ -48,7 +48,8 @@ stages:
                 az identity federated-credential create --identity-name "${MANAGED_IDENTITY_NAME}" --resource-group $(lowerResourceGroupName) --name "${AKS_MIGRATION_CREDENTIAL}" --issuer "${AKS_MIGRATION_ISSUER}" --audiences "${AKS_MIGRATION_AUDIENCES}" --subject "${AKS_MIGRATION_SUBJECT}"
                 
                 # Add Managed Identity to SQL Admin Group
-                RESULT="$(az ad group member add -g $(sqlAdminGroupId) --member-id ${PRINCIPAL_ID} 2>&1)"
+                az ad group member add -g $(sqlAdminGroupId) --member-id "${PRINCIPAL_ID}"
+                RESULT="$(az ad group member add -g $(sqlAdminGroupId) --member-id "${PRINCIPAL_ID}" 2>&1)"
                 if [[ "$RESULT" =~ "One or more added object references already exist" ]]; then exit 0; fi
                 exit 1
 
