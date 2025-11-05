@@ -29,6 +29,7 @@ stages:
           - template: "vars/${{ lower(parameters.environmentName) }}.yaml"
           - name: lowerResourceGroupName
             value: $[lower(variables.resourceGroupName)]
+
         steps:
           - task: AzureCLI@2
             displayName: Create Managed Identity and Federated Credential
@@ -48,6 +49,7 @@ stages:
                 PRINCIPAL_ID="$(az identity create --name "${MANAGED_IDENTITY_NAME}" --resource-group "${RESOURCE_GROUP_NAME}" --query principalId --output tsv)"
                 az identity federated-credential create --identity-name "${MANAGED_IDENTITY_NAME}" --resource-group "${RESOURCE_GROUP_NAME}" --name "${AKS_MIGRATION_CREDENTIAL}" --issuer "${AKS_MIGRATION_ISSUER}" --audiences "${AKS_MIGRATION_AUDIENCES}" --subject "${AKS_MIGRATION_SUBJECT}"
                 echo "##vso[task.setvariable variable=principalId;]$PRINCIPAL_ID"
+
           - task: AzureCLI@2
             displayName: Wait for Managed Identity to be created
             inputs:
@@ -55,7 +57,28 @@ stages:
               scriptType: bash
               scriptLocation: inlineScript
               inlineScript: |
-                sleep 60
+                TOKEN="$(az account get-access-token --scope https://graph.microsoft.com/.default --query accessToken -o tsv)"
+                local max_attempts=15
+                local successful=0
+                local attempt=0
+                local wait=2
+                while [[ $attempt < $max_attempts ]]; do
+                  (( attempt++ ))
+                  local result="$(curl -w '%{http_code}' -s -o /dev/null -H "Authorization: Bearer ${TOKEN}" "https://graph.microsoft.com/v1.0/servicePrincipals/${PRINCIPAL_ID}")"
+                  if [[ "${result}" == "200" ]]; then
+                    (( successful++ ))
+                    (( successful == 5 )) && exit 0
+                    wait=2
+                    sleep 5
+                  else
+                    successful=0
+                    sleep $wait
+                    (( wait*=2 ))
+                    (( wait > 60 )) && wait=60
+                  fi
+                done
+                exit 1
+
           - task: AzureCLI@2
             displayName: Add Managed Identity to SQL Admin Group
             retryCountOnTaskFailure: 2
@@ -70,6 +93,35 @@ stages:
                 # Add Managed Identity to SQL Admin Group  
                 RESULT="$(az ad group member add -g "${SQL_ADMIN_GROUP_ID}" --member-id "${PRINCIPAL_ID}" 2>&1)"
                 [[ "$RESULT" =~ "One or more added object references already exist" ]] && exit 0
+                exit 1
+
+          - task: AzureCLI@2
+            displayName: Wait for group membership
+            inputs:
+              azureSubscription: $(serviceConnection)
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                TOKEN="$(az account get-access-token --scope https://graph.microsoft.com/.default --query accessToken -o tsv)"
+                local max_attempts=15
+                local successful=0
+                local attempt=0
+                local wait=2
+                while [[ $attempt < $max_attempts ]]; do
+                  (( attempt++ ))
+                  local result="$(curl -w '%{http_code}' -s -o /dev/null -H "Authorization: Bearer ${TOKEN}" "https://graph.microsoft.com/v1.0/groups/${SQL_ADMIN_GROUP_ID}/members/${PRINCIPAL_ID}/$ref")"
+                  if [[ "${result}" == "200" ]]; then
+                    (( successful++ ))
+                    (( successful == 5 )) && exit 0
+                    wait=2
+                    sleep 5
+                  else
+                    successful=0
+                    sleep $wait
+                    (( wait*=2 ))
+                    (( wait > 60 )) && wait=60
+                  fi
+                done
                 exit 1
 
 # vim: set ts=2 sts=2 sw=2 et:
