@@ -52,6 +52,8 @@ stages:
 
           - task: AzureCLI@2
             displayName: Wait for Managed Identity to be created
+            env:
+              PRINCIPAL_ID: $(principalId)
             inputs:
               azureSubscription: $(serviceConnection)
               scriptType: bash
@@ -98,6 +100,9 @@ stages:
 
           - task: AzureCLI@2
             displayName: Wait for group membership
+            env:
+              SQL_ADMIN_GROUP_ID: $(sqlAdminGroupId)
+              PRINCIPAL_ID: $(principalId)
             inputs:
               azureSubscription: $(serviceConnection)
               scriptType: bash
