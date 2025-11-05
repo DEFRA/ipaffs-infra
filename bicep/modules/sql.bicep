@@ -19,9 +19,9 @@ resource sqlServer 'Microsoft.Sql/servers@2023-08-01' = {
     administrators: {
       administratorType: 'ActiveDirectory'
       azureADOnlyAuthentication: true
-      login: sqlParams.administratorLogin
-      principalType: sqlParams.administratorType
-      sid: sqlParams.administratorObjectId
+      login: sqlParams.adminGroupName
+      principalType: 'Group'
+      sid: sqlParams.adminGroupObjectId
       tenantId: tenantId
     }
     minimalTlsVersion: '1.2'

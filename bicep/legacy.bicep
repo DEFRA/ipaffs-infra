@@ -1,7 +1,7 @@
 param dbwParams object
 param sejParams object
 
-@allowed(['SND', 'TST'])
+@allowed(['SND', 'TST', 'PRE', 'PRD'])
 param environment string
 
 param location string = resourceGroup().location
