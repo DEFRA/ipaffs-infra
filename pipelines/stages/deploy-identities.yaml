@@ -16,8 +16,8 @@ stages:
       - job:
         variables:
           - group: "${{ parameters.environmentName }}"
-          - template: "/vars/common.yaml"
-          - template: "/vars/${{ lower(parameters.environmentName) }}.yaml"
+          - template: "/pipeline/vars/common.yaml"
+          - template: "/pipeline/vars/${{ lower(parameters.environmentName) }}.yaml"
           - name: lowerResourceGroupName
             value: $[lower(variables.resourceGroupName)]
 
