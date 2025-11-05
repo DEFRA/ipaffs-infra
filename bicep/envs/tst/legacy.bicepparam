@@ -5,6 +5,7 @@ param environment = 'TST'
 param dbwParams = {
   name: 'TSTIMPDBSDBW001'
   adminEntraGroup: 'AG-Azure-EUX-IPAFFS-Kainos-DevUsers'
+  kustoName: 'TSTIMPDBSKUS001'
   kustoSku: {
     name: 'Standard_E2ads_v5'
     tier: 'Standard'

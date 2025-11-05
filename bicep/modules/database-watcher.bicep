@@ -8,7 +8,7 @@ param tags object
 var sqlServerHostname = '${last(split(dbwParams.sqlServerResourceId, '/'))}${environment().suffixes.sqlServerHostname}'
 
 resource kustoCluster 'Microsoft.Kusto/Clusters@2024-04-13' = {
-  name: dbwParams.name
+  name: dbwParams.kustoName
   location: location
   tags: tags
   sku: {
@@ -51,7 +51,7 @@ resource kustoCluster 'Microsoft.Kusto/Clusters@2024-04-13' = {
 
 resource kustoDataStore 'Microsoft.Kusto/Clusters/Databases@2024-04-13' = {
   parent: kustoCluster
-  name: '${dbwParams.name}-data-store'
+  name: '${dbwParams.kustoName}-data-store'
   location: location
   kind: 'ReadWrite'
   properties: {
