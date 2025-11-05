@@ -60,7 +60,7 @@ stages:
               scriptType: bash
               scriptLocation: inlineScript
               inlineScript: |
-                set -eux
+                set -ux
                 max_attempts=10
                 attempt=0
                 while (( attempt < max_attempts )); do
@@ -82,7 +82,7 @@ stages:
               scriptType: bash
               scriptLocation: inlineScript
               inlineScript: |
-                set -eux
+                set -ux
                 TOKEN="$(az account get-access-token --scope https://graph.microsoft.com/.default --query accessToken -o tsv)"
                 max_attempts=15
                 successful=0
