@@ -24,6 +24,7 @@ azure:
 database:
   enabled: false
   migrations:
+    clientId: ""
     enabled: false
     image: ""
     command: ""
