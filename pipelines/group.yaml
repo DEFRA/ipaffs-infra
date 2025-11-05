@@ -90,7 +90,7 @@ stages:
                 wait=2
                 while (( attempt < max_attempts )); do
                   (( attempt++ ))
-                  result="$(curl -w '%{http_code}' -s -o /dev/null -H "Authorization: Bearer ${TOKEN}" "https://graph.microsoft.com/v1.0/groups/${SQL_ADMIN_GROUP_ID}/members/${PRINCIPAL_ID}/$ref")"
+                  result="$(curl -w '%{http_code}' -s -o /dev/null -H "Authorization: Bearer ${TOKEN}" "https://graph.microsoft.com/v1.0/groups/${SQL_ADMIN_GROUP_ID}/members/${PRINCIPAL_ID}/\$ref")"
                   if [[ "${result}" == "200" ]]; then
                     (( successful++ ))
                     (( successful == 5 )) && exit 0
