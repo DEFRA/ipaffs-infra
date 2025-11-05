@@ -65,7 +65,7 @@ stages:
                 successful=0
                 attempt=0
                 wait=2
-                while [[ $attempt < $max_attempts ]]; do
+                while (( attempt < max_attempts )); do
                   (( attempt++ ))
                   result="$(curl -w '%{http_code}' -s -o /dev/null -H "Authorization: Bearer ${TOKEN}" "https://graph.microsoft.com/v1.0/servicePrincipals/${PRINCIPAL_ID}")"
                   if [[ "${result}" == "200" ]]; then
@@ -114,7 +114,7 @@ stages:
                 successful=0
                 attempt=0
                 wait=2
-                while [[ $attempt < $max_attempts ]]; do
+                while (( attempt < max_attempts )); do
                   (( attempt++ ))
                   result="$(curl -w '%{http_code}' -s -o /dev/null -H "Authorization: Bearer ${TOKEN}" "https://graph.microsoft.com/v1.0/groups/${SQL_ADMIN_GROUP_ID}/members/${PRINCIPAL_ID}/$ref")"
                   if [[ "${result}" == "200" ]]; then
