@@ -6,14 +6,20 @@ spec:
   location: uksouth
 ---
 apiVersion: managedidentity.azure.com/v1api20230131
+kind: UserAssignedIdentity
 metadata:
-  name: pocimpdbsmi1401-migrations-countries-ipaffs-dev
+  name: pocimpdbsmi1401-migrations-countries-ipaffs-bob
   annotations:
+    meta.helm.sh/release-name: countries-microservice
+    meta.helm.sh/release-namespace: ipaffs-dev
     serviceoperator.azure.com/reconcile-policy: manage
+  labels:
+    app.kubernetes.io/managed-by: Helm
 spec:
   location: uksouth
   owner:
     name: pocimpnetns1401
+  operatorSpec:
     configMapExpressions:
       - name: managed-identity
         key: clientId
