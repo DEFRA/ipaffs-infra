@@ -5,6 +5,7 @@ param environment = 'PRD'
 param dbwParams = {
   name: 'PRDIMPDBSDBW001'
   adminEntraGroup: 'AAG-Users-IPAFFS-Support-Admin'
+  kustoName: 'PRDIMPDBSKUS001'
   kustoSku: {
     name: 'Standard_E2ads_v5'
     tier: 'Standard'
