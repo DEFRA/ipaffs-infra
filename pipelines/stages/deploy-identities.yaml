@@ -13,7 +13,7 @@ stages:
   - stage: DeployIdentities
     displayName: Deploy and configure identity infrastructure
     jobs:
-      - job: MigrationIdentity
+      - job: MigrationsIdentity
         displayName: Set up Migrations Identity
         variables:
           - group: "${{ parameters.environmentName }}"
@@ -43,8 +43,8 @@ stages:
                 CLIENT_ID="$(az identity show --name "${MANAGED_IDENTITY_NAME}" --resource-group "${RESOURCE_GROUP_NAME}" --query clientId --output tsv)"
                 PRINCIPAL_ID="$(az identity show --name "${MANAGED_IDENTITY_NAME}" --resource-group "${RESOURCE_GROUP_NAME}" --query principalId --output tsv)"
                 az identity federated-credential create --identity-name "${MANAGED_IDENTITY_NAME}" --resource-group "${RESOURCE_GROUP_NAME}" --name "${AKS_MIGRATION_CREDENTIAL}" --issuer "${AKS_MIGRATION_ISSUER}" --audiences "${AKS_MIGRATION_AUDIENCES}" --subject "${AKS_MIGRATION_SUBJECT}"
-                echo "##vso[task.setvariable variable=clientId;isOutput=true]$CLIENT_ID"
-                echo "##vso[task.setvariable variable=principalId;isOutput=true]$PRINCIPAL_ID"
+                echo "##vso[task.setvariable variable=migrationsClientId;isOutput=true]$CLIENT_ID"
+                echo "##vso[task.setvariable variable=principalId]$PRINCIPAL_ID"
 
           - task: AzureCLI@2
             name: AddToSQLAdminsGroup
