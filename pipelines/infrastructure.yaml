@@ -61,7 +61,10 @@ stages:
                     azureSubscription: AZR-MST-PrivateLinkDNS
                     targetType: 'inline'
                     script: |
+                      az network private-dns record-set a add-record --resource-group mstinfdnsrgp001 --zone-name azmk8s.io --record-set-name pocimpinfak1401-40umdsag.hcp.northeurope --ipv4-address 10.179.104.191
+                      az network private-dns record-set a add-record --resource-group mstinfdnsrgp201 --zone-name azmk8s.io --record-set-name pocimpinfak1401-40umdsag.hcp.westeurope --ipv4-address 10.179.104.191
                       az network private-dns record-set a add-record --resource-group mstinfdnsrgp401 --zone-name azmk8s.io --record-set-name pocimpinfak1401-40umdsag.hcp.uksouth --ipv4-address 10.179.104.191
+                      az network private-dns record-set a add-record --resource-group mstinfdnsrgp601 --zone-name azmk8s.io --record-set-name pocimpinfak1401-40umdsag.hcp.ukwest --ipv4-address 10.179.104.191
                     
   - stage: ImportAcrArtifacts
     displayName: Import ACR Artifacts
