@@ -3,22 +3,22 @@
 apiVersion: sql.azure.com/v1api20211101
 kind: Server
 metadata:
-  name: {{- template "deploy.azure.sqlServer" . }}
+  name: {{ template "deploy.azure.sqlServer" . }}
 spec:
   owner:
-    name: {{- template "deploy.azure.resourceGroup" . }}
+    name: {{ template "deploy.azure.resourceGroup" . }}
   location: {{ .Values.azure.location }}
 
 ---
 apiVersion: sql.azure.com/v1api20211101
 kind: ServersDatabase
 metadata:
-  name: {{- template "deploy.azure.databaseName" . }}
+  name: {{ template "deploy.azure.databaseName" . }}
   annotations:
     serviceoperator.azure.com/reconcile-policy: manage
 spec:
   owner:
-    name: {{- template "deploy.azure.sqlServer" . }}
+    name: {{ template "deploy.azure.sqlServer" . }}
   collation: SQL_Latin1_General_CP1_CI_AS
   location: {{ .Values.azure.location }}
 

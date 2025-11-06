@@ -3,13 +3,13 @@
 apiVersion: servicebus.azure.com/v1api20240101
 kind: Namespace
 metadata:
-  name: {{- template "deploy.azure.serviceBusNamespace" . }}
+  name: {{ template "deploy.azure.serviceBusNamespace" . }}
   annotations:
     serviceoperator.azure.com/reconcile-policy: detach-on-delete
 spec:
   location: {{ .Values.azure.location }}
   owner:
-    name: {{- template "deploy.azure.resourceGroup" . }}
+    name: {{ template "deploy.azure.resourceGroup" . }}
   sku:
     name: Standard
   zoneRedundant: false
@@ -24,7 +24,7 @@ metadata:
     serviceoperator.azure.com/reconcile-policy: manage
 spec:
   owner:
-    name: {{- template "deploy.azure.serviceBusNamespace" . }}
+    name: {{ template "deploy.azure.serviceBusNamespace" . }}
 
 {{ end }}
 
@@ -38,7 +38,7 @@ metadata:
     serviceoperator.azure.com/reconcile-policy: manage
 spec:
   owner:
-    name: {{- template "deploy.azure.serviceBusNamespace" . }}
+    name: {{ template "deploy.azure.serviceBusNamespace" . }}
 
 {{ end }}
 
