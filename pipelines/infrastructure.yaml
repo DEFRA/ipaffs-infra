@@ -63,7 +63,7 @@ stages:
                   inputs:
                     azureSubscription: AZR-MST-PrivateLinkDNS
                     ScriptPath: './PowerShellLibrary/Get-ResourcePrivateEndPointsDnsRecordsAsJson.ps1'
-                    arguments: >
+                    ScriptArguments: >
                       -ResourceGroupName "POCIMPNETNS1401"
                       -ResourceName 'POCIMPINFAK1401'
                     pwsh: true
@@ -73,7 +73,7 @@ stages:
                   inputs:
                     azureSubscription: AZR-MST-PrivateLinkDNS
                     ScriptPath: './PowerShellLibrary/Set-PrivateDnsRecordSet.ps1'
-                    arguments: '-UpdateAllDnsZones $true'
+                    ScriptArguments: '-UpdateAllDnsZones $true'
                     pwsh: true
                     
   - stage: ImportAcrArtifacts
