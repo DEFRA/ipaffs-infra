@@ -60,7 +60,7 @@ stages:
                 - task: AzurePowerShell@5
                   displayName: 'Resolve Private Endpoint IP'
                   inputs:
-                    azureSubscription: AZR-MST-PrivateLinkDNS
+                    azureSubscription: $(serviceConnection)
                     azurePowerShellVersion: LatestVersion
                     ScriptPath: './PowerShellLibrary/Get-ResourcePrivateEndPointsDnsRecordsAsJson.ps1'
                     ScriptArguments: >
