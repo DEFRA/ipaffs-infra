@@ -66,8 +66,12 @@ stages:
                 
                       echo "privateEndpointDnsRecordString: $privateEndpointDnsRecordString"
                 
-                      # Set Azure DevOps pipeline variable
+                      # Set pipeline variable
                       echo "##vso[task.setvariable variable=PrivateEndpointDnsRecordsJson]$privateEndpointDnsRecordString"
+                
+                      # Also set the mapping table variable expected by your script
+                      regionToDnsMapping='{"uksouth":"myDnsResourceGroup"}'
+                      echo "##vso[task.setvariable variable=REGION_TO_DNS_RESOURCEGROUP_MAPPING_TABLE]$regionToDnsMapping"
               
                 - task: AzurePowerShell@5
                   displayName: 'Set DNS record'
