@@ -55,6 +55,7 @@ stages:
           runOnce:
             deploy:
               steps:
+                - checkout: PipelineCommon
                 - task: Bash@3
                   displayName: 'Debug: List repo contents'
                   inputs:
