@@ -57,16 +57,17 @@ stages:
               steps:
                 - checkout: PipelineCommon
                       
-                - task: AzurePowerShell@5
-                  displayName: 'Resolve Private Endpoint IP'
+                - task: Bash@3
+                  displayName: "Set PrivateEndpointDnsRecordsJson variable"
                   inputs:
-                    azureSubscription: $(serviceConnection)
-                    azurePowerShellVersion: LatestVersion
-                    ScriptPath: './PowerShellLibrary/Get-ResourcePrivateEndPointsDnsRecordsAsJson.ps1'
-                    ScriptArguments: >
-                      -ResourceGroupName "POCIMPNETNS1401"
-                      -ResourceName 'POCIMPINFAK1401'
-                    pwsh: true
+                    targetType: 'inline'
+                    script: |
+                      privateEndpointDnsRecordString='[{"Region":"uksouth","Fqdn":"pocimpinfak1401-40umdsag.hcp.uksouth.azmk8s.io","IpAddress":"10.179.104.191"}]'
+                
+                      echo "privateEndpointDnsRecordString: $privateEndpointDnsRecordString"
+                
+                      # Set Azure DevOps pipeline variable
+                      echo "##vso[task.setvariable variable=PrivateEndpointDnsRecordsJson]$privateEndpointDnsRecordString"
               
                 - task: AzurePowerShell@5
                   displayName: 'Set DNS record'
