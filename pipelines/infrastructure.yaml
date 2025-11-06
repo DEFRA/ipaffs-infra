@@ -62,10 +62,10 @@ stages:
                     azureSubscription: AZR-MST-PrivateLinkDNS
                     scriptLocation: 'inlineScript'
                     inlineScript: |
-                      az network private-dns record-set a add-record --resource-group mstinfdnsrgp001 --zone-name hcp.northeurope.azmk8s.io --record-set-name pocimpinfak1401-40umdsag --ipv4-address 10.179.104.191
-                      az network private-dns record-set a add-record --resource-group mstinfdnsrgp201 --zone-name hcp.westeurope.azmk8s.io --record-set-name pocimpinfak1401-40umdsag --ipv4-address 10.179.104.191
+                      az network private-dns record-set a add-record --resource-group mstinfdnsrgp001 --zone-name hcp.uksouth.azmk8s.io --record-set-name pocimpinfak1401-40umdsag --ipv4-address 10.179.104.191
+                      az network private-dns record-set a add-record --resource-group mstinfdnsrgp201 --zone-name hcp.uksouth.azmk8s.io --record-set-name pocimpinfak1401-40umdsag --ipv4-address 10.179.104.191
                       az network private-dns record-set a add-record --resource-group mstinfdnsrgp401 --zone-name hcp.uksouth.azmk8s.io --record-set-name pocimpinfak1401-40umdsag --ipv4-address 10.179.104.191
-                      az network private-dns record-set a add-record --resource-group mstinfdnsrgp601 --zone-name hcp.ukwest.azmk8s.io --record-set-name pocimpinfak1401-40umdsag --ipv4-address 10.179.104.191
+                      az network private-dns record-set a add-record --resource-group mstinfdnsrgp601 --zone-name hcp.uksouth.azmk8s.io --record-set-name pocimpinfak1401-40umdsag --ipv4-address 10.179.104.191
                     
   - stage: ImportAcrArtifacts
     displayName: Import ACR Artifacts
