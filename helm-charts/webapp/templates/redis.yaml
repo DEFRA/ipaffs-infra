@@ -3,13 +3,13 @@
 apiVersion: cache.azure.com/v1api20241101
 kind: Redis
 metadata:
-  name: {{- template "deploy.azure.redisName" . }}
+  name: {{ template "deploy.azure.redisName" . }}
   annotations:
     serviceoperator.azure.com/reconcile-policy: manage
 spec:
   location: {{ .Values.azure.location }}
   owner:
-    name: {{- template "deploy.azure.resourceGroup" . }}
+    name: {{ template "deploy.azure.resourceGroup" . }}
   sku:
     family: C
     name: Basic
