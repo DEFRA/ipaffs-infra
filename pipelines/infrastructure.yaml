@@ -56,16 +56,8 @@ stages:
             deploy:
               steps:
                 - checkout: PipelineCommon
-                - task: Bash@3
-                  displayName: 'Debug: List repo contents'
-                  inputs:
-                    targetType: 'inline'
-                    script: |
-                      echo "Listing files in the main repo:"
-                      ls -R
-              
                       
-                - task: PowerShell@2
+                - task: AzurePowerShell@5
                   displayName: 'Resolve Private Endpoint IP'
                   inputs:
                     azureSubscription: AZR-MST-PrivateLinkDNS
@@ -75,7 +67,7 @@ stages:
                       -ResourceName 'POCIMPINFAK1401'
                     pwsh: true
               
-                - task: PowerShell@2
+                - task: AzurePowerShell@5
                   displayName: 'Set DNS record'
                   inputs:
                     azureSubscription: AZR-MST-PrivateLinkDNS
