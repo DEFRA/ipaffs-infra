@@ -47,6 +47,9 @@ Azure Resource Names
 {{- define "deploy.azure.databaseName" -}}
 {{- printf "%s-%s" .Release.Name .Release.Namespace }}
 {{- end }}
+{{- define "deploy.azure.managedIdentityBaseName" -}}
+{{- printf "%simpinfsb1401" .Values.environment .Release.Namespace }}
+{{- end }}
 {{- define "deploy.azure.redisName" -}}
 {{- printf "%simpinfrd1401-%s" .Values.environment .Release.Namespace }}
 {{- end }}

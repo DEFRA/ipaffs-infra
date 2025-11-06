@@ -1,3 +1,31 @@
+apiVersion: managedidentity.azure.com/v1api20230131
+kind: UserAssignedIdentity
+metadata:
+  name: {{ template "deploy.azure.managedIdentityBaseName" . }}-service
+  annotations:
+    serviceoperator.azure.com/reconcile-policy: manage
+spec:
+  location: uksouth
+  owner:
+    name: {{ template "deploy.azure.resourceGroup" . }}
+  operatorSpec:
+    configMapExpressions:
+      - name: managed-identity
+        key: clientId
+        value: self.status.clientId
+      - name: managed-identity
+        key: principalId
+        value: self.status.principalId
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  annotations:
+    azure.workload.identity/client-id: "MAGIC CLIENT ID"
+  name: {{ .Release.Name }}-service
+
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
