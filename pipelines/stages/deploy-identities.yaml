@@ -14,6 +14,7 @@ stages:
     displayName: Deploy and configure identity infrastructure
     jobs:
       - job: MigrationIdentity
+        displayName: Set up Migrations Identity
         variables:
           - group: "${{ parameters.environmentName }}"
           - template: "/pipelines/vars/common.yaml"
