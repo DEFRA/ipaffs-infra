@@ -59,7 +59,7 @@ stages:
                   displayName: 'Resolve Private Endpoint IP'
                   inputs:
                     azureSubscription: AZR-MST-PrivateLinkDNS
-                    filePath: 'PowerShellLibrary/Get-ResourcePrivateEndPointsDnsRecordsAsJson.ps1@PipelineCommon'
+                    filePath: 'PipelineCommon/PowerShellLibrary/Get-ResourcePrivateEndPointsDnsRecordsAsJson.ps1'
                     arguments: >
                       -ResourceGroupName "POCIMPNETNS1401"
                       -ResourceName 'POCIMPINFAK1401'
@@ -69,7 +69,7 @@ stages:
                   displayName: 'Set DNS record'
                   inputs:
                     azureSubscription: AZR-MST-PrivateLinkDNS
-                    filePath: 'PowerShellLibrary/Set-PrivateDnsRecordSet.ps1@PipelineCommon'
+                    filePath: 'PipelineCommon/PowerShellLibrary/Set-PrivateDnsRecordSet.ps1'
                     arguments: '-UpdateAllDnsZones $true'
                     pwsh: true
                     
