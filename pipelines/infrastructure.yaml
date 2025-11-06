@@ -55,7 +55,6 @@ stages:
           runOnce:
             deploy:
               steps:
-                - checkout: self
                 - task: PowerShell@2
                   displayName: 'Resolve Private Endpoint IP'
                   inputs:
