@@ -20,6 +20,13 @@ parameters:
     values:
       - POC
 
+resources:
+  repositories:
+    - repository: PipelineCommon
+      name: DEFRA-DEVOPS-COMMON/Defra.Pipeline.Common
+      type: git
+      ref: refs/tags/Release-v6-latest
+
 stages:
   - stage: DeployInfrastructure
     displayName: Deploy Infrastructure
@@ -36,7 +43,36 @@ stages:
                 - template: steps/deploy-bicep.yaml
                   parameters:
                     environmentName: "${{ parameters.environmentName }}"
-
+  
+  - stage: DNS
+    displayName: DNS
+    jobs:
+      - deployment: DNS
+        displayName: DNS
+        environment:
+          name: "${{ parameters.environmentName }}"
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+                - task: PowerShell@2
+                  displayName: 'Resolve Private Endpoint IP'
+                  inputs:
+                    filePath: 'Get-ResourcePrivateEndPointsDnsRecordsAsJson.ps1@PipelineCommon'
+                    arguments: >
+                      -ResourceGroupName "POCIMPNETNS1401"
+                      -ResourceName 'POCIMPINFAK1401'
+                    pwsh: true
+              
+                - task: PowerShell@2
+                  displayName: 'Set DNS record'
+                  inputs:
+                    azureSubscription: mstAzureResourceManagerConnection
+                    filePath: 'Set-PrivateDnsRecordSet.ps1@PipelineCommon'
+                    arguments: '-UpdateAllDnsZones $true'
+                    pwsh: true
+                    
   - stage: ImportAcrArtifacts
     displayName: Import ACR Artifacts
     jobs:
