@@ -54,33 +54,14 @@ stages:
         strategy:
           runOnce:
             deploy:
-              steps:
-                - checkout: PipelineCommon
-                      
-                - task: Bash@3
-                  displayName: "Set PrivateEndpointDnsRecordsJson variable"
-                  inputs:
-                    targetType: 'inline'
-                    script: |
-                      privateEndpointDnsRecordString='[{"Region":"uksouth","Fqdn":"pocimpinfak1401-40umdsag.hcp.uksouth.azmk8s.io","IpAddress":"10.179.104.191"}]'
-                
-                      echo "privateEndpointDnsRecordString: $privateEndpointDnsRecordString"
-                
-                      # Set pipeline variable
-                      echo "##vso[task.setvariable variable=PrivateEndpointDnsRecordsJson]$privateEndpointDnsRecordString"
-                
-                      # Also set the mapping table variable expected by your script
-                      regionToDnsMapping='{"uksouth":"myDnsResourceGroup"}'
-                      echo "##vso[task.setvariable variable=REGION_TO_DNS_RESOURCEGROUP_MAPPING_TABLE]$regionToDnsMapping"
-              
-                - task: AzurePowerShell@5
-                  displayName: 'Set DNS record'
+              steps:              
+                - task: AzureCLI@2
+                  displayName: "Create/Update Private DNS A Record"
                   inputs:
                     azureSubscription: AZR-MST-PrivateLinkDNS
-                    azurePowerShellVersion: LatestVersion
-                    ScriptPath: './PowerShellLibrary/Set-PrivateDnsRecordSet.ps1'
-                    ScriptArguments: '-UpdateAllDnsZones $true'
-                    pwsh: true
+                    targetType: 'inline'
+                    script: |
+                      az network private-dns record-set a add-record --resource-group mstinfdnsrgp401 --zone-name azmk8s.io --record-set-name pocimpinfak1401-40umdsag.hcp.uksouth --ipv4-address 10.179.104.191
                     
   - stage: ImportAcrArtifacts
     displayName: Import ACR Artifacts
