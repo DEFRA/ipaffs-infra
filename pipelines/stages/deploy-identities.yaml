@@ -13,7 +13,7 @@ stages:
   - stage: DeployIdentities
     displayName: Deploy and configure identity infrastructure
     jobs:
-      - job:
+      - job: MigrationIdentity
         variables:
           - group: "${{ parameters.environmentName }}"
           - template: "/pipelines/vars/common.yaml"
@@ -23,6 +23,7 @@ stages:
 
         steps:
           - task: AzureCLI@2
+            name: CreateIdentity
             displayName: Create Managed Identity and Federated Credential
             env:
               MANAGED_IDENTITY_NAME: $(lowerResourceGroupName)-migrations-${{ parameters.serviceName }}-ipaffs-test
@@ -37,11 +38,15 @@ stages:
               scriptLocation: inlineScript
               inlineScript: |  
                 set -eux
-                PRINCIPAL_ID="$(az identity create --name "${MANAGED_IDENTITY_NAME}" --resource-group "${RESOURCE_GROUP_NAME}" --query principalId --output tsv)"
+                az identity create --name "${MANAGED_IDENTITY_NAME}" --resource-group "${RESOURCE_GROUP_NAME}"
+                CLIENT_ID="$(az identity show --name "${MANAGED_IDENTITY_NAME}" --resource-group "${RESOURCE_GROUP_NAME}" --query clientId --output tsv)"
+                PRINCIPAL_ID="$(az identity show --name "${MANAGED_IDENTITY_NAME}" --resource-group "${RESOURCE_GROUP_NAME}" --query principalId --output tsv)"
                 az identity federated-credential create --identity-name "${MANAGED_IDENTITY_NAME}" --resource-group "${RESOURCE_GROUP_NAME}" --name "${AKS_MIGRATION_CREDENTIAL}" --issuer "${AKS_MIGRATION_ISSUER}" --audiences "${AKS_MIGRATION_AUDIENCES}" --subject "${AKS_MIGRATION_SUBJECT}"
-                echo "##vso[task.setvariable variable=principalId;]$PRINCIPAL_ID"
+                echo "##vso[task.setvariable variable=clientId;isOutput=true]$CLIENT_ID"
+                echo "##vso[task.setvariable variable=principalId;isOutput=true]$PRINCIPAL_ID"
 
           - task: AzureCLI@2
+            name: AddToSQLAdminsGroup
             displayName: Add Managed Identity to SQL Admin Group
             env:
               SQL_ADMIN_GROUP_ID: $(sqlAdminGroupId)
@@ -64,6 +69,7 @@ stages:
                 exit 1
 
           - task: AzureCLI@2
+            name: WaitForGroupMembership
             displayName: Wait for group membership
             env:
               SQL_ADMIN_GROUP_ID: $(sqlAdminGroupId)
