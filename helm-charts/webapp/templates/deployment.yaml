@@ -1,3 +1,19 @@
+# TODO!
+# deploy app! --> start pipeline
+# pipeline step: migrations MI needs to be created and added to a group (DONE)
+# pipeline step: then helm chart installation starts (DONE)
+# hook 1 (preinstall,preupgrade): run migrations which uses the migrations MI then terminates (DONEish)
+# hook 2 (preinstall,preupgrade): create an app MI, store clientid in configmap (PENDING)
+# main helm install: deploy the app, include lookup for clientid from configmap (DONEish)
+# pipeline step: delete the migrations MI (PENDING)
+#
+# ... time passes
+#
+# something triggers helm uninstall to delete the service
+# main helm uninstall: things get shot
+# hook 3 (post-delete): job that runs kubectl to delete hook 2 (app MI) (PENDING)
+#
+#
 apiVersion: managedidentity.azure.com/v1api20230131
 kind: UserAssignedIdentity
 metadata:
