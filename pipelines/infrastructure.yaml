@@ -55,6 +55,17 @@ stages:
           runOnce:
             deploy:
               steps:
+                - task: Bash@3
+                  displayName: 'Debug: List repo contents'
+                  inputs:
+                    targetType: 'inline'
+                    script: |
+                      echo "Listing files in the main repo:"
+                      ls -R
+                
+                      echo -e "\nListing files in the PipelineCommon repo:"
+                      ls -R PipelineCommon
+                      
                 - task: PowerShell@2
                   displayName: 'Resolve Private Endpoint IP'
                   inputs:
