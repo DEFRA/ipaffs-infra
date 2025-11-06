@@ -55,6 +55,7 @@ stages:
           runOnce:
             deploy:
               steps:
+                - checkout: self
                 - checkout: PipelineCommon
                       
                 - task: AzurePowerShell@5
