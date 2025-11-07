@@ -5,6 +5,8 @@ container:
   image: ""
   imagePullPolicy: Always
   replicas: 1
+  command:
+  args: []
 
 livenessProbe:
   httpGet:
