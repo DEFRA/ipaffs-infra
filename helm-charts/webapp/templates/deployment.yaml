@@ -62,8 +62,6 @@ spec:
       labels:
         {{- include "deploy.labels" . | nindent 8 }}
     spec:
-      imagePullSecrets:
-        - name: ipaffs-acr
       serviceAccountName: {{ .Release.Name }}-service
       containers:
         - name: {{ .Chart.Name }}
