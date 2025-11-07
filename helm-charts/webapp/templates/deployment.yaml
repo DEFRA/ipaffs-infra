@@ -57,6 +57,8 @@ spec:
       {{- include "deploy.selectorLabels" . | nindent 6 }}
   template:
     metadata:
+      annotations:
+        azure.workload.identity/use: "true"
       labels:
         {{- include "deploy.labels" . | nindent 8 }}
     spec:
