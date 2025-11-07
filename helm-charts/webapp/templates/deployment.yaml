@@ -64,7 +64,7 @@ spec:
     spec:
       imagePullSecrets:
         - name: ipaffs-acr
-      serviceAccountName: {{ .Release.name }}-service
+      serviceAccountName: {{ .Release.Name }}-service
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.container.image }}"
