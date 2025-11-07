@@ -32,7 +32,7 @@ stages:
               AKS_MIGRATION_CREDENTIAL: ${{ parameters.serviceName }}-migration
               AKS_MIGRATION_ISSUER: $(aksMigrationIssuer)
               AKS_MIGRATION_AUDIENCES: "api://AzureADTokenExchange"
-              AKS_MIGRATION_SUBJECT: "system:serviceaccount:ipaffs-dev:${{ parameters.serviceName }}-service"
+              AKS_MIGRATION_SUBJECT: "system:serviceaccount:ipaffs-dev:${{ parameters.serviceName }}-migrations"
             inputs:
               azureSubscription: $(serviceConnection)
               scriptType: bash
