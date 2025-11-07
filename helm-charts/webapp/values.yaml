@@ -5,7 +5,7 @@ container:
   image: ""
   imagePullPolicy: Always
   replicas: 1
-  command:
+  command: ""
   args: []
 
 livenessProbe:
@@ -30,6 +30,8 @@ database:
     enabled: false
     image: ""
     command: ""
+
+env: {}
 
 # This block is for setting up the ingress for more information can be found here: https://kubernetes.io/docs/concepts/services-networking/ingress/
 ingress:

@@ -66,12 +66,15 @@ spec:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.container.image }}"
           {{ if .Values.container.command }}
-          command: {{ .Values.container.command }}
+          command: ["{{ .Values.container.command }}"]
           {{ end }}
           {{ if .Values.container.args }}
-          args: {{ .Values.container.args }}
+          args:
+            {{ range .Values.container.args }}
+            - "{{ . }}"
+            {{ end }}
           {{ end }}
-          imagePullPolicy: {{ .Values.imagePullPolicy }}
+          imagePullPolicy: {{ .Values.container.imagePullPolicy }}
           {{ with .Values.env }}
           env:
             {{- toYaml . | nindent 12 }}
