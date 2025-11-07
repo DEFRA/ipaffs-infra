@@ -20,6 +20,8 @@ metadata:
   name: {{ template "deploy.azure.managedIdentityBaseName" . }}-service
   annotations:
     serviceoperator.azure.com/reconcile-policy: manage
+    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook-weight: "20"
 spec:
   location: uksouth
   owner:
@@ -38,7 +40,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   annotations:
-    azure.workload.identity/client-id: "MAGIC CLIENT ID"
+    azure.workload.identity/client-id: {{ (lookup "v1" "ConfigMap" .Release.Namespace "managed-identity").data.clientId  }}
   name: {{ .Release.Name }}-service
 
 ---
