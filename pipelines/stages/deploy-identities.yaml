@@ -27,12 +27,12 @@ stages:
             name: CreateIdentity
             displayName: Create Managed Identity and Federated Credential
             env:
-              MANAGED_IDENTITY_NAME: $(lowerResourceGroupName)-migrations-${{ parameters.serviceName }}-ipaffs-test
+              MANAGED_IDENTITY_NAME: $(lowerResourceGroupName)-migrations-${{ parameters.serviceName }}-ipaffs-dev
               RESOURCE_GROUP_NAME: $(resourceGroupName)
               AKS_MIGRATION_CREDENTIAL: ${{ parameters.serviceName }}-migration
               AKS_MIGRATION_ISSUER: $(aksMigrationIssuer)
-              AKS_MIGRATION_AUDIENCES: $(aksMigrationAudiences)
-              AKS_MIGRATION_SUBJECT: $(aksMigrationSubject)
+              AKS_MIGRATION_AUDIENCES: "api://AzureADTokenExchange"
+              AKS_MIGRATION_SUBJECT: "system:serviceaccount:ipaffs-dev:${{ parameters.serviceName }}-migrations"
             inputs:
               azureSubscription: $(serviceConnection)
               scriptType: bash

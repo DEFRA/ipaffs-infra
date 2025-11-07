@@ -30,6 +30,7 @@ database:
     enabled: false
     image: ""
     command: ""
+    args: []
 
 env: {}
 

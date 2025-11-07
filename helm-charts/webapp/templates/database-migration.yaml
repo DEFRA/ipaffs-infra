@@ -4,6 +4,9 @@ kind: ServiceAccount
 metadata:
   annotations:
     azure.workload.identity/client-id: "{{ .Values.database.migrations.clientId }}"
+    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook-weight: "10"
+    #helm.sh/hook-delete-policy: hook-succeeded
   name: "{{ .Release.Name }}-migrations"
 
 ---
@@ -15,12 +18,12 @@ metadata:
     app.kubernetes.io/managed-by: {{ .Release.Service | quote }}
     app.kubernetes.io/instance: {{ .Release.Name | quote }}
     app.kubernetes.io/version: {{ .Chart.AppVersion }}
-    helm.sh/chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
     azure.workload.identity/use: "true"
+    helm.sh/chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
   annotations:
     helm.sh/hook: pre-install,pre-upgrade
-    helm.sh/hook-weight: "10"
-    helm.sh/hook-delete-policy: hook-succeeded
+    helm.sh/hook-weight: "11"
+    #helm.sh/hook-delete-policy: hook-succeeded
 spec:
   template:
     metadata:
@@ -35,5 +38,13 @@ spec:
       containers:
         - name: database-migration
           image: {{ .Values.database.migrations.image }}
-          command: {{ .Values.database.migrations.command }}
+          {{ if .Values.database.migrations.command }}
+          command: ["{{ .Values.database.migrations.command }}"]
+          {{ end }}
+          {{ if .Values.database.migrations.args }}
+          args:
+            {{ range .Values.database.migrations.args }}
+            - "{{ . }}"
+            {{ end }}
+          {{ end }}
 {{ end }}
