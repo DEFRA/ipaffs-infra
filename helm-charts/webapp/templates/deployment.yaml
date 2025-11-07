@@ -65,6 +65,12 @@ spec:
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.container.image }}"
+          {{ if .Values.container.command }}
+          command: {{ .Values.container.command }}
+          {{ end }}
+          {{ if .Values.container.args }}
+          args: {{ .Values.container.args }}
+          {{ end }}
           imagePullPolicy: {{ .Values.imagePullPolicy }}
           {{ with .Values.env }}
           env:
