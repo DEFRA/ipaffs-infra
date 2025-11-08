@@ -39,7 +39,7 @@ stages:
               AKS_MIGRATION_CREDENTIAL: ${{ parameters.serviceName }}-migration
               AKS_MIGRATION_ISSUER: $(aksMigrationIssuer)
               AKS_MIGRATION_AUDIENCES: $(aksMigrationAudiences)
-              AKS_MIGRATION_SUBJECT: $(aksMigrationSubject)
+              AKS_MIGRATION_SUBJECT: $(aksCountriesMigrationSubject)
             inputs:
               azureSubscription: $(serviceConnection)
               scriptType: bash
