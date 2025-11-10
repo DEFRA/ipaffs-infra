@@ -23,6 +23,8 @@ stages:
             value: $[lower(variables.resourceGroupName)]
 
         steps:
+          - checkout: self
+
           - task: AzureCLI@2
             name: CreateIdentity
             displayName: Create Managed Identity and Federated Credential
@@ -70,6 +72,8 @@ stages:
             value: $[lower(variables.resourceGroupName)]
 
         steps:
+          - checkout: self
+
           - task: AzureCLI@2
             name: CreateIdentity
             displayName: Create Managed Identity and Federated Credential
