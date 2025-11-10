@@ -30,7 +30,7 @@ stages:
               MANAGED_IDENTITY_NAME: $(lowerResourceGroupName)-migrations-${{ parameters.serviceName }}-ipaffs-dev
               RESOURCE_GROUP_NAME: $(resourceGroupName)
               AKS_MIGRATION_CREDENTIAL: ${{ parameters.serviceName }}-migration
-              AKS_MIGRATION_ISSUER: $(aksMigrationIssuer)
+              AKS_MIGRATION_ISSUER: $(aksOidcIssuer)
               AKS_MIGRATION_AUDIENCES: "api://AzureADTokenExchange"
               AKS_MIGRATION_SUBJECT: "system:serviceaccount:ipaffs-dev:${{ parameters.serviceName }}-migrations"
             inputs:
@@ -121,7 +121,7 @@ stages:
               MANAGED_IDENTITY_NAME: $(lowerResourceGroupName)-service-${{ parameters.serviceName }}-ipaffs-dev
               RESOURCE_GROUP_NAME: $(resourceGroupName)
               AKS_MIGRATION_CREDENTIAL: ${{ parameters.serviceName }}-service
-              AKS_MIGRATION_ISSUER: $(aksServiceIssuer)
+              AKS_MIGRATION_ISSUER: $(aksOidcIssuer)
               AKS_MIGRATION_AUDIENCES: "api://AzureADTokenExchange"
               AKS_MIGRATION_SUBJECT: "system:serviceaccount:ipaffs-dev:${{ parameters.serviceName }}-service"
             inputs:
