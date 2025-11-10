@@ -23,7 +23,7 @@ stages:
             value: $[lower(variables.resourceGroupName)]
 
         steps:
-          - checkout: self
+          - checkout: ipaffs-infra
 
           - task: AzureCLI@2
             name: CreateIdentity
@@ -72,7 +72,7 @@ stages:
             value: $[lower(variables.resourceGroupName)]
 
         steps:
-          - checkout: self
+          - checkout: ipaffs-infra
 
           - task: AzureCLI@2
             name: CreateIdentity
