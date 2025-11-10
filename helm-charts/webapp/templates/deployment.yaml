@@ -1,10 +1,11 @@
 # TODO!
 # deploy app! --> start pipeline
 # pipeline step: migrations MI needs to be created and added to a group (DONE)
+# pipeline step: service MI to be created
 # pipeline step: then helm chart installation starts (DONE)
-# hook 1 (preinstall,preupgrade): run migrations which uses the migrations MI then terminates (DONEish)
+# hook 1 (preinstall,preupgrade): run migrations which uses the migrations MI created in pipeline, then terminates (DONEish)
 # hook 2 (preinstall,preupgrade): create an app MI, store clientid in configmap (PENDING)
-# main helm install: deploy the app, include lookup for clientid from configmap (DONEish)
+# main helm install: adopt the service MI, deploy the app, include lookup for clientid from configmap (DONEish)
 # pipeline step: delete the migrations MI (PENDING)
 #
 # ... time passes
@@ -20,27 +21,17 @@ metadata:
   name: {{ template "deploy.azure.managedIdentityBaseName" . }}-service
   annotations:
     serviceoperator.azure.com/reconcile-policy: manage
-    helm.sh/hook: pre-install,pre-upgrade
-    helm.sh/hook-weight: "20"
 spec:
   location: uksouth
   owner:
     name: {{ template "deploy.azure.resourceGroup" . }}
-  operatorSpec:
-    configMapExpressions:
-      - name: managed-identity
-        key: clientId
-        value: self.status.clientId
-      - name: managed-identity
-        key: principalId
-        value: self.status.principalId
 
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   annotations:
-    azure.workload.identity/client-id: {{ (lookup "v1" "ConfigMap" .Release.Namespace "managed-identity").data.clientId  }}
+    azure.workload.identity/client-id: {{ .Values.database.migrations.clientId }}
   name: {{ .Release.Name }}-service
 
 ---
@@ -98,3 +89,5 @@ spec:
           image: "{{ .Values.initContainer.image }}"
           command: {{ .Values.initContainer.command }}
       {{ end }}
+
+# vim: set ts=2 sts=2 sw=2 et:
