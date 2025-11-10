@@ -23,6 +23,14 @@ stages:
             value: $[lower(variables.resourceGroupName)]
 
         steps:
+          - task: Bash@3
+            name: tree
+            inputs:
+              targetType: inline
+              script: |
+                pwd
+                tree ../..
+
           - task: AzureCLI@2
             name: CreateIdentity
             displayName: Create Managed Identity and Federated Credential
