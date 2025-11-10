@@ -38,7 +38,7 @@ stages:
             inputs:
               azureSubscription: $(serviceConnection)
               scriptType: bash
-              scriptPath: $(Build.SourcesDirectory)/ipaffs-infra/scripts/pipeline/create-identity.sh
+              scriptPath: scripts/pipeline/create-identity.sh
 
           - task: AzureCLI@2
             name: AddToSQLAdminsGroup
@@ -49,7 +49,7 @@ stages:
             inputs:
               azureSubscription: $(serviceConnection)
               scriptType: bash
-              scriptPath: $(Build.SourcesDirectory)/ipaffs-infra/scripts/pipeline/add-principal-to-group.sh
+              scriptPath: scripts/pipeline/add-principal-to-group.sh
 
           - task: AzureCLI@2
             name: WaitForGroupMembership
@@ -60,7 +60,7 @@ stages:
             inputs:
               azureSubscription: $(serviceConnection)
               scriptType: bash
-              scriptPath: $(Build.SourcesDirectory)/ipaffs-infra/scripts/pipeline/wait-for-group-membership.sh
+              scriptPath: scripts/pipeline/wait-for-group-membership.sh
 
       - job: ServiceIdentity
         displayName: Set up Service Identity
@@ -87,6 +87,6 @@ stages:
             inputs:
               azureSubscription: $(serviceConnection)
               scriptType: bash
-              scriptPath: $(Build.SourcesDirectory)/ipaffs-infra/scripts/pipeline/create-identity.sh
+              scriptPath: scripts/pipeline/create-identity.sh
 
 # vim: set ts=2 sts=2 sw=2 et:
