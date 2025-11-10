@@ -27,82 +27,38 @@ stages:
             name: CreateIdentity
             displayName: Create Managed Identity and Federated Credential
             env:
-              MANAGED_IDENTITY_NAME: $(lowerResourceGroupName)-migrations-${{ parameters.serviceName }}-ipaffs-dev
+              MANAGED_IDENTITY_NAME: $(lowerResourceGroupName)-ipaffs-dev-${{ parameters.serviceName }}-migrations
               RESOURCE_GROUP_NAME: $(resourceGroupName)
-              AKS_MIGRATION_CREDENTIAL: ${{ parameters.serviceName }}-migration
-              AKS_MIGRATION_ISSUER: $(aksOidcIssuer)
-              AKS_MIGRATION_AUDIENCES: "api://AzureADTokenExchange"
-              AKS_MIGRATION_SUBJECT: "system:serviceaccount:ipaffs-dev:${{ parameters.serviceName }}-migrations"
+              AKS_CREDENTIAL: ${{ parameters.serviceName }}-migration
+              AKS_ISSUER: $(aksOidcIssuer)
+              AKS_AUDIENCES: "api://AzureADTokenExchange"
+              AKS_SUBJECT: "system:serviceaccount:ipaffs-dev:${{ parameters.serviceName }}-migrations"
             inputs:
               azureSubscription: $(serviceConnection)
               scriptType: bash
-              scriptLocation: inlineScript
-              inlineScript: |
-                set -eux
-                az identity create --name "${MANAGED_IDENTITY_NAME}" --resource-group "${RESOURCE_GROUP_NAME}"
-                CLIENT_ID="$(az identity show --name "${MANAGED_IDENTITY_NAME}" --resource-group "${RESOURCE_GROUP_NAME}" --query clientId --output tsv)"
-                PRINCIPAL_ID="$(az identity show --name "${MANAGED_IDENTITY_NAME}" --resource-group "${RESOURCE_GROUP_NAME}" --query principalId --output tsv)"
-                az identity federated-credential create --identity-name "${MANAGED_IDENTITY_NAME}" --resource-group "${RESOURCE_GROUP_NAME}" --name "${AKS_MIGRATION_CREDENTIAL}" --issuer "${AKS_MIGRATION_ISSUER}" --audiences "${AKS_MIGRATION_AUDIENCES}" --subject "${AKS_MIGRATION_SUBJECT}"
-                echo "##vso[task.setvariable variable=migrationsClientId;isOutput=true]$CLIENT_ID"
-                echo "##vso[task.setvariable variable=principalId]$PRINCIPAL_ID"
+              scriptPath: ../../scripts/pipeline/create-identity.sh
 
           - task: AzureCLI@2
             name: AddToSQLAdminsGroup
             displayName: Add Managed Identity to SQL Admin Group
             env:
-              SQL_ADMIN_GROUP_ID: $(sqlAdminGroupId)
+              GROUP_ID: $(sqlAdminGroupId)
               PRINCIPAL_ID: $(principalId)
             inputs:
               azureSubscription: $(serviceConnection)
               scriptType: bash
-              scriptLocation: inlineScript
-              inlineScript: |
-                set -ux
-                max_attempts=10
-                attempt=0
-                while (( attempt < max_attempts )); do
-                  RESULT="$(az ad group member add -g "${SQL_ADMIN_GROUP_ID}" --member-id "${PRINCIPAL_ID}" 2>&1)"
-                  STATUS=$?
-                  (( STATUS == 0 )) && exit 0
-                  [[ "${RESULT}" =~ "One or more added object references already exist" ]] && exit 0
-                  sleep 10
-                done
-                exit 1
+              scriptPath: ../../scripts/pipeline/add-principal-to-group.sh
 
           - task: AzureCLI@2
             name: WaitForGroupMembership
             displayName: Wait for group membership
             env:
-              SQL_ADMIN_GROUP_ID: $(sqlAdminGroupId)
+              GROUP_ID: $(sqlAdminGroupId)
               PRINCIPAL_ID: $(principalId)
             inputs:
               azureSubscription: $(serviceConnection)
               scriptType: bash
-              scriptLocation: inlineScript
-              inlineScript: |
-                set -ux
-                TOKEN="$(az account get-access-token --scope https://graph.microsoft.com/.default --query accessToken -o tsv)"
-                [[ $? -ne 0 ]] && exit 1
-                max_attempts=10
-                successful=0
-                attempt=0
-                wait=2
-                while (( attempt < max_attempts )); do
-                  (( attempt++ ))
-                  result="$(curl -w '%{http_code}' -s -o /dev/null -H "Authorization: Bearer ${TOKEN}" "https://graph.microsoft.com/v1.0/groups/${SQL_ADMIN_GROUP_ID}/members/${PRINCIPAL_ID}/\$ref")"
-                  if [[ "${result}" == "200" ]]; then
-                    (( successful++ ))
-                    (( successful == 5 )) && exit 0
-                    wait=2
-                    sleep 5
-                  else
-                    successful=0
-                    sleep $wait
-                    (( wait*=2 ))
-                    (( wait > 60 )) && wait=60
-                  fi
-                done
-                exit 1
+              scriptPath: ../../scripts/pipeline/wait-for-group-membership.sh
 
       - job: ServiceIdentity
         displayName: Set up Service Identity
@@ -118,23 +74,15 @@ stages:
             name: CreateIdentity
             displayName: Create Managed Identity and Federated Credential
             env:
-              MANAGED_IDENTITY_NAME: $(lowerResourceGroupName)-service-${{ parameters.serviceName }}-ipaffs-dev
+              MANAGED_IDENTITY_NAME: $(lowerResourceGroupName)-ipaffs-dev-${{ parameters.serviceName }}-service
               RESOURCE_GROUP_NAME: $(resourceGroupName)
-              AKS_MIGRATION_CREDENTIAL: ${{ parameters.serviceName }}-service
-              AKS_MIGRATION_ISSUER: $(aksOidcIssuer)
-              AKS_MIGRATION_AUDIENCES: "api://AzureADTokenExchange"
-              AKS_MIGRATION_SUBJECT: "system:serviceaccount:ipaffs-dev:${{ parameters.serviceName }}-service"
+              AKS_CREDENTIAL: ${{ parameters.serviceName }}-service
+              AKS_ISSUER: $(aksOidcIssuer)
+              AKS_AUDIENCES: "api://AzureADTokenExchange"
+              AKS_SUBJECT: "system:serviceaccount:ipaffs-dev:${{ parameters.serviceName }}-service"
             inputs:
               azureSubscription: $(serviceConnection)
               scriptType: bash
-              scriptLocation: inlineScript
-              inlineScript: |
-                set -eux
-                az identity create --name "${MANAGED_IDENTITY_NAME}" --resource-group "${RESOURCE_GROUP_NAME}"
-                CLIENT_ID="$(az identity show --name "${MANAGED_IDENTITY_NAME}" --resource-group "${RESOURCE_GROUP_NAME}" --query clientId --output tsv)"
-                PRINCIPAL_ID="$(az identity show --name "${MANAGED_IDENTITY_NAME}" --resource-group "${RESOURCE_GROUP_NAME}" --query principalId --output tsv)"
-                az identity federated-credential create --identity-name "${MANAGED_IDENTITY_NAME}" --resource-group "${RESOURCE_GROUP_NAME}" --name "${AKS_MIGRATION_CREDENTIAL}" --issuer "${AKS_MIGRATION_ISSUER}" --audiences "${AKS_MIGRATION_AUDIENCES}" --subject "${AKS_MIGRATION_SUBJECT}"
-                echo "##vso[task.setvariable variable=serviceClientId;isOutput=true]$CLIENT_ID"
-                echo "##vso[task.setvariable variable=principalId]$PRINCIPAL_ID"
+              scriptPath: ../../scripts/pipeline/create-identity.sh
 
 # vim: set ts=2 sts=2 sw=2 et:
