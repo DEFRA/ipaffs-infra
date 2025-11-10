@@ -29,7 +29,7 @@ stages:
               targetType: inline
               script: |
                 pwd
-                tree ..
+                tree ../..
 
           - task: AzureCLI@2
             name: CreateIdentity
