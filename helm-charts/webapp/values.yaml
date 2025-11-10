@@ -21,6 +21,7 @@ initContainer:
   command: ""
 
 azure:
+  clientId: ""
   location: uksouth
 
 database:
