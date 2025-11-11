@@ -1,0 +1,26 @@
+name: ""
+project: ipaffs
+environment: poc
+
+azure:
+  clientId: ""
+  location: uksouth
+
+database:
+  enabled: false
+  migrations:
+    clientId: ""
+    enabled: false
+    image: ""
+    command: ""
+    args: []
+
+redis:
+  enabled: true
+
+serviceBus:
+  enabled: false
+  queues: []
+  topics: []
+
+# vim: set ts=2 sts=2 sw=2 et:
