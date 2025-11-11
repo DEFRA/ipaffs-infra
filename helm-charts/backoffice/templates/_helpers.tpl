@@ -29,22 +29,6 @@ app.kubernetes.io/part-of: {{ .Values.project }}
 {{- end }}
 
 {{/*
-Ingress hosts
-*/}}
-{{- define "deploy.ingressHosts" -}}
-  {{- if gt (len .Values.ingress.hosts) 0 -}}
-    {{- $hosts := list -}}
-    {{- range .Values.ingress.hosts }}
-      {{- $host := . -}}
-      {{- $hostWithSuffix := printf "%s-%s.imp.%s.azure.defra.cloud" $host $.Values.environment $.Values.environment -}}
-      {{- $hosts = append $hosts $host }}
-      {{- $hosts = append $hosts $hostWithSuffix }}
-    {{- end -}}
-    {{- $hosts | join "\n" -}}
-  {{- end -}}
-{{- end }}
-
-{{/*
 Azure Resource Names
 */}}
 {{- define "deploy.azure.databaseName" -}}

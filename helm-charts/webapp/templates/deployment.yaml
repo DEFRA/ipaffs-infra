@@ -36,7 +36,7 @@ metadata:
     {{- include "deploy.labels" . | nindent 4 }}
   annotations:
     azure.workload.identity/client-id: {{ .Values.database.migrations.clientId }}
-  name: {{ .Release.Name }}-service
+  name: {{ .Values.name }}-service
 
 ---
 apiVersion: apps/v1
@@ -57,7 +57,7 @@ spec:
       annotations:
         azure.workload.identity/use: "true"
     spec:
-      serviceAccountName: {{ .Release.Name }}-service
+      serviceAccountName: {{ .Values.name }}-service
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.container.image }}"
