@@ -18,7 +18,6 @@ metadata:
     app.kubernetes.io/managed-by: {{ .Release.Service | quote }}
     app.kubernetes.io/instance: {{ .Release.Name | quote }}
     app.kubernetes.io/version: {{ .Chart.AppVersion }}
-    azure.workload.identity/use: "true"
     helm.sh/chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
   annotations:
     helm.sh/hook: pre-install,pre-upgrade
@@ -31,6 +30,7 @@ spec:
       labels:
         app.kubernetes.io/managed-by: {{ .Release.Service | quote }}
         app.kubernetes.io/instance: {{ .Release.Name | quote }}
+        azure.workload.identity/use: "true"
         helm.sh/chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
     spec:
       serviceAccountName: "{{ .Release.Name }}-migrations"
