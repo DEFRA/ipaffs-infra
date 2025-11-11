@@ -4,6 +4,8 @@ apiVersion: sql.azure.com/v1api20211101
 kind: Server
 metadata:
   name: {{ template "deploy.azure.sqlServer" . }}
+  labels:
+    {{- include "deploy.labels" . | nindent 4 }}
 spec:
   owner:
     name: {{ template "deploy.azure.resourceGroup" . }}
@@ -14,6 +16,8 @@ apiVersion: sql.azure.com/v1api20211101
 kind: ServersDatabase
 metadata:
   name: {{ template "deploy.azure.databaseName" . }}
+  labels:
+    {{- include "deploy.labels" . | nindent 4 }}
   annotations:
     serviceoperator.azure.com/reconcile-policy: manage
 spec:

@@ -10,11 +10,14 @@ Common labels
 */}}
 {{- define "deploy.labels" -}}
 helm.sh/chart: {{ include "deploy.chart" . }}
-{{ include "deploy.selectorLabels" . }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
-app.kubernetes.io/managed-by: {{ .Release.Service }}
+defra/environment: "{{ .Values.environment }}"
+defra/project: "{{ .Values.project }}"
+defra/release-date: "{{ now | date "2006-01-02T15.04.05" }}"
+{{ include "deploy.selectorLabels" . }}
 {{- end }}
 
 {{/*
@@ -61,4 +64,7 @@ Azure Resource Names
 {{- end }}
 {{- define "deploy.azure.sqlServer" -}}
 {{- printf "%simpdbssq1401" .Values.environment }}
+{{- end }}
+{{- define "deploy.azure.sqlServerHostname" -}}
+{{- printf "%simpdbssq1401.database.windows.net" .Values.environment }}
 {{- end }}

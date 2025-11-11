@@ -2,8 +2,8 @@ apiVersion: resources.azure.com/v1api20200601
 kind: ResourceGroup
 metadata:
   name: {{ template "deploy.azure.resourceGroup" . }}
-annotations:
-  foo: {{ .Values.environment }}
+  labels:
+    {{- include "deploy.labels" . | nindent 4 }}
 spec:
   location: {{ .Values.azure.location }}
 

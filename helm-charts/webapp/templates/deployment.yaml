@@ -19,6 +19,8 @@ apiVersion: managedidentity.azure.com/v1api20230131
 kind: UserAssignedIdentity
 metadata:
   name: {{ template "deploy.azure.managedIdentityBaseName" . }}-service
+  labels:
+    {{- include "deploy.labels" . | nindent 4 }}
   annotations:
     serviceoperator.azure.com/reconcile-policy: manage
 spec:
@@ -30,6 +32,8 @@ spec:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
+  labels:
+    {{- include "deploy.labels" . | nindent 4 }}
   annotations:
     azure.workload.identity/client-id: {{ .Values.database.migrations.clientId }}
   name: {{ .Release.Name }}-service
@@ -48,10 +52,10 @@ spec:
       {{- include "deploy.selectorLabels" . | nindent 6 }}
   template:
     metadata:
-      annotations:
-        azure.workload.identity/use: "true"
       labels:
         {{- include "deploy.labels" . | nindent 8 }}
+      annotations:
+        azure.workload.identity/use: "true"
     spec:
       serviceAccountName: {{ .Release.Name }}-service
       containers:

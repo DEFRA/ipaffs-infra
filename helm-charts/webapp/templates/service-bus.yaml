@@ -4,6 +4,8 @@ apiVersion: servicebus.azure.com/v1api20240101
 kind: Namespace
 metadata:
   name: {{ template "deploy.azure.serviceBusNamespace" . }}
+  labels:
+    {{- include "deploy.labels" . | nindent 4 }}
   annotations:
     serviceoperator.azure.com/reconcile-policy: detach-on-delete
 spec:
@@ -20,6 +22,8 @@ apiVersion: servicebus.azure.com/v1api20240101
 kind: NamespacesQueue
 metadata:
   name: {{ . }}
+  labels:
+    {{- include "deploy.labels" $ | nindent 4 }}
   annotations:
     serviceoperator.azure.com/reconcile-policy: manage
 spec:
@@ -34,6 +38,8 @@ apiVersion: servicebus.azure.com/v1api20240101
 kind: NamespacesTopic
 metadata:
   name: {{ . }}
+  labels:
+    {{- include "deploy.labels" $ | nindent 4 }}
   annotations:
     serviceoperator.azure.com/reconcile-policy: manage
 spec:
