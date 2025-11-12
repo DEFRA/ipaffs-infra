@@ -11,10 +11,11 @@ stages:
         displayName: Extract Chart Version
         steps:
           - script: |
-              version=$(yq '.version' Chart.yaml)
+              version="$(yq '.version' Chart.yaml)"
               echo "##vso[task.setvariable variable=helmChartVersion;isOutput=true]$version"
             workingDirectory: ${{ parameters.helmChartPath }}
             name: ComputeVersion
+            displayName: Get current chart version
 
       - job: PackageFeatureBranch
         displayName: Package from feature branch
@@ -87,7 +88,6 @@ stages:
             inputs:
               azureSubscription: $(serviceConnection)
               scriptType: bash
-              scriptLocation: inlineScript
               scriptPath: scripts/pipeline/package-and-push-chart.sh
 
 # vim: set ts=2 sts=2 sw=2 et:
