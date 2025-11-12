@@ -30,11 +30,6 @@ pr:
 pool:
   name: DEFRA-COMMON-ubuntu2204-SSV5
 
-variables:
-  - group: "${{ parameters.environmentName }}"
-  - template: "vars/common.yaml"
-  - template: "vars/${{ lower(parameters.environmentName) }}.yaml"
-
 parameters:
   - name: environmentName
     displayName: Environment
@@ -42,6 +37,11 @@ parameters:
     default: POC
     values:
       - POC
+
+variables:
+  - group: "${{ parameters.environmentName }}"
+  - template: "vars/common.yaml"
+  - template: "vars/${{ lower(parameters.environmentName) }}.yaml"
 
 stages:
   - stage: DeployInfrastructure

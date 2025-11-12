@@ -22,6 +22,14 @@ pr:
 pool:
   name: DEFRA-COMMON-ubuntu2204-SSV5
 
+parameters:
+  - name: environmentName
+    displayName: Environment
+    type: string
+    default: POC
+    values:
+      - POC
+
 variables:
   - group: "${{ parameters.environmentName }}"
   - template: "vars/common.yaml"
@@ -31,14 +39,6 @@ variables:
       value: ''
     ${{ else }}:
       value: '--dry-run'
-
-parameters:
-  - name: environmentName
-    displayName: Environment
-    type: string
-    default: POC
-    values:
-      - POC
 
 stages:
   - stage: InstallHelmCharts
