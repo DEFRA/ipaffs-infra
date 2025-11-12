@@ -6,7 +6,8 @@ echo Logging in to ACR..
 az acr login --name "${REGISTRY_NAME}"
 
 echo Updating chart dependencies...
-rm -r "${CHART_PATH}/{charts,Chart.lock}"
+[[ -d "${CHART_PATH}/charts" ]] && rm -r "${CHART_PATH}/charts"
+[[ -f "${CHART_PATH}/Chart.lock" ]] && rm "${CHART_PATH}/Chart.lock"
 helm dependency update "${CHART_PATH}"
 
 echo Packaging Helm Chart...
