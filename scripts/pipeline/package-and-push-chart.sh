@@ -5,6 +5,10 @@ set -eux
 echo Logging in to ACR..
 az acr login --name "${REGISTRY_NAME}"
 
+echo Updating chart dependencies...
+rm -r "${CHART_PATH}/{charts,Chart.lock}"
+helm dependency update "${CHART_PATH}"
+
 echo Packaging Helm Chart...
 helm package "${CHART_PATH}" --version "${CHART_VERSION}"
 
