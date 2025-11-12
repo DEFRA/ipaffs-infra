@@ -3,15 +3,15 @@
 apiVersion: servicebus.azure.com/v1api20240101
 kind: Namespace
 metadata:
-  name: {{ template "deploy.azure.serviceBusNamespace" . }}
+  name: {{ template "ipaffs-common.azure.serviceBusNamespace" . }}
   labels:
-    {{- include "deploy.labels" . | nindent 4 }}
+    {{- include "ipaffs-common.labels" . | nindent 4 }}
   annotations:
     serviceoperator.azure.com/reconcile-policy: detach-on-delete
 spec:
   location: {{ .Values.azure.location }}
   owner:
-    name: {{ template "deploy.azure.resourceGroup" . }}
+    name: {{ template "ipaffs-common.azure.resourceGroup" . }}
   sku:
     name: Standard
   zoneRedundant: false
@@ -23,12 +23,12 @@ kind: NamespacesQueue
 metadata:
   name: {{ . }}
   labels:
-    {{- include "deploy.labels" $ | nindent 4 }}
+    {{- include "ipaffs-common.labels" $ | nindent 4 }}
   annotations:
     serviceoperator.azure.com/reconcile-policy: manage
 spec:
   owner:
-    name: {{ template "deploy.azure.serviceBusNamespace" . }}
+    name: {{ template "ipaffs-common.azure.serviceBusNamespace" . }}
 
 {{ end }}
 
@@ -39,12 +39,12 @@ kind: NamespacesTopic
 metadata:
   name: {{ . }}
   labels:
-    {{- include "deploy.labels" $ | nindent 4 }}
+    {{- include "ipaffs-common.labels" $ | nindent 4 }}
   annotations:
     serviceoperator.azure.com/reconcile-policy: manage
 spec:
   owner:
-    name: {{ template "deploy.azure.serviceBusNamespace" . }}
+    name: {{ template "ipaffs-common.azure.serviceBusNamespace" . }}
 
 {{ end }}
 
