@@ -36,7 +36,6 @@ stages:
             inputs:
               azureSubscription: $(serviceConnection)
               scriptType: bash
-              scriptLocation: inlineScript
               scriptPath: scripts/pipeline/package-and-push-chart.sh
 
       - job: PackageMainBranch
@@ -73,7 +72,6 @@ stages:
             inputs:
               azureSubscription: $(serviceConnection)
               scriptType: bash
-              scriptLocation: inlineScript
               scriptPath: scripts/pipeline/update-chart-version.sh
 
           - task: AzureCLI@2
