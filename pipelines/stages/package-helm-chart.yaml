@@ -30,7 +30,7 @@ stages:
             env:
               CHART_NAME: ${{ parameters.helmChartName }}
               CHART_PATH: ${{ parameters.helmChartPath }}
-              CHART_VERSION: $(helmChartVersion)+build.$(Build.BuildNumber)
+              CHART_VERSION: $(helmChartVersion)-build.$(Build.BuildNumber)
               REGISTRY_NAME: $(acrName)
               REGISTRY_HOST: $(acrLoginServer)
             inputs:
