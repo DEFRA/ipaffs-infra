@@ -13,7 +13,7 @@ stages:
           - script: |
               version=$(yq '.version' Chart.yaml)
               echo "##vso[task.setvariable variable=helmChartVersion;isOutput=true]$version"
-            workingDirectory: $(helmChartPath)
+            workingDirectory: ${{ parameters.helmChartPath }}
             name: ComputeVersion
 
       - job: PackageFeatureBranch
@@ -27,8 +27,8 @@ stages:
             name: pushChartToRegistry
             displayName: Package and push chart to registry
             env:
-              CHART_NAME: $(helmChartName)
-              CHART_PATH: $(helmChartPath)
+              CHART_NAME: ${{ parameters.helmChartName }}
+              CHART_PATH: ${{ parameters.helmChartPath }}
               CHART_VERSION: $(helmChartVersion)+build.$(Build.BuildNumber)
               REGISTRY_NAME: $(acrName)
               REGISTRY_HOST: $(acrLoginServer)
@@ -63,8 +63,8 @@ stages:
             name: updateVersion
             displayName: Update chart version and push
             env:
-              CHART_NAME: $(helmChartName)
-              CHART_PATH: $(helmChartPath)
+              CHART_NAME: ${{ parameters.helmChartName }}
+              CHART_PATH: ${{ parameters.helmChartPath }}
               CURRENT_VERSION: $(helmChartVersion)
               NEW_VERSION: $(bumpVersion.newVersion)
               GIT_USER: $(gitUserName)
@@ -79,8 +79,8 @@ stages:
             name: pushChartToRegistry
             displayName: Package and push chart to registry
             env:
-              CHART_NAME: $(helmChartName)
-              CHART_PATH: $(helmChartPath)
+              CHART_NAME: ${{ parameters.helmChartName }}
+              CHART_PATH: ${{ parameters.helmChartPath }}
               CHART_VERSION: $(bumpVersion.newVersion)
               REGISTRY_NAME: $(acrName)
               REGISTRY_HOST: $(acrLoginServer)
