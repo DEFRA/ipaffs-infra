@@ -10,12 +10,15 @@ stages:
       - job: ExtractVersionFromChart
         displayName: Extract Chart Version
         steps:
-          - script: |
-              version="$(yq '.version' Chart.yaml)"
-              echo "##vso[task.setvariable variable=helmChartVersion;isOutput=true]$version"
-            workingDirectory: ${{ parameters.helmChartPath }}
+          - task: Bash@3
             name: ComputeVersion
             displayName: Get current chart version
+            inputs:
+              targetType: inline
+              workingDirectory: ${{ parameters.helmChartPath }}
+              script: |
+                version="$(yq '.version' Chart.yaml)"
+                echo "##vso[task.setvariable variable=helmChartVersion;isOutput=true]$version"
 
       - job: PackageFeatureBranch
         displayName: Package from feature branch
