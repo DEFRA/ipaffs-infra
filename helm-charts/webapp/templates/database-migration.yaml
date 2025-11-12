@@ -3,21 +3,21 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   labels:
-    {{- include "deploy.labels" . | nindent 4 }}
+    {{- include "ipaffs-common.labels" . | nindent 4 }}
   annotations:
     azure.workload.identity/client-id: {{ .Values.database.migrations.clientId }}
     helm.sh/hook: pre-install,pre-upgrade
     helm.sh/hook-weight: "10"
     #helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
-  name: "{{ .Values.name }}-migrations"
+  name: "{{ .Values.service }}-migrations"
 
 ---
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: "{{ .Values.name }}-migrations"
+  name: "{{ .Values.service }}-migrations"
   labels:
-    {{- include "deploy.labels" . | nindent 4 }}
+    {{- include "ipaffs-common.labels" . | nindent 4 }}
   annotations:
     helm.sh/hook: pre-install,pre-upgrade
     helm.sh/hook-weight: "11"
@@ -25,12 +25,12 @@ metadata:
 spec:
   template:
     metadata:
-      name: "{{ .Values.name }}-migrations"
+      name: "{{ .Values.service }}-migrations"
       labels:
-        {{- include "deploy.labels" . | nindent 8 }}
+        {{- include "ipaffs-common.labels" . | nindent 8 }}
         azure.workload.identity/use: "true"
     spec:
-      serviceAccountName: "{{ .Values.name }}-migrations"
+      serviceAccountName: "{{ .Values.service }}-migrations"
       restartPolicy: Never
       containers:
         - name: database-migration
@@ -46,7 +46,7 @@ spec:
           {{ end }}
           env:
             - name: DATABASE_DB_CONNECTION_STRING
-              value: "jdbc:sqlserver://{{ template "deploy.azure.sqlServerHostname" . }}:1433;databaseName={{ template "deploy.azure.databaseName" . }};encrypt=true;socketTimeout=1800000;loginTimeout=15;authentication=ActiveDirectoryMSI;msiClientId={{ .Values.database.migrations.clientId }}"
+              value: "jdbc:sqlserver://{{ template "ipaffs-common.azure.sqlServerHostname" . }}:1433;databaseName={{ template "ipaffs-common.azure.databaseName" . }};encrypt=true;socketTimeout=1800000;loginTimeout=15;authentication=ActiveDirectoryMSI;msiClientId={{ .Values.database.migrations.clientId }}"
 {{ end }}
 
 # vim: set ts=2 sts=2 sw=2 et:

@@ -1,12 +1,12 @@
-{{- $hosts := trim (include "deploy.ingressHosts" .) }}
+{{- $hosts := trim (include "ipaffs-common.ingressHosts" .) }}
 {{- if not (empty $hosts) }}
 {{- $hostsList := splitList "\n" $hosts }}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{ .Values.name }}
+  name: {{ .Values.service }}
   labels:
-    {{- include "deploy.labels" . | nindent 4 }}
+    {{- include "ipaffs-common.labels" . | nindent 4 }}
   {{- with .Values.ingress.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
@@ -28,8 +28,10 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: {{ $.Values.name }}
+                name: {{ $.Values.service }}
                 port:
                   number: 80
     {{- end }}
 {{- end }}
+
+# vim: set ts=2 sts=2 sw=2 et:

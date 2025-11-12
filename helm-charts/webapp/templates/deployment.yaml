@@ -18,46 +18,46 @@
 apiVersion: managedidentity.azure.com/v1api20230131
 kind: UserAssignedIdentity
 metadata:
-  name: {{ template "deploy.azure.managedIdentityBaseName" . }}-service
+  name: {{ template "ipaffs-common.azure.managedIdentityBaseName" . }}-service
   labels:
-    {{- include "deploy.labels" . | nindent 4 }}
+    {{- include "ipaffs-common.labels" . | nindent 4 }}
   annotations:
     serviceoperator.azure.com/reconcile-policy: manage
 spec:
   location: uksouth
   owner:
-    name: {{ template "deploy.azure.resourceGroup" . }}
+    name: {{ template "ipaffs-common.azure.resourceGroup" . }}
 
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   labels:
-    {{- include "deploy.labels" . | nindent 4 }}
+    {{- include "ipaffs-common.labels" . | nindent 4 }}
   annotations:
     azure.workload.identity/client-id: {{ .Values.database.migrations.clientId }}
-  name: {{ .Values.name }}-service
+  name: {{ .Values.service }}-service
 
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Values.name }}
+  name: {{ .Values.service }}
   labels:
-    {{- include "deploy.labels" . | nindent 4 }}
+    {{- include "ipaffs-common.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicas }}
   selector:
     matchLabels:
-      {{- include "deploy.selectorLabels" . | nindent 6 }}
+      {{- include "ipaffs-common.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        {{- include "deploy.labels" . | nindent 8 }}
+        {{- include "ipaffs-common.labels" . | nindent 8 }}
       annotations:
         azure.workload.identity/use: "true"
     spec:
-      serviceAccountName: {{ .Values.name }}-service
+      serviceAccountName: {{ .Values.service }}-service
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.container.image }}"
