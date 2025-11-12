@@ -5,3 +5,4 @@ helm-charts/*-secrets-values.yaml
 helm-charts/*/Chart.lock
 **/.idea/
 *.iml
+*.tgz
