@@ -1,19 +1,12 @@
-name: ""
+service: ""
 project: ipaffs
 environment: poc
 
 azure:
-  clientId: ""
   location: uksouth
 
 database:
   enabled: false
-  migrations:
-    clientId: ""
-    enabled: false
-    image: ""
-    command: ""
-    args: []
 
 redis:
   enabled: true
