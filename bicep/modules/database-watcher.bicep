@@ -75,7 +75,7 @@ resource kustoDataStoreWatcherAdmin 'Microsoft.Kusto/Clusters/Databases/Principa
   parent: kustoDataStore
   name: 'bb83bb91-7227-53a0-8c2e-84c080085433'
   properties: {
-    principalId: dbwParams.adminEntraUser
+    principalId: dbWatcher.identity.principalId
     role: 'Admin'
     principalType: 'App'
     tenantId: '770a2450-0227-4c62-90c7-4e38537f1102'
