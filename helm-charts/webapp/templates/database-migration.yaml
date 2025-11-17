@@ -46,7 +46,19 @@ spec:
           {{ end }}
           env:
             - name: DATABASE_DB_CONNECTION_STRING
-              value: "jdbc:sqlserver://{{ template "ipaffs-common.azure.sqlServerHostname" . }}:1433;databaseName={{ template "ipaffs-common.azure.databaseName" . }};encrypt=true;socketTimeout=1800000;loginTimeout=15;authentication=ActiveDirectoryMSI;msiClientId={{ .Values.database.migrations.clientId }}"
+              value: "jdbc:sqlserver://{{ template "ipaffs-common.azure.sqlServerHostname" . }}:1433;databaseName={{ template "ipaffs-common.azure.databaseName" . }};encrypt=true;socketTimeout=1800000;loginTimeout=15;authentication=ActiveDirectoryManagedIdentity;msiClientId={{ .Values.database.migrations.clientId }}"
+
+            # TODO: in the countries service migrations, these are different users (?) but should work OK referencing the same user, since at least they are wrapped in IF NOT EXISTS conditionals
+            - name: BASE_SERVICE_DB_USER_AD
+              value: "{{ .Values.database.principalName }}"
+            - name: MANAGED_IDENTITY_USER
+              value: "{{ .Values.database.principalName }}"
+
+            # TODO: probably need to continue setting these, but they should come from a credential store
+            - name: BASE_SERVICE_DB_PASSWORD
+              value: "{{ .Values.database.legacyPassword1 }}"
+            - name: NEW_BASE_SERVICE_DB_PASSWORD
+              value: "{{ .Values.database.legacyPassword2 }}"
 {{ end }}
 
 # vim: set ts=2 sts=2 sw=2 et:
