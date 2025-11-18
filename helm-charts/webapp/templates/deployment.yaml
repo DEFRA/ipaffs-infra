@@ -15,20 +15,6 @@
 # hook 3 (post-delete): job that runs kubectl to delete hook 2 (app MI) (PENDING)
 #
 #
-apiVersion: managedidentity.azure.com/v1api20230131
-kind: UserAssignedIdentity
-metadata:
-  name: {{ template "ipaffs-common.azure.managedIdentityBaseName" . }}-service
-  labels:
-    {{- include "ipaffs-common.labels" . | nindent 4 }}
-  annotations:
-    serviceoperator.azure.com/reconcile-policy: manage
-spec:
-  location: uksouth
-  owner:
-    name: {{ template "ipaffs-common.azure.resourceGroup" . }}
-
----
 apiVersion: v1
 kind: ServiceAccount
 metadata:
