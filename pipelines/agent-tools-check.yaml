@@ -18,3 +18,13 @@ steps:
       echo "Checking Docker..."
       docker version || echo "Docker NOT found or Docker daemon not running"
     displayName: "Check Docker"
+
+  - script: |
+      echo "Checking Google Chrome..."
+      google-chrome --version || echo "Chrome NOT found"
+    displayName: "Check Chrome (optional)"
+
+  - script: |
+      echo "Checking Firefox..."
+      firefox --version || echo "Firefox NOT found"
+    displayName: "Check Firefox (optional)"
