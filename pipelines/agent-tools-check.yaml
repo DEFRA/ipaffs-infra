@@ -1,0 +1,20 @@
+trigger: none
+
+pool:
+  name: DEFRA-COMMON-ubuntu2204-SSV5
+
+steps:
+  - script: |
+      echo "Checking Node..."
+      node -v || echo "Node NOT found"
+    displayName: "Check Node"
+
+  - script: |
+      echo "Checking npm..."
+      npm -v || echo "npm NOT found"
+    displayName: "Check npm"
+
+  - script: |
+      echo "Checking Docker..."
+      docker version || echo "Docker NOT found or Docker daemon not running"
+    displayName: "Check Docker"
