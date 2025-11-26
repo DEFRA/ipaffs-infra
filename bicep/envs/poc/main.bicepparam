@@ -16,11 +16,20 @@ param aksParams = {
   sshRSAPublicKey: 'ssh-rsa AAAA...'
   subnetId: '/subscriptions/cfa4ccd1-5a5e-420c-9bca-03218a43e46d/resourceGroups/POCIMPNETNS1401/providers/Microsoft.Network/virtualNetworks/POCIMPNETVN1401/subnets/POCIMPNETSU4402'
   adminUserName: 'adminuser'
-  adminGroupObjectIDs: ['65c89463-4af9-4520-bc82-77f0ead4e424']
+  adminGroupObjectIDs: [
+    '65c89463-4af9-4520-bc82-77f0ead4e424' // AG-Azure-IMP_POC-SQLAdmins
+  ]
 }
 
 param asoParams = {
   managedIdentityName: 'POCIMPINFMI1401-AzureServiceOperator'
+}
+
+param keyVaultParams = {
+  name: 'POCIMPINFKV1401'
+  principalObjectIds: [
+    '4b2fbef7-de9d-4836-a44e-46c56aad3d9e' // AG-Azure-IMP_POC1-Contributors
+  ]
 }
 
 param nsgParams = {
@@ -672,7 +681,6 @@ param sqlParams = {
   serverName: 'POCIMPDBSSQ1401'
   elasticPoolName: 'POCIMPDBSEP1401'
   maxSizeGiB: 10
-  tenantId: ''
   vCores: 2
 }
 
