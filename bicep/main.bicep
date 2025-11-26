@@ -70,6 +70,7 @@ module keyVault './modules/keyvault.bicep' = {
     location: location
     subnetIds: vnet.outputs.subnetIds
     tags: tags
+    tenantId: tenantId
   }
   dependsOn: [
     nsg

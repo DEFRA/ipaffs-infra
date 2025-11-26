@@ -4,6 +4,7 @@ param location string
 param keyVaultParams object
 param subnetIds array
 param tags object
+param tenantId string
 
 resource keyVault 'Microsoft.KeyVault/vaults@2025-05-01' = {
   name: keyVaultParams.name
@@ -12,7 +13,7 @@ resource keyVault 'Microsoft.KeyVault/vaults@2025-05-01' = {
 
   properties: {
     publicNetworkAccess: 'Disabled'
-    tenantId: keyVaultParams.tenantId
+    tenantId: tenantId
 
     sku: {
       name: 'standard'
@@ -20,7 +21,7 @@ resource keyVault 'Microsoft.KeyVault/vaults@2025-05-01' = {
     }
 
     accessPolicies: [for objectId in keyVaultParams.principalObjectIds: {
-      tenantId: keyVaultParams.tenantId
+      tenantId: tenantId
       objectId: objectId
       permissions: {
         secrets: [
