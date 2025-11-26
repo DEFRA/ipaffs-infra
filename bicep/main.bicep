@@ -8,6 +8,7 @@ param tenantId string
 param acrParams object
 param aksParams object
 param asoParams object
+param keyVaultParams object
 param nsgParams object
 param sqlParams object
 param vnetParams object
@@ -59,6 +60,20 @@ module aso './modules/azure-service-operator.bicep' = {
     location: location
     tags: tags
   }
+}
+
+module keyVault './modules/keyvault.bicep' = {
+  name: 'keyVault'
+  scope: resourceGroup()
+  params: {
+    keyVaultParams: keyVaultParams
+    location: location
+    subnetIds: vnet.outputs.subnetIds
+    tags: tags
+  }
+  dependsOn: [
+    nsg
+  ]
 }
 
 module nsg './modules/network-security-groups.bicep' = {
