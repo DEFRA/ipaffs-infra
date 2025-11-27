@@ -1,0 +1,73 @@
+parameters:
+  - name: environmentName
+    displayName: Environment
+    type: string
+    default: POC
+    values:
+      - POC
+  - name: migrationsClientId
+    displayName: Migration Client Id
+    type: string
+  - name: serviceClientId
+    displayName: Service Client Id
+    type: string
+  - name: servicePrincipalName
+    displayName: Service Principal Name
+    type: string
+
+stages:
+  - stage: DeployChart
+    displayName: Deploy Helm Charts
+    jobs:
+      - job: RunHelmfile
+        displayName: Run Helmfile to deploy charts
+        variables:
+          - group: "${{ parameters.environmentName }}"
+          - template: "/pipelines/vars/common.yaml"
+          - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
+
+        steps:
+          - checkout: self
+
+          - task: AzureCLI@2
+            name: LoginToContainerRegistry
+            displayName: Login to Azure Container Registry
+            inputs:
+              azureSubscription: $(serviceConnection)
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: az acr login --name $(acrName)
+
+          - task: Kubernetes@1
+            name: KubectlLogin
+            displayName: Configure Kubernetes client and authenticate
+            inputs:
+              connectionType: Azure Resource Manager
+              azureSubscriptionEndpoint: $(serviceConnection)
+              azureResourceGroup: $(resourceGroupName)
+              kubernetesCluster: $(kubernetesCluster)
+              useClusterAdmin: true
+              command: login
+
+          - task: AzureCLI@2
+            name: DeployHelmCharts
+            displayName: Deploy Helm Charts
+            env:
+              ENVIRONMENT: ${{ lower(parameters.environmentName) }}
+              AZURE_LOCATION: $(azureLocation)
+              AZURE_CONTAINER_REGISTRY_HOST: $(acrLoginServer)
+              AZURE_MANAGED_IDENTITY_CLIENT_ID: $(serviceClientId)
+              AZURE_MANAGED_IDENTITY_PRINCIPAL_NAME: $(servicePrincipalName)
+              AZURE_MANAGED_IDENTITY_MIGRATIONS_CLIENT_ID: $(migrationsClientId)
+              MIGRATIONS_IMAGE: "ipaffs/$(serviceName)-configuration:$(Build.BuildNumber)"
+            inputs:
+              azureSubscription: $(serviceConnection)
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                curl -L https://github.com/helmfile/helmfile/releases/download/v1.1.9/helmfile_1.1.9_linux_amd64.tar.gz | tar -xz && \
+                chmod +x ./helmfile && \
+                ./helmfile init --force && \
+                ./helmfile apply --debug
+
+## vim: set ts=2 sts=2 sw=2 et:
