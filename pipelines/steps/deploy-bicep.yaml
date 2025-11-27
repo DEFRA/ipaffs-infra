@@ -42,7 +42,7 @@ steps:
 
   - task: AzureCLI@2
     displayName: Deploy - Main
-    condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+    #condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
     inputs:
       azureSubscription: $(serviceConnection)
       scriptType: bash
@@ -55,40 +55,42 @@ steps:
           --parameters bicep/envs/${{ lower(parameters.environmentName) }}/main.bicepparam \
           --parameters tenantId="$(tenantId)"
 
-# TODO: Enable when RITM1311452 is completed
-#  - task: AzureCLI@2
-#    displayName: StoreACRLoginServer
-#    condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
-#    inputs:
-#      azureSubscription: $(serviceConnection)
-#      scriptType: bash
-#      scriptLocation: inlineScript
-#      inlineScript: |
-#        # Get the ID of the library variable group
-#        groupId="$(az pipelines variable-group list \
-#          --org '$(System.CollectionUri)' \
-#          --project '$(System.TeamProject)' \
-#          --group-name '${{ parameters.environmentName }}' \
-#          --query '[0].name' \
-#          -o tsv)"
-#
-#        deploymentOutput() {
-#          az deployment group show \
-#            --name "Infrastructure-$(Build.BuildId)" \
-#            --resource-group $(resourceGroupName) \
-#            --query properties.outputs.${1}.value \
-#            -o tsv
-#        }
-#
-#        updateGroupVariable() {
-#          az pipelines variable-group variable update \
-#            --org '$(System.CollectionUri)' \
-#            --project '$(System.TeamProject)' \
-#            --id "${groupId}" \
-#            --name "${1}" \
-#            --value "${2}"
-#        }
-#
-#        # Update library group variables
-#        updateGroupVariable acrLoginServer "$(deploymentOutput acrLoginServer)"
-#        updateGroupVariable azureServiceOperatorClientId "$(deploymentOutput azureServiceOperatorClientId)"
+  - task: AzureCLI@2
+    name: StoreLibraryVars
+    displayName: Store Library Variables
+    #condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+    inputs:
+      azureSubscription: $(serviceConnection)
+      scriptType: bash
+      scriptLocation: inlineScript
+      inlineScript: |
+        # Get the ID of the library variable group
+        groupId="$(az pipelines variable-group list \
+          --org '$(System.CollectionUri)' \
+          --project '$(System.TeamProject)' \
+          --group-name '${{ parameters.environmentName }}' \
+          --query '[0].name' \
+          -o tsv)"
+
+        deploymentOutput() {
+          az deployment group show \
+            --name "Infrastructure-$(Build.BuildId)" \
+            --resource-group $(resourceGroupName) \
+            --query properties.outputs.${1}.value \
+            -o tsv
+        }
+
+        updateGroupVariable() {
+          az pipelines variable-group variable update \
+            --org '$(System.CollectionUri)' \
+            --project '$(System.TeamProject)' \
+            --id "${groupId}" \
+            --name "${1}" \
+            --value "${2}"
+        }
+
+        # Update library group variables
+        updateGroupVariable acrLoginServer "$(deploymentOutput acrLoginServer)"
+        updateGroupVariable azureServiceOperatorClientId "$(deploymentOutput azureServiceOperatorClientId)"
+
+# vim: set ts=2 sts=2 sw=2 et:
