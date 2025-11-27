@@ -26,12 +26,12 @@ resource credential 'Microsoft.ManagedIdentity/userAssignedIdentities/federatedI
   }
 }
 
-resource roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(resourceGroup().id, contributorRoleId, asoParams.managedIdentityName)
-  properties: {
-    principalId: managedIdentity.properties.principalId
-    principalType: 'ServicePrincipal'
+module rgContributor './rg-role-assignment.bicep' = {
+  name: 'rgContributor'
+  scope: resourceGroup()
+  params: {
     roleDefinitionId: contributorRoleId
+    principalObjectId: managedIdentity.properties.principalId
   }
 }
 

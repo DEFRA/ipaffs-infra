@@ -78,7 +78,7 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2025-07-01' = {
 var acrPullRoleId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '7f951dda-4ed3-4680-a7ca-43fe172d538d')
 var networkContributorRoleId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '4d97b98b-1d4f-4787-a291-c67834d212e7')
 
-module acrRole './acr-role.bicep' = {
+module acrPull './acr-role-assignment.bicep' = {
   name: 'acrPull'
   scope: resourceGroup()
   params: {
@@ -88,7 +88,7 @@ module acrRole './acr-role.bicep' = {
   }
 }
 
-module netRole './vnet-role.bicep' = {
+module vnetNetworkContributor './vnet-role-assignment.bicep' = {
   name: 'vnetNetworkContributor'
   scope: resourceGroup()
   params: {
