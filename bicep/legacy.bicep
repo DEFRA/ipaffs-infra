@@ -5,7 +5,7 @@ param sejParams object
 param environment string
 
 param createdDate string = utcNow('yyyy-MM-dd')
-param deploymentId = uniqueString(utcNow())
+param deploymentId string = uniqueString(utcNow())
 param location string = resourceGroup().location
 
 var databaseNames = [
