@@ -42,7 +42,7 @@ steps:
 
   - task: AzureCLI@2
     displayName: Deploy - Main
-    #condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+    condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
     inputs:
       azureSubscription: $(serviceConnection)
       scriptType: bash
@@ -57,7 +57,7 @@ steps:
 
   - task: AzureCLI@2
     displayName: Wait for Deployment - Main
-    #condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+    condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
     inputs:
       azureSubscription: $(serviceConnection)
       scriptType: bash
@@ -71,7 +71,7 @@ steps:
   - task: AzureCLI@2
     name: StoreLibraryVars
     displayName: Store Library Variables
-    #condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+    condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
     env:
       ADO_ORG_URL: $(System.CollectionUri)
       ADO_PROJECT: $(System.TeamProject)

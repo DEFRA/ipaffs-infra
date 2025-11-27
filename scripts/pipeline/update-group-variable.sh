@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -x
+set -ex
 
 # Get the ID of the library variable group
 groupId="$(az pipelines variable-group list \
