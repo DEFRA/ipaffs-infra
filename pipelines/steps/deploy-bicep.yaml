@@ -84,7 +84,7 @@ steps:
           --org '$(System.CollectionUri)' \
           --project '$(System.TeamProject)' \
           --group-name '${{ parameters.environmentName }}' \
-          --query '[0].name' \
+          --query '[0].id' \
           -o tsv)"
 
         deploymentOutput() {
