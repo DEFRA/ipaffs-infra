@@ -1,6 +1,7 @@
 targetScope = 'resourceGroup'
 
 param acrParams object
+param deploymentId string
 param location string
 param subnetIds array
 param tags object

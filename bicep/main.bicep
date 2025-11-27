@@ -13,8 +13,9 @@ param nsgParams object
 param sqlParams object
 param vnetParams object
 
-param location string = resourceGroup().location
 param createdDate string = utcNow('yyyy-MM-dd')
+param deploymentId string = uniqueString(utcNow())
+param location string = resourceGroup().location
 
 var tags = union(loadJsonContent('default-tags.json'), {
   CreatedDate: createdDate
@@ -23,10 +24,11 @@ var tags = union(loadJsonContent('default-tags.json'), {
 })
 
 module acr './modules/acr.bicep' = {
-  name: 'acr'
+  name: 'acr-${deploymentId}'
   scope: resourceGroup()
   params: {
     acrParams: acrParams
+    deploymentId: deploymentId
     location: location
     subnetIds: vnet.outputs.subnetIds
     tags: tags
@@ -37,11 +39,12 @@ module acr './modules/acr.bicep' = {
 }
 
 module aks './modules/aks.bicep' = {
-  name: 'aks'
+  name: 'aks-${deploymentId}'
   scope: resourceGroup()
   params: {
     acrName: acr.outputs.acrName
     aksParams: aksParams
+    deploymentId: deploymentId
     location: location
     tags: tags
     vnetName: vnet.outputs.vnetName
@@ -52,10 +55,11 @@ module aks './modules/aks.bicep' = {
 }
 
 module aso './modules/azure-service-operator.bicep' = {
-  name: 'aso'
+  name: 'aso-${deploymentId}'
   scope: resourceGroup()
   params: {
     asoParams: asoParams
+    deploymentId: deploymentId
     oidcIssuerUrl: aks.outputs.oidcIssuerUrl
     location: location
     tags: tags
@@ -63,9 +67,10 @@ module aso './modules/azure-service-operator.bicep' = {
 }
 
 module keyVault './modules/keyvault.bicep' = {
-  name: 'keyVault'
+  name: 'keyVault-${deploymentId}'
   scope: resourceGroup()
   params: {
+    deploymentId: deploymentId
     keyVaultParams: keyVaultParams
     location: location
     subnetIds: vnet.outputs.subnetIds
@@ -78,9 +83,10 @@ module keyVault './modules/keyvault.bicep' = {
 }
 
 module nsg './modules/network-security-groups.bicep' = {
-  name: 'nsg'
+  name: 'nsg-${deploymentId}'
   scope: resourceGroup()
   params: {
+    deploymentId: deploymentId
     location: location
     tags: tags
     nsgParams: nsgParams
@@ -91,9 +97,10 @@ module nsg './modules/network-security-groups.bicep' = {
 }
 
 module sql './modules/sql.bicep' = {
-  name: 'sql'
+  name: 'sql-${deploymentId}'
   scope: resourceGroup()
   params: {
+    deploymentId: deploymentId
     location: location
     sqlParams: sqlParams
     subnetIds: vnet.outputs.subnetIds
@@ -103,9 +110,10 @@ module sql './modules/sql.bicep' = {
 }
 
 module vnet './modules/virtual-network.bicep' = {
-  name: 'vnet'
+  name: 'vnet-${deploymentId}'
   scope: resourceGroup()
   params: {
+    deploymentId: deploymentId
     location: location
     tags: tags
     vnetParams: vnetParams
@@ -113,6 +121,10 @@ module vnet './modules/virtual-network.bicep' = {
 }
 
 output acrLoginServer string = acr.outputs.acrLoginServer
+output acrName string = acr.outputs.acrName
+output aksClusterName string = aks.outputs.aksClusterName
+output aksOidcIssuer string = aks.outputs.oidcIssuerUrl
 output azureServiceOperatorClientId string = aso.outputs.clientId
+output sqlAdminGroupId string = sql.outputs.sqlAdminGroupId
 
 // vim: set ts=2 sts=2 sw=2 et:

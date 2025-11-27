@@ -1,5 +1,6 @@
 targetScope = 'resourceGroup'
 
+param deploymentId string
 param location string
 param sejParams object
 param tags object
