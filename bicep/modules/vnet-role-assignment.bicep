@@ -1,8 +1,9 @@
 targetScope = 'resourceGroup'
 
-param vnetName string
-param roleDefinitionId string
+param deploymentId string
 param principalObjectId string
+param roleDefinitionId string
+param vnetName string
 
 resource vnet 'Microsoft.Network/virtualNetworks@2024-10-01' existing = {
   name: vnetName

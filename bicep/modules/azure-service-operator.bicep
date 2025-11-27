@@ -1,6 +1,7 @@
 targetScope = 'resourceGroup'
 
 param asoParams object
+param deploymentId string
 param location string
 param oidcIssuerUrl string
 param tags object
@@ -30,8 +31,9 @@ module rgContributor './rg-role-assignment.bicep' = {
   name: 'rgContributor'
   scope: resourceGroup()
   params: {
-    roleDefinitionId: contributorRoleId
+    deploymentId: deploymentId
     principalObjectId: managedIdentity.properties.principalId
+    roleDefinitionId: contributorRoleId
   }
 }
 

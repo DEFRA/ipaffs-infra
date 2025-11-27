@@ -2,6 +2,7 @@ targetScope = 'resourceGroup'
 
 param acrName string
 param aksParams object
+param deploymentId string
 param location string
 param tags object
 param vnetName string
@@ -79,22 +80,24 @@ var acrPullRoleId = subscriptionResourceId('Microsoft.Authorization/roleDefiniti
 var networkContributorRoleId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '4d97b98b-1d4f-4787-a291-c67834d212e7')
 
 module acrPull './acr-role-assignment.bicep' = {
-  name: 'acrPull'
+  name: 'acrPull-${deploymentId}'
   scope: resourceGroup()
   params: {
     acrName: acrName
-    roleDefinitionId: acrPullRoleId
+    deploymentId: deploymentId
     principalObjectId: aksCluster.properties.identityProfile.kubeletIdentity.objectId
+    roleDefinitionId: acrPullRoleId
   }
 }
 
 module vnetNetworkContributor './vnet-role-assignment.bicep' = {
-  name: 'vnetNetworkContributor'
+  name: 'vnetNetworkContributor-${deploymentId}'
   scope: resourceGroup()
   params: {
-    vnetName: vnetName
-    roleDefinitionId: networkContributorRoleId
+    deploymentId: deploymentId
     principalObjectId: aksCluster.identity.principalId
+    roleDefinitionId: networkContributorRoleId
+    vnetName: vnetName
   }
 }
 

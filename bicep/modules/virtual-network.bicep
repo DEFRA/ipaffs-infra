@@ -1,5 +1,6 @@
 targetScope = 'resourceGroup'
 
+param deploymentId string
 param location string
 param tags object
 param vnetParams object
