@@ -72,44 +72,22 @@ steps:
     name: StoreLibraryVars
     displayName: Store Library Variables
     #condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+    env:
+      ADO_ORG_URL: $(System.CollectionUri)
+      ADO_PROJECT: $(System.TeamProject)
+      ADO_GROUP_NAME: ${{ parameters.environmentName }}
+      DEPLOYMENT_NAME: Infrastructure-$(Build.BuildId)
+      RESOURCE_GROUP: $(resourceGroupName)
     inputs:
       azureSubscription: $(serviceConnection)
       scriptType: bash
       scriptLocation: inlineScript
       inlineScript: |
-        set -x
-
-        # Get the ID of the library variable group
-        groupId="$(az pipelines variable-group list \
-          --org '$(System.CollectionUri)' \
-          --project '$(System.TeamProject)' \
-          --group-name '${{ parameters.environmentName }}' \
-          --query '[0].id' \
-          -o tsv)"
-
-        deploymentOutput() {
-          az deployment group show \
-            --name "Infrastructure-$(Build.BuildId)" \
-            --resource-group $(resourceGroupName) \
-            --query properties.outputs.${1}.value \
-            -o tsv
-        }
-
-        updateGroupVariable() {
-          az pipelines variable-group variable update \
-            --org '$(System.CollectionUri)' \
-            --project '$(System.TeamProject)' \
-            --id "${groupId}" \
-            --name "${1}" \
-            --value "${2}"
-        }
-
-        # Update library group variables
-        updateGroupVariable acrLoginServer "$(deploymentOutput acrLoginServer)"
-        updateGroupVariable acrName "$(deploymentOutput acrName)"
-        updateGroupVariable azureServiceOperatorClientId "$(deploymentOutput azureServiceOperatorClientId)"
-        updateGroupVariable aksOidcIssuer "$(deploymentOutput aksOidcIssuer)"
-        updateGroupVariable kubernetesCluster "$(deploymentOutput aksClusterName)"
-        updateGroupVariable sqlAdminGroupId "$(deploymentOutput sqlAdminGroupId)"
+        scripts/pipeline/update-group-variable.sh acrLoginServer acrLoginServer
+        scripts/pipeline/update-group-variable.sh acrName acrName
+        scripts/pipeline/update-group-variable.sh azureServiceOperatorClientId azureServiceOperatorClientId
+        scripts/pipeline/update-group-variable.sh aksOidcIssuer aksOidcIssuer
+        scripts/pipeline/update-group-variable.sh kubernetesCluster aksClusterName
+        scripts/pipeline/update-group-variable.sh sqlAdminGroupId sqlAdminGroupId
 
 # vim: set ts=2 sts=2 sw=2 et:
