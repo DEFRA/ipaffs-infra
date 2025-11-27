@@ -21,7 +21,6 @@ stages:
     jobs:
       - job: RunHelmfile
         displayName: Run Helmfile to deploy charts
-        # TODO: Can variables go at job level if so remove from other template at step level
         variables:
           - group: "${{ parameters.environmentName }}"
           - template: "/pipelines/vars/common.yaml"
@@ -30,7 +29,6 @@ stages:
         steps:
           - checkout: self
 
-          # TODO: Still needed?
           - task: AzureCLI@2
             name: LoginToContainerRegistry
             displayName: Login to Azure Container Registry
@@ -70,6 +68,6 @@ stages:
                 curl -L https://github.com/helmfile/helmfile/releases/download/v1.1.9/helmfile_1.1.9_linux_amd64.tar.gz | tar -xz && \
                 chmod +x ./helmfile && \
                 ./helmfile init --force && \
-                ./helmfile apply
+                ./helmfile apply --debug
 
 ## vim: set ts=2 sts=2 sw=2 et:
