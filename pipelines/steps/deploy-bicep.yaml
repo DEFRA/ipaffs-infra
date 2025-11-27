@@ -64,6 +64,8 @@ steps:
       scriptType: bash
       scriptLocation: inlineScript
       inlineScript: |
+        set -x
+
         # Get the ID of the library variable group
         groupId="$(az pipelines variable-group list \
           --org '$(System.CollectionUri)' \
