@@ -56,6 +56,19 @@ steps:
           --parameters tenantId="$(tenantId)"
 
   - task: AzureCLI@2
+    displayName: Wait for Deployment - Main
+    #condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+    inputs:
+      azureSubscription: $(serviceConnection)
+      scriptType: bash
+      scriptLocation: inlineScript
+      inlineScript: |
+        az deployment group wait \
+          --name "Infrastructure-$(Build.BuildId)" \
+          --resource-group $(resourceGroupName) \
+          --created
+
+  - task: AzureCLI@2
     name: StoreLibraryVars
     displayName: Store Library Variables
     #condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
