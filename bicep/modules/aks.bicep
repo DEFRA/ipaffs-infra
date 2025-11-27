@@ -101,6 +101,7 @@ module vnetNetworkContributor './vnet-role-assignment.bicep' = {
   }
 }
 
+output aksClusterName string = aksCluster.name
 output kubeletPrincipalId string = aksCluster.properties.identityProfile.kubeletIdentity.objectId
 output oidcIssuerUrl string = aksCluster.properties.oidcIssuerProfile.issuerURL
 

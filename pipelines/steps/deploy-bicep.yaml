@@ -108,5 +108,8 @@ steps:
         updateGroupVariable acrLoginServer "$(deploymentOutput acrLoginServer)"
         updateGroupVariable acrName "$(deploymentOutput acrName)"
         updateGroupVariable azureServiceOperatorClientId "$(deploymentOutput azureServiceOperatorClientId)"
+        updateGroupVariable aksOidcIssuer "$(deploymentOutput aksOidcIssuer)"
+        updateGroupVariable kubernetesCluster "$(deploymentOutput aksClusterName)"
+        updateGroupVariable sqlAdminGroupId "$(deploymentOutput sqlAdminGroupId)"
 
 # vim: set ts=2 sts=2 sw=2 et:

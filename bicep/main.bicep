@@ -122,6 +122,9 @@ module vnet './modules/virtual-network.bicep' = {
 
 output acrLoginServer string = acr.outputs.acrLoginServer
 output acrName string = acr.outputs.acrName
+output aksClusterName string = aks.outputs.aksClusterName
+output aksOidcIssuer string = aks.outputs.oidcIssuerUrl
 output azureServiceOperatorClientId string = aso.outputs.clientId
+output sqlAdminGroupId string = sql.outputs.sqlAdminGroupId
 
 // vim: set ts=2 sts=2 sw=2 et:
