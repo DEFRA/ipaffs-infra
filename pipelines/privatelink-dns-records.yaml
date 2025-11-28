@@ -23,37 +23,8 @@ resources:
       ref: refs/tags/Release-v6-latest
 
 stages:
-  - stage: PrivateLinkDNSRecords
-    displayName: Set PrivateLink DNS Records
-    variables:
-      - template: /templates/vars/common.yaml@PipelineCommon
-      - template: /templates/vars/regional/northeurope.yaml@PipelineCommon
-    jobs:
-      - deployment: SetDnsRecords
-        displayName: Set DNS Records
-        # condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
-        environment:
-          name: "${{ parameters.environmentName }}"
-        strategy:
-          runOnce:
-            deploy:
-              steps:
-                - template: /templates/steps/powershell.yaml@PipelineCommon
-                  parameters:
-                    azureResourceManagerConnection: AZR-MST-PrivateLinkDNS
-                    variables:
-                      projectServiceConnection: $(serviceConnection)
-                    scriptsList:
-                      - displayName: Resolve Private Endpoint IP for Azure SQL Server
-                        serviceConnectionVariableName: projectServiceConnection
-                        scriptPath: 'Get-ResourcePrivateEndPointsDnsRecordsAsJson.ps1@PipelineCommon'
-                        scriptArguments: >
-                          -ResourceGroupName '$(resourceGroupName)'
-                          -ResourceName 'POCIMPDBSSQ1401'
-
-                      - displayName: Set DNS record for Azure SQL Server
-                        scriptPath: 'Set-PrivateDnsRecordSet.ps1@PipelineCommon'
-                        scriptArguments: >
-                          -UpdateAllDnsZones $true
+  - template: /pipelines/stages/privatelink-dns-records.yaml
+    parameters:
+      environmentName: ${{ parameters.environmentName }}
 
 # vim: set ts=2 sts=2 sw=2 et:
