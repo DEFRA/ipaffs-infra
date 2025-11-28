@@ -2,9 +2,11 @@ parameters:
   - name: environmentName
     displayName: Environment
     type: string
-    default: POC
     values:
       - POC
+  - name: namespace
+    displayName: Namespace
+    type: string
   - name: migrationsClientId
     displayName: Migration Client Id
     type: string
@@ -60,6 +62,7 @@ stages:
               AZURE_MANAGED_IDENTITY_PRINCIPAL_NAME: $(servicePrincipalName)
               AZURE_MANAGED_IDENTITY_MIGRATIONS_CLIENT_ID: $(migrationsClientId)
               MIGRATIONS_IMAGE: "ipaffs/$(serviceName)-configuration:$(Build.BuildNumber)"
+              NAMESPACE: ${{ parameters.namespace }}
             inputs:
               azureSubscription: $(serviceConnection)
               scriptType: bash
