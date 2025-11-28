@@ -89,5 +89,6 @@ steps:
         scripts/pipeline/update-group-variable.sh aksOidcIssuer aksOidcIssuer
         scripts/pipeline/update-group-variable.sh kubernetesCluster aksClusterName
         scripts/pipeline/update-group-variable.sh sqlAdminGroupId sqlAdminGroupId
+        scripts/pipeline/update-group-variable.sh sqlServerName sqlServerName
 
 # vim: set ts=2 sts=2 sw=2 et:
