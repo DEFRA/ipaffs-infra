@@ -18,7 +18,6 @@ stages:
     jobs:
       - deployment: SetDnsRecords
         displayName: Set DNS Records
-        # condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
         environment:
           name: "${{ parameters.environmentName }}"
         strategy:
@@ -39,6 +38,7 @@ stages:
                           -ResourceName '$(acrName)'
 
                       - displayName: Set DNS record for Container Registry
+                        condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
                         scriptPath: 'Set-PrivateDnsRecordSet.ps1@PipelineCommon'
                         scriptArguments: >
                           -UpdateAllDnsZones $true
@@ -57,6 +57,7 @@ stages:
                           -ResourceName '$(sqlServerName)'
 
                       - displayName: Set DNS record for SQL Server
+                        condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
                         scriptPath: 'Set-PrivateDnsRecordSet.ps1@PipelineCommon'
                         scriptArguments: >
                           -UpdateAllDnsZones $true
