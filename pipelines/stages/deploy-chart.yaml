@@ -56,7 +56,7 @@ stages:
             displayName: Deploy Helm Charts
             env:
               ENVIRONMENT: ${{ lower(parameters.environmentName) }}
-              AZURE_LOCATION: $(azureLocation)
+              AZURE_LOCATION: $(location)
               AZURE_CONTAINER_REGISTRY_HOST: $(acrLoginServer)
               AZURE_MANAGED_IDENTITY_CLIENT_ID: $(serviceClientId)
               AZURE_MANAGED_IDENTITY_PRINCIPAL_NAME: $(servicePrincipalName)
