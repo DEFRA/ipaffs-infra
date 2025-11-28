@@ -126,5 +126,6 @@ output aksClusterName string = aks.outputs.aksClusterName
 output aksOidcIssuer string = aks.outputs.oidcIssuerUrl
 output azureServiceOperatorClientId string = aso.outputs.clientId
 output sqlAdminGroupId string = sql.outputs.sqlAdminGroupId
+output sqlServerName string = sql.outputs.sqlServerName
 
 // vim: set ts=2 sts=2 sw=2 et:
