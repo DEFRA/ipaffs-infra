@@ -1,5 +1,6 @@
 targetScope = 'resourceGroup'
 
+param deploymentId string
 param location string
 param tags object
 param vnetParams object
@@ -42,6 +43,7 @@ module virtualNetwork 'br/SharedDefraRegistry:network.virtual-network:0.4.2' = {
 }
 
 output vnetName string = virtualNetwork.outputs.name
+output vnetId string = virtualNetwork.outputs.resourceId
 output subnetIds array = virtualNetwork.outputs.subnetResourceIds
 
 // vim: set ts=2 sts=2 sw=2 et:

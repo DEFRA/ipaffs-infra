@@ -1,0 +1,48 @@
+---
+trigger:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - pipelines/privatelink-dns-records.yaml
+      - pipelines/stages/privatelink-dns-records.yaml
+
+pr:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - pipelines/privatelink-dns-records.yaml
+      - pipelines/stages/privatelink-dns-records.yaml
+
+pool:
+  name: DEFRA-COMMON-ubuntu2204-SSV5
+
+parameters:
+  - name: environmentName
+    displayName: Environment
+    type: string
+    default: POC
+    values:
+      - POC
+
+variables:
+  - group: "${{ parameters.environmentName }}"
+  - template: "vars/common.yaml"
+  - template: "vars/${{ lower(parameters.environmentName) }}.yaml"
+
+resources:
+  repositories:
+    - repository: PipelineCommon
+      name: DEFRA-DEVOPS-COMMON/Defra.Pipeline.Common
+      type: git
+      ref: refs/tags/Release-v6-latest
+
+stages:
+  - template: /pipelines/stages/privatelink-dns-records.yaml
+    parameters:
+      environmentName: ${{ parameters.environmentName }}
+
+# vim: set ts=2 sts=2 sw=2 et:

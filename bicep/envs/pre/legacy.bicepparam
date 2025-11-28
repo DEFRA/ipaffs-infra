@@ -5,6 +5,7 @@ param environment = 'PRE'
 param dbwParams = {
   name: 'PREIMPDBSDBW001'
   adminEntraGroup: 'AAG-Users-IPAFFS-Support-Admin'
+  kustoName: 'PREIMPDBSKUS001'
   kustoSku: {
     name: 'Standard_E2ads_v5'
     tier: 'Standard'

@@ -1,8 +1,9 @@
 targetScope = 'resourceGroup'
 
 param acrName string
-param roleDefinitionId string
+param deploymentId string
 param principalObjectId string
+param roleDefinitionId string
 
 resource acr 'Microsoft.ContainerRegistry/registries@2025-04-01' existing = {
   name: acrName

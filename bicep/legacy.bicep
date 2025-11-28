@@ -4,8 +4,9 @@ param sejParams object
 @allowed(['SND', 'TST', 'PRE', 'PRD'])
 param environment string
 
-param location string = resourceGroup().location
 param createdDate string = utcNow('yyyy-MM-dd')
+param deploymentId string = uniqueString(utcNow())
+param location string = resourceGroup().location
 
 var databaseNames = [
   'notification-microservice'
@@ -45,10 +46,11 @@ var tags = union(loadJsonContent('default-tags.json'), {
 })
 
 module dbw './modules/database-watcher.bicep' = {
-  name: 'dbw'
+  name: 'dbw-${deploymentId}'
   scope: resourceGroup()
   params: {
     databaseNames: databaseNames
+    deploymentId: deploymentId
     location: location
     dbwParams: dbwParams
     tags: tags
@@ -56,9 +58,10 @@ module dbw './modules/database-watcher.bicep' = {
 }
 
 module sej './modules/sql-elastic-jobs.bicep' = {
-  name: 'sej'
+  name: 'sej-${deploymentId}'
   scope: resourceGroup()
   params: {
+    deploymentId: deploymentId
     location: location
     sejParams: sejParams
     tags: tags

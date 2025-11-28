@@ -2,13 +2,14 @@ targetScope = 'resourceGroup'
 
 param databaseNames array
 param dbwParams object
+param deploymentId string
 param location string
 param tags object
 
 var sqlServerHostname = '${last(split(dbwParams.sqlServerResourceId, '/'))}${environment().suffixes.sqlServerHostname}'
 
 resource kustoCluster 'Microsoft.Kusto/Clusters@2024-04-13' = {
-  name: dbwParams.name
+  name: dbwParams.kustoName
   location: location
   tags: tags
   sku: {
@@ -51,7 +52,7 @@ resource kustoCluster 'Microsoft.Kusto/Clusters@2024-04-13' = {
 
 resource kustoDataStore 'Microsoft.Kusto/Clusters/Databases@2024-04-13' = {
   parent: kustoCluster
-  name: '${dbwParams.name}-data-store'
+  name: '${dbwParams.kustoName}-data-store'
   location: location
   kind: 'ReadWrite'
   properties: {
@@ -75,7 +76,7 @@ resource kustoDataStoreWatcherAdmin 'Microsoft.Kusto/Clusters/Databases/Principa
   parent: kustoDataStore
   name: 'bb83bb91-7227-53a0-8c2e-84c080085433'
   properties: {
-    principalId: '4503cc7e-addf-40d8-80a7-2faf08b77b71'
+    principalId: dbWatcher.identity.principalId
     role: 'Admin'
     principalType: 'App'
     tenantId: '770a2450-0227-4c62-90c7-4e38537f1102'

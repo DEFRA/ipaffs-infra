@@ -1,12 +1,13 @@
 targetScope = 'resourceGroup'
 
 param acrParams object
+param deploymentId string
 param location string
 param subnetIds array
 param tags object
 
 resource acr 'Microsoft.ContainerRegistry/registries@2025-04-01' = {
-  name: acrParams.Name
+  name: acrParams.name
   location: location
   tags: tags
 
@@ -20,7 +21,7 @@ resource acr 'Microsoft.ContainerRegistry/registries@2025-04-01' = {
 }
 
 resource acrPrivateEndpoint 'Microsoft.Network/privateEndpoints@2024-10-01' = [for subnetId in subnetIds: {
-  name: '${acrParams.Name}-${last(split(subnetId, '/'))}'
+  name: '${acrParams.name}-${last(split(subnetId, '/'))}'
   location: location
   tags: tags
 

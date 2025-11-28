@@ -1,6 +1,7 @@
 targetScope = 'resourceGroup'
 
 param asoParams object
+param deploymentId string
 param location string
 param oidcIssuerUrl string
 param tags object
@@ -26,11 +27,12 @@ resource credential 'Microsoft.ManagedIdentity/userAssignedIdentities/federatedI
   }
 }
 
-resource roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(resourceGroup().id, contributorRoleId, asoParams.managedIdentityName)
-  properties: {
-    principalId: managedIdentity.properties.principalId
-    principalType: 'ServicePrincipal'
+module rgContributor './rg-role-assignment.bicep' = {
+  name: 'rgContributor'
+  scope: resourceGroup()
+  params: {
+    deploymentId: deploymentId
+    principalObjectId: managedIdentity.properties.principalId
     roleDefinitionId: contributorRoleId
   }
 }

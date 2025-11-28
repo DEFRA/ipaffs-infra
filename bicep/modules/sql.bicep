@@ -1,5 +1,6 @@
 targetScope = 'resourceGroup'
 
+param deploymentId string
 param location string
 param sqlParams object
 param subnetIds array
@@ -77,5 +78,8 @@ resource sqlPrivateEndpoint 'Microsoft.Network/privateEndpoints@2024-10-01' = [f
     ]
   }
 }]
+
+output sqlAdminGroupId string = sqlServer.properties.administrators.sid
+output sqlServerName string = sqlServer.name
 
 // vim: set ts=2 sts=2 sw=2 et:

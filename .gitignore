@@ -1,8 +1,10 @@
 deploy/tls/*
-helm-charts/*/charts/
-helm-charts/*/tmpcharts*
 helm-charts/*-secrets-values.yaml
 helm-charts/*/Chart.lock
+helm-charts/*/charts/
+helm-charts/*/tmpcharts*
+tmp/
+**/*.tgz
 **/.idea/
 *.iml
 *.tgz
