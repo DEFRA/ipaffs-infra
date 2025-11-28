@@ -1,4 +1,22 @@
 ---
+trigger:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - pipelines/privatelink-dns-records.yaml
+      - pipelines/stages/privatelink-dns-records.yaml
+
+pr:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - pipelines/privatelink-dns-records.yaml
+      - pipelines/stages/privatelink-dns-records.yaml
+
 pool:
   name: DEFRA-COMMON-ubuntu2204-SSV5
 
