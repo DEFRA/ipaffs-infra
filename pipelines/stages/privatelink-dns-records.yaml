@@ -31,14 +31,32 @@ stages:
                     variables:
                       projectServiceConnection: $(serviceConnection)
                     scriptsList:
-                      - displayName: Resolve Private Endpoint IP for Azure SQL Server
+                      - displayName: Resolve Private Endpoint IPs for Container Registry
+                        serviceConnectionVariableName: projectServiceConnection
+                        scriptPath: 'Get-ResourcePrivateEndPointsDnsRecordsAsJson.ps1@PipelineCommon'
+                        scriptArguments: >
+                          -ResourceGroupName '$(resourceGroupName)'
+                          -ResourceName '$(acrName)'
+
+                      - displayName: Set DNS record for Container Registry
+                        scriptPath: 'Set-PrivateDnsRecordSet.ps1@PipelineCommon'
+                        scriptArguments: >
+                          -UpdateAllDnsZones $true
+
+                - template: /templates/steps/powershell.yaml@PipelineCommon
+                  parameters:
+                    azureResourceManagerConnection: AZR-MST-PrivateLinkDNS
+                    variables:
+                      projectServiceConnection: $(serviceConnection)
+                    scriptsList:
+                      - displayName: Resolve Private Endpoint IPs for SQL Server
                         serviceConnectionVariableName: projectServiceConnection
                         scriptPath: 'Get-ResourcePrivateEndPointsDnsRecordsAsJson.ps1@PipelineCommon'
                         scriptArguments: >
                           -ResourceGroupName '$(resourceGroupName)'
                           -ResourceName '$(sqlServerName)'
 
-                      - displayName: Set DNS record for Azure SQL Server
+                      - displayName: Set DNS record for SQL Server
                         scriptPath: 'Set-PrivateDnsRecordSet.ps1@PipelineCommon'
                         scriptArguments: >
                           -UpdateAllDnsZones $true
