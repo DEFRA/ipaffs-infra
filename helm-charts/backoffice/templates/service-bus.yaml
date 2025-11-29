@@ -10,6 +10,7 @@ metadata:
     serviceoperator.azure.com/reconcile-policy: detach-on-delete
 spec:
   location: {{ .Values.azure.location }}
+  minimumTlsVersion: 1.2
   owner:
     name: {{ template "ipaffs-common.azure.resourceGroup" . }}
   sku:
