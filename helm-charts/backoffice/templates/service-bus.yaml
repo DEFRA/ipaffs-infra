@@ -28,7 +28,7 @@ metadata:
     serviceoperator.azure.com/reconcile-policy: manage
 spec:
   owner:
-    name: {{ template "ipaffs-common.azure.serviceBusNamespace" . }}
+    name: {{ template "ipaffs-common.azure.serviceBusNamespace" $. }}
 
 {{ end }}
 
@@ -44,7 +44,7 @@ metadata:
     serviceoperator.azure.com/reconcile-policy: manage
 spec:
   owner:
-    name: {{ template "ipaffs-common.azure.serviceBusNamespace" . }}
+    name: {{ template "ipaffs-common.azure.serviceBusNamespace" $. }}
 
 {{ end }}
 
