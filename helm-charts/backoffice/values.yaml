@@ -9,7 +9,7 @@ database:
   enabled: false
 
 redis:
-  enabled: true
+  enabled: false
 
 serviceBus:
   enabled: false
