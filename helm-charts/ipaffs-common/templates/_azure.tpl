@@ -4,21 +4,27 @@ Azure Resource Names
 {{- define "ipaffs-common.azure.databaseName" -}}
 {{- printf "%s-%s" .Values.service .Release.Namespace }}
 {{- end }}
+
 {{- define "ipaffs-common.azure.managedIdentityBaseName" -}}
 {{- printf "%simpinfmi1401" .Values.environment }}
 {{- end }}
+
 {{- define "ipaffs-common.azure.redisName" -}}
 {{- printf "%simpinfrd1401-%s" .Values.environment .Release.Namespace }}
 {{- end }}
+
 {{- define "ipaffs-common.azure.resourceGroup" -}}
 {{- printf "%simpnetns1401" .Values.environment }}
 {{- end }}
+
 {{- define "ipaffs-common.azure.serviceBusNamespace" -}}
 {{- printf "%simpinfsb1401-%s" .Values.environment .Release.Namespace }}
 {{- end }}
+
 {{- define "ipaffs-common.azure.sqlServer" -}}
 {{- printf "%simpdbssq1401" .Values.environment }}
 {{- end }}
+
 {{- define "ipaffs-common.azure.sqlServerHostname" -}}
 {{- printf "%simpdbssq1401.database.windows.net" .Values.environment }}
 {{- end }}
