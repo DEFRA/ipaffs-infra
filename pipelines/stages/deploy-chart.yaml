@@ -58,9 +58,9 @@ stages:
               ENVIRONMENT: ${{ lower(parameters.environmentName) }}
               AZURE_LOCATION: $(location)
               AZURE_CONTAINER_REGISTRY_HOST: $(acrLoginServer)
-              AZURE_MANAGED_IDENTITY_CLIENT_ID: $(serviceClientId)
-              AZURE_MANAGED_IDENTITY_PRINCIPAL_NAME: $(servicePrincipalName)
-              AZURE_MANAGED_IDENTITY_MIGRATIONS_CLIENT_ID: $(migrationsClientId)
+              AZURE_MANAGED_IDENTITY_CLIENT_ID: ${{ parameters.serviceClientId }}
+              AZURE_MANAGED_IDENTITY_PRINCIPAL_NAME: ${{ parameters.servicePrincipalName }}
+              AZURE_MANAGED_IDENTITY_MIGRATIONS_CLIENT_ID: ${{ parameters.migrationsClientId }}
               MIGRATIONS_IMAGE: "ipaffs/$(serviceName)-configuration:$(Build.BuildNumber)"
               NAMESPACE: ${{ parameters.namespace }}
             inputs:
