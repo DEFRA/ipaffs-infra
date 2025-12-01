@@ -19,6 +19,9 @@ parameters:
 
 stages:
   - stage: DeployChart
+    variables:
+      - name: bob
+        value: $[stageDependencies.DeployIdentities.MigrationsIdentity.outputs['CreateIdentity.clientId']]
     displayName: Deploy Helm Charts
     jobs:
       - job: RunHelmfile
@@ -63,11 +66,13 @@ stages:
               AZURE_MANAGED_IDENTITY_MIGRATIONS_CLIENT_ID: ${{ parameters.migrationsClientId }}
               MIGRATIONS_IMAGE: "ipaffs/$(serviceName)-configuration:$(Build.BuildNumber)"
               NAMESPACE: ${{ parameters.namespace }}
+              BOB: $(bob)
             inputs:
               azureSubscription: $(serviceConnection)
               scriptType: bash
               scriptLocation: inlineScript
               inlineScript: |
+                echo bob: ${BOB}
                 curl -L https://github.com/helmfile/helmfile/releases/download/v1.1.9/helmfile_1.1.9_linux_amd64.tar.gz | tar -xz && \
                 chmod +x ./helmfile && \
                 ./helmfile init --force && \
