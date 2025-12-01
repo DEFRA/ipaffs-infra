@@ -7,15 +7,6 @@ parameters:
   - name: namespace
     displayName: Namespace
     type: string
-  - name: migrationsClientId
-    displayName: Migration Client Id
-    type: string
-  - name: serviceClientId
-    displayName: Service Client Id
-    type: string
-  - name: servicePrincipalName
-    displayName: Service Principal Name
-    type: string
 
 stages:
   - stage: DeployChart
