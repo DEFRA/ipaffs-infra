@@ -7,18 +7,16 @@ parameters:
   - name: namespace
     displayName: Namespace
     type: string
-  - name: migrationsClientId
-    displayName: Migration Client Id
-    type: string
-  - name: serviceClientId
-    displayName: Service Client Id
-    type: string
-  - name: servicePrincipalName
-    displayName: Service Principal Name
-    type: string
 
 stages:
   - stage: DeployChart
+    variables:
+      - name: migrationsClientId
+        value: $[stageDependencies.DeployIdentities.MigrationsIdentity.outputs['CreateIdentity.clientId']]
+      - name: serviceClientId
+        value: $[stageDependencies.DeployIdentities.ServiceIdentity.outputs['CreateIdentity.clientId']]
+      - name: servicePrincipalName
+        value: $[stageDependencies.DeployIdentities.ServiceIdentity.outputs['CreateIdentity.principalName']]
     displayName: Deploy Helm Charts
     jobs:
       - job: RunHelmfile
