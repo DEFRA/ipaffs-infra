@@ -20,8 +20,12 @@ parameters:
 stages:
   - stage: DeployChart
     variables:
-      - name: bob
+      - name: migrationsClientId
         value: $[stageDependencies.DeployIdentities.MigrationsIdentity.outputs['CreateIdentity.clientId']]
+      - name: serviceClientId
+        value: $[stageDependencies.DeployIdentities.ServiceIdentity.outputs['CreateIdentity.clientId']]
+      - name: servicePrincipalName
+        value: $[stageDependencies.DeployIdentities.ServiceIdentity.outputs['CreateIdentity.principalName']]
     displayName: Deploy Helm Charts
     jobs:
       - job: RunHelmfile
@@ -61,18 +65,16 @@ stages:
               ENVIRONMENT: ${{ lower(parameters.environmentName) }}
               AZURE_LOCATION: $(location)
               AZURE_CONTAINER_REGISTRY_HOST: $(acrLoginServer)
-              AZURE_MANAGED_IDENTITY_CLIENT_ID: ${{ parameters.serviceClientId }}
-              AZURE_MANAGED_IDENTITY_PRINCIPAL_NAME: ${{ parameters.servicePrincipalName }}
-              AZURE_MANAGED_IDENTITY_MIGRATIONS_CLIENT_ID: ${{ parameters.migrationsClientId }}
+              AZURE_MANAGED_IDENTITY_CLIENT_ID: $(serviceClientId)
+              AZURE_MANAGED_IDENTITY_PRINCIPAL_NAME: $(servicePrincipalName)
+              AZURE_MANAGED_IDENTITY_MIGRATIONS_CLIENT_ID: $(migrationsClientId)
               MIGRATIONS_IMAGE: "ipaffs/$(serviceName)-configuration:$(Build.BuildNumber)"
               NAMESPACE: ${{ parameters.namespace }}
-              BOB: $(bob)
             inputs:
               azureSubscription: $(serviceConnection)
               scriptType: bash
               scriptLocation: inlineScript
               inlineScript: |
-                echo bob: ${BOB}
                 curl -L https://github.com/helmfile/helmfile/releases/download/v1.1.9/helmfile_1.1.9_linux_amd64.tar.gz | tar -xz && \
                 chmod +x ./helmfile && \
                 ./helmfile init --force && \
