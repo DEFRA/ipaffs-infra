@@ -60,12 +60,4 @@ resources: {}
   #   cpu: 100m
   #   memory: 128Mi
 
-redis:
-  enabled: true
-
-serviceBus:
-  enabled: false
-  queues: []
-  topics: []
-
 # vim: set ts=2 sts=2 sw=2 et:
