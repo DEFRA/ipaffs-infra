@@ -30,7 +30,6 @@ jobs:
           jdkArchitectureOption: 'x64'
           publishJUnitResults: true
           testResultsFiles: '**/surefire-reports/TEST-*.xml'
-          options: '--s settings.xml'
           goals: 'verify jacoco:report'
 
       - task: PublishCodeCoverageResults@2
