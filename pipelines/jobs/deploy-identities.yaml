@@ -1,12 +1,10 @@
 parameters:
   - name: environmentName
-    displayName: Environment
     type: string
     default: POC
     values:
       - POC
   - name: serviceName
-    displayName: ServiceName
     type: string
 
 jobs:
