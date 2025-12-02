@@ -1,0 +1,24 @@
+service: ""
+project: ipaffs
+environment: poc
+
+schedule: ""
+concurrencyPolicy: Forbid
+successfulJobsHistoryLimit: 3
+failedJobsHistoryLimit: 1
+suspend: false
+
+container:
+  image: ""
+  imagePullPolicy: Always
+  command: ""
+  args: []
+
+initContainer:
+  enabled: false
+
+env: []
+
+resources: {}
+
+# vim: set ts=2 sts=2 sw=2 et:
