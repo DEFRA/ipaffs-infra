@@ -4,12 +4,21 @@ parameters:
     default: POC
     values:
       - POC
+
+  - name: migrations
+    type: bool
+    default: false
+
+  - name: namespace
+    type: string
+
   - name: serviceName
     type: string
 
 jobs:
   - job: MigrationsIdentity
     displayName: Set up Migrations Identity
+    condition: eq(variables.migrations, true)
     variables:
       - group: "${{ parameters.environmentName }}"
       - template: "/pipelines/vars/common.yaml"
@@ -24,12 +33,12 @@ jobs:
         name: CreateIdentity
         displayName: Create Managed Identity and Federated Credential
         env:
-          MANAGED_IDENTITY_NAME: $(lowerResourceGroupName)-ipaffs-dev-${{ parameters.serviceName }}-migrations
+          MANAGED_IDENTITY_NAME: $(lowerResourceGroupName)-${{ parameters.namespace }}-${{ parameters.serviceName }}-migrations
           RESOURCE_GROUP_NAME: $(resourceGroupName)
           AKS_CREDENTIAL: ${{ parameters.serviceName }}-migration
           AKS_ISSUER: $(aksOidcIssuer)
           AKS_AUDIENCES: "api://AzureADTokenExchange"
-          AKS_SUBJECT: "system:serviceaccount:ipaffs-dev:${{ parameters.serviceName }}-migrations"
+          AKS_SUBJECT: "system:serviceaccount:${{ parameters.namespace }}:${{ parameters.serviceName }}-migrations"
         inputs:
           azureSubscription: $(serviceConnection)
           scriptType: bash
@@ -73,12 +82,12 @@ jobs:
         name: CreateIdentity
         displayName: Create Managed Identity and Federated Credential
         env:
-          MANAGED_IDENTITY_NAME: $(lowerResourceGroupName)-ipaffs-dev-${{ parameters.serviceName }}-service
+          MANAGED_IDENTITY_NAME: $(lowerResourceGroupName)-${{ parameters.namespace }}-${{ parameters.serviceName }}-service
           RESOURCE_GROUP_NAME: $(resourceGroupName)
           AKS_CREDENTIAL: ${{ parameters.serviceName }}-service
           AKS_ISSUER: $(aksOidcIssuer)
           AKS_AUDIENCES: "api://AzureADTokenExchange"
-          AKS_SUBJECT: "system:serviceaccount:ipaffs-dev:${{ parameters.serviceName }}-service"
+          AKS_SUBJECT: "system:serviceaccount:${{ parameters.namespace }}:${{ parameters.serviceName }}-service"
         inputs:
           azureSubscription: $(serviceConnection)
           scriptType: bash
