@@ -53,6 +53,7 @@ jobs:
           AZURE_MANAGED_IDENTITY_CLIENT_ID: ${{ parameters.serviceClientId }}
           AZURE_MANAGED_IDENTITY_PRINCIPAL_NAME: ${{ parameters.servicePrincipalName }}
           AZURE_MANAGED_IDENTITY_MIGRATIONS_CLIENT_ID: ${{ parameters.migrationsClientId }}
+          CONTAINER_IMAGE: "ipaffs/$(serviceName):$(Build.BuildNumber)"
           MIGRATIONS_IMAGE: "ipaffs/$(serviceName)-configuration:$(Build.BuildNumber)"
           NAMESPACE: ${{ parameters.namespace }}
         inputs:
