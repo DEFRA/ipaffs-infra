@@ -10,6 +10,13 @@ parameters:
     values:
       - POC
 
+resources:
+  repositories:
+    - repository: PipelineCommon
+      name: DEFRA-DEVOPS-COMMON/Defra.Pipeline.Common
+      type: git
+      ref: refs/tags/Release-v6-latest
+
 variables:
   - group: "${{ parameters.environmentName }}"
   - template: "vars/common.yaml"
@@ -36,6 +43,10 @@ stages:
                 - template: steps/deploy-bicep.yaml
                   parameters:
                     environmentName: "${{ parameters.environmentName }}"
+
+  - template: /pipelines/stages/privatelink-dns-records.yaml
+    parameters:
+      environmentName: ${{ parameters.environmentName }}
 
   - stage: ImportAcrArtifacts
     displayName: Import ACR Artifacts
