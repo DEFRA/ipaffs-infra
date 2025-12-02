@@ -1,0 +1,45 @@
+parameters:
+  name: artifactPath
+  type: string
+
+jobs:
+  - job: Build
+    displayName: Build
+    condition: ne(variables['Build.SourceBranch'], 'refs/heads/main')
+    variables:
+      MAVEN_CACHE_FOLDER: $(Pipeline.Workspace)/.m2/repository
+      MAVEN_OPTS: '-Dmaven.repo.local=$(MAVEN_CACHE_FOLDER)'
+    steps:
+      - task: Cache@2
+        inputs:
+          key: 'maven | "$(Agent.OS)" | **/pom.xml'
+          restoreKeys: |
+            maven | "$(Agent.OS)"
+            maven
+          path: $(MAVEN_CACHE_FOLDER)
+        displayName: Cache Maven local repo
+
+      - task: Maven@4
+        displayName: 'Build and Test'
+        inputs:
+          mavenPomFile: 'service/pom.xml'
+          mavenOptions: '-Xmx3072m $(MAVEN_OPTS)'
+          javaHomeOption: 'JDKVersion'
+          jdkVersionOption: '1.21'
+          jdkArchitectureOption: 'x64'
+          publishJUnitResults: true
+          testResultsFiles: '**/surefire-reports/TEST-*.xml'
+          options: '--s settings.xml'
+          goals: 'verify jacoco:report'
+
+      - task: PublishCodeCoverageResults@2
+        displayName: 'Publish code coverage'
+        inputs:
+          summaryFileLocation: $(System.DefaultWorkingDirectory)/service/target/site/jacoco/jacoco.xml
+          pathToSources: $(System.DefaultWorkingDirectory)/service/src/main/java/
+
+      - publish: ${{ parameters.artifactPath }}
+        artifact: WebAppJar
+        displayName: Publish WebAppJar artifact
+
+# vim: set ts=2 sts=2 sw=2 et:
