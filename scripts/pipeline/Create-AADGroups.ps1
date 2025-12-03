@@ -1,33 +1,18 @@
 <#
 .SYNOPSIS
-Create or Update an Azure AD security Group.
+Create or Update Azure AD security Groups.
 
 .DESCRIPTION
-Create or Update an Azure AD security Group properties, members and owners.
+Uses Microsoft Graph to create or update AD groups based on a JSON manifest.
 
 .PARAMETER AADGroupsJsonManifestPath
-Mandatory. AAD Groups configuration file.
+Mandatory. Path to the JSON manifest defining groups.
 
 .PARAMETER WorkingDirectory
 Optional. Working directory. Default is $PWD.
 
-.PARAMETER ClientId
-Optional. Client ID for app registration (fallback authentication).
-
-.PARAMETER TenantId
-Optional. Tenant ID for app registration (fallback authentication).
-
-.PARAMETER ClientSecret
-Optional. Client secret for app registration (fallback authentication).
-
 .EXAMPLE
-Using Azure DevOps service connection (recommended):
 .\Create-AADGroups.ps1 -AADGroupsJsonManifestPath .\groups.json
-
-.EXAMPLE
-Using explicit client secret:
-.\Create-AADGroups.ps1 -AADGroupsJsonManifestPath .\groups.json `
-                       -ClientId xxxx -TenantId yyyy -ClientSecret zzzz
 #>
 
 [CmdletBinding()]
@@ -36,22 +21,12 @@ param(
     [string]$AADGroupsJsonManifestPath,
 
     [Parameter()]
-    [string]$WorkingDirectory = $PWD,
-
-    [Parameter()]
-    [string]$ClientId,
-
-    [Parameter()]
-    [string]$TenantId,
-
-    [Parameter()]
-    [string]$ClientSecret
+    [string]$WorkingDirectory = $PWD
 )
 
 Set-StrictMode -Version 3.0
 [string]$functionName = $MyInvocation.MyCommand
 [datetime]$startTime = [datetime]::UtcNow
-
 [int]$exitCode = -1
 [bool]$setHostExitCode = (Test-Path -Path ENV:TF_BUILD) -and ($ENV:TF_BUILD -eq "true")
 [bool]$enableDebug = (Test-Path -Path ENV:SYSTEM_DEBUG) -and ($ENV:SYSTEM_DEBUG -eq "true")
@@ -81,31 +56,12 @@ try {
     }
 
     Write-Host "======================================================"  
-    Write-Host "Authenticating to Microsoft Graph..."
+    Write-Host "Authenticating to Microsoft Graph via federated credentials..."
 
     # ---------------------------
-    # AUTHENTICATION LOGIC
+    # Federated identity authentication (no secrets)
     # ---------------------------
-
-    # Case 1: Azure DevOps service connection SPN
-    if ($env:servicePrincipalId -and $env:servicePrincipalKey -and $env:tenantId) {
-        Write-Host "Using Azure DevOps Service Connection (SPN) credentials..."
-        Connect-MgGraph `
-            -ClientId $env:servicePrincipalId `
-            -TenantId $env:tenantId `
-            -ClientSecret $env:servicePrincipalKey
-    }
-    # Case 2: Explicit fallback parameters
-    elseif ($ClientId -and $TenantId -and $ClientSecret) {
-        Write-Host "Using explicit client secret credentials..."
-        Connect-MgGraph -ClientId $ClientId -TenantId $TenantId -ClientSecret $ClientSecret
-    }
-    # Case 3: Managed Identity as last resort
-    else {
-        Write-Host "Using Managed Identity authentication..."
-        Connect-MgGraph -Identity
-    }
-
+    Connect-MgGraph -Identity
     $context = Get-MgContext
     Write-Host "Connected to Microsoft Graph as: $($context.ClientId)"
     Write-Host "======================================================"
