@@ -80,18 +80,26 @@ try {
     
     ## Try to get token with explicit scopes
     try {
-        $tokenResponse = Get-AzAccessToken -ResourceUrl "https://graph.microsoft.com"
+        $tokenResponse = Get-AzAccessToken -Resource "https://graph.microsoft.com"
         # Ensure we have a plain string token (not SecureString)
         $graphApiTokenString = [string]$tokenResponse.Token
         Write-Host "Access token obtained successfully (length: $($graphApiTokenString.Length))"
         Write-Host "Token expires: $($tokenResponse.ExpiresOn)"
+        Write-Debug "Token preview (first 50 chars): $($graphApiTokenString.Substring(0, [Math]::Min(50, $graphApiTokenString.Length)))"
         
         ## Verify token format (should be a JWT with 3 parts)
+        if ($graphApiTokenString.Length -lt 100) {
+            Write-Warning "Token length is suspiciously short ($($graphApiTokenString.Length) chars). Expected JWT to be hundreds of characters."
+        }
+        
         $tokenParts = $graphApiTokenString.Split('.')
         if ($tokenParts.Length -ne 3) {
-            throw "Invalid token format - expected JWT with 3 parts, got $($tokenParts.Length)"
+            Write-Warning "Token does not appear to be a valid JWT - expected 3 parts separated by '.', got $($tokenParts.Length)"
+            Write-Warning "Token content: $graphApiTokenString"
         }
-        Write-Debug "Token format verified as JWT"
+        else {
+            Write-Debug "Token format verified as JWT"
+        }
         
         ## Decode token payload to verify audience and scopes (for debugging)
         try {
@@ -117,6 +125,7 @@ try {
         }
         
         ## Connect to Microsoft Graph using the access token
+        Write-Host "Connecting to Microsoft Graph with access token..."
         $targetParameter = (Get-Command Connect-MgGraph).Parameters['AccessToken']
         if ($targetParameter.ParameterType -eq [securestring]){
             $secureToken = ConvertTo-SecureString -String $graphApiTokenString -AsPlainText -Force
@@ -127,22 +136,45 @@ try {
         }
         Write-Host "Successfully connected to Microsoft Graph"
         
-        ## Verify the connection by checking context and testing with a simple API call
+        ## Verify the connection by checking context
         $mgContext = Get-MgContext -ErrorAction SilentlyContinue
         if ($mgContext) {
             Write-Host "Microsoft Graph Context verified"
             Write-Debug "Graph Scopes: $($mgContext.Scopes -join ', ')"
+            Write-Debug "Graph Account: $($mgContext.Account)"
         }
         
-        ## Test the connection with a simple API call to verify token works
-        Write-Host "Testing Graph API connection..."
+        ## Re-authenticate if needed - sometimes Connect-MgGraph doesn't properly use the access token
+        ## Try to set the token directly in the authentication context
+        Write-Host "Verifying token is properly set in Graph context..."
         try {
-            $testResult = Get-MgContext -ErrorAction Stop
-            Write-Host "Graph API connection test successful"
+            # Force a refresh by getting a new token and reconnecting if the first attempt didn't work
+            # But first, let's test with a simple call to see if it works
+            Write-Host "Testing Graph API with a simple call..."
+            $testGroups = Get-MgGroup -Top 1 -ErrorAction Stop
+            Write-Host "Graph API test call successful - token is working correctly"
         }
         catch {
-            Write-Warning "Graph API connection test failed: $_"
-            throw "Graph API connection verification failed. Token may not have required permissions."
+            Write-Warning "Graph API test call failed: $_"
+            Write-Host "Attempting to reconnect with fresh token..."
+            # Disconnect and reconnect
+            Disconnect-MgGraph -ErrorAction SilentlyContinue
+            Start-Sleep -Seconds 1
+            
+            # Get a fresh token
+            $freshTokenResponse = Get-AzAccessToken -Resource "https://graph.microsoft.com"
+            $freshTokenString = [string]$freshTokenResponse.Token
+            Write-Host "Fresh token obtained (length: $($freshTokenString.Length))"
+            
+            # Reconnect
+            if ($targetParameter.ParameterType -eq [securestring]){
+                $freshSecureToken = ConvertTo-SecureString -String $freshTokenString -AsPlainText -Force
+                Connect-MgGraph -AccessToken $freshSecureToken -ErrorAction Stop -NoWelcome
+            }
+            else {
+                Connect-MgGraph -AccessToken $freshTokenString -ErrorAction Stop -NoWelcome
+            }
+            Write-Host "Reconnected to Microsoft Graph with fresh token"
         }
     }
     catch {
