@@ -1,3 +1,26 @@
+<#
+.SYNOPSIS
+Create or Update Azure AD security Groups.
+
+.DESCRIPTION
+Uses Microsoft Graph to create or update AD groups based on a JSON manifest.
+
+.PARAMETER AADGroupsJsonManifestPath
+Mandatory. Path to the JSON manifest defining groups.
+
+.PARAMETER WorkingDirectory
+Optional. Working directory. Default is $PWD.
+
+.PARAMETER ClientId
+Mandatory. SPN Client ID.
+
+.PARAMETER TenantId
+Mandatory. Tenant ID.
+
+.PARAMETER ClientSecret
+Mandatory. SPN Client Secret (from pipeline variable).
+#>
+
 [CmdletBinding()]
 param(
     [Parameter(Mandatory)]
@@ -26,31 +49,44 @@ $InformationPreference = "Continue"
 
 Write-Host "${functionName} started at $($startTime.ToString('u'))"
 Write-Debug "${functionName}:AADGroupsJsonManifestPath=$AADGroupsJsonManifestPath"
+Write-Debug "${functionName}:WorkingDirectory=$WorkingDirectory"
 
 try {
-    # Load module
+    # ------------------------------------------------------------
+    # Load AD-groups module
+    # ------------------------------------------------------------
     $adGroupsModuleDir = Join-Path -Path $PSScriptRoot -ChildPath "../Powershell/aad-groups"
-    Import-Module $adGroupsModuleDir.FullName -Force
+    Write-Debug "${functionName}:moduleDir=$adGroupsModuleDir"
+    Import-Module $adGroupsModuleDir -Force
 
+    # ------------------------------------------------------------
     # Ensure Microsoft.Graph module installed
+    # ------------------------------------------------------------
     if (-not (Get-Module -ListAvailable -Name 'Microsoft.Graph')) {
+        Write-Host "Installing Microsoft.Graph module..."
         Install-Module Microsoft.Graph -Force
     }
 
     Write-Host "======================================================"
     Write-Host "Authenticating to Microsoft Graph using SPN credentials..."
 
-    # Correct authentication for Linux
+    # ------------------------------------------------------------
+    # Connect using ClientId, TenantId, ClientSecret (Linux friendly)
+    # ------------------------------------------------------------
     Connect-MgGraph -ClientId $ClientId -TenantId $TenantId -ClientSecret $ClientSecret
 
     $context = Get-MgContext
     Write-Host "Connected to Microsoft Graph as: $($context.ClientId)"
     Write-Host "======================================================"
 
+    # ------------------------------------------------------------
     # Load AAD Groups Manifest
+    # ------------------------------------------------------------
     $aadGroups = Get-Content -Raw -Path $AADGroupsJsonManifestPath | ConvertFrom-Json
 
-    # Process user AD groups
+    # ------------------------------------------------------------
+    # Setup User AD Groups
+    # ------------------------------------------------------------
     if ($aadGroups.userADGroups) {
         foreach ($g in $aadGroups.userADGroups) {
             $result = Get-MgGroup -Filter "DisplayName eq '$($g.displayName)'"
@@ -62,9 +98,13 @@ try {
                 New-ADGroup -AADGroupObject $g
             }
         }
+    } else {
+        Write-Host "No 'userADGroups' defined in group manifest file. Skipped"
     }
 
-    # Process access AD groups
+    # ------------------------------------------------------------
+    # Setup Access AD Groups
+    # ------------------------------------------------------------
     if ($aadGroups.accessADGroups) {
         foreach ($g in $aadGroups.accessADGroups) {
             $result = Get-MgGroup -Filter "DisplayName eq '$($g.displayName)'"
@@ -76,6 +116,8 @@ try {
                 New-ADGroup -AADGroupObject $g
             }
         }
+    } else {
+        Write-Host "No 'accessADGroups' defined in group manifest file. Skipped"
     }
 
     $exitCode = 0
