@@ -89,18 +89,49 @@ try {
         Write-Debug "TokenResponse properties: $($tokenResponse | Get-Member -MemberType Property | Select-Object -ExpandProperty Name)"
         
         # Extract token from SecureString properly
+        Write-Debug "Token type: $($tokenResponse.Token.GetType().FullName)"
         if ($tokenResponse.Token -is [SecureString]) {
             Write-Debug "Token is SecureString, converting to plain text..."
-            $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($tokenResponse.Token)
-            $graphApiTokenString = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
-            [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($BSTR)
+            try {
+                # Method 1: Use Marshal (works in all PowerShell versions)
+                $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($tokenResponse.Token)
+                $graphApiTokenString = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
+                [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($BSTR)
+                Write-Debug "Successfully converted SecureString using Marshal method"
+            }
+            catch {
+                Write-Debug "Marshal method failed: $_. Trying alternative method..."
+                # Method 2: Try using PSCredential (alternative approach)
+                try {
+                    $credential = New-Object System.Management.Automation.PSCredential("dummy", $tokenResponse.Token)
+                    $graphApiTokenString = $credential.GetNetworkCredential().Password
+                    Write-Debug "Successfully converted SecureString using PSCredential method"
+                }
+                catch {
+                    Write-Error "Failed to convert SecureString to plain text: $_"
+                    throw "Unable to extract token from SecureString"
+                }
+            }
+        }
+        elseif ($tokenResponse.Token -is [string]) {
+            $graphApiTokenString = $tokenResponse.Token
+            Write-Debug "Token is already a string"
         }
         else {
+            # Try to convert to string
             $graphApiTokenString = [string]$tokenResponse.Token
+            Write-Debug "Converted token to string (may not work if it's SecureString)"
         }
         
         Write-Host "Access token obtained successfully (length: $($graphApiTokenString.Length))"
         Write-Host "Token expires: $($tokenResponse.ExpiresOn)"
+        
+        # Validate token was extracted correctly
+        if ([string]::IsNullOrWhiteSpace($graphApiTokenString) -or $graphApiTokenString.Length -lt 100) {
+            Write-Error "Token extraction failed or token is invalid. Length: $($graphApiTokenString.Length)"
+            Write-Error "Token type was: $($tokenResponse.Token.GetType().FullName)"
+            throw "Failed to extract valid token from Get-AzAccessToken response"
+        }
         
         # Show full token if it's short (for debugging)
         if ($graphApiTokenString.Length -lt 100) {
@@ -171,12 +202,20 @@ try {
         
         ## Connect to Microsoft Graph using the access token
         Write-Host "Connecting to Microsoft Graph with access token..."
-    $targetParameter = (Get-Command Connect-MgGraph).Parameters['AccessToken']
-    if ($targetParameter.ParameterType -eq [securestring]){
+        $targetParameter = (Get-Command Connect-MgGraph).Parameters['AccessToken']
+        
+        # If token is already a SecureString, use it directly
+        if ($tokenResponse.Token -is [SecureString]) {
+            Write-Debug "Using SecureString token directly"
+            Connect-MgGraph -AccessToken $tokenResponse.Token -ErrorAction Stop -NoWelcome
+        }
+        elseif ($targetParameter.ParameterType -eq [securestring]){
+            # Convert string token to SecureString
             $secureToken = ConvertTo-SecureString -String $graphApiTokenString -AsPlainText -Force
             Connect-MgGraph -AccessToken $secureToken -ErrorAction Stop -NoWelcome
         }
         else {
+            # Use string token directly
             Connect-MgGraph -AccessToken $graphApiTokenString -ErrorAction Stop -NoWelcome
         }
         Write-Host "Successfully connected to Microsoft Graph"
@@ -208,23 +247,39 @@ try {
             
             # Get a fresh token
             $freshTokenResponse = Get-AzAccessToken -Resource "https://graph.microsoft.com"
-            # Extract token from SecureString properly
+            # Extract token from SecureString properly (same logic as above)
             if ($freshTokenResponse.Token -is [SecureString]) {
-                $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($freshTokenResponse.Token)
-                $freshTokenString = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
-                [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($BSTR)
+                try {
+                    $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($freshTokenResponse.Token)
+                    $freshTokenString = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
+                    [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($BSTR)
+                }
+                catch {
+                    $credential = New-Object System.Management.Automation.PSCredential("dummy", $freshTokenResponse.Token)
+                    $freshTokenString = $credential.GetNetworkCredential().Password
+                }
+            }
+            elseif ($freshTokenResponse.Token -is [string]) {
+                $freshTokenString = $freshTokenResponse.Token
             }
             else {
                 $freshTokenString = [string]$freshTokenResponse.Token
             }
             Write-Host "Fresh token obtained (length: $($freshTokenString.Length))"
             
+            if ([string]::IsNullOrWhiteSpace($freshTokenString) -or $freshTokenString.Length -lt 100) {
+                throw "Fresh token extraction also failed"
+            }
+            
             # Reconnect
-            if ($targetParameter.ParameterType -eq [securestring]){
+            if ($freshTokenResponse.Token -is [SecureString]) {
+                Connect-MgGraph -AccessToken $freshTokenResponse.Token -ErrorAction Stop -NoWelcome
+            }
+            elseif ($targetParameter.ParameterType -eq [securestring]){
                 $freshSecureToken = ConvertTo-SecureString -String $freshTokenString -AsPlainText -Force
                 Connect-MgGraph -AccessToken $freshSecureToken -ErrorAction Stop -NoWelcome
-    }
-    else {
+            }
+            else {
                 Connect-MgGraph -AccessToken $freshTokenString -ErrorAction Stop -NoWelcome
             }
             Write-Host "Reconnected to Microsoft Graph with fresh token"
