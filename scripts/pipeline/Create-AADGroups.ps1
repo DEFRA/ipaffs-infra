@@ -78,14 +78,50 @@ try {
     
     Write-Host "Getting access token for Microsoft Graph API..."
     
-    ## Try to get token with explicit scopes
+    ## Try to get token - use multiple methods as fallback
     try {
-        $tokenResponse = Get-AzAccessToken -Resource "https://graph.microsoft.com"
+        # Method 1: Try Get-AzAccessToken (standard method)
+        Write-Host "Attempting to get token via Get-AzAccessToken..."
+        $tokenResponse = Get-AzAccessToken -Resource "https://graph.microsoft.com" -ErrorAction Stop
+        
+        # Debug: Check what Get-AzAccessToken actually returns
+        Write-Debug "TokenResponse type: $($tokenResponse.GetType().FullName)"
+        Write-Debug "TokenResponse properties: $($tokenResponse | Get-Member -MemberType Property | Select-Object -ExpandProperty Name)"
+        
         # Ensure we have a plain string token (not SecureString)
         $graphApiTokenString = [string]$tokenResponse.Token
         Write-Host "Access token obtained successfully (length: $($graphApiTokenString.Length))"
         Write-Host "Token expires: $($tokenResponse.ExpiresOn)"
-        Write-Debug "Token preview (first 50 chars): $($graphApiTokenString.Substring(0, [Math]::Min(50, $graphApiTokenString.Length)))"
+        
+        # Show full token if it's short (for debugging)
+        if ($graphApiTokenString.Length -lt 100) {
+            Write-Warning "Token from Get-AzAccessToken is suspiciously short ($($graphApiTokenString.Length) chars). Full content: '$graphApiTokenString'"
+            Write-Warning "TokenResponse object: $($tokenResponse | ConvertTo-Json -Depth 3)"
+            
+            # Try alternative: Check what environment variables are available
+            Write-Host "Checking available environment variables..."
+            Write-Debug "AZURE_SERVICE_PRINCIPAL_ID: $($env:AZURE_SERVICE_PRINCIPAL_ID)"
+            Write-Debug "AZURE_SERVICE_PRINCIPAL_KEY: $($env:AZURE_SERVICE_PRINCIPAL_KEY -ne $null)"
+            Write-Debug "AZURE_CLIENT_ID: $($env:AZURE_CLIENT_ID)"
+            Write-Debug "AZURE_TENANT_ID: $($env:AZURE_TENANT_ID)"
+            
+            # The issue is likely that Get-AzAccessToken is not working correctly
+            # Let's try to understand what's happening and fail with a clear error
+            Write-Error "Get-AzAccessToken returned an invalid token (length: $($graphApiTokenString.Length))."
+            Write-Error "This may be due to:"
+            Write-Error "1. Az.Accounts module version incompatibility"
+            Write-Error "2. Service principal authentication method not supported"
+            Write-Error "3. Missing Microsoft Graph API permissions on the service principal"
+            Write-Error ""
+            Write-Error "Please verify:"
+            Write-Error "- Service principal '$($azContext.Account.Id)' has Microsoft Graph API permissions"
+            Write-Error "- Permissions are granted with admin consent"
+            Write-Error "- Az.Accounts module version is compatible"
+            throw "Unable to obtain valid Microsoft Graph access token"
+        }
+        else {
+            Write-Debug "Token preview (first 50 chars): $($graphApiTokenString.Substring(0, [Math]::Min(50, $graphApiTokenString.Length)))"
+        }
         
         ## Verify token format (should be a JWT with 3 parts)
         if ($graphApiTokenString.Length -lt 100) {
