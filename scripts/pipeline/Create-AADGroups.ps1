@@ -48,21 +48,41 @@ try {
     [System.IO.DirectoryInfo]$adGroupsModuleDir = Join-Path -Path $PSScriptRoot -ChildPath "../Powershell/aad-groups"
     Write-Debug "${functionName}:moduleDir.FullName=$($adGroupsModuleDir.FullName)"
     Import-Module $adGroupsModuleDir.FullName -Force
+    
+    ## Verify Azure context
+    $azContext = Get-AzContext
+    Write-Host "Current Azure Context:"
+    Write-Host "  Account: $($azContext.Account.Id)"
+    Write-Host "  Tenant: $($azContext.Tenant.Id)"
+    Write-Host "  Subscription: $($azContext.Subscription.Id)"
+    
     ## Authenticate using Graph Powershell
     if (-not (Get-Module -ListAvailable -Name 'Microsoft.Graph')) {
         Write-Host "Microsoft.Graph Module does not exists. Installing now.."
         Install-Module Microsoft.Graph -Force
         Write-Host "Microsoft.Graph Installed Successfully."
-    } 
-    $graphApiToken = (Get-AzAccessToken -Resource https://graph.microsoft.com).Token 
+    }
+    
+    ## Disconnect any existing Graph connections
+    try {
+        Disconnect-MgGraph -ErrorAction SilentlyContinue
+    }
+    catch {
+        Write-Debug "No existing Graph connection to disconnect"
+    }
+    
+    Write-Host "Getting access token for Microsoft Graph API..."
+    $graphApiToken = (Get-AzAccessToken -Resource https://graph.microsoft.com).Token
+    Write-Host "Access token obtained successfully (length: $($graphApiToken.Length))"
 
     $targetParameter = (Get-Command Connect-MgGraph).Parameters['AccessToken']
     if ($targetParameter.ParameterType -eq [securestring]){
-    Connect-MgGraph -AccessToken ($graphApiToken | ConvertTo-SecureString -AsPlainText -Force)
+        Connect-MgGraph -AccessToken ($graphApiToken | ConvertTo-SecureString -AsPlainText -Force) -ErrorAction Stop
     }
     else {
-    Connect-MgGraph -AccessToken $graphApiToken
+        Connect-MgGraph -AccessToken $graphApiToken -ErrorAction Stop
     }
+    Write-Host "Successfully connected to Microsoft Graph"
     Write-Host "======================================================"
 
 

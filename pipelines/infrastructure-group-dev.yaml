@@ -81,13 +81,14 @@ stages:
                 - task: AzurePowerShell@5
                   displayName: Run Create-AADGroups script
                   inputs:
-                    azureSubscription: $(ssvServiceConnection)
+                    azureSubscription: 'AZR-SSV5-IPAFFS'
                     ScriptType: 'FilePath'
                     ScriptPath: 'scripts/pipeline/Create-AADGroups.ps1'
                     ScriptArguments: >
                       -AADGroupsJsonManifestPath 'pipelines/vars/entra/aad-group.json'
                     azurePowerShellVersion: 'LatestVersion'
                     pwsh: true
+                    addSpnToEnvironment: true
 
   # - stage: DeployHelmCharts
   #   displayName: Deploy Helm Charts
