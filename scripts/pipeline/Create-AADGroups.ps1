@@ -91,7 +91,7 @@ try {
     # ------------------------------------------------------------
     # Setup User AD Groups
     # ------------------------------------------------------------
-    if ($aadGroups.userADGroups) {
+    if ($aadGroups.PSObject.Properties.Name -contains 'userADGroups' -and $aadGroups.userADGroups) {
         foreach ($g in $aadGroups.userADGroups) {
             $result = Get-MgGroup -Filter "DisplayName eq '$($g.displayName)'"
             if ($result) {
@@ -109,7 +109,7 @@ try {
     # ------------------------------------------------------------
     # Setup Access AD Groups
     # ------------------------------------------------------------
-    if ($aadGroups.accessADGroups) {
+    if ($aadGroups.PSObject.Properties.Name -contains 'accessADGroups' -and $aadGroups.accessADGroups) {
         foreach ($g in $aadGroups.accessADGroups) {
             $result = Get-MgGroup -Filter "DisplayName eq '$($g.displayName)'"
             if ($result) {
