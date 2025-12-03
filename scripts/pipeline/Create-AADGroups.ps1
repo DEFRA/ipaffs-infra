@@ -73,7 +73,11 @@ try {
     # ------------------------------------------------------------
     # CONNECT TO MICROSOFT GRAPH (Linux-compatible)
     # ------------------------------------------------------------
-    Connect-MgGraph -ClientId $ClientId -TenantId $TenantId -ClientSecret $ClientSecret
+    # Create PSCredential from client secret
+    $secureClientSecret = ConvertTo-SecureString -String $ClientSecret -AsPlainText -Force
+    $clientSecretCredential = New-Object System.Management.Automation.PSCredential($ClientId, $secureClientSecret)
+    
+    Connect-MgGraph -ClientSecretCredential $clientSecretCredential -TenantId $TenantId
 
     $context = Get-MgContext
     Write-Host "Connected to Microsoft Graph as: $($context.ClientId)"
