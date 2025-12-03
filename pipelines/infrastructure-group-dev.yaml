@@ -54,3 +54,4 @@ stages:
                       -ClientSecret $(entraSPToken)
                     azurePowerShellVersion: 'LatestVersion'
                     pwsh: true
+                    addSpnToEnvironment: false 
