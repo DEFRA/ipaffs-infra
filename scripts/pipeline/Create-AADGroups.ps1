@@ -147,4 +147,32 @@ try {
                 Update-ADGroup -AADGroupObject $accessAADGroup -GroupId $result.Id
             }
             else {
-                Write-Host "Access AD Group '$($a
+                Write-Host "Access AD Group '$($accessAADGroup.displayName)' does not exist."
+                New-ADGroup -AADGroupObject $accessAADGroup
+            }
+        }
+    }
+    else {
+        Write-Host "No 'accessADGroups' defined in group manifest file. Skipped"
+    }
+
+    $exitCode = 0    
+}
+catch {
+    $exitCode = -2
+    Write-Error $_.Exception.ToString()
+    throw $_.Exception
+}
+finally {
+    [DateTime]$endTime = [DateTime]::UtcNow
+    [Timespan]$duration = $endTime.Subtract($startTime)
+
+    Write-Host "${functionName} finished at $($endTime.ToString('u')) (duration $($duration -f 'g')) with exit code $exitCode"
+
+    if ($setHostExitCode) {
+        Write-Debug "${functionName}:Setting host exit code"
+        $host.SetShouldExit($exitCode)
+    }
+
+    exit $exitCode
+}
