@@ -1,17 +1,16 @@
 {
   "$schema": "https://json-schema.org/draft-07/schema#",
+  "title": "Values",
+  "type": "object",
   "properties": {
-    "azure": {
-      "type": "object",
-      "required": [
-        "location"
-      ]
+    "service": {
+      "type": "string"
     },
-    "database": {
-      "type": "object",
-      "required": [
-        "enabled"
-      ]
+    "project": {
+      "type": "string"
+    },
+    "environment": {
+      "type": "string"
     },
     "schedule": {
       "type": "string"
@@ -35,32 +34,84 @@
     "suspend": {
       "type": "boolean"
     },
-    "image": {
-      "type": "string"
-    },
-    "ingress": {
+    "container": {
       "type": "object",
-      "required": [
-        "hosts"
-      ]
+      "properties": {
+        "image": {
+          "type": "string"
+        },
+        "imagePullPolicy": {
+          "type": "string"
+        },
+        "command": {
+          "type": "string"
+        },
+        "args": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
     },
-    "redis": {
+    "initContainer": {
       "type": "object",
-      "required": [
-        "enabled"
-      ]
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "image": {
+          "type": "string"
+        },
+        "command": {}
+      }
     },
-    "serviceBus": {
+    "database": {
       "type": "object",
-      "required": [
-        "enabled"
-      ]
+      "properties": {
+        "principalName": {
+          "type": "string"
+        },
+        "legacyPassword1": {
+          "type": "string"
+        },
+        "legacyPassword2": {
+          "type": "string"
+        },
+        "migrations": {
+          "type": "object",
+          "properties": {
+            "clientId": {
+              "type": "string"
+            },
+            "enabled": {
+              "type": "boolean"
+            },
+            "image": {
+              "type": "string"
+            },
+            "command": {
+              "type": "string"
+            },
+            "args": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "env": {
+      "type": "object"
+    },
+    "resources": {
+      "type": "object"
     }
   },
   "required": [
     "environment",
     "schedule"
-  ],
-  "title": "Values",
-  "type": "object"
+  ]
 }

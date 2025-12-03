@@ -11,28 +11,15 @@ suspend: false
 container:
   image: ""
   imagePullPolicy: Always
-  replicas: 1
   command: ""
   args: []
-
-livenessProbe:
-  httpGet:
-    path: /admin/health
-    port: 8000
-  initialDelaySeconds: 10
-  periodSeconds: 5
 
 initContainer:
   enabled: false
   image: ""
   command: ""
 
-azure:
-  clientId: ""
-  location: uksouth
-
 database:
-  enabled: false
   principalName: ""
   legacyPassword1: ""
   legacyPassword2: ""
@@ -44,15 +31,6 @@ database:
     args: []
 
 env: {}
-
-# This block is for setting up the ingress for more information can be found here: https://kubernetes.io/docs/concepts/services-networking/ingress/
-ingress:
-  annotations: 
-    nginx.ingress.kubernetes.io/ssl-redirect: "false"
-    #ingress.kubernetes.io/proxy-headers: X-Original-Host
-    #ingress.kubernetes.io/custom-request-headers: X-Original-Host:proxy.imp.dev.azure.defra.cloud
-    #traefik.ingress.kubernetes.io/router.middlewares: kube-system/original-host
-  hosts: []
 
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious
