@@ -3,11 +3,9 @@ pool:
   name: DEFRA-COMMON-ubuntu2204-SSV5
 
 variables:
-  - group: "${{ parameters.environmentName }}"
+  - group: POC
   - template: "vars/common.yaml"
   - template: "vars/${{ lower(parameters.environmentName) }}.yaml"
-  - name: ssvServiceConnection
-    value: 'AZR-SSV5-IPAFFS'
   - name: helmDryRun
     ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/main') }}:
       value: ''
@@ -51,7 +49,7 @@ stages:
                     ScriptPath: 'scripts/pipeline/Create-AADGroups.ps1'
                     ScriptArguments: >
                       -AADGroupsJsonManifestPath 'pipelines/vars/entra/aad-group.json'
-                      -ClientId $(servicePrincipalId)
+                      -ClientId $(entraSPClientId)
                       -TenantId $(tenantId)
                       -ClientSecret $(entraSPToken)
                     azurePowerShellVersion: 'LatestVersion'

@@ -84,13 +84,10 @@ try {
     [PSCustomObject]$aadGroups = Get-Content -Raw -Path $AADGroupsJsonManifestPath | ConvertFrom-Json
     Write-Debug "${functionName}:aadGroups=$($aadGroups | ConvertTo-Json -Depth 10)"
 
-    # ------------------------------------------------------------
     # Setup User AD Groups
-    # ------------------------------------------------------------
     if (($aadGroups.psobject.properties.match('userADGroups').Count -gt 0) -and $aadGroups.userADGroups) {
         foreach ($userAADGroup in $aadGroups.userADGroups) {
             $result = Get-MgGroup -Filter "DisplayName eq '$($userAADGroup.displayName)'"
-        
             if ($result) {
                 Write-Host "User AD Group '$($userAADGroup.displayName)' already exists. Group Id: $($result.Id)"
                 Update-ADGroup -AADGroupObject $userAADGroup -GroupId $result.Id
@@ -105,13 +102,10 @@ try {
         Write-Host "No 'userADGroups' defined in group manifest file. Skipped"
     }
 
-    # ------------------------------------------------------------
     # Setup Access AD Groups
-    # ------------------------------------------------------------
     if (($aadGroups.psobject.properties.match('accessADGroups').Count -gt 0) -and $aadGroups.accessADGroups) {
         foreach ($accessAADGroup in $aadGroups.accessADGroups) {
             $result = Get-MgGroup -Filter "DisplayName eq '$($accessAADGroup.displayName)'"
-        
             if ($result) {
                 Write-Host "Access AD Group '$($accessAADGroup.displayName)' already exists. Group Id: $($result.Id)"
                 Update-ADGroup -AADGroupObject $accessAADGroup -GroupId $result.Id
@@ -126,7 +120,7 @@ try {
         Write-Host "No 'accessADGroups' defined in group manifest file. Skipped"
     }
 
-    $exitCode = 0    
+    $exitCode = 0
 }
 catch {
     $exitCode = -2
