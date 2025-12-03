@@ -59,9 +59,14 @@ try {
     ## Authenticate using Graph Powershell
     if (-not (Get-Module -ListAvailable -Name 'Microsoft.Graph')) {
         Write-Host "Microsoft.Graph Module does not exists. Installing now.."
-        Install-Module Microsoft.Graph -Force
+        Install-Module Microsoft.Graph -Force -AllowClobber
         Write-Host "Microsoft.Graph Installed Successfully."
     }
+    
+    ## Import required Graph modules
+    Import-Module Microsoft.Graph.Authentication -Force -ErrorAction Stop
+    Import-Module Microsoft.Graph.Groups -Force -ErrorAction Stop
+    Import-Module Microsoft.Graph.Applications -Force -ErrorAction Stop
     
     ## Disconnect any existing Graph connections
     try {
@@ -72,17 +77,79 @@ try {
     }
     
     Write-Host "Getting access token for Microsoft Graph API..."
-    $graphApiToken = (Get-AzAccessToken -Resource https://graph.microsoft.com).Token
-    Write-Host "Access token obtained successfully (length: $($graphApiToken.Length))"
-
-    $targetParameter = (Get-Command Connect-MgGraph).Parameters['AccessToken']
-    if ($targetParameter.ParameterType -eq [securestring]){
-        Connect-MgGraph -AccessToken ($graphApiToken | ConvertTo-SecureString -AsPlainText -Force) -ErrorAction Stop
+    
+    ## Try to get token with explicit scopes
+    try {
+        $tokenResponse = Get-AzAccessToken -ResourceUrl "https://graph.microsoft.com"
+        $graphApiToken = $tokenResponse.Token
+        Write-Host "Access token obtained successfully (length: $($graphApiToken.Length))"
+        Write-Host "Token expires: $($tokenResponse.ExpiresOn)"
+        
+        ## Verify token format (should be a JWT with 3 parts)
+        $tokenParts = $graphApiToken.Split('.')
+        if ($tokenParts.Length -ne 3) {
+            throw "Invalid token format - expected JWT with 3 parts, got $($tokenParts.Length)"
+        }
+        Write-Debug "Token format verified as JWT"
+        
+        ## Decode token payload to verify audience and scopes (for debugging)
+        try {
+            $payload = $tokenParts[1]
+            # Add padding if needed for base64 decoding
+            $mod = $payload.Length % 4
+            if ($mod -gt 0) {
+                $payload += '=' * (4 - $mod)
+            }
+            $decodedBytes = [System.Convert]::FromBase64String($payload)
+            $decodedJson = [System.Text.Encoding]::UTF8.GetString($decodedBytes)
+            $tokenData = $decodedJson | ConvertFrom-Json
+            Write-Debug "Token audience: $($tokenData.aud)"
+            Write-Debug "Token scopes: $($tokenData.scp)"
+            Write-Debug "Token appid: $($tokenData.appid)"
+            
+            if ($tokenData.aud -ne "https://graph.microsoft.com") {
+                Write-Warning "Token audience is '$($tokenData.aud)', expected 'https://graph.microsoft.com'"
+            }
+        }
+        catch {
+            Write-Debug "Could not decode token payload for inspection: $_"
+        }
+        
+        ## Connect to Microsoft Graph using the access token
+        $targetParameter = (Get-Command Connect-MgGraph).Parameters['AccessToken']
+        if ($targetParameter.ParameterType -eq [securestring]){
+            Connect-MgGraph -AccessToken ($graphApiToken | ConvertTo-SecureString -AsPlainText -Force) -ErrorAction Stop -NoWelcome
+        }
+        else {
+            Connect-MgGraph -AccessToken $graphApiToken -ErrorAction Stop -NoWelcome
+        }
+        Write-Host "Successfully connected to Microsoft Graph"
+        
+        ## Verify the connection by checking context and testing with a simple API call
+        $mgContext = Get-MgContext -ErrorAction SilentlyContinue
+        if ($mgContext) {
+            Write-Host "Microsoft Graph Context verified"
+            Write-Debug "Graph Scopes: $($mgContext.Scopes -join ', ')"
+        }
+        
+        ## Test the connection with a simple API call to verify token works
+        Write-Host "Testing Graph API connection..."
+        try {
+            $testResult = Get-MgContext -ErrorAction Stop
+            Write-Host "Graph API connection test successful"
+        }
+        catch {
+            Write-Warning "Graph API connection test failed: $_"
+            throw "Graph API connection verification failed. Token may not have required permissions."
+        }
     }
-    else {
-        Connect-MgGraph -AccessToken $graphApiToken -ErrorAction Stop
+    catch {
+        Write-Error "Failed to connect to Microsoft Graph: $_"
+        Write-Error "Token length: $($graphApiToken.Length)"
+        Write-Error "Azure Context Account: $($azContext.Account.Id)"
+        Write-Error "Azure Context Tenant: $($azContext.Tenant.Id)"
+        throw
     }
-    Write-Host "Successfully connected to Microsoft Graph"
     Write-Host "======================================================"
 
 
