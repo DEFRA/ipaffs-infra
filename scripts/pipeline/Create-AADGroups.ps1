@@ -11,8 +11,14 @@ Mandatory. Path to the JSON manifest defining groups.
 .PARAMETER WorkingDirectory
 Optional. Working directory. Default is $PWD.
 
-.EXAMPLE
-.\Create-AADGroups.ps1 -AADGroupsJsonManifestPath .\groups.json
+.PARAMETER ClientId
+Mandatory. SPN Client ID.
+
+.PARAMETER TenantId
+Mandatory. Tenant ID.
+
+.PARAMETER ClientSecret
+Mandatory. SPN Client Secret.
 #>
 
 [CmdletBinding()]
@@ -21,7 +27,16 @@ param(
     [string]$AADGroupsJsonManifestPath,
 
     [Parameter()]
-    [string]$WorkingDirectory = $PWD
+    [string]$WorkingDirectory = $PWD,
+
+    [Parameter(Mandatory)]
+    [string]$ClientId,
+
+    [Parameter(Mandatory)]
+    [string]$TenantId,
+
+    [Parameter(Mandatory)]
+    [string]$ClientSecret
 )
 
 Set-StrictMode -Version 3.0
@@ -56,12 +71,11 @@ try {
     }
 
     Write-Host "======================================================"  
-    Write-Host "Authenticating to Microsoft Graph via federated credentials..."
+    Write-Host "Authenticating to Microsoft Graph using SPN credentials..."
 
-    # ---------------------------
-    # Federated identity authentication (no secrets)
-    # ---------------------------
-    Connect-MgGraph -Identity
+    # Authenticate using client secret
+    Connect-MgGraph -ClientId $ClientId -TenantId $TenantId -ClientSecret $ClientSecret
+
     $context = Get-MgContext
     Write-Host "Connected to Microsoft Graph as: $($context.ClientId)"
     Write-Host "======================================================"

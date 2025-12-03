@@ -51,6 +51,8 @@ stages:
                     ScriptPath: 'scripts/pipeline/Create-AADGroups.ps1'
                     ScriptArguments: >
                       -AADGroupsJsonManifestPath 'pipelines/vars/entra/aad-group.json'
+                      -ClientId $(servicePrincipalId)
+                      -TenantId $(tenantId)
+                      -ClientSecret $(entraSPToken)
                     azurePowerShellVersion: 'LatestVersion'
                     pwsh: true
- 
