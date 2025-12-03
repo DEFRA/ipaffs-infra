@@ -81,12 +81,13 @@ try {
     ## Try to get token with explicit scopes
     try {
         $tokenResponse = Get-AzAccessToken -ResourceUrl "https://graph.microsoft.com"
-        $graphApiToken = $tokenResponse.Token
-        Write-Host "Access token obtained successfully (length: $($graphApiToken.Length))"
+        # Ensure we have a plain string token (not SecureString)
+        $graphApiTokenString = [string]$tokenResponse.Token
+        Write-Host "Access token obtained successfully (length: $($graphApiTokenString.Length))"
         Write-Host "Token expires: $($tokenResponse.ExpiresOn)"
         
         ## Verify token format (should be a JWT with 3 parts)
-        $tokenParts = $graphApiToken.Split('.')
+        $tokenParts = $graphApiTokenString.Split('.')
         if ($tokenParts.Length -ne 3) {
             throw "Invalid token format - expected JWT with 3 parts, got $($tokenParts.Length)"
         }
@@ -118,10 +119,11 @@ try {
         ## Connect to Microsoft Graph using the access token
         $targetParameter = (Get-Command Connect-MgGraph).Parameters['AccessToken']
         if ($targetParameter.ParameterType -eq [securestring]){
-            Connect-MgGraph -AccessToken ($graphApiToken | ConvertTo-SecureString -AsPlainText -Force) -ErrorAction Stop -NoWelcome
+            $secureToken = ConvertTo-SecureString -String $graphApiTokenString -AsPlainText -Force
+            Connect-MgGraph -AccessToken $secureToken -ErrorAction Stop -NoWelcome
         }
         else {
-            Connect-MgGraph -AccessToken $graphApiToken -ErrorAction Stop -NoWelcome
+            Connect-MgGraph -AccessToken $graphApiTokenString -ErrorAction Stop -NoWelcome
         }
         Write-Host "Successfully connected to Microsoft Graph"
         
@@ -145,7 +147,9 @@ try {
     }
     catch {
         Write-Error "Failed to connect to Microsoft Graph: $_"
-        Write-Error "Token length: $($graphApiToken.Length)"
+        if ($graphApiTokenString) {
+            Write-Error "Token length: $($graphApiTokenString.Length)"
+        }
         Write-Error "Azure Context Account: $($azContext.Account.Id)"
         Write-Error "Azure Context Tenant: $($azContext.Tenant.Id)"
         throw
