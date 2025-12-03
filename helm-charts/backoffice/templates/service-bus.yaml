@@ -3,13 +3,16 @@
 apiVersion: servicebus.azure.com/v1api20240101
 kind: Namespace
 metadata:
-  name: {{- template "deploy.azure.serviceBusNamespace" }}
+  name: {{ template "ipaffs-common.azure.serviceBusNamespace" . }}
+  labels:
+    {{- include "ipaffs-common.labels" . | nindent 4 }}
   annotations:
     serviceoperator.azure.com/reconcile-policy: detach-on-delete
 spec:
   location: {{ .Values.azure.location }}
+  minimumTlsVersion: "1.2"
   owner:
-    name: {{- template "deploy.azure.resourceGroup" }}
+    name: {{ template "ipaffs-common.azure.resourceGroup" . }}
   sku:
     name: Standard
   zoneRedundant: false
@@ -20,11 +23,13 @@ apiVersion: servicebus.azure.com/v1api20240101
 kind: NamespacesQueue
 metadata:
   name: {{ . }}
+  labels:
+    {{- include "ipaffs-common.labels" $ | nindent 4 }}
   annotations:
     serviceoperator.azure.com/reconcile-policy: manage
 spec:
   owner:
-    name: {{- template "deploy.azure.serviceBusNamespace" }}
+    name: {{ template "ipaffs-common.azure.serviceBusNamespace" $ }}
 
 {{ end }}
 
@@ -34,11 +39,13 @@ apiVersion: servicebus.azure.com/v1api20240101
 kind: NamespacesTopic
 metadata:
   name: {{ . }}
+  labels:
+    {{- include "ipaffs-common.labels" $ | nindent 4 }}
   annotations:
     serviceoperator.azure.com/reconcile-policy: manage
 spec:
   owner:
-    name: {{- template "deploy.azure.serviceBusNamespace" }}
+    name: {{ template "ipaffs-common.azure.serviceBusNamespace" $ }}
 
 {{ end }}
 

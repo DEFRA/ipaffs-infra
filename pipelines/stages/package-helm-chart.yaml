@@ -1,0 +1,94 @@
+parameters:
+  - name: helmChartName
+    type: string
+  - name: helmChartPath
+    type: string
+
+stages:
+  - stage: Package
+    jobs:
+      - job: ExtractVersionFromChart
+        displayName: Extract Chart Version
+        steps:
+          - task: Bash@3
+            name: ComputeVersion
+            displayName: Get current chart version
+            inputs:
+              targetType: inline
+              workingDirectory: ${{ parameters.helmChartPath }}
+              script: |
+                version="$(yq '.version' Chart.yaml)"
+                echo "##vso[task.setvariable variable=helmChartVersion;isOutput=true]$version"
+
+      - job: PackageFeatureBranch
+        displayName: Package from feature branch
+        condition: ne(variables['Build.SourceBranch'], 'refs/heads/main')
+        dependsOn: ExtractVersionFromChart
+        variables:
+          helmChartVersion: $[ dependencies.ExtractVersionFromChart.outputs['ComputeVersion.helmChartVersion'] ]
+        steps:
+          - task: AzureCLI@2
+            name: pushChartToRegistry
+            displayName: Package and push chart to registry
+            env:
+              CHART_NAME: ${{ parameters.helmChartName }}
+              CHART_PATH: ${{ parameters.helmChartPath }}
+              CHART_VERSION: $(helmChartVersion)-build.$(Build.BuildNumber)
+              REGISTRY_NAME: $(acrName)
+              REGISTRY_HOST: $(acrLoginServer)
+            inputs:
+              azureSubscription: $(serviceConnection)
+              scriptType: bash
+              scriptPath: scripts/pipeline/package-and-push-chart.sh
+
+      - job: PackageMainBranch
+        displayName: Bump chart version and package from main branch
+        condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+        dependsOn: ExtractVersionFromChart
+        variables:
+          helmChartVersion: $[ dependencies.ExtractVersionFromChart.outputs['ComputeVersion.helmChartVersion'] ]
+          gitUserName: 'IPAFFS CI Bot'
+          gitUserEmail: 'ipaffs-ci-bot@defra.gov.uk'
+        steps:
+          - checkout: self
+            persistCredentials: true
+            clean: true
+
+          - task: Bash@3
+            name: bumpVersion
+            displayName: Bump chart version
+            env:
+              CURRENT_VERSION: $(helmChartVersion)
+            inputs:
+              filePath: scripts/pipeline/bump-semver.sh
+
+          - task: AzureCLI@2
+            name: updateVersion
+            displayName: Update chart version and push
+            env:
+              CHART_NAME: ${{ parameters.helmChartName }}
+              CHART_PATH: ${{ parameters.helmChartPath }}
+              CURRENT_VERSION: $(helmChartVersion)
+              NEW_VERSION: $(bumpVersion.newVersion)
+              GIT_USER: $(gitUserName)
+              GIT_EMAIL: $(gitUserEmail)
+            inputs:
+              azureSubscription: $(serviceConnection)
+              scriptType: bash
+              scriptPath: scripts/pipeline/update-chart-version.sh
+
+          - task: AzureCLI@2
+            name: pushChartToRegistry
+            displayName: Package and push chart to registry
+            env:
+              CHART_NAME: ${{ parameters.helmChartName }}
+              CHART_PATH: ${{ parameters.helmChartPath }}
+              CHART_VERSION: $(bumpVersion.newVersion)
+              REGISTRY_NAME: $(acrName)
+              REGISTRY_HOST: $(acrLoginServer)
+            inputs:
+              azureSubscription: $(serviceConnection)
+              scriptType: bash
+              scriptPath: scripts/pipeline/package-and-push-chart.sh
+
+# vim: set ts=2 sts=2 sw=2 et:

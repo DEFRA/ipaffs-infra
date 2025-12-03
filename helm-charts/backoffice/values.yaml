@@ -1,0 +1,19 @@
+service: ""
+project: ipaffs
+environment: poc
+
+azure:
+  location: uksouth
+
+database:
+  enabled: false
+
+redis:
+  enabled: false
+
+serviceBus:
+  enabled: false
+  queues: []
+  topics: []
+
+# vim: set ts=2 sts=2 sw=2 et:

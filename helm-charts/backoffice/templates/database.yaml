@@ -3,22 +3,26 @@
 apiVersion: sql.azure.com/v1api20211101
 kind: Server
 metadata:
-  name: {{- template "deploy.azure.sqlServer" }}
+  name: {{ template "ipaffs-common.azure.sqlServer" . }}
+  labels:
+    {{- include "ipaffs-common.labels" . | nindent 4 }}
 spec:
   owner:
-    name: {{- template "deploy.azure.resourceGroup" }}
+    name: {{ template "ipaffs-common.azure.resourceGroup" . }}
   location: {{ .Values.azure.location }}
 
 ---
 apiVersion: sql.azure.com/v1api20211101
 kind: ServersDatabase
 metadata:
-  name: {{- template "deploy.azure.databaseName" }}
+  name: {{ template "ipaffs-common.azure.databaseName" . }}
+  labels:
+    {{- include "ipaffs-common.labels" . | nindent 4 }}
   annotations:
     serviceoperator.azure.com/reconcile-policy: manage
 spec:
   owner:
-    name: {{- template "deploy.azure.sqlServer" }}
+    name: {{ template "ipaffs-common.azure.sqlServer" . }}
   collation: SQL_Latin1_General_CP1_CI_AS
   location: {{ .Values.azure.location }}
 

@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "properties": {
+    "azure": {
+      "type": "object",
+      "required": [
+        "location"
+      ]
+    },
+    "database": {
+      "type": "object",
+      "required": [
+        "enabled"
+      ]
+    },
+    "image": {
+      "type": "string"
+    },
+    "ingress": {
+      "type": "object",
+      "required": [
+        "hosts"
+      ]
+    },
+    "redis": {
+      "type": "object",
+      "required": [
+        "enabled"
+      ]
+    },
+    "serviceBus": {
+      "type": "object",
+      "required": [
+        "enabled"
+      ]
+    }
+  },
+  "required": [
+    "environment"
+  ],
+  "title": "Values",
+  "type": "object"
+}

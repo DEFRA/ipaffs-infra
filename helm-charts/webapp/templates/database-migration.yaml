@@ -1,29 +1,64 @@
 {{ if .Values.database.migrations.enabled }}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    {{- include "ipaffs-common.labels" . | nindent 4 }}
+  annotations:
+    azure.workload.identity/client-id: {{ .Values.database.migrations.clientId }}
+    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+    helm.sh/hook-weight: "10"
+  name: "{{ .Values.service }}-migrations"
+
+---
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: "{{ .Release.Name }}"
+  name: "{{ .Values.service }}-migrations"
   labels:
-    app.kubernetes.io/managed-by: {{ .Release.Service | quote }}
-    app.kubernetes.io/instance: {{ .Release.Name | quote }}
-    app.kubernetes.io/version: {{ .Chart.AppVersion }}
-    helm.sh/chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    {{- include "ipaffs-common.labels" . | nindent 4 }}
   annotations:
-    "helm.sh/hook": pre-install,pre-upgrade
-    "helm.sh/hook-weight": "-5"
-    "helm.sh/hook-delete-policy": hook-succeeded
+    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+    helm.sh/hook-weight: "11"
 spec:
   template:
     metadata:
-      name: "{{ .Release.Name }}"
+      name: "{{ .Values.service }}-migrations"
       labels:
-        app.kubernetes.io/managed-by: {{ .Release.Service | quote }}
-        app.kubernetes.io/instance: {{ .Release.Name | quote }}
-        helm.sh/chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+        {{- include "ipaffs-common.labels" . | nindent 8 }}
+        azure.workload.identity/use: "true"
     spec:
+      serviceAccountName: "{{ .Values.service }}-migrations"
       restartPolicy: Never
       containers:
         - name: database-migration
           image: {{ .Values.database.migrations.image }}
-          command: {{ .Values.database.migrations.command }}
-  {{ end }}
+          {{ if .Values.database.migrations.command }}
+          command: ["{{ .Values.database.migrations.command }}"]
+          {{ end }}
+          {{ if .Values.database.migrations.args }}
+          args:
+            {{ range .Values.database.migrations.args }}
+            - "{{ . }}"
+            {{ end }}
+          {{ end }}
+          env:
+            - name: DATABASE_DB_CONNECTION_STRING
+              value: "jdbc:sqlserver://{{ template "ipaffs-common.azure.sqlServerHostname" . }}:1433;databaseName={{ template "ipaffs-common.azure.databaseName" . }};encrypt=true;socketTimeout=1800000;loginTimeout=15;authentication=ActiveDirectoryManagedIdentity;msiClientId={{ .Values.database.migrations.clientId }}"
+
+            # TODO: in the countries service migrations, these are different users (?) but should work OK referencing the same user, since at least they are wrapped in IF NOT EXISTS conditionals
+            - name: BASE_SERVICE_DB_USER_AD
+              value: "{{ .Values.database.principalName }}"
+            - name: MANAGED_IDENTITY_USER
+              value: "{{ .Values.database.principalName }}"
+
+            # TODO: probably need to continue setting these, but they should come from a credential store
+            - name: BASE_SERVICE_DB_PASSWORD
+              value: "{{ .Values.database.legacyPassword1 }}"
+            - name: NEW_BASE_SERVICE_DB_PASSWORD
+              value: "{{ .Values.database.legacyPassword2 }}"
+{{ end }}
+
+# vim: set ts=2 sts=2 sw=2 et:

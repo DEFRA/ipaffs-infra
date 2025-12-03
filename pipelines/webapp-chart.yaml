@@ -1,0 +1,41 @@
+trigger:
+  branches:
+    include:
+      - "*"
+  paths:
+    include:
+      - helm-charts/webapp/**
+      - pipelines/webapp-chart.yaml
+
+pr:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - helm-charts/webapp/**
+      - pipelines/webapp-chart.yaml
+
+pool:
+  name: 'DEFRA-COMMON-ubuntu2204-SSV5'
+
+parameters:
+  - name: environmentName
+    displayName: Environment
+    type: string
+    default: POC
+    values:
+      - POC
+
+variables:
+  - group: "${{ parameters.environmentName }}"
+  - template: "vars/common.yaml"
+  - template: "vars/${{ lower(parameters.environmentName) }}.yaml"
+
+stages:
+  - template: stages/package-helm-chart.yaml
+    parameters:
+      helmChartName: webapp
+      helmChartPath: helm-charts/webapp
+
+# vim: set ts=2 sts=2 sw=2 et:

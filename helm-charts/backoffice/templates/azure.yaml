@@ -1,7 +1,9 @@
 apiVersion: resources.azure.com/v1api20200601
 kind: ResourceGroup
 metadata:
-  name: {{- template "deploy.azure.resourceGroup" }}
+  name: {{ template "ipaffs-common.azure.resourceGroup" . }}
+  labels:
+    {{- include "ipaffs-common.labels" . | nindent 4 }}
 spec:
   location: {{ .Values.azure.location }}
 

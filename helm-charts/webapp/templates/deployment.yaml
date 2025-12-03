@@ -1,25 +1,62 @@
+# TODO!
+# deploy app! --> start pipeline
+# pipeline step: migrations MI needs to be created and added to a group (DONE)
+# pipeline step: service MI to be created
+# pipeline step: then helm chart installation starts (DONE)
+# hook 1 (preinstall,preupgrade): run migrations which uses the migrations MI created in pipeline, then terminates (DONEish)
+# hook 2 (preinstall,preupgrade): create an app MI, store clientid in configmap (PENDING)
+# main helm install: adopt the service MI, deploy the app, include lookup for clientid from configmap (DONEish)
+# pipeline step: delete the migrations MI (PENDING)
+#
+# ... time passes
+#
+# something triggers helm uninstall to delete the service
+# main helm uninstall: things get shot
+# hook 3 (post-delete): job that runs kubectl to delete hook 2 (app MI) (PENDING)
+#
+#
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    {{- include "ipaffs-common.labels" . | nindent 4 }}
+  annotations:
+    azure.workload.identity/client-id: {{ .Values.database.migrations.clientId }}
+  name: {{ .Values.service }}-service
+
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Values.name }}
+  name: {{ .Values.service }}
   labels:
-    {{- include "deploy.labels" . | nindent 4 }}
+    {{- include "ipaffs-common.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicas }}
   selector:
     matchLabels:
-      {{- include "deploy.selectorLabels" . | nindent 6 }}
+      {{- include "ipaffs-common.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        {{- include "deploy.labels" . | nindent 8 }}
+        {{- include "ipaffs-common.labels" . | nindent 8 }}
+      annotations:
+        azure.workload.identity/use: "true"
     spec:
-      imagePullSecrets:
-        - name: ipaffs-acr
+      serviceAccountName: {{ .Values.service }}-service
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.container.image }}"
-          imagePullPolicy: {{ .Values.imagePullPolicy }}
+          {{ if .Values.container.command }}
+          command: ["{{ .Values.container.command }}"]
+          {{ end }}
+          {{ if .Values.container.args }}
+          args:
+            {{ range .Values.container.args }}
+            - "{{ . }}"
+            {{ end }}
+          {{ end }}
+          imagePullPolicy: {{ .Values.container.imagePullPolicy }}
           {{ with .Values.env }}
           env:
             {{- toYaml . | nindent 12 }}
@@ -32,13 +69,15 @@ spec:
           resources:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{ with .Values.livenessProbe }}
-          livenessProbe:
-            {{- toYaml . | nindent 12 }}
-          {{ end }}
+#          {{ with .Values.livenessProbe }}
+#          livenessProbe:
+#            {{- toYaml . | nindent 12 }}
+#          {{ end }}
       {{ if .Values.initContainer.enabled -}}
       initContainers:
         - name: {{ .Chart.Name }}-init
           image: "{{ .Values.initContainer.image }}"
           command: {{ .Values.initContainer.command }}
       {{ end }}
+
+# vim: set ts=2 sts=2 sw=2 et:
