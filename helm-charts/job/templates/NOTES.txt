@@ -1,0 +1,18 @@
+
+{{- $hosts := trim (include "ipaffs-common.ingressHosts" .) }}
+{{- if not (empty $hosts) }}
+{{- $hostsList := splitList "\n" $hosts }}
+Access the service at the following URL(s):
+{{- range $hostsList }}
+> https://{{ . }}
+{{- end }}
+{{- end }}
+
+This service can now be accessed inside the cluster at the following URLs:
+> http://{{ .Values.service }}
+> http://{{ .Values.service }}.{{ .Release.Namespace }}
+> http://{{ .Values.service }}.{{ .Release.Namespace }}.svc.cluster.local
+
+You can connect a debugger by first forwarding a port:
+$ kubectl port-forward deployment/{{ .Values.service }} 5005
+

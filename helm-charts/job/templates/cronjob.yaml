@@ -1,0 +1,66 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    {{- include "ipaffs-common.labels" . | nindent 4 }}
+  annotations:
+    azure.workload.identity/client-id: {{ .Values.database.migrations.clientId }}
+  name: {{ .Values.service }}-service
+
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ .Values.service }}
+  labels:
+    {{- include "ipaffs-common.labels" . | nindent 4 }}
+spec:
+  schedule: {{ required "CronJob schedule is required" .Values.schedule | quote }}
+  concurrencyPolicy: {{ default "Forbid" .Values.concurrencyPolicy }}
+  successfulJobsHistoryLimit: {{ default 3 .Values.successfulJobsHistoryLimit }}
+  failedJobsHistoryLimit: {{ default 1 .Values.failedJobsHistoryLimit }}
+  suspend: {{ default false .Values.suspend }}
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            {{- include "ipaffs-common.labels" . | nindent 12 }}
+          annotations:
+            azure.workload.identity/use: "true"
+        spec:
+          serviceAccountName: {{ .Values.service }}-service
+          restartPolicy: OnFailure
+          containers:
+            - name: {{ .Chart.Name }}
+              image: "{{ .Values.container.image }}"
+              {{ if .Values.container.command }}
+              command: ["{{ .Values.container.command }}"]
+              {{ end }}
+              {{ if .Values.container.args }}
+              args:
+                {{ range .Values.container.args }}
+                - "{{ . }}"
+                {{ end }}
+              {{ end }}
+              imagePullPolicy: {{ .Values.container.imagePullPolicy }}
+              {{ with .Values.env }}
+              env:
+                {{- toYaml . | nindent 16 }}
+              {{ end }}
+              ports:
+                - name: http
+                  containerPort: 8000
+                  protocol: TCP
+              {{- with .Values.resources }}
+              resources:
+                {{- toYaml . | nindent 16 }}
+              {{- end }}
+{{- if .Values.initContainer.enabled }}
+          initContainers:
+            - name: {{ .Chart.Name }}-init
+              image: "{{ .Values.initContainer.image }}"
+              command: {{ .Values.initContainer.command }}
+{{- end }}
+
+# vim: set ts=2 sts=2 sw=2 et:

@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "properties": {
+    "azure": {
+      "type": "object",
+      "required": [
+        "location"
+      ]
+    },
+    "database": {
+      "type": "object",
+      "required": [
+        "enabled"
+      ]
+    },
+    "schedule": {
+      "type": "string"
+    },
+    "concurrencyPolicy": {
+      "type": "string",
+      "enum": [
+        "Allow",
+        "Forbid",
+        "Replace"
+      ]
+    },
+    "successfulJobsHistoryLimit": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "failedJobsHistoryLimit": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "suspend": {
+      "type": "boolean"
+    },
+    "image": {
+      "type": "string"
+    },
+    "ingress": {
+      "type": "object",
+      "required": [
+        "hosts"
+      ]
+    },
+    "redis": {
+      "type": "object",
+      "required": [
+        "enabled"
+      ]
+    },
+    "serviceBus": {
+      "type": "object",
+      "required": [
+        "enabled"
+      ]
+    }
+  },
+  "required": [
+    "environment",
+    "schedule"
+  ],
+  "title": "Values",
+  "type": "object"
+}
