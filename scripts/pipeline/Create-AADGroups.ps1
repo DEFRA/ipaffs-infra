@@ -1,26 +1,3 @@
-<#
-.SYNOPSIS
-Create or Update Azure AD security Groups.
-
-.DESCRIPTION
-Uses Microsoft Graph to create or update AD groups based on a JSON manifest.
-
-.PARAMETER AADGroupsJsonManifestPath
-Mandatory. Path to the JSON manifest defining groups.
-
-.PARAMETER WorkingDirectory
-Optional. Working directory. Default is $PWD.
-
-.PARAMETER ClientId
-Mandatory. SPN Client ID.
-
-.PARAMETER TenantId
-Mandatory. Tenant ID.
-
-.PARAMETER ClientSecret
-Mandatory. SPN Client Secret (from pipeline variable).
-#>
-
 [CmdletBinding()]
 param(
     [Parameter(Mandatory)]
@@ -43,89 +20,62 @@ Set-StrictMode -Version 3.0
 [string]$functionName = $MyInvocation.MyCommand
 [datetime]$startTime = [datetime]::UtcNow
 [int]$exitCode = -1
-[bool]$setHostExitCode = (Test-Path -Path ENV:TF_BUILD) -and ($ENV:TF_BUILD -eq "true")
-[bool]$enableDebug = (Test-Path -Path ENV:SYSTEM_DEBUG) -and ($ENV:SYSTEM_DEBUG -eq "true")
 
 $ErrorActionPreference = "Continue"
 $InformationPreference = "Continue"
 
-if ($enableDebug) {
-    $VerbosePreference = "Continue"
-    $DebugPreference = "Continue"
-}
-
 Write-Host "${functionName} started at $($startTime.ToString('u'))"
 Write-Debug "${functionName}:AADGroupsJsonManifestPath=$AADGroupsJsonManifestPath"
-Write-Debug "${functionName}:WorkingDirectory=$WorkingDirectory"
 
 try {
-    # Load AD-groups module
-    [System.IO.DirectoryInfo]$adGroupsModuleDir = Join-Path -Path $PSScriptRoot -ChildPath "../Powershell/aad-groups"
-    Write-Debug "${functionName}:moduleDir.FullName=$($adGroupsModuleDir.FullName)"
+    # Load module
+    $adGroupsModuleDir = Join-Path -Path $PSScriptRoot -ChildPath "../Powershell/aad-groups"
     Import-Module $adGroupsModuleDir.FullName -Force
 
     # Ensure Microsoft.Graph module installed
     if (-not (Get-Module -ListAvailable -Name 'Microsoft.Graph')) {
-        Write-Host "Installing Microsoft.Graph module..."
         Install-Module Microsoft.Graph -Force
     }
 
     Write-Host "======================================================"
     Write-Host "Authenticating to Microsoft Graph using SPN credentials..."
 
-    # Convert ClientSecret string to PSCredential object
-    $secureSecret = ConvertTo-SecureString -String $ClientSecret -AsPlainText -Force
-    $credential = New-Object System.Management.Automation.PSCredential($ClientId, $secureSecret)
-
-    # Authenticate
-    Connect-MgGraph -ClientId $ClientId -TenantId $TenantId -ClientSecretCredential $credential
+    # Correct authentication for Linux
+    Connect-MgGraph -ClientId $ClientId -TenantId $TenantId -ClientSecret $ClientSecret
 
     $context = Get-MgContext
     Write-Host "Connected to Microsoft Graph as: $($context.ClientId)"
     Write-Host "======================================================"
 
     # Load AAD Groups Manifest
-    [PSCustomObject]$aadGroups = Get-Content -Raw -Path $AADGroupsJsonManifestPath | ConvertFrom-Json
-    Write-Debug "${functionName}:aadGroups=$($aadGroups | ConvertTo-Json -Depth 10)"
+    $aadGroups = Get-Content -Raw -Path $AADGroupsJsonManifestPath | ConvertFrom-Json
 
-    # ------------------------------------------------------------
-    # Setup User AD Groups
-    # ------------------------------------------------------------
-    if (($aadGroups.psobject.properties.match('userADGroups').Count -gt 0) -and $aadGroups.userADGroups) {
-        foreach ($userAADGroup in $aadGroups.userADGroups) {
-            $result = Get-MgGroup -Filter "DisplayName eq '$($userAADGroup.displayName)'"
+    # Process user AD groups
+    if ($aadGroups.userADGroups) {
+        foreach ($g in $aadGroups.userADGroups) {
+            $result = Get-MgGroup -Filter "DisplayName eq '$($g.displayName)'"
             if ($result) {
-                Write-Host "User AD Group '$($userAADGroup.displayName)' already exists. Group Id: $($result.Id)"
-                Update-ADGroup -AADGroupObject $userAADGroup -GroupId $result.Id
-            }
-            else {
-                Write-Host "User AD Group '$($userAADGroup.displayName)' does not exist."
-                New-ADGroup -AADGroupObject $userAADGroup
+                Write-Host "User AD Group '$($g.displayName)' exists. Group Id: $($result.Id)"
+                Update-ADGroup -AADGroupObject $g -GroupId $result.Id
+            } else {
+                Write-Host "User AD Group '$($g.displayName)' does not exist."
+                New-ADGroup -AADGroupObject $g
             }
         }
     }
-    else {
-        Write-Host "No 'userADGroups' defined in group manifest file. Skipped"
-    }
 
-    # ------------------------------------------------------------
-    # Setup Access AD Groups
-    # ------------------------------------------------------------
-    if (($aadGroups.psobject.properties.match('accessADGroups').Count -gt 0) -and $aadGroups.accessADGroups) {
-        foreach ($accessAADGroup in $aadGroups.accessADGroups) {
-            $result = Get-MgGroup -Filter "DisplayName eq '$($accessAADGroup.displayName)'"
+    # Process access AD groups
+    if ($aadGroups.accessADGroups) {
+        foreach ($g in $aadGroups.accessADGroups) {
+            $result = Get-MgGroup -Filter "DisplayName eq '$($g.displayName)'"
             if ($result) {
-                Write-Host "Access AD Group '$($accessAADGroup.displayName)' already exists. Group Id: $($result.Id)"
-                Update-ADGroup -AADGroupObject $accessAADGroup -GroupId $result.Id
-            }
-            else {
-                Write-Host "Access AD Group '$($accessAADGroup.displayName)' does not exist."
-                New-ADGroup -AADGroupObject $accessAADGroup
+                Write-Host "Access AD Group '$($g.displayName)' exists. Group Id: $($result.Id)"
+                Update-ADGroup -AADGroupObject $g -GroupId $result.Id
+            } else {
+                Write-Host "Access AD Group '$($g.displayName)' does not exist."
+                New-ADGroup -AADGroupObject $g
             }
         }
-    }
-    else {
-        Write-Host "No 'accessADGroups' defined in group manifest file. Skipped"
     }
 
     $exitCode = 0
@@ -133,18 +83,11 @@ try {
 catch {
     $exitCode = -2
     Write-Error $_.Exception.ToString()
-    throw $_.Exception
+    throw
 }
 finally {
-    [DateTime]$endTime = [DateTime]::UtcNow
-    [Timespan]$duration = $endTime.Subtract($startTime)
-
+    $endTime = [DateTime]::UtcNow
+    $duration = $endTime - $startTime
     Write-Host "${functionName} finished at $($endTime.ToString('u')) (duration $($duration -f 'g')) with exit code $exitCode"
-
-    if ($setHostExitCode) {
-        Write-Debug "${functionName}:Setting host exit code"
-        $host.SetShouldExit($exitCode)
-    }
-
     exit $exitCode
 }
