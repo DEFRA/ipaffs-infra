@@ -1,0 +1,21 @@
+{
+    "userADGroups": [
+        {
+            "displayName": "AG-Azure-IMP_POC-SQLServers",
+            "description": "Azure AD Access group for IPAFFS SQL Migrations Configuration.",
+            "Owners": {
+                "serviceprincipals" : [
+                    "ADO-DefraGovUK-AZR-POC_IMP"
+                ],
+                "users" : [
+                ]
+            },
+            "Members": {
+                "groups" : [
+                ],
+                "serviceprincipals": [
+                ]
+            }
+        }
+    ]
+}
