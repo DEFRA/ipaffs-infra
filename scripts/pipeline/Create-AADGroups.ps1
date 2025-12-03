@@ -61,7 +61,7 @@ try {
         Write-Host "Microsoft.Graph Module does not exists. Installing now.."
         Install-Module Microsoft.Graph -Force -AllowClobber
         Write-Host "Microsoft.Graph Installed Successfully."
-    }
+    } 
     
     ## Import required Graph modules
     Import-Module Microsoft.Graph.Authentication -Force -ErrorAction Stop
@@ -88,8 +88,17 @@ try {
         Write-Debug "TokenResponse type: $($tokenResponse.GetType().FullName)"
         Write-Debug "TokenResponse properties: $($tokenResponse | Get-Member -MemberType Property | Select-Object -ExpandProperty Name)"
         
-        # Ensure we have a plain string token (not SecureString)
-        $graphApiTokenString = [string]$tokenResponse.Token
+        # Extract token from SecureString properly
+        if ($tokenResponse.Token -is [SecureString]) {
+            Write-Debug "Token is SecureString, converting to plain text..."
+            $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($tokenResponse.Token)
+            $graphApiTokenString = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
+            [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($BSTR)
+        }
+        else {
+            $graphApiTokenString = [string]$tokenResponse.Token
+        }
+        
         Write-Host "Access token obtained successfully (length: $($graphApiTokenString.Length))"
         Write-Host "Token expires: $($tokenResponse.ExpiresOn)"
         
@@ -162,8 +171,8 @@ try {
         
         ## Connect to Microsoft Graph using the access token
         Write-Host "Connecting to Microsoft Graph with access token..."
-        $targetParameter = (Get-Command Connect-MgGraph).Parameters['AccessToken']
-        if ($targetParameter.ParameterType -eq [securestring]){
+    $targetParameter = (Get-Command Connect-MgGraph).Parameters['AccessToken']
+    if ($targetParameter.ParameterType -eq [securestring]){
             $secureToken = ConvertTo-SecureString -String $graphApiTokenString -AsPlainText -Force
             Connect-MgGraph -AccessToken $secureToken -ErrorAction Stop -NoWelcome
         }
@@ -199,15 +208,23 @@ try {
             
             # Get a fresh token
             $freshTokenResponse = Get-AzAccessToken -Resource "https://graph.microsoft.com"
-            $freshTokenString = [string]$freshTokenResponse.Token
+            # Extract token from SecureString properly
+            if ($freshTokenResponse.Token -is [SecureString]) {
+                $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($freshTokenResponse.Token)
+                $freshTokenString = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
+                [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($BSTR)
+            }
+            else {
+                $freshTokenString = [string]$freshTokenResponse.Token
+            }
             Write-Host "Fresh token obtained (length: $($freshTokenString.Length))"
             
             # Reconnect
             if ($targetParameter.ParameterType -eq [securestring]){
                 $freshSecureToken = ConvertTo-SecureString -String $freshTokenString -AsPlainText -Force
                 Connect-MgGraph -AccessToken $freshSecureToken -ErrorAction Stop -NoWelcome
-            }
-            else {
+    }
+    else {
                 Connect-MgGraph -AccessToken $freshTokenString -ErrorAction Stop -NoWelcome
             }
             Write-Host "Reconnected to Microsoft Graph with fresh token"
