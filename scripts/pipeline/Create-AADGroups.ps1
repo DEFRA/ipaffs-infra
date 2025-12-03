@@ -11,20 +11,45 @@ Mandatory. AAD Groups configuration file.
 .PARAMETER WorkingDirectory
 Optional. Working directory. Default is $PWD.
 
+.PARAMETER ClientId
+Optional. Client ID for app registration (fallback authentication).
+
+.PARAMETER TenantId
+Optional. Tenant ID for app registration (fallback authentication).
+
+.PARAMETER ClientSecret
+Optional. Client secret for app registration (fallback authentication).
+
 .EXAMPLE
-.\Create-AADGroups.ps1 AADGroupsJsonManifestPath <AAD Groups config json path>
-#> 
+Federated Identity (Azure DevOps/GitHub):
+.\Create-AADGroups.ps1 -AADGroupsJsonManifestPath .\groups.json
+
+.EXAMPLE
+Client Secret fallback:
+.\Create-AADGroups.ps1 -AADGroupsJsonManifestPath .\groups.json `
+                       -ClientId xxxx -TenantId yyyy -ClientSecret zzzz
+#>
 
 [CmdletBinding()]
 param(
-    [Parameter(Mandatory)] 
+    [Parameter(Mandatory)]
     [string]$AADGroupsJsonManifestPath,
+
     [Parameter()]
-    [string]$WorkingDirectory = $PWD
+    [string]$WorkingDirectory = $PWD,
+
+    # Fallback auth parameters
+    [Parameter()]
+    [string]$ClientId,
+
+    [Parameter()]
+    [string]$TenantId,
+
+    [Parameter()]
+    [string]$ClientSecret
 )
 
 Set-StrictMode -Version 3.0
-
 [string]$functionName = $MyInvocation.MyCommand
 [datetime]$startTime = [datetime]::UtcNow
 
@@ -32,12 +57,12 @@ Set-StrictMode -Version 3.0
 [bool]$setHostExitCode = (Test-Path -Path ENV:TF_BUILD) -and ($ENV:TF_BUILD -eq "true")
 [bool]$enableDebug = (Test-Path -Path ENV:SYSTEM_DEBUG) -and ($ENV:SYSTEM_DEBUG -eq "true")
 
-Set-Variable -Name ErrorActionPreference -Value Continue -scope global
-Set-Variable -Name InformationPreference -Value Continue -Scope global
+$ErrorActionPreference = "Continue"
+$InformationPreference = "Continue"
 
 if ($enableDebug) {
-    Set-Variable -Name VerbosePreference -Value Continue -Scope global
-    Set-Variable -Name DebugPreference -Value Continue -Scope global
+    $VerbosePreference = "Continue"
+    $DebugPreference = "Continue"
 }
 
 Write-Host "${functionName} started at $($startTime.ToString('u'))"
@@ -45,38 +70,53 @@ Write-Debug "${functionName}:AADGroupsJsonManifestPath=$AADGroupsJsonManifestPat
 Write-Debug "${functionName}:WorkingDirectory=$WorkingDirectory"
 
 try {
+    # Load AD-group module
     [System.IO.DirectoryInfo]$adGroupsModuleDir = Join-Path -Path $PSScriptRoot -ChildPath "../Powershell/aad-groups"
     Write-Debug "${functionName}:moduleDir.FullName=$($adGroupsModuleDir.FullName)"
     Import-Module $adGroupsModuleDir.FullName -Force
-    ## Authenticate using Graph Powershell
-    if (-not (Get-Module -ListAvailable -Name 'Microsoft.Graph')) {
-        Write-Host "Microsoft.Graph Module does not exists. Installing now.."
-        Install-Module Microsoft.Graph -Force
-        Write-Host "Microsoft.Graph Installed Successfully."
-    } 
-    $graphApiToken = (Get-AzAccessToken -Resource https://graph.microsoft.com).Token 
 
-    $targetParameter = (Get-Command Connect-MgGraph).Parameters['AccessToken']
-    if ($targetParameter.ParameterType -eq [securestring]){
-    Connect-MgGraph -AccessToken ($graphApiToken | ConvertTo-SecureString -AsPlainText -Force)
+    # Ensure Microsoft.Graph installed
+    if (-not (Get-Module -ListAvailable -Name 'Microsoft.Graph')) {
+        Write-Host "Installing Microsoft.Graph module..."
+        Install-Module Microsoft.Graph -Force
+    }
+
+    Write-Host "======================================================"  
+    Write-Host "Authenticating to Microsoft Graph..."
+
+    # ---------------------------
+    # MAIN AUTH LOGIC
+    # ---------------------------
+
+    if ($ClientId -and $TenantId -and $ClientSecret) {
+        # Fallback authentication (client secret)
+        Write-Host "Using client-secret authentication..."
+        Connect-MgGraph -ClientId $ClientId -TenantId $TenantId -ClientSecret $ClientSecret
     }
     else {
-    Connect-MgGraph -AccessToken $graphApiToken
+        # Primary authentication (Federated Credentials / Managed Identity)
+        Write-Host "Using federated / managed identity authentication..."
+        Connect-MgGraph -Identity
     }
+
+    $context = Get-MgContext
+    Write-Host "Connected to Microsoft Graph as: $($context.Account)"
+
     Write-Host "======================================================"
 
-
+    # Load AAD Groups Manifest
     [PSCustomObject]$aadGroups = Get-Content -Raw -Path $AADGroupsJsonManifestPath | ConvertFrom-Json
-
     Write-Debug "${functionName}:aadGroups=$($aadGroups | ConvertTo-Json -Depth 10)"
 
-    #Setup User AD groups
+    # ------------------------------------------------------------
+    # Setup User AD Groups
+    # ------------------------------------------------------------
     if (($aadGroups.psobject.properties.match('userADGroups').Count -gt 0) -and $aadGroups.userADGroups) {
         foreach ($userAADGroup in $aadGroups.userADGroups) {
             $result = Get-MgGroup -Filter "DisplayName eq '$($userAADGroup.displayName)'"
         
             if ($result) {
-                Write-Host "User AD Group '$($userAADGroup.displayName)' already exist. Group Id: $($result.Id)"
+                Write-Host "User AD Group '$($userAADGroup.displayName)' already exists. Group Id: $($result.Id)"
                 Update-ADGroup -AADGroupObject $userAADGroup -GroupId $result.Id
             }
             else {
@@ -89,13 +129,15 @@ try {
         Write-Host "No 'userADGroups' defined in group manifest file. Skipped"
     }
 
-    #Setup Access AD groups
+    # ------------------------------------------------------------
+    # Setup Access AD Groups
+    # ------------------------------------------------------------
     if (($aadGroups.psobject.properties.match('accessADGroups').Count -gt 0) -and $aadGroups.accessADGroups) {
         foreach ($accessAADGroup in $aadGroups.accessADGroups) {
             $result = Get-MgGroup -Filter "DisplayName eq '$($accessAADGroup.displayName)'"
         
             if ($result) {
-                Write-Host "Access AD Group '$($accessAADGroup.displayName)' already exist. Group Id: $result.Id"
+                Write-Host "Access AD Group '$($accessAADGroup.displayName)' already exists. Group Id: $($result.Id)"
                 Update-ADGroup -AADGroupObject $accessAADGroup -GroupId $result.Id
             }
             else {
@@ -120,9 +162,11 @@ finally {
     [Timespan]$duration = $endTime.Subtract($startTime)
 
     Write-Host "${functionName} finished at $($endTime.ToString('u')) (duration $($duration -f 'g')) with exit code $exitCode"
+
     if ($setHostExitCode) {
         Write-Debug "${functionName}:Setting host exit code"
         $host.SetShouldExit($exitCode)
     }
+
     exit $exitCode
 }
