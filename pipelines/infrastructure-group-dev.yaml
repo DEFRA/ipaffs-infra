@@ -70,14 +70,24 @@ stages:
     displayName: Create AAD Groups
     jobs:
       - deployment: CreateAADGroups
-        deployments:
-          - name: Create Group
-            type: 'script'
-            scriptType: AzurePowerShell
-            serviceConnectionVariableName: ssvServiceConnection            
-            path: "scripts/pipeline/Create-AADGroups.ps1"
-            scriptArguments: >
-                -AADGroupsJsonManifestPath 'pipelines/vars/entra/aad-group.json'
+        displayName: Create AAD Groups
+        environment:
+          name: "${{ parameters.environmentName }}"
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+                - task: AzurePowerShell@5
+                  displayName: Run Create-AADGroups script
+                  inputs:
+                    azureSubscription: $(ssvServiceConnection)
+                    ScriptType: 'FilePath'
+                    ScriptPath: 'scripts/pipeline/Create-AADGroups.ps1'
+                    ScriptArguments: >
+                      -AADGroupsJsonManifestPath 'pipelines/vars/entra/aad-group.json'
+                    azurePowerShellVersion: 'LatestVersion'
+                    pwsh: true
 
   # - stage: DeployHelmCharts
   #   displayName: Deploy Helm Charts
