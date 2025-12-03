@@ -18,7 +18,7 @@ Mandatory. SPN Client ID.
 Mandatory. Tenant ID.
 
 .PARAMETER ClientSecret
-Mandatory. SPN Client Secret.
+Mandatory. SPN Client Secret (from pipeline variable).
 #>
 
 [CmdletBinding()]
@@ -70,11 +70,15 @@ try {
         Install-Module Microsoft.Graph -Force
     }
 
-    Write-Host "======================================================"  
+    Write-Host "======================================================"
     Write-Host "Authenticating to Microsoft Graph using SPN credentials..."
 
-    # Authenticate using client secret
-    Connect-MgGraph -ClientId $ClientId -TenantId $TenantId -ClientSecret $ClientSecret
+    # Convert ClientSecret string to PSCredential object
+    $secureSecret = ConvertTo-SecureString -String $ClientSecret -AsPlainText -Force
+    $credential = New-Object System.Management.Automation.PSCredential($ClientId, $secureSecret)
+
+    # Authenticate
+    Connect-MgGraph -ClientId $ClientId -TenantId $TenantId -ClientSecretCredential $credential
 
     $context = Get-MgContext
     Write-Host "Connected to Microsoft Graph as: $($context.ClientId)"
@@ -84,7 +88,9 @@ try {
     [PSCustomObject]$aadGroups = Get-Content -Raw -Path $AADGroupsJsonManifestPath | ConvertFrom-Json
     Write-Debug "${functionName}:aadGroups=$($aadGroups | ConvertTo-Json -Depth 10)"
 
+    # ------------------------------------------------------------
     # Setup User AD Groups
+    # ------------------------------------------------------------
     if (($aadGroups.psobject.properties.match('userADGroups').Count -gt 0) -and $aadGroups.userADGroups) {
         foreach ($userAADGroup in $aadGroups.userADGroups) {
             $result = Get-MgGroup -Filter "DisplayName eq '$($userAADGroup.displayName)'"
@@ -102,7 +108,9 @@ try {
         Write-Host "No 'userADGroups' defined in group manifest file. Skipped"
     }
 
+    # ------------------------------------------------------------
     # Setup Access AD Groups
+    # ------------------------------------------------------------
     if (($aadGroups.psobject.properties.match('accessADGroups').Count -gt 0) -and $aadGroups.accessADGroups) {
         foreach ($accessAADGroup in $aadGroups.accessADGroups) {
             $result = Get-MgGroup -Filter "DisplayName eq '$($accessAADGroup.displayName)'"
