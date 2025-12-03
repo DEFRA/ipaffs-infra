@@ -71,7 +71,7 @@ try {
     Write-Host "Authenticating to Microsoft Graph using SPN credentials..."
 
     # ------------------------------------------------------------
-    # Connect using ClientId, TenantId, ClientSecret (Linux friendly)
+    # CONNECT TO MICROSOFT GRAPH (Linux-compatible)
     # ------------------------------------------------------------
     Connect-MgGraph -ClientId $ClientId -TenantId $TenantId -ClientSecret $ClientSecret
 
