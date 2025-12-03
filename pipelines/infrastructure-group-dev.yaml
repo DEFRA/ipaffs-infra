@@ -86,7 +86,6 @@ stages:
                     ScriptPath: 'scripts/pipeline/Create-AADGroups.ps1'
                     ScriptArguments: >
                       -AADGroupsJsonManifestPath 'pipelines/vars/entra/aad-group.json'
-                      -ExpectedServiceConnectionName 'AZR-SSV5-IPAFFS'
                     azurePowerShellVersion: 'LatestVersion'
                     pwsh: true
                     addSpnToEnvironment: true

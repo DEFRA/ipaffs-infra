@@ -20,9 +20,7 @@ param(
     [Parameter(Mandatory)] 
     [string]$AADGroupsJsonManifestPath,
     [Parameter()]
-    [string]$WorkingDirectory = $PWD,
-    [Parameter()]
-    [string]$ExpectedServiceConnectionName = ''
+    [string]$WorkingDirectory = $PWD
 )
 
 Set-StrictMode -Version 3.0
@@ -55,53 +53,8 @@ try {
     $azContext = Get-AzContext
     Write-Host "Current Azure Context:"
     Write-Host "  Account: $($azContext.Account.Id)"
-    Write-Host "  Account Type: $($azContext.Account.Type)"
     Write-Host "  Tenant: $($azContext.Tenant.Id)"
     Write-Host "  Subscription: $($azContext.Subscription.Id)"
-    Write-Host "  Subscription Name: $($azContext.Subscription.Name)"
-    
-    ## Verify we're using the correct service connection
-    if ($ExpectedServiceConnectionName) {
-        Write-Host "Verifying service connection matches expected: $ExpectedServiceConnectionName"
-        
-        ## Check if account ID matches expected pattern or if we can verify via subscription name
-        ## Service connection names often map to subscription names or can be verified via environment variables
-        $serviceConnectionMatch = $false
-        
-        ## Check if subscription name contains the service connection name
-        if ($azContext.Subscription.Name -like "*$ExpectedServiceConnectionName*") {
-            $serviceConnectionMatch = $true
-            Write-Host "✓ Service connection verified via subscription name match"
-        }
-        ## Check environment variable set by AzurePowerShell task (if addSpnToEnvironment is true)
-        elseif ($env:AZURE_SERVICE_PRINCIPAL_ID) {
-            Write-Host "  Service Principal ID from environment: $env:AZURE_SERVICE_PRINCIPAL_ID"
-            Write-Host "  Account ID: $($azContext.Account.Id)"
-            ## If they match, we're good
-            if ($env:AZURE_SERVICE_PRINCIPAL_ID -eq $azContext.Account.Id) {
-                $serviceConnectionMatch = $true
-                Write-Host "✓ Service connection verified via service principal ID match"
-            }
-        }
-        ## Check account ID format (service principals are typically GUIDs)
-        elseif ($azContext.Account.Type -eq 'ServicePrincipal') {
-            Write-Host "  Using Service Principal authentication"
-            Write-Host "  Note: Cannot directly verify service connection name '$ExpectedServiceConnectionName'"
-            Write-Host "  Account ID (Service Principal): $($azContext.Account.Id)"
-            ## For now, just warn but don't fail - the account type is correct
-            $serviceConnectionMatch = $true
-            Write-Host "✓ Service Principal authentication confirmed"
-        }
-        
-        if (-not $serviceConnectionMatch) {
-            Write-Warning "Could not verify service connection name '$ExpectedServiceConnectionName'"
-            Write-Warning "Current account: $($azContext.Account.Id) (Type: $($azContext.Account.Type))"
-            Write-Warning "Please verify manually that this is the correct service connection"
-        }
-    }
-    else {
-        Write-Host "No expected service connection name provided - skipping verification"
-    }
     
     ## Authenticate using Graph Powershell
     if (-not (Get-Module -ListAvailable -Name 'Microsoft.Graph')) {
@@ -119,40 +72,17 @@ try {
     }
     
     Write-Host "Getting access token for Microsoft Graph API..."
-    $tokenResponse = Get-AzAccessToken -Resource "https://graph.microsoft.com"
-    $graphApiToken = $tokenResponse.Token
+    $graphApiToken = (Get-AzAccessToken -Resource https://graph.microsoft.com).Token
     Write-Host "Access token obtained successfully (length: $($graphApiToken.Length))"
-    Write-Host "Token expires: $($tokenResponse.ExpiresOn)"
-    
-    ## Verify token is a valid JWT format
-    $tokenParts = $graphApiToken.Split('.')
-    if ($tokenParts.Length -ne 3) {
-        throw "Invalid token format - expected JWT with 3 parts, got $($tokenParts.Length)"
-    }
-    Write-Debug "Token format verified as JWT"
 
-    ## Connect to Microsoft Graph using the access token
-    ## Microsoft.Graph module expects SecureString for AccessToken parameter
-    $secureToken = ConvertTo-SecureString -String $graphApiToken -AsPlainText -Force
-    Connect-MgGraph -AccessToken $secureToken -ErrorAction Stop -NoWelcome
+    $targetParameter = (Get-Command Connect-MgGraph).Parameters['AccessToken']
+    if ($targetParameter.ParameterType -eq [securestring]){
+        Connect-MgGraph -AccessToken ($graphApiToken | ConvertTo-SecureString -AsPlainText -Force) -ErrorAction Stop
+    }
+    else {
+        Connect-MgGraph -AccessToken $graphApiToken -ErrorAction Stop
+    }
     Write-Host "Successfully connected to Microsoft Graph"
-    
-    ## Verify the connection by getting current context
-    $mgContext = Get-MgContext
-    Write-Host "Microsoft Graph Context:"
-    Write-Host "  Scopes: $($mgContext.Scopes -join ', ')"
-    Write-Host "  Account: $($mgContext.Account)"
-    
-    ## Test the connection with a simple API call
-    Write-Host "Testing Graph API connection..."
-    try {
-        $testResult = Get-MgContext -ErrorAction Stop
-        Write-Host "Graph API connection test successful"
-    }
-    catch {
-        Write-Warning "Graph API connection test failed: $_"
-        throw
-    }
     Write-Host "======================================================"
 
 
