@@ -1,0 +1,105 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "title": "Values",
+  "type": "object",
+  "properties": {
+    "service": {
+      "type": "string"
+    },
+    "project": {
+      "type": "string"
+    },
+    "environment": {
+      "type": "string"
+    },
+    "schedule": {
+      "type": "string"
+    },
+    "concurrencyPolicy": {
+      "type": "string",
+      "enum": [
+        "Allow",
+        "Forbid",
+        "Replace"
+      ]
+    },
+    "successfulJobsHistoryLimit": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "failedJobsHistoryLimit": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "suspend": {
+      "type": "boolean"
+    },
+    "container": {
+      "type": "object",
+      "properties": {
+        "image": {
+          "type": "string"
+        },
+        "imagePullPolicy": {
+          "type": "string"
+        },
+        "command": {
+          "type": "string"
+        },
+        "args": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "initContainer": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "image": {
+          "type": "string"
+        },
+        "command": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "enabled"
+      ]
+    },
+    "env": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          },
+          "valueFrom": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      }
+    },
+    "resources": {
+      "type": "object"
+    }
+  },
+  "required": [
+    "environment",
+    "schedule"
+  ]
+}
