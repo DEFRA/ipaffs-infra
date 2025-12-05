@@ -63,8 +63,16 @@
         "image": {
           "type": "string"
         },
-        "command": {}
-      }
+        "command": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "enabled"
+      ]
     },
     "env": {
       "type": "array",

@@ -14,6 +14,11 @@ container:
   command: ""
   args: []
 
+initContainer:
+  enabled: false
+  image: ""
+  command: ""
+
 env: []
 
 resources: {}
