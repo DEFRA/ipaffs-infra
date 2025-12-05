@@ -16,8 +16,6 @@ container:
 
 initContainer:
   enabled: false
-  image: ""
-  command: ""
 
 env: []
 
