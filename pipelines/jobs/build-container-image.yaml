@@ -17,6 +17,7 @@ jobs:
           scriptType: bash
           scriptLocation: inlineScript
           inlineScript: |
+            ls -laR # debug
             az acr login --name $(acrName)
             docker build --platform=linux/amd64 --tag ${{ parameters.imageName }}:$(Build.BuildNumber) --file ${{ parameters.dockerFile }} ${{ parameters.directory }}
             docker tag ${{ parameters.imageName }}:$(Build.BuildNumber) $(acrLoginServer)/ipaffs/${{ parameters.imageName }}:$(Build.BuildNumber)
