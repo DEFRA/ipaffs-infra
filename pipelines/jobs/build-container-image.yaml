@@ -17,7 +17,14 @@ jobs:
           scriptType: bash
           scriptLocation: inlineScript
           inlineScript: |
+            echo "working directory: $(pwd)"
+            echo "root"
+            ls -laR /
+            echo "agent"
+            ls -laR /agent/_work/1/WebAppJar/
+            echo "current"
             ls -laR # debug
+    
             az acr login --name $(acrName)
             docker build --platform=linux/amd64 --tag ${{ parameters.imageName }}:$(Build.BuildNumber) --file ${{ parameters.dockerFile }} ${{ parameters.directory }}
             docker tag ${{ parameters.imageName }}:$(Build.BuildNumber) $(acrLoginServer)/ipaffs/${{ parameters.imageName }}:$(Build.BuildNumber)
