@@ -32,6 +32,8 @@ jobs:
           options: '--s settings.xml'
           goals: 'verify jacoco:report package'
 
+
+
       - task: PublishCodeCoverageResults@2
         displayName: 'Publish code coverage'
         inputs:
