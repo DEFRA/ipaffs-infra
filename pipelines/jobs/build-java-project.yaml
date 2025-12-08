@@ -38,7 +38,7 @@ jobs:
           summaryFileLocation: $(System.DefaultWorkingDirectory)/service/target/site/jacoco/jacoco.xml
           pathToSources: $(System.DefaultWorkingDirectory)/service/src/main/java/
 
-      - publish: ${{ parameters.artifactPath }}
+      - publish: $(System.DefaultWorkingDirectory)/${{ parameters.artifactPath }}
         artifact: WebAppJar
         displayName: Publish WebAppJar artifact
 
