@@ -1,0 +1,22 @@
+parameters:
+  - name: dockerFile
+    type: string
+  - name: directory
+    type: string
+  - name: imageName
+    type: string
+
+steps:
+  - task: AzureCLI@2
+    displayName: Build and Push Container Image
+    inputs:
+      azureSubscription: $(serviceConnection)
+      scriptType: bash
+      scriptLocation: inlineScript
+      inlineScript: |    
+        az acr login --name $(acrName)
+        docker build --platform=linux/amd64 --tag ${{ parameters.imageName }}:$(Build.BuildNumber) --file ${{ parameters.dockerFile }} ${{ parameters.directory }}
+        docker tag ${{ parameters.imageName }}:$(Build.BuildNumber) $(acrLoginServer)/ipaffs/${{ parameters.imageName }}:$(Build.BuildNumber)
+        docker push $(acrLoginServer)/ipaffs/${{ parameters.imageName }}:$(Build.BuildNumber)
+
+# vim: set ts=2 sts=2 sw=2 et:
