@@ -29,13 +29,13 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2025-07-01' = {
     agentPoolProfiles: [
       {
         name: 'system'
-        vmSize: 'Standard_E16as_v6'
+        vmSize: 'Standard_E2as_v6'
         osType: 'Linux'
         type: 'VirtualMachineScaleSets'
         mode: 'System'
         vnetSubnetID: aksParams.subnetId
         enableNodePublicIP: false
-        minCount: 1
+        minCount: 2
         maxCount: 3
         enableAutoScaling: true
       }
@@ -47,7 +47,7 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2025-07-01' = {
         mode: 'User'
         vnetSubnetID: aksParams.subnetId
         enableNodePublicIP: false
-        minCount: 1
+        minCount: 2
         maxCount: 5
         enableAutoScaling: true
       }
