@@ -29,7 +29,7 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2025-07-01' = {
     agentPoolProfiles: [
       {
         name: 'system'
-        vmSize: 'Standard_E2as_v6'
+        vmSize: 'Standard_E16as_v6' // TODO: change to 'Standard_E2as_v6'
         osType: 'Linux'
         type: 'VirtualMachineScaleSets'
         mode: 'System'
