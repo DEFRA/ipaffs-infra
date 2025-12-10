@@ -1,0 +1,50 @@
+parameters:
+  - name: environmentName
+    displayName: Environment
+    type: string
+    default: POC
+    values:
+      - POC
+
+stages:
+  - stage: CreateEntraGroups
+    displayName: Create Entra Groups
+    variables:
+      - group: "${{ parameters.environmentName }}"
+      - template: "/pipelines/vars/common.yaml"
+      - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
+    jobs:
+      - deployment: SQLGroups
+        displayName: SQL Groups
+        condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+        environment:
+          name: "${{ parameters.environmentName }}"
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+
+                - task: AzureCLI@2
+                  displayName: AG-Azure-IMP_POC-SQLAdmins
+                  env:
+                    GROUP_NAME: AG-Azure-IMP_POC-SQLAdmins
+                    GROUP_DESCRIPTION: Entra access group for IPAFFS SQL Admins
+                  inputs:
+                    addSpnToEnvironment: true
+                    azureSubscription: 'AZR-SSV5-IPAFFS'
+                    scriptType: bash
+                    scriptPath: scripts/pipeline/create-entra-group.sh
+
+                - task: AzureCLI@2
+                  displayName: AG-Azure-IMP_POC-SQLServers
+                  env:
+                    GROUP_NAME: AG-Azure-IMP_POC-SQLServers
+                    GROUP_DESCRIPTION: Entra access group for IPAFFS SQL Servers
+                  inputs:
+                    addSpnToEnvironment: true
+                    azureSubscription: 'AZR-SSV5-IPAFFS'
+                    scriptType: bash
+                    scriptPath: scripts/pipeline/create-entra-group.sh
+
+# vim: set ts=2 sts=2 sw=2 et:
