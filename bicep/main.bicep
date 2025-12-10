@@ -12,6 +12,7 @@ param keyVaultParams object
 param nsgParams object
 param sqlParams object
 param vnetParams object
+param monitoringParams object
 
 param createdDate string = utcNow('yyyy-MM-dd')
 param deploymentId string = uniqueString(utcNow())
@@ -117,6 +118,17 @@ module vnet './modules/virtual-network.bicep' = {
     location: location
     tags: tags
     vnetParams: vnetParams
+  }
+}
+
+module monitoring './modules/monitoring' = {
+  name: 'monitoring-${deploymentId}'
+  scope: resourceGroup()
+  params:
+    deploymentId: deploymentId
+    location: location
+    tags: tags
+    monitoringParams: monitoringParams
   }
 }
 

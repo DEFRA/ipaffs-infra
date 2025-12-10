@@ -1,19 +1,16 @@
 targetScope = 'resourceGroup'
 
-param logAnalyticsName string
-param grafanaName string
-@secure()
-param userObjectId string // AG-Azure-IMP_POC1-Owners
+param monitoringParams object
 param location string
 param tags object
 
 resource logAnalytics 'Microsoft.OperationalInsights/workspaces@2025-07-01' = {
-  name: logAnalyticsName
+  name: monitoringParams.logAnalyticsName
   location: location
   tags: tags
   properties: {
     sku: {
-      name: 'PerGB2018' // Note: Pay as you Go SKU. Will 'Free' work?
+      name: 'PerGB2018' // Will 'Free' SKU work?
     }
   }
   identity: {
@@ -28,7 +25,7 @@ resource prometheus 'Microsoft.Monitor/accounts@2023-04-03' = {
 }
 
 resource grafanaDashboard 'Microsoft.Dashboard/grafana@2025-08-01' = {
-  name: grafanaName
+  name: monitoringParams.grafanaName
   location: location
   tags: tags
   sku: {
@@ -52,7 +49,7 @@ resource grafanaAdminRole 'Microsoft.Authorization/roleAssignments@2022-04-01' =
   name: guid(subscription().id, resourceGroup().id, userObjectId, 'Grafana Admin')
   scope: grafanaDashboard
   properties: {
-    principalId: userObjectId
+    principalId: monitoringParams.principalId
     principalType: 'Group'
     roleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', '22926164-76b3-42b3-bc55-97df8dab3e41') // https://learn.microsoft.com/en-us/azure/role-based-access-control/built-in-roles
   }
