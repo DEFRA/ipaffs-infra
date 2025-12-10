@@ -119,6 +119,24 @@ param nsgParams = {
       purpose: 'AKS System Node Pool NSG'
       securityRules: [
         {
+          name: 'AllowVnetInternal'
+          properties: {
+            protocol: '*'
+            sourcePortRange: '*'
+            sourceAddressPrefix: 'VirtualNetwork'
+            destinationPortRange: '*'
+            destinationAddressPrefix: 'VirtualNetwork'
+            access: 'Allow'
+            priority: 100
+            direction: 'Inbound'
+            sourcePortRanges: []
+            destinationPortRanges: []
+            sourceAddressPrefixes: []
+            destinationAddressPrefixes: []
+            description: 'Allow vNet to vNet communication on any port. Required for AKS nodes in the subnet'
+          }
+        }
+        {
           name: 'AllowPodCidrAnyInbound'
           properties: {
             protocol: '*'
