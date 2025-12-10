@@ -28,6 +28,10 @@ resources:
       ref: refs/tags/Release-v6-latest
 
 stages:
+  - template: /pipelines/stages/entra-groups.yaml
+    parameters:
+      environmentName: ${{ parameters.environmentName }}
+
   - stage: DeployInfrastructure
     displayName: Deploy Infrastructure
     jobs:
