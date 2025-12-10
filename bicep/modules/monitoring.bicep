@@ -1,6 +1,7 @@
 targetScope = 'resourceGroup'
 
 param monitoringParams object
+param deploymentId string
 param location string
 param tags object
 
@@ -19,7 +20,7 @@ resource logAnalytics 'Microsoft.OperationalInsights/workspaces@2025-07-01' = {
 }
 
 resource prometheus 'Microsoft.Monitor/accounts@2023-04-03' = {
-  name: prometheusName
+  name: monitoringParams.prometheusName
   location: location
   tags: tags
 }
@@ -46,12 +47,12 @@ resource grafanaDashboard 'Microsoft.Dashboard/grafana@2025-08-01' = {
 }
 
 resource grafanaAdminRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(subscription().id, resourceGroup().id, userObjectId, 'Grafana Admin')
+  name: guid(subscription().id, resourceGroup().id, monitoringParams.principalObjectId, 'Grafana Admin')
   scope: grafanaDashboard
   properties: {
-    principalId: monitoringParams.principalId
+    principalId: monitoringParams.principalObjectId
     principalType: 'Group'
-    roleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', monitoringParams.principalId)
+    roleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', '22926164-76b3-42b3-bc55-97df8dab3e41')
   }
 }
 
