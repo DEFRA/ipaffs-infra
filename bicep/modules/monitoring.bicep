@@ -10,7 +10,7 @@ resource logAnalytics 'Microsoft.OperationalInsights/workspaces@2025-07-01' = {
   tags: tags
   properties: {
     sku: {
-      name: 'PerGB2018' // Will 'Free' SKU work?
+      name: 'PerGB2018' // Note: will 'Free' SKU work?
     }
   }
   identity: {
@@ -29,7 +29,7 @@ resource grafanaDashboard 'Microsoft.Dashboard/grafana@2025-08-01' = {
   location: location
   tags: tags
   sku: {
-    name: 'Standard' // Note: https://learn.microsoft.com/en-us/azure/templates/microsoft.dashboard/2025-08-01/grafana?pivots=deployment-language-bicep#resourcesku
+    name: 'Standard'
   }
   identity: {
     type: 'SystemAssigned'
@@ -51,7 +51,7 @@ resource grafanaAdminRole 'Microsoft.Authorization/roleAssignments@2022-04-01' =
   properties: {
     principalId: monitoringParams.principalId
     principalType: 'Group'
-    roleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', '22926164-76b3-42b3-bc55-97df8dab3e41') // https://learn.microsoft.com/en-us/azure/role-based-access-control/built-in-roles
+    roleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', monitoringParams.principalId)
   }
 }
 
