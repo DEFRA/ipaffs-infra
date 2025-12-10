@@ -30,7 +30,7 @@ jobs:
           publishJUnitResults: true
           testResultsFiles: '**/surefire-reports/TEST-*.xml'
           options: '--s settings.xml'
-          goals: 'verify jacoco:report'
+          goals: 'verify jacoco:report package'
 
       - task: PublishCodeCoverageResults@2
         displayName: 'Publish code coverage'
