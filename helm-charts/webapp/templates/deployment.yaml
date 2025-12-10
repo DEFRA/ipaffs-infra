@@ -21,7 +21,7 @@ metadata:
   labels:
     {{- include "ipaffs-common.labels" . | nindent 4 }}
   annotations:
-    azure.workload.identity/client-id: {{ .Values.database.migrations.clientId }}
+    azure.workload.identity/client-id: {{ .Values.azure.clientId }}
   name: {{ .Values.service }}-service
 
 ---
