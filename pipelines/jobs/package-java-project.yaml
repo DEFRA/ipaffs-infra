@@ -1,6 +1,9 @@
 parameters:
-  name: serviceName
-  type: string
+  - name: serviceName
+    type: string
+  - name: dockerfile
+    type: string
+    default: Dockerfile
 
 jobs:
   - job: Package
@@ -24,7 +27,7 @@ jobs:
           scriptLocation: inlineScript
           inlineScript: |
             az acr login --name $(acrName)
-            docker build --platform=linux/amd64 --build-arg SERVICE_VERSION=poc --tag ${{ parameters.serviceName }}:$(Build.BuildNumber) --file ./service/Dockerfile.k8s ./service
+            docker build --platform=linux/amd64 --build-arg SERVICE_VERSION=poc --tag ${{ parameters.serviceName }}:$(Build.BuildNumber) --file ./service/${{ parameters.dockerfile }} ./service
             docker tag ${{ parameters.serviceName }}:$(Build.BuildNumber) $(acrLoginServer)/ipaffs/${{ parameters.serviceName }}:$(Build.BuildNumber)
             docker push $(acrLoginServer)/ipaffs/${{ parameters.serviceName }}:$(Build.BuildNumber)
 
