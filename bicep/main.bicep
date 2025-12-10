@@ -124,7 +124,7 @@ module vnet './modules/virtual-network.bicep' = {
 module monitoring './modules/monitoring' = {
   name: 'monitoring-${deploymentId}'
   scope: resourceGroup()
-  params:
+  params: {
     deploymentId: deploymentId
     location: location
     tags: tags
