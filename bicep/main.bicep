@@ -25,17 +25,6 @@ var tags = union(loadJsonContent('default-tags.json'), {
   Location: location
 })
 
-module monitoring './modules/monitoring.bicep' = {
-  name: 'monitoring-${deploymentId}'
-  scope: resourceGroup()
-  params: {
-    deploymentId: deploymentId
-    location: location
-    tags: tags
-    monitoringParams: monitoringParams
-  }
-}
-
 module acr './modules/acr.bicep' = {
   name: 'acr-${deploymentId}'
   scope: resourceGroup()
@@ -61,6 +50,7 @@ module aks './modules/aks.bicep' = {
     location: location
     tags: tags
     vnetName: vnet.outputs.vnetName
+    logAnalyticsId: monitoring.outputs.logAnalyticsId
   }
   dependsOn: [
     nsg
@@ -148,6 +138,17 @@ module vnet './modules/virtual-network.bicep' = {
     location: location
     tags: tags
     vnetParams: vnetParams
+  }
+}
+
+module monitoring './modules/monitoring.bicep' = {
+  name: 'monitoring-${deploymentId}'
+  scope: resourceGroup()
+  params: {
+    deploymentId: deploymentId
+    location: location
+    tags: tags
+    monitoringParams: monitoringParams
   }
 }
 

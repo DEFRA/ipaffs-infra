@@ -26,19 +26,19 @@ steps:
           --template-file bicep/resource-group.bicep \
           --parameters bicep/envs/${{ lower(parameters.environmentName) }}/resource-group.bicepparam
 
-#  - task: AzureCLI@2
-#    displayName: WhatIf - Main
-#    inputs:
-#      azureSubscription: $(serviceConnection)
-#      scriptType: bash
-#      scriptLocation: inlineScript
-#      inlineScript: |
-#        az deployment group what-if \
-#          --name "Infrastructure-$(Build.BuildId)" \
-#          --resource-group $(resourceGroupName) \
-#          --template-file bicep/main.bicep \
-#          --parameters bicep/envs/${{ lower(parameters.environmentName) }}/main.bicepparam \
-#          --parameters tenantId="$(tenantId)"
+  - task: AzureCLI@2
+    displayName: WhatIf - Main
+    inputs:
+      azureSubscription: $(serviceConnection)
+      scriptType: bash
+      scriptLocation: inlineScript
+      inlineScript: |
+        az deployment group what-if \
+          --name "Infrastructure-$(Build.BuildId)" \
+          --resource-group $(resourceGroupName) \
+          --template-file bicep/main.bicep \
+          --parameters bicep/envs/${{ lower(parameters.environmentName) }}/main.bicepparam \
+          --parameters tenantId="$(tenantId)"
 
   - task: AzureCLI@2
     displayName: Deploy - Main
