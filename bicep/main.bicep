@@ -125,6 +125,8 @@ output acrName string = acr.outputs.acrName
 output aksClusterName string = aks.outputs.aksClusterName
 output aksOidcIssuer string = aks.outputs.oidcIssuerUrl
 output azureServiceOperatorClientId string = aso.outputs.clientId
+output keyVaultName string = keyVault.outputs.keyVaultName
+output keyVaultUri string = keyVault.outputs.keyVaultUri
 output sqlAdminGroupId string = sql.outputs.sqlAdminGroupId
 output sqlServerName string = sql.outputs.sqlServerName
 
