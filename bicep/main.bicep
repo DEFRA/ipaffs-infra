@@ -141,3 +141,4 @@ output sqlAdminGroupId string = sql.outputs.sqlAdminGroupId
 output sqlServerName string = sql.outputs.sqlServerName
 
 // vim: set ts=2 sts=2 sw=2 et:
+
