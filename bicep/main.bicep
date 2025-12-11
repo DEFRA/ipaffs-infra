@@ -25,6 +25,17 @@ var tags = union(loadJsonContent('default-tags.json'), {
   Location: location
 })
 
+module monitoring './modules/monitoring.bicep' = {
+  name: 'monitoring-${deploymentId}'
+  scope: resourceGroup()
+  params: {
+    deploymentId: deploymentId
+    location: location
+    tags: tags
+    monitoringParams: monitoringParams
+  }
+}
+
 module acr './modules/acr.bicep' = {
   name: 'acr-${deploymentId}'
   scope: resourceGroup()
@@ -140,17 +151,6 @@ module vnet './modules/virtual-network.bicep' = {
   }
 }
 
-module monitoring './modules/monitoring.bicep' = {
-  name: 'monitoring-${deploymentId}'
-  scope: resourceGroup()
-  params: {
-    deploymentId: deploymentId
-    location: location
-    tags: tags
-    monitoringParams: monitoringParams
-  }
-}
-
 output acrLoginServer string = acr.outputs.acrLoginServer
 output acrName string = acr.outputs.acrName
 output aksClusterName string = aks.outputs.aksClusterName
@@ -163,3 +163,4 @@ output sqlAdminGroupId string = sql.outputs.sqlAdminGroupId
 output sqlServerName string = sql.outputs.sqlServerName
 
 // vim: set ts=2 sts=2 sw=2 et:
+
