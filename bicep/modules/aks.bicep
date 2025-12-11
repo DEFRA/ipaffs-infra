@@ -73,15 +73,27 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2025-07-01' = {
     }
 
     addonProfiles: {
-         omsAgent: {
-            enabled: true
-                config: {
-                    logAnalyticsWorkspaceResourceID: logAnalyticsId
-                }
-            }
+      omsAgent: {
+        enabled: true
+        config: {
+          logAnalyticsWorkspaceResourceID: logAnalyticsId
         }
+      }
     }
+
+    azureMonitorProfile: {
+      metrics: {
+        enabled: true
+        kubeStateMetrics: {
+          metricAnnotationsAllowList: '*'
+          metricLabelsAllowlist: '*'
+        }
+      }
+    }
+  }
 }
+
+
 
 var acrPullRoleId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '7f951dda-4ed3-4680-a7ca-43fe172d538d')
 var networkContributorRoleId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '4d97b98b-1d4f-4787-a291-c67834d212e7')
