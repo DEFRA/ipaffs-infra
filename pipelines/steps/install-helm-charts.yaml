@@ -85,4 +85,28 @@ steps:
         --set image.repositoryBase=$(acrLoginServer)/k8s/azureserviceoperator
         $(helmDryRun)
 
+  - task: HelmDeploy@0
+    displayName: Helm Install - external-secrets
+    inputs:
+      connectionType: Azure Resource Manager
+      azureSubscription: $(serviceConnection)
+      azureResourceGroup: $(resourceGroupName)
+      kubernetesCluster: $(kubernetesCluster)
+      namespace: external-secrets
+      command: upgrade
+      chartName: "external-secrets"
+      chartVersion: v1.1.1
+      releaseName: external-secrets
+      install: true
+      useClusterAdmin: true
+      arguments: >-
+        --repo https://charts.external-secrets.io
+        -f helm-charts/external-secrets-values.yaml
+        --create-namespace
+        --set azure.vaultUrl=$(keyVaultUrl)
+        --set azure.tenantId=$(tenantId)
+        --set azure.identityId=$(azureServiceOperatorClientId)
+        --set external-secrets.serviceAccount.annotations.azure\.workload\.identity/client-id=$(azureServiceOperatorClientId)
+        $(helmDryRun)
+
 # vim: set ts=2 sts=2 sw=2 et:
