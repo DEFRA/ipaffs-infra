@@ -3,7 +3,6 @@ trigger:
   branches:
     include:
       - main
-      - feature/imta-20710
   paths:
     include:
       - bicep/main.bicep
