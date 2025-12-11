@@ -56,5 +56,6 @@ resource grafanaAdminRole 'Microsoft.Authorization/roleAssignments@2022-04-01' =
   }
 }
 
-// vim: set ts=2 sts=2 sw=2 et:
+output logAnalyticsId string = logAnalytics.id
 
+// vim: set ts=2 sts=2 sw=2 et:
