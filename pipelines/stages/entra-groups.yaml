@@ -1,0 +1,70 @@
+parameters:
+  - name: environmentName
+    displayName: Environment
+    type: string
+    default: POC
+    values:
+      - POC
+
+stages:
+  - stage: CreateEntraGroups
+    displayName: Create Entra Groups
+    variables:
+      - group: "${{ parameters.environmentName }}"
+      - template: "/pipelines/vars/common.yaml"
+      - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
+    jobs:
+      - job: LookupServicePrincipals
+        displayName: Look up service principals
+        steps:
+          - checkout: self
+
+          - task: AzureCLI@2
+            name: ServiceConnection
+            displayName: Local Service Connection
+            env:
+              OBJECT_NAME: $(serviceConnection)
+              OBJECT_TYPE: servicePrincipal
+            inputs:
+              azureSubscription: $(serviceConnection)
+              scriptType: bash
+              scriptPath: scripts/pipeline/lookup-directory-object.sh
+
+      - deployment: SQLGroups
+        displayName: SQL Groups
+        condition: eq(variables['Build.SourceBranch'], 'refs/heads/feature/aad-groups')
+        dependsOn: LookupServicePrincipals
+        environment:
+          name: "${{ parameters.environmentName }}"
+        variables:
+          - name: serviceConnectionObjectId
+            value: $[dependencies.LookupServicePrincipals.outputs['ServiceConnection.objectId']]
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+
+                - task: AzureCLI@2
+                  displayName: AG-Azure-IMP_POC-SQLAdmins
+                  env:
+                    GROUP_NAME: AG-Azure-IMP_POC-SQLAdmins
+                    GROUP_DESCRIPTION: Entra access group for IPAFFS SQL Admins
+                    GROUP_OWNER_OBJECT_IDS: $(serviceConnectionObjectId)
+                  inputs:
+                    azureSubscription: $(upstreamServiceConnection)
+                    scriptType: bash
+                    scriptPath: scripts/pipeline/create-entra-group.sh
+
+                - task: AzureCLI@2
+                  displayName: AG-Azure-IMP_POC-SQLServers
+                  env:
+                    GROUP_NAME: AG-Azure-IMP_POC-SQLServers
+                    GROUP_DESCRIPTION: Entra access group for IPAFFS SQL Servers
+                    GROUP_OWNER_OBJECT_IDS: $(serviceConnectionObjectId)
+                  inputs:
+                    azureSubscription: $(upstreamServiceConnection)
+                    scriptType: bash
+                    scriptPath: scripts/pipeline/create-entra-group.sh
+
+# vim: set ts=2 sts=2 sw=2 et:
