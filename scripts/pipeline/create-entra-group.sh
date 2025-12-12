@@ -2,23 +2,23 @@
 
 set -x
 
+SCRIPTS_DIR="$(cd "$(dirname $0)"/.. && pwd)"
+
 TOKEN="$(az account get-access-token --scope https://graph.microsoft.com/.default --query accessToken -o tsv)"
 [[ $? -ne 0 ]] && exit 1
 
 # Check for existing group
-GROUP_SEARCH_RESULT="$(curl -H "Authorization: Bearer ${TOKEN}" "https://graph.microsoft.com/v1.0/groups?\$filter=displayName+eq+'${GROUP_NAME}'")"
-[[ $? -ne 0 ]] && exit 1
-[[ "$(jq -r '.error.code' <<<"${GROUP_SEARCH_RESULT}")" == "null" ]] || exit 1
-GROUP_ID="$(jq -r '.value[0].id' <<<"${GROUP_SEARCH_RESULT}")"
-if [[ -n "${GROUP_ID}" ]] && [[ "${GROUP_ID}" != "null" ]]; then
-  echo "##vso[task.setvariable variable=groupId]${GROUP_ID}"
+result="$(PRINCIPAL_NAME="${GROUP_NAME}" PRINCIPAL_TYPE=group "${SCRIPTS_DIR}/pipeline/lookup-principal.sh")"
+if [[ $? -ne 0 ]]; then
+  echo "${result}"
   exit 0
 fi
 
+# Default to servicePrincipalId as owner, which is set when addSpnToEnvironment: true
 [[ -z "${GROUP_OWNER_OBJECT_ID}" ]] && [[ -n "${servicePrincipalId}" ]] && \
   GROUP_OWNER_OBJECT_ID="${servicePrincipalId}"
 
-read -r -d '' GROUP_JSON <<EOF
+read -r -d '' groupJson <<EOF
 {
   "displayName": "${GROUP_NAME}",
   "description": "${GROUP_DESCRIPTION}",
@@ -33,11 +33,11 @@ read -r -d '' GROUP_JSON <<EOF
 EOF
 
 # Create the group
-GROUP_RESULT="$(curl -X POST -H "Authorization: Bearer ${TOKEN}" -H "Content-Type: application/json; charset=utf-8" -d "${GROUP_JSON}" "https://graph.microsoft.com/v1.0/groups")"
+groupResult="$(curl -X POST -H "Authorization: Bearer ${TOKEN}" -H "Content-Type: application/json; charset=utf-8" -d "${groupJson}" "https://graph.microsoft.com/v1.0/groups")"
 [[ $? -ne 0 ]] && exit 1
-[[ "$(jq -r '.error.code' <<<"${GROUP_RESULT}")" == "null" ]] || exit 1
-GROUP_ID="$(echo "${GROUP_RESULT}" | jq -r '.id')"
-echo "##vso[task.setvariable variable=groupId]${GROUP_ID}"
+[[ "$(jq -r '.error.code' <<<"${groupResult}")" == "null" ]] || exit 1
+objectId="$(echo "${groupResult}" | jq -r '.id')"
+echo "##vso[task.setvariable variable=objectId;isOutput=true]${objectId}"
 
 # Now wait for the group to consistently appear (i.e. propagate)
 max_attempts=10
@@ -48,7 +48,7 @@ wait=2
 while (( attempt < max_attempts )); do
   (( attempt++ ))
 
-  result="$(curl -w '%{http_code}' -s -o /dev/null -H "Authorization: Bearer ${TOKEN}" "https://graph.microsoft.com/v1.0/groups/${GROUP_ID}")"
+  result="$(curl -w '%{http_code}' -s -o /dev/null -H "Authorization: Bearer ${TOKEN}" "https://graph.microsoft.com/v1.0/groups/${objectId}")"
   if [[ "${result}" == "200" ]]; then
     (( successful++ ))
     (( successful == 5 )) && exit 0
