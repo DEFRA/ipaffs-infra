@@ -31,7 +31,7 @@ prefix='https://graph.microsoft.com/v1.0/directoryObjects/'
 for i in "${!ownerObjectIds[@]}"; do
   oid="${ownerObjectIds[i]}"
   ownersJson="${ownersJson}\"${prefix}${oid}\""
-  (( i < ${#ownerObjectIds[@]} - 1 )) && ownersJson="${ownersJson},\n    "
+  (( i < ${#ownerObjectIds[@]} - 1 )) && ownersJson="${ownersJson}, "
 done
 
 read -r -d '' groupJson <<EOF
