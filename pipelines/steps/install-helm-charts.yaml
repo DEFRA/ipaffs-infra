@@ -108,6 +108,8 @@ steps:
         --set azure.identityId=$(azureServiceOperatorClientId)
         --set external-secrets.serviceAccount.annotations.azure\.workload\.identity/client-id=$(azureServiceOperatorClientId)
         --set image.repository=$(acrLoginServer)/external-secrets/external-secrets
+        --set webhook.image.repository=$(acrLoginServer)/external-secrets/external-secrets
+        --set certController.image.repository=$(acrLoginServer)/external-secrets/external-secrets
         $(helmDryRun)
 
 # vim: set ts=2 sts=2 sw=2 et:
