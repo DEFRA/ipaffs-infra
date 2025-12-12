@@ -39,6 +39,7 @@ esac
 
 oid="$(parseObjectId "${searchResult}")"
 [[ $? -ne 0 ]] && exit 1
-echo "##vso[task.setvariable variable=objectId]${oid}"
+
+echo "##vso[task.setvariable variable=objectId;isOutput=true]${oid}"
 
 # vim: set ts=2 sts=2 sw=2 et:
