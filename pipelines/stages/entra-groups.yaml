@@ -15,7 +15,7 @@ stages:
       - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
     jobs:
       - job: LookupServicePrincipals
-        displayName: Look up service principal
+        displayName: Look up service principals
         steps:
           - checkout: self
 
@@ -23,8 +23,8 @@ stages:
             name: ServiceConnection
             displayName: Get Service Connection Principal ID
             env:
-              PRINCIPAL_NAME: $(serviceConnection)
-              PRINCIPAL_TYPE: servicePrincipal
+              OBJECT_NAME: $(serviceConnection)
+              OBJECT_TYPE: servicePrincipal
             inputs:
               azureSubscription: $(serviceConnection)
               scriptType: bash
@@ -52,7 +52,6 @@ stages:
                     GROUP_DESCRIPTION: Entra access group for IPAFFS SQL Admins
                     GROUP_OWNER_OBJECT_ID: $(serviceConnectionObjectId)
                   inputs:
-                    addSpnToEnvironment: true
                     azureSubscription: AZR-SSV5-IPAFFS
                     scriptType: bash
                     scriptPath: scripts/pipeline/create-entra-group.sh
@@ -64,7 +63,6 @@ stages:
                     GROUP_DESCRIPTION: Entra access group for IPAFFS SQL Servers
                     GROUP_OWNER_OBJECT_ID: $(serviceConnectionObjectId)
                   inputs:
-                    addSpnToEnvironment: true
                     azureSubscription: AZR-SSV5-IPAFFS
                     scriptType: bash
                     scriptPath: scripts/pipeline/create-entra-group.sh

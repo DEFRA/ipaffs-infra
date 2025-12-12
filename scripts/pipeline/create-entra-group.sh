@@ -8,7 +8,7 @@ TOKEN="$(az account get-access-token --scope https://graph.microsoft.com/.defaul
 [[ $? -ne 0 ]] && exit 1
 
 # Check for existing group
-result="$(PRINCIPAL_NAME="${GROUP_NAME}" PRINCIPAL_TYPE=group "${SCRIPTS_DIR}/pipeline/lookup-directory-object.sh")"
+result="$(OBJECT_NAME="${GROUP_NAME}" OBJECT_TYPE=group "${SCRIPTS_DIR}/pipeline/lookup-directory-object.sh")"
 if [[ $? -eq 0 ]]; then
   echo "${result}"
   exit 0
