@@ -52,7 +52,6 @@ stages:
                     GROUP_DESCRIPTION: Entra access group for IPAFFS SQL Admins
                     GROUP_OWNER_OBJECT_IDS: $(serviceConnectionObjectId)
                   inputs:
-                    addSpnToEnvironment: true
                     azureSubscription: $(upstreamServiceConnection)
                     scriptType: bash
                     scriptPath: scripts/pipeline/create-entra-group.sh
@@ -64,7 +63,6 @@ stages:
                     GROUP_DESCRIPTION: Entra access group for IPAFFS SQL Servers
                     GROUP_OWNER_OBJECT_IDS: $(serviceConnectionObjectId)
                   inputs:
-                    addSpnToEnvironment: true
                     azureSubscription: $(upstreamServiceConnection)
                     scriptType: bash
                     scriptPath: scripts/pipeline/create-entra-group.sh
