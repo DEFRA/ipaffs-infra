@@ -1,15 +1,5 @@
-# Shared values for installing External Secrets and configuring Azure Key Vault access.
-
 # Override the generated ClusterSecretStore name. Defaults to the release fullname.
 secretStoreNameOverride: ""
-
-# Configure the upstream external-secrets chart (values must be at the top level).
-installCRDs: true
-serviceAccount:
-  create: true
-  # Provide the Azure Workload Identity client ID as an annotation when using authType: WorkloadIdentity
-  name: external-secrets
-  annotations: {}
 
 azure:
   # Required: the Azure Key Vault URI and tenant ID to read secrets from.
@@ -19,7 +9,8 @@ azure:
   # authType can be WorkloadIdentity (default), ManagedIdentity or ServicePrincipal.
   authType: WorkloadIdentity
 
-  # identityId is required for WorkloadIdentity and should be the client ID of the federated identity.
+  # identityId is required for WorkloadIdentity (the federated identity client ID)
+  # and for ManagedIdentity (the managed identity client ID).
   identityId: ""
 
   # serviceAccountRef is used for WorkloadIdentity authentication.
@@ -29,9 +20,8 @@ azure:
 
   # Service principal settings when authType is ServicePrincipal.
   servicePrincipal:
-    # Name of the Kubernetes secret containing clientId and clientSecret keys.
+    # Name/namespace of the Kubernetes secret containing clientId and clientSecret keys.
     secretName: external-secrets-azure-sp
-    # Optional namespace for the service principal secret. Defaults to the release namespace.
     secretNamespace: ""
     clientIdKey: clientId
     clientSecretKey: clientSecret
