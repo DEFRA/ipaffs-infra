@@ -37,7 +37,7 @@ case "${PRINCIPAL_TYPE}" in
     ;;
 esac
 
-oid="${parseObjectId "${searchResult}"}"
+oid="$(parseObjectId "${searchResult}")"
 [[ $? -ne 0 ]] && exit 1
 echo "##vso[task.setvariable variable=objectId]${oid}"
 
