@@ -16,11 +16,7 @@ fi
 
 # Parse owner object IDs
 declare -a ownerObjectIds
-if [[ -n "${GROUP_OWNER_OBJECT_IDS}" ]]; then
-  while IFS=',' read -ra objectId; do
-    ownerObjectIds+=("${objectId}")
-  done <<<"${GROUP_OWNER_OBJECT_IDS}"
-fi
+[[ -n "${GROUP_OWNER_OBJECT_IDS}" ]] && IFS=',' read -ra ownerObjectIds <<<"${GROUP_OWNER_OBJECT_IDS}"
 
 # Include servicePrincipalId as owner (if set), which is set when addSpnToEnvironment: true
 [[ -n "${servicePrincipalId}" ]] && ownerObjectIds+=("${servicePrincipalId}")
