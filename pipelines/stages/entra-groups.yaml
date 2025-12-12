@@ -14,6 +14,22 @@ stages:
       - template: "/pipelines/vars/common.yaml"
       - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
     jobs:
+      - job: BuildContainerImage
+        displayName: Build Container Image
+        steps:
+          - checkout: self
+
+          - task: AzureCLI@2
+            displayName: Get Service Principal ID
+            env:
+              PRINCIPAL_NAME: $(serviceConnection)
+              PRINCIPAL_TYPE: servicePrincipal
+            inputs:
+              azureSubscription: $(serviceConnection)
+              scriptType: bash
+              scriptPath: scripts/pipeline/create-entra-group.sh
+
+
       - deployment: SQLGroups
         displayName: SQL Groups
         condition: eq(variables['Build.SourceBranch'], 'refs/heads/feature/aad-groups')
@@ -32,7 +48,7 @@ stages:
                     GROUP_DESCRIPTION: Entra access group for IPAFFS SQL Admins
                   inputs:
                     addSpnToEnvironment: true
-                    azureSubscription: 'AZR-SSV5-IPAFFS'
+                    azureSubscription: AZR-SSV5-IPAFFS
                     scriptType: bash
                     scriptPath: scripts/pipeline/create-entra-group.sh
 
@@ -43,7 +59,7 @@ stages:
                     GROUP_DESCRIPTION: Entra access group for IPAFFS SQL Servers
                   inputs:
                     addSpnToEnvironment: true
-                    azureSubscription: 'AZR-SSV5-IPAFFS'
+                    azureSubscription: AZR-SSV5-IPAFFS
                     scriptType: bash
                     scriptPath: scripts/pipeline/create-entra-group.sh
 
