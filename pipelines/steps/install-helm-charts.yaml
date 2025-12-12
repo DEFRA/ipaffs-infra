@@ -105,8 +105,8 @@ steps:
         --create-namespace
         --set azure.vaultUrl=$(keyVaultUrl)
         --set azure.tenantId=$(tenantId)
-        --set azure.identityId=$(azureServiceOperatorClientId)
-        --set serviceAccount.annotations.azure\.workload\.identity/client-id=$(azureServiceOperatorClientId)
+        --set azure.identityId=$(externalSecretsClientId)
+        --set serviceAccount.annotations.azure\.workload\.identity/client-id=$(externalSecretsClientId)
         --set image.repository=$(acrLoginServer)/external-secrets/external-secrets
         --set webhook.image.repository=$(acrLoginServer)/external-secrets/external-secrets
         --set certController.image.repository=$(acrLoginServer)/external-secrets/external-secrets
@@ -130,7 +130,7 @@ steps:
         --create-namespace
         --set azure.vaultUrl=$(keyVaultUrl)
         --set azure.tenantId=$(tenantId)
-        --set azure.identityId=$(azureServiceOperatorClientId)
+        --set azure.identityId=$(externalSecretsClientId)
         --set azure.serviceAccountRef.name=external-secrets
         --set azure.serviceAccountRef.namespace=external-secrets
         $(helmDryRun)

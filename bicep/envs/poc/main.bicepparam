@@ -25,6 +25,10 @@ param asoParams = {
   managedIdentityName: 'POCIMPINFMI1401-AzureServiceOperator'
 }
 
+param externalSecretsParams = {
+  managedIdentityName: 'POCIMPINFMI1401-ExternalSecrets'
+}
+
 param keyVaultParams = {
   name: 'POCIMPINFKV1401'
   principalObjectIds: [
