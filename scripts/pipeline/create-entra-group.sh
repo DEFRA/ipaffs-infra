@@ -16,7 +16,7 @@ fi
 
 # Parse owner object IDs
 declare -a ownerObjectIds
-if [[ -z "${GROUP_OWNER_OBJECT_IDS}"]]; then
+if [[ -n "${GROUP_OWNER_OBJECT_IDS}" ]]; then
   while IFS=',' read -ra objectId; do
     ownerObjectIds+=("${objectId}")
   done <<<"${GROUP_OWNER_OBJECT_IDS}"
