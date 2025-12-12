@@ -14,9 +14,25 @@ if [[ $? -eq 0 ]]; then
   exit 0
 fi
 
-# Default to servicePrincipalId as owner, which is set when addSpnToEnvironment: true
-[[ -z "${GROUP_OWNER_OBJECT_ID}" ]] && [[ -n "${servicePrincipalId}" ]] && \
-  GROUP_OWNER_OBJECT_ID="${servicePrincipalId}"
+# Parse owner object IDs
+declare -a ownerObjectIds
+if [[ -z "${GROUP_OWNER_OBJECT_IDS}"]]; then
+  while IFS=',' read -ra objectId; do
+    ownerObjectIds+=("${objectId}")
+  done <<<"${GROUP_OWNER_OBJECT_IDS}"
+fi
+
+# Include servicePrincipalId as owner (if set), which is set when addSpnToEnvironment: true
+[[ -n "${servicePrincipalId}" ]] && ownerObjectIds+=("${servicePrincipalId}")
+
+# Compile owners
+ownersJson=
+prefix='https://graph.microsoft.com/v1.0/directoryObjects/'
+for i in "${!ownerObjectIds[@]}"; do
+  oid="${ownerObjectIds[i]}"
+  ownersJson="${ownersJson}\"${prefix}${oid}\""
+  (( i < ${#ownerObjectIds[@]} - 1 )) && ownersJson="${ownersJson},\n    "
+done
 
 read -r -d '' groupJson <<EOF
 {
@@ -27,7 +43,7 @@ read -r -d '' groupJson <<EOF
   "isAssignableToRole": true,
   "mailNickname": "${GROUP_NAME}",
   "owners@odata.bind": [
-    "https://graph.microsoft.com/v1.0/directoryObjects/${GROUP_OWNER_OBJECT_ID}"
+    ${ownersJson}
   ]
 }
 EOF

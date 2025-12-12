@@ -21,7 +21,7 @@ stages:
 
           - task: AzureCLI@2
             name: ServiceConnection
-            displayName: Get Service Connection Principal ID
+            displayName: Local Service Connection
             env:
               OBJECT_NAME: $(serviceConnection)
               OBJECT_TYPE: servicePrincipal
@@ -50,9 +50,10 @@ stages:
                   env:
                     GROUP_NAME: AG-Azure-IMP_POC-SQLAdmins
                     GROUP_DESCRIPTION: Entra access group for IPAFFS SQL Admins
-                    GROUP_OWNER_OBJECT_ID: $(serviceConnectionObjectId)
+                    GROUP_OWNER_OBJECT_IDS: $(serviceConnectionObjectId)
                   inputs:
-                    azureSubscription: AZR-SSV5-IPAFFS
+                    addSpnToEnvironment: true
+                    azureSubscription: $(upstreamServiceConnection)
                     scriptType: bash
                     scriptPath: scripts/pipeline/create-entra-group.sh
 
@@ -61,9 +62,10 @@ stages:
                   env:
                     GROUP_NAME: AG-Azure-IMP_POC-SQLServers
                     GROUP_DESCRIPTION: Entra access group for IPAFFS SQL Servers
-                    GROUP_OWNER_OBJECT_ID: $(serviceConnectionObjectId)
+                    GROUP_OWNER_OBJECT_IDS: $(serviceConnectionObjectId)
                   inputs:
-                    azureSubscription: AZR-SSV5-IPAFFS
+                    addSpnToEnvironment: true
+                    azureSubscription: $(upstreamServiceConnection)
                     scriptType: bash
                     scriptPath: scripts/pipeline/create-entra-group.sh
 
