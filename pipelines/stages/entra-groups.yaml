@@ -28,7 +28,7 @@ stages:
             inputs:
               azureSubscription: $(serviceConnection)
               scriptType: bash
-              scriptPath: scripts/pipeline/lookup-principal.sh
+              scriptPath: scripts/pipeline/lookup-directory-object.sh
 
       - deployment: SQLGroups
         displayName: SQL Groups
