@@ -14,27 +14,31 @@ stages:
       - template: "/pipelines/vars/common.yaml"
       - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
     jobs:
-      - job: BuildContainerImage
-        displayName: Build Container Image
+      - job: LookupServicePrincipals
+        displayName: Look up service principal
         steps:
           - checkout: self
 
           - task: AzureCLI@2
-            displayName: Get Service Principal ID
+            name: ServiceConnection
+            displayName: Get Service Connection Principal ID
             env:
               PRINCIPAL_NAME: $(serviceConnection)
               PRINCIPAL_TYPE: servicePrincipal
             inputs:
               azureSubscription: $(serviceConnection)
               scriptType: bash
-              scriptPath: scripts/pipeline/create-entra-group.sh
-
+              scriptPath: scripts/pipeline/lookup-principal.sh
 
       - deployment: SQLGroups
         displayName: SQL Groups
         condition: eq(variables['Build.SourceBranch'], 'refs/heads/feature/aad-groups')
+        dependsOn: LookupServicePrincipals
         environment:
           name: "${{ parameters.environmentName }}"
+        variables:
+          - name: serviceConnectionObjectId
+            value: $[dependencies.LookupServicePrincipals.outputs['ServiceConnection.objectId']]
         strategy:
           runOnce:
             deploy:
@@ -46,6 +50,7 @@ stages:
                   env:
                     GROUP_NAME: AG-Azure-IMP_POC-SQLAdmins
                     GROUP_DESCRIPTION: Entra access group for IPAFFS SQL Admins
+                    GROUP_OWNER_OBJECT_ID: $(serviceConnectionObjectId)
                   inputs:
                     addSpnToEnvironment: true
                     azureSubscription: AZR-SSV5-IPAFFS
@@ -57,6 +62,7 @@ stages:
                   env:
                     GROUP_NAME: AG-Azure-IMP_POC-SQLServers
                     GROUP_DESCRIPTION: Entra access group for IPAFFS SQL Servers
+                    GROUP_OWNER_OBJECT_ID: $(serviceConnectionObjectId)
                   inputs:
                     addSpnToEnvironment: true
                     azureSubscription: AZR-SSV5-IPAFFS
