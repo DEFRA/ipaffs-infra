@@ -1,0 +1,28 @@
+parameters:
+  - name: serviceName
+    type: string
+  - name: dockerfile
+    type: string
+    default: Dockerfile
+
+jobs:
+  - job: Package
+    displayName: Package
+    steps:
+      - task: DownloadPipelineArtifact@2
+        displayName: 'Download service artifacts'
+        inputs:
+          artifact: 'service'
+          path: './service'
+
+      - task: AzureCLI@2
+        displayName: Build and Push Container Image
+        inputs:
+          azureSubscription: $(serviceConnection)
+          scriptType: bash
+          scriptLocation: inlineScript
+          inlineScript: |
+            az acr login --name $(acrName)
+            docker build --platform=linux/amd64 --build-arg SERVICE_VERSION=poc --tag ${{ parameters.serviceName }}:$(Build.BuildNumber) --file ./service/${{ parameters.dockerfile }} ./service
+            docker tag ${{ parameters.serviceName }}:$(Build.BuildNumber) $(acrLoginServer)/ipaffs/${{ parameters.serviceName }}:$(Build.BuildNumber)
+            docker push $(acrLoginServer)/ipaffs/${{ parameters.serviceName }}:$(Build.BuildNumber)

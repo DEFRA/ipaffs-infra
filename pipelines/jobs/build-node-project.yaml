@@ -16,3 +16,16 @@ jobs:
           npm --prefix ./service ci
           npm --prefix ./service run build
         displayName: 'Install dependencies and build'
+
+      - task: CopyFiles@2
+        displayName: 'Copy public'
+        inputs:
+          SourceFolder: '$(Build.SourcesDirectory)/service/public'
+          Contents: '**'
+          TargetFolder: '$(Build.SourcesDirectory)/service_artifact/public'
+
+      - task: PublishPipelineArtifact@1
+        displayName: 'Publish service artifact'
+        inputs:
+          artifact: 'service'
+          targetPath: '$(Build.SourcesDirectory)/service_artifact'
