@@ -1,5 +1,7 @@
 #!/bin/bash
 
+## NOTE: Currently only service principals are supported as group owners
+
 set -x
 
 SCRIPTS_DIR="$(cd "$(dirname $0)"/.. && pwd)"
@@ -23,7 +25,7 @@ declare -a ownerObjectIds
 
 # Compile owners
 ownersJson=
-prefix='https://graph.microsoft.com/v1.0/directoryObjects/'
+prefix='https://graph.microsoft.com/v1.0/servicePrincipals/'
 for i in "${!ownerObjectIds[@]}"; do
   oid="${ownerObjectIds[i]}"
   ownersJson="${ownersJson}\"${prefix}${oid}\""
