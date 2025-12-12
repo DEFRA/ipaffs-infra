@@ -7,7 +7,7 @@ azure:
   tenantId: ""
 
   # authType can be WorkloadIdentity (default), ManagedIdentity or ServicePrincipal.
-  authType: WorkloadIdentity
+  authType: ManagedIdentity
 
   # identityId is required for WorkloadIdentity (the federated identity client ID)
   # and for ManagedIdentity (the managed identity client ID).
