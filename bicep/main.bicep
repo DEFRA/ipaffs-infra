@@ -8,6 +8,7 @@ param tenantId string
 param acrParams object
 param aksParams object
 param asoParams object
+param externalSecretsParams object
 param keyVaultParams object
 param nsgParams object
 param sqlParams object
@@ -66,12 +67,30 @@ module aso './modules/azure-service-operator.bicep' = {
   }
 }
 
+module externalSecrets './modules/external-secrets-identity.bicep' = {
+  name: 'externalSecrets-${deploymentId}'
+  scope: resourceGroup()
+  params: {
+    deploymentId: deploymentId
+    externalSecretsParams: externalSecretsParams
+    location: location
+    oidcIssuerUrl: aks.outputs.oidcIssuerUrl
+    tags: tags
+  }
+}
+
+var keyVaultParamsWithManagedIdentities = union(keyVaultParams, {
+  principalObjectIds: union(keyVaultParams.principalObjectIds, [
+    externalSecrets.outputs.principalObjectId
+  ])
+})
+
 module keyVault './modules/keyvault.bicep' = {
   name: 'keyVault-${deploymentId}'
   scope: resourceGroup()
   params: {
     deploymentId: deploymentId
-    keyVaultParams: keyVaultParams
+    keyVaultParams: keyVaultParamsWithManagedIdentities
     location: location
     subnetIds: vnet.outputs.subnetIds
     tags: tags
@@ -125,6 +144,9 @@ output acrName string = acr.outputs.acrName
 output aksClusterName string = aks.outputs.aksClusterName
 output aksOidcIssuer string = aks.outputs.oidcIssuerUrl
 output azureServiceOperatorClientId string = aso.outputs.clientId
+output externalSecretsClientId string = externalSecrets.outputs.clientId
+output keyVaultName string = keyVault.outputs.keyVaultName
+output keyVaultUri string = keyVault.outputs.keyVaultUri
 output sqlAdminGroupId string = sql.outputs.sqlAdminGroupId
 output sqlServerName string = sql.outputs.sqlServerName
 

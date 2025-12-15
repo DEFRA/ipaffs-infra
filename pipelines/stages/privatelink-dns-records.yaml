@@ -49,6 +49,25 @@ stages:
                     variables:
                       projectServiceConnection: $(serviceConnection)
                     scriptsList:
+                      - displayName: Resolve Private Endpoint IPs for KeyVault
+                        serviceConnectionVariableName: projectServiceConnection
+                        scriptPath: 'Get-ResourcePrivateEndPointsDnsRecordsAsJson.ps1@PipelineCommon'
+                        scriptArguments: >
+                          -ResourceGroupName '$(resourceGroupName)'
+                          -ResourceName '$(keyVaultName)'
+
+                      - displayName: Set DNS record for KeyVault
+                        condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+                        scriptPath: 'Set-PrivateDnsRecordSet.ps1@PipelineCommon'
+                        scriptArguments: >
+                          -UpdateAllDnsZones $true
+
+                - template: /templates/steps/powershell.yaml@PipelineCommon
+                  parameters:
+                    azureResourceManagerConnection: AZR-MST-PrivateLinkDNS
+                    variables:
+                      projectServiceConnection: $(serviceConnection)
+                    scriptsList:
                       - displayName: Resolve Private Endpoint IPs for SQL Server
                         serviceConnectionVariableName: projectServiceConnection
                         scriptPath: 'Get-ResourcePrivateEndPointsDnsRecordsAsJson.ps1@PipelineCommon'

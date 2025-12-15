@@ -83,4 +83,18 @@ steps:
           --force \
           --verbose
 
+  - task: AzureCLI@2
+    displayName: Import external-secrets/external-secrets
+    inputs:
+      azureSubscription: $(serviceConnection)
+      scriptType: bash
+      scriptLocation: inlineScript
+      inlineScript: |
+        az acr import \
+          --name $(acrName) \
+          --source ghcr.io/external-secrets/external-secrets:v1.1.1 \
+          --image external-secrets/external-secrets:v1.1.1 \
+          --force \
+          --verbose
+
 # vim: set ts=2 sts=2 sw=2 et:

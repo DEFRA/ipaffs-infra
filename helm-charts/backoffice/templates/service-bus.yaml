@@ -49,6 +49,16 @@ spec:
 
 {{ end }}
 
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ printf "%s-servicebus" .Values.service }}
+  labels:
+    {{- include "ipaffs-common.labels" . | nindent 4 }}
+data:
+  connectionString: "Endpoint=sb://{{ template "ipaffs-common.azure.serviceBusNamespace" . }}.servicebus.windows.net/;"
+
 {{ end }}
 
 # vim: set ts=2 sts=2 sw=2 et:

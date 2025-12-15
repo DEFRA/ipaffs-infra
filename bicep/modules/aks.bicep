@@ -29,29 +29,28 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2025-07-01' = {
     agentPoolProfiles: [
       {
         name: 'system'
-        vmSize: 'Standard_E16as_v6'
+        vmSize: 'Standard_E16as_v6' // TODO: change to 'Standard_E2as_v6'
         osType: 'Linux'
         type: 'VirtualMachineScaleSets'
         mode: 'System'
         vnetSubnetID: aksParams.subnetId
         enableNodePublicIP: false
-        minCount: 1
+        minCount: 2
         maxCount: 3
         enableAutoScaling: true
       }
-      // TODO: re-enable the user node pool when we have resolved intra-node network issues
-      //{
-      //  name: 'user'
-      //  vmSize: 'Standard_E16as_v6'
-      //  osType: 'Linux'
-      //  type: 'VirtualMachineScaleSets'
-      //  mode: 'User'
-      //  vnetSubnetID: aksParams.subnetId
-      //  enableNodePublicIP: false
-      //  minCount: 1
-      //  maxCount: 5
-      //  enableAutoScaling: true
-      //}
+      {
+        name: 'user'
+        vmSize: 'Standard_E16as_v6'
+        osType: 'Linux'
+        type: 'VirtualMachineScaleSets'
+        mode: 'User'
+        vnetSubnetID: aksParams.subnetId
+        enableNodePublicIP: false
+        minCount: 2
+        maxCount: 5
+        enableAutoScaling: true
+      }
     ]
 
     networkProfile: {

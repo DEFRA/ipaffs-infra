@@ -1,0 +1,5 @@
+apiVersion: v2
+name: external-secrets-azure
+version: 0.1.0
+description: ClusterSecretStore definition for Azure Key Vault
+# vim: set ts=2 sts=2 sw=2 et:

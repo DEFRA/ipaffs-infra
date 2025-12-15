@@ -86,7 +86,10 @@ steps:
         scripts/pipeline/update-group-variable.sh acrLoginServer acrLoginServer
         scripts/pipeline/update-group-variable.sh acrName acrName
         scripts/pipeline/update-group-variable.sh azureServiceOperatorClientId azureServiceOperatorClientId
+        scripts/pipeline/update-group-variable.sh externalSecretsClientId externalSecretsClientId
         scripts/pipeline/update-group-variable.sh aksOidcIssuer aksOidcIssuer
+        scripts/pipeline/update-group-variable.sh keyVaultName keyVaultName
+        scripts/pipeline/update-group-variable.sh keyVaultUrl keyVaultUri
         scripts/pipeline/update-group-variable.sh kubernetesCluster aksClusterName
         scripts/pipeline/update-group-variable.sh sqlAdminGroupId sqlAdminGroupId
         scripts/pipeline/update-group-variable.sh sqlServerName sqlServerName

@@ -1,0 +1,18 @@
+parameters:
+  name: nodeVersion
+  type: string
+
+jobs:
+  - job: Build
+    displayName: Build
+    steps:
+      - task: NodeTool@0
+        inputs:
+          versionSpec: ${{ parameters.nodeVersion }}
+          addToPath: true
+        displayName: 'Install Node and NPM and add to path'
+
+      - script: |
+          npm --prefix ./service ci
+          npm --prefix ./service run build
+        displayName: 'Install dependencies and build'

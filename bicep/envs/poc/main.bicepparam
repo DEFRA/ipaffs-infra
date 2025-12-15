@@ -25,10 +25,15 @@ param asoParams = {
   managedIdentityName: 'POCIMPINFMI1401-AzureServiceOperator'
 }
 
+param externalSecretsParams = {
+  managedIdentityName: 'POCIMPINFMI1401-ExternalSecrets'
+}
+
 param keyVaultParams = {
   name: 'POCIMPINFKV1401'
   principalObjectIds: [
     '4b2fbef7-de9d-4836-a44e-46c56aad3d9e' // AG-Azure-IMP_POC1-Contributors
+    'd7806931-a3ca-42ee-83ef-6b3060845b2b' // AG-Azure-IMP_POC1-Owners
   ]
 }
 
@@ -118,6 +123,24 @@ param nsgParams = {
       name: 'POCIMPNETNS1402'
       purpose: 'AKS System Node Pool NSG'
       securityRules: [
+        {
+          name: 'AllowVnetInternal'
+          properties: {
+            protocol: '*'
+            sourcePortRange: '*'
+            sourceAddressPrefix: 'VirtualNetwork'
+            destinationPortRange: '*'
+            destinationAddressPrefix: 'VirtualNetwork'
+            access: 'Allow'
+            priority: 100
+            direction: 'Inbound'
+            sourcePortRanges: []
+            destinationPortRanges: []
+            sourceAddressPrefixes: []
+            destinationAddressPrefixes: []
+            description: 'Allow vNet to vNet communication on any port. Required for AKS nodes in the subnet'
+          }
+        }
         {
           name: 'AllowPodCidrAnyInbound'
           properties: {
