@@ -1,5 +1,3 @@
-pool:
-  name: 'DEFRA-COMMON-ubuntu2204-SSV5'
 
 parameters:
   - name: environmentName
@@ -15,13 +13,6 @@ parameters:
   - name: dockerfile
     type: string
     default: Dockerfile
-
-
-
-variables:
-  - group: "${{ parameters.environmentName }}"
-  - name: serviceName
-    value: frontend-checks
 
 stages:
   - stage: BuildService
