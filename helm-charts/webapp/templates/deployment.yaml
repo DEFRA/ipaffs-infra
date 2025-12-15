@@ -58,6 +58,9 @@ spec:
           {{ end }}
           imagePullPolicy: {{ .Values.container.imagePullPolicy }}
           {{ with .Values.env }}
+          envFrom:
+            - configMapRef:
+                name: {{ .Values.service }}
           env:
             {{- toYaml . | nindent 12 }}
           {{ end }}

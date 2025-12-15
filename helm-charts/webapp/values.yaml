@@ -25,6 +25,8 @@ azure:
   clientId: ""
   location: uksouth
 
+config: {}
+
 database:
   enabled: false
   principalName: ""
