@@ -1,7 +1,7 @@
 parameters:
-  - name: dockerFile
-    type: string
   - name: directory
+    type: string
+  - name: dockerFile
     type: string
   - name: imageName
     type: string
