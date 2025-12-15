@@ -51,9 +51,6 @@
         "enabled": {
           "type": "boolean"
         },
-        "name": {
-          "type": "string"
-        },
         "refreshInterval": {
           "type": "string"
         },

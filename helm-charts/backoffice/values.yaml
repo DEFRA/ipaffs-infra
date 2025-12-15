@@ -17,11 +17,10 @@ serviceBus:
   topics: []
 
 secretStore:
-  name: ""
+  name: "external-secrets-azure"
 
 externalSecret:
   enabled: false
-  name: ""
   refreshInterval: ""
   secrets: []
 
