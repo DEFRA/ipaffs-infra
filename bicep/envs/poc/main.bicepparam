@@ -33,6 +33,7 @@ param keyVaultParams = {
   name: 'POCIMPINFKV1401'
   principalObjectIds: [
     '4b2fbef7-de9d-4836-a44e-46c56aad3d9e' // AG-Azure-IMP_POC1-Contributors
+    'd7806931-a3ca-42ee-83ef-6b3060845b2b' // AG-Azure-IMP_POC1-Owners
   ]
 }
 
