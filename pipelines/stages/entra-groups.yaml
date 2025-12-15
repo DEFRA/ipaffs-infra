@@ -56,15 +56,17 @@ stages:
                     scriptType: bash
                     scriptPath: scripts/pipeline/create-entra-group.sh
 
-                - task: AzureCLI@2
-                  displayName: AG-Azure-IMP_POC-SQLServers
-                  env:
-                    GROUP_NAME: AG-Azure-IMP_POC-SQLServers
-                    GROUP_DESCRIPTION: Entra access group for IPAFFS SQL Servers
-                    GROUP_OWNER_OBJECT_IDS: $(serviceConnectionObjectId)
-                  inputs:
-                    azureSubscription: $(upstreamServiceConnection)
-                    scriptType: bash
-                    scriptPath: scripts/pipeline/create-entra-group.sh
+                # TODO: Enable when we have necessary permissions to create role-assignable groups (hint: requires RoleManagement.ReadWrite.Directory)
+                #- task: AzureCLI@2
+                #  displayName: AG-Azure-IMP_POC-SQLServers
+                #  env:
+                #    GROUP_NAME: AG-Azure-IMP_POC-SQLServers
+                #    GROUP_DESCRIPTION: Entra access group for IPAFFS SQL Servers
+                #    GROUP_OWNER_OBJECT_IDS: $(serviceConnectionObjectId)
+                #    GROUP_IS_ROLE_ASSIGNABLE: true
+                #  inputs:
+                #    azureSubscription: $(upstreamServiceConnection)
+                #    scriptType: bash
+                #    scriptPath: scripts/pipeline/create-entra-group.sh
 
 # vim: set ts=2 sts=2 sw=2 et:

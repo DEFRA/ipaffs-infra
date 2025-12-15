@@ -38,7 +38,7 @@ read -r -d '' groupJson <<EOF
   "description": "${GROUP_DESCRIPTION}",
   "securityEnabled": true,
   "mailEnabled": false,
-  "isAssignableToRole": true,
+  "isAssignableToRole": ${GROUP_IS_ROLE_ASSIGNABLE:-false},
   "mailNickname": "${GROUP_NAME}",
   "owners@odata.bind": [
     ${ownersJson}
