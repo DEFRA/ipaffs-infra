@@ -24,8 +24,11 @@ jobs:
           directory: ./service
           imageName: ${{ parameters.serviceName }}
 
+  - job: PackageMigrationsImage
+    displayName: Package Migrations Image
+    condition: ${{ eq(parameters.migrations, true) }}
+    steps:
       - template: /pipelines/steps/build-container-image.yaml@ipaffs-infra
-        condition: ${{ eq(parameters.migrations, true) }}
         parameters:
           dockerFile: ./configuration/Dockerfile
           directory: ./configuration
