@@ -33,6 +33,49 @@
       "required": [
         "enabled"
       ]
+    },
+    "secretStore": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        }
+      }
+    },
+    "externalSecret": {
+      "type": "object",
+      "required": [
+        "enabled"
+      ],
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "name": {
+          "type": "string"
+        },
+        "refreshInterval": {
+          "type": "string"
+        },
+        "secrets": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "secretKey": {
+                "type": "string"
+              },
+              "remoteKey": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "secretKey",
+              "remoteKey"
+            ]
+          }
+        }
+      }
     }
   },
   "required": [
