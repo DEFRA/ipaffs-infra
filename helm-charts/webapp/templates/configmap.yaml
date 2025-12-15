@@ -5,6 +5,7 @@ metadata:
   labels:
     {{- include "ipaffs-common.labels" . | nindent 4 }}
 data:
+  ENVIRONMENT: "{{ .Values.environment }}"
 {{- range $key, $val := .Values.config }}
   {{ $key }}: "{{ $val }}"
 {{- end }}
