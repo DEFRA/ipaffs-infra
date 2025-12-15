@@ -14,9 +14,6 @@ parameters:
     type: string
     default: Dockerfile
 
-pool:
-  name: 'DEFRA-COMMON-ubuntu2204-SSV5'
-
 stages:
   - stage: BuildService
     displayName: Build Service
