@@ -26,6 +26,9 @@ stages:
     displayName: Package Service Image
     dependsOn: BuildService
     jobs:
+      - script: |
+          echo "Service name is ${{ parameters.serviceName }}"
+          echo "Dockerfile is ${{ parameters.dockerfile }}"
       - template: /pipelines/jobs/package-node-project.yaml@ipaffs-infra
         parameters:
           serviceName:  "${{ parameters.serviceName }}"
