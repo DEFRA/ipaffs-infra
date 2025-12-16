@@ -76,6 +76,7 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2025-07-01' = {
       omsAgent: {
         enabled: true
         config: {
+          useAADAuth: 'true'
           logAnalyticsWorkspaceResourceID: logAnalyticsId
         }
       }

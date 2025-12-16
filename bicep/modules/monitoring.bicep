@@ -11,7 +11,7 @@ resource logAnalytics 'Microsoft.OperationalInsights/workspaces@2025-07-01' = {
   tags: tags
   properties: {
     sku: {
-      name: 'PerGB2018' // Note: will 'Free' SKU work?
+      name: 'PerGB2018'
     }
   }
   identity: {
