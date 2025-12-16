@@ -1,4 +1,7 @@
 parameters:
+  - name: configurationDockerFile
+    type: string
+    default: configuration/Dockerfile
   - name: dockerFile
     type: string
     default: service/Dockerfile
@@ -30,7 +33,7 @@ jobs:
     steps:
       - template: /pipelines/steps/build-container-image.yaml@ipaffs-infra
         parameters:
-          dockerFile: ./configuration/Dockerfile
+          dockerFile: ${{ parameters.configurationDockerFile }}
           directory: ./configuration
           imageName: ${{ parameters.serviceName }}-configuration
 
