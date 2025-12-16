@@ -16,4 +16,12 @@ serviceBus:
   queues: []
   topics: []
 
+secretStore:
+  name: "external-secrets-azure"
+
+externalSecret:
+  enabled: false
+  refreshInterval: ""
+  secrets: []
+
 # vim: set ts=2 sts=2 sw=2 et:
