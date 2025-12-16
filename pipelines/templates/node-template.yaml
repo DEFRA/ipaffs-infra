@@ -10,7 +10,7 @@ parameters:
     type: string
   - name: serviceName
     type: string
-  - name: dockerfile
+  - name: dockerFile
     type: string
     default: Dockerfile
 
@@ -29,7 +29,7 @@ stages:
       - template: /pipelines/jobs/package-node-project.yaml@ipaffs-infra
         parameters:
           serviceName:  "${{ parameters.serviceName }}"
-          dockerfile: "${{ parameters.dockerfile }}"
+          dockerFile: "${{ parameters.dockerFile }}"
 
 
   - stage: ConfigureDeployment
