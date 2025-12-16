@@ -3,14 +3,14 @@ parameters:
   type: string
 
 jobs:
-  - job: Build
-    displayName: Build
+  - job: BuildNodeProject
+    displayName: Build Node Project
     steps:
       - task: NodeTool@0
         inputs:
           versionSpec: ${{ parameters.nodeVersion }}
           addToPath: true
-        displayName: 'Install Node and NPM and add to path'
+        displayName: Install Node and NPM and add to path
 
       - script: |
           npm --prefix ./service ci
@@ -25,7 +25,9 @@ jobs:
           TargetFolder: '$(Build.SourcesDirectory)/service_artifact/public'
 
       - task: PublishPipelineArtifact@1
-        displayName: 'Publish service artifact'
         inputs:
           artifact: 'service'
           targetPath: '$(Build.SourcesDirectory)/service_artifact'
+        displayName: Install dependencies and build
+
+# vim: set ts=2 sts=2 sw=2 et:

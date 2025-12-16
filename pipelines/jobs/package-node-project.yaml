@@ -9,9 +9,6 @@ jobs:
   - job: Package
     displayName: Package
     steps:
-      - script: |
-          echo "Service name is ${{ parameters.serviceName }}"
-          echo "Dockerfile is ${{ parameters.dockerfile }}"
       - task: DownloadPipelineArtifact@2
         displayName: 'Download service artifacts'
         inputs:

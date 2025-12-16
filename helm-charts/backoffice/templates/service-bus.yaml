@@ -49,6 +49,28 @@ spec:
 
 {{ end }}
 
+---
+apiVersion: servicebus.azure.com/v1api20240101
+kind: NamespacesAuthorizationRule
+metadata:
+  name: {{ printf "%s-servicebus-policy" .Values.service }}
+  labels:
+    {{- include "ipaffs-common.labels" . | nindent 4 }}
+  annotations:
+    serviceoperator.azure.com/reconcile-policy: manage
+spec:
+  azureName: {{ printf "%s-servicebus-policy" .Values.service }}
+  owner:
+    name: {{ template "ipaffs-common.azure.serviceBusNamespace" . }}
+  rights:
+    - Send
+    - Listen
+  operatorSpec:
+    secrets:
+      primaryConnectionString:
+        name: {{ printf "%s-servicebus" .Values.service }}
+        key: PrimaryConnectionString
+
 {{ end }}
 
 # vim: set ts=2 sts=2 sw=2 et:

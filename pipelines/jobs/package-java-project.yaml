@@ -1,34 +1,37 @@
 parameters:
+  - name: dockerFile
+    type: string
+    default: service/Dockerfile
+  - name: migrations
+    type: boolean
+    default: false
   - name: serviceName
     type: string
-  - name: dockerfile
-    type: string
-    default: Dockerfile
 
 jobs:
-  - job: Package
-    displayName: Package
+  - job: PackageJavaImage
+    displayName: Package Java Image
     steps:
-      - download: current
-        artifact: WebAppJar
-        displayName: Download WebAppJar artifact
-        
-      - task: CopyFiles@2
-        displayName: Copy WebAppJar to target folder
+      - task: DownloadPipelineArtifact@2
+        displayName: Download service artifacts
         inputs:
-          SourceFolder: $(Pipeline.Workspace)/WebAppJar/
-          TargetFolder: 'service/target'
-          
-      - task: AzureCLI@2
-        displayName: Build and Push Container Image
-        inputs:
-          azureSubscription: $(serviceConnection)
-          scriptType: bash
-          scriptLocation: inlineScript
-          inlineScript: |
-            az acr login --name $(acrName)
-            docker build --platform=linux/amd64 --build-arg SERVICE_VERSION=poc --tag ${{ parameters.serviceName }}:$(Build.BuildNumber) --file ./service/${{ parameters.dockerfile }} ./service
-            docker tag ${{ parameters.serviceName }}:$(Build.BuildNumber) $(acrLoginServer)/ipaffs/${{ parameters.serviceName }}:$(Build.BuildNumber)
-            docker push $(acrLoginServer)/ipaffs/${{ parameters.serviceName }}:$(Build.BuildNumber)
+          artifact: service
+          path: service/target
+
+      - template: /pipelines/steps/build-container-image.yaml@ipaffs-infra
+        parameters:
+          dockerFile: ${{ parameters.dockerFile }}
+          directory: ./service
+          imageName: ${{ parameters.serviceName }}
+
+  - job: PackageMigrationsImage
+    displayName: Package Migrations Image
+    condition: ${{ eq(parameters.migrations, true) }}
+    steps:
+      - template: /pipelines/steps/build-container-image.yaml@ipaffs-infra
+        parameters:
+          dockerFile: ./configuration/Dockerfile
+          directory: ./configuration
+          imageName: ${{ parameters.serviceName }}-configuration
 
 # vim: set ts=2 sts=2 sw=2 et:

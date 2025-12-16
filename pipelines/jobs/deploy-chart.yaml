@@ -50,9 +50,11 @@ jobs:
           ENVIRONMENT: ${{ lower(parameters.environmentName) }}
           AZURE_LOCATION: $(location)
           AZURE_CONTAINER_REGISTRY_HOST: $(acrLoginServer)
+          AZURE_TENANT_ID: $(tenantId)
           AZURE_MANAGED_IDENTITY_CLIENT_ID: ${{ parameters.serviceClientId }}
           AZURE_MANAGED_IDENTITY_PRINCIPAL_NAME: ${{ parameters.servicePrincipalName }}
           AZURE_MANAGED_IDENTITY_MIGRATIONS_CLIENT_ID: ${{ parameters.migrationsClientId }}
+          AZURE_MANAGED_IDENTITY_EXTERNAL_SECRETS_CLIENT_ID: $(externalSecretsClientId)
           CONTAINER_IMAGE: "ipaffs/$(serviceName):$(Build.BuildNumber)"
           MIGRATIONS_IMAGE: "ipaffs/$(serviceName)-configuration:$(Build.BuildNumber)"
           NAMESPACE: ${{ parameters.namespace }}
