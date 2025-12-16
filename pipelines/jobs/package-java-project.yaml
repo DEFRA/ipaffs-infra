@@ -1,10 +1,10 @@
 parameters:
   - name: configurationDockerFile
     type: string
-    default: configuration/Dockerfile
+    default: Dockerfile
   - name: dockerFile
     type: string
-    default: service/Dockerfile
+    default: Dockerfile
   - name: migrations
     type: boolean
     default: false
@@ -23,7 +23,7 @@ jobs:
 
       - template: /pipelines/steps/build-container-image.yaml@ipaffs-infra
         parameters:
-          dockerFile: ${{ parameters.dockerFile }}
+          dockerFile: service/${{ parameters.dockerFile }}
           directory: ./service
           imageName: ${{ parameters.serviceName }}
 
@@ -33,7 +33,7 @@ jobs:
     steps:
       - template: /pipelines/steps/build-container-image.yaml@ipaffs-infra
         parameters:
-          dockerFile: ${{ parameters.configurationDockerFile }}
+          dockerFile: configuration/${{ parameters.configurationDockerFile }}
           directory: ./configuration
           imageName: ${{ parameters.serviceName }}-configuration
 

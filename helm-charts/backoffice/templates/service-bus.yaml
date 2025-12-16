@@ -1,55 +1,5 @@
-{{ if .Values.serviceBus.enabled }}
+{{- if .Values.serviceBus.enabled }}
 
-apiVersion: servicebus.azure.com/v1api20240101
-kind: Namespace
-metadata:
-  name: {{ template "ipaffs-common.azure.serviceBusNamespace" . }}
-  labels:
-    {{- include "ipaffs-common.labels" . | nindent 4 }}
-  annotations:
-    serviceoperator.azure.com/reconcile-policy: detach-on-delete
-spec:
-  location: {{ .Values.azure.location }}
-  minimumTlsVersion: "1.2"
-  owner:
-    name: {{ template "ipaffs-common.azure.resourceGroup" . }}
-  sku:
-    name: Standard
-  zoneRedundant: false
-
-{{ range .Values.serviceBus.queues }}
----
-apiVersion: servicebus.azure.com/v1api20240101
-kind: NamespacesQueue
-metadata:
-  name: {{ . }}
-  labels:
-    {{- include "ipaffs-common.labels" $ | nindent 4 }}
-  annotations:
-    serviceoperator.azure.com/reconcile-policy: manage
-spec:
-  owner:
-    name: {{ template "ipaffs-common.azure.serviceBusNamespace" $ }}
-
-{{ end }}
-
-{{ range .Values.serviceBus.topics }}
----
-apiVersion: servicebus.azure.com/v1api20240101
-kind: NamespacesTopic
-metadata:
-  name: {{ . }}
-  labels:
-    {{- include "ipaffs-common.labels" $ | nindent 4 }}
-  annotations:
-    serviceoperator.azure.com/reconcile-policy: manage
-spec:
-  owner:
-    name: {{ template "ipaffs-common.azure.serviceBusNamespace" $ }}
-
-{{ end }}
-
----
 apiVersion: servicebus.azure.com/v1api20240101
 kind: NamespacesAuthorizationRule
 metadata:
@@ -69,8 +19,8 @@ spec:
     secrets:
       primaryConnectionString:
         name: {{ printf "%s-servicebus" .Values.service }}
-        key: PrimaryConnectionString
+        key: SERVICE_BUS_CONNECTION_STRING
 
-{{ end }}
+{{- end }}
 
 # vim: set ts=2 sts=2 sw=2 et:

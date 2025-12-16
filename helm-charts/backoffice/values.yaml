@@ -13,8 +13,6 @@ redis:
 
 serviceBus:
   enabled: false
-  queues: []
-  topics: []
 
 secretStore:
   name: "external-secrets-azure"

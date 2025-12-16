@@ -1,0 +1,22 @@
+---
+service: "bootstrap"
+project: ipaffs
+environment: poc
+
+azure:
+  location: uksouth
+
+serviceBus:
+  queues:
+    - defra.trade.eds.decisionoutput
+    - defra.trade.dmp.gto.ipaffsoutput
+    - notify-queue
+    - dev-decision-notification-queue-1
+    - dev-dmp-gto-queue-1
+  topics: []
+
+ipaffsConfig:
+  data:
+    JWT_CERT_ISSUER: "https://imports-proxy"
+
+# vim: set ts=2 sts=2 sw=2 et:

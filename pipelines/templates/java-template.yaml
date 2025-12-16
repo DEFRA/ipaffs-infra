@@ -1,0 +1,91 @@
+
+parameters:
+  - name: environmentName
+    displayName: Environment
+    type: string
+    default: POC
+    values:
+      - POC
+  - name: serviceName
+    type: string
+  - name: dockerFile
+    type: string
+    default: Dockerfile
+
+stages:
+  - stage: BuildService
+    displayName: Build Service
+    jobs:
+      - template: /pipelines/jobs/build-java-project.yaml@ipaffs-infra
+
+  - stage: PackageService
+    displayName: Package Service Image
+    dependsOn: BuildService
+    jobs:
+      - template: /pipelines/jobs/package-java-project.yaml@ipaffs-infra
+        parameters:
+          serviceName:  "${{ parameters.serviceName }}"
+          dockerFile: "${{ parameters.dockerFile }}"
+
+  - stage: ConfigureDeployment
+    displayName: Configure Deployment
+    dependsOn:
+      - PackageService
+    variables:
+      - name: branch
+        value: $[replace(variables['Build.SourceBranch'], 'refs/heads/', '')]
+    jobs:
+      - job: SetNamespace
+        displayName: Set Namespace
+        steps:
+          - template: /pipelines/steps/determine-namespace.yaml@ipaffs-infra
+            parameters:
+              branch: $(branch)
+      - job: DeployBootstrapChart
+        displayName: Deploy bootstrap Helm chart
+        dependsOn: SetNamespace
+        variables:
+          - name: namespace
+            value: $[ dependencies.SetNamespace.outputs['Namespace.namespace'] ]
+        steps:
+          - template: /pipelines/steps/deploy-bootstrap-chart.yaml@ipaffs-infra
+            parameters:
+              environmentName: ${{ parameters.environmentName }}
+              namespace: $(namespace)
+
+  - stage: DeployIdentities
+    displayName: Deploy and configure identity infrastructure
+    dependsOn: ConfigureDeployment
+    variables:
+      - name: namespace
+        value: $[stageDependencies.ConfigureDeployment.SetNamespace.outputs['Namespace.namespace']]
+    jobs:
+      - template: /pipelines/jobs/deploy-identities.yaml@ipaffs-infra
+        parameters:
+          environmentName: ${{ parameters.environmentName }}
+          migrations: false
+          namespace: $(namespace)
+          serviceName: $(serviceName)
+
+  - stage: DeployChart
+    displayName: Deploy Helm Charts
+    dependsOn:
+      - ConfigureDeployment
+      - DeployIdentities
+    variables:
+      - name: namespace
+        value: $[stageDependencies.ConfigureDeployment.SetNamespace.outputs['Namespace.namespace']]
+      - name: migrationsClientId
+        value: $[stageDependencies.DeployIdentities.MigrationsIdentity.outputs['CreateIdentity.clientId']]
+      - name: serviceClientId
+        value: $[stageDependencies.DeployIdentities.ServiceIdentity.outputs['CreateIdentity.clientId']]
+      - name: servicePrincipalName
+        value: $[stageDependencies.DeployIdentities.ServiceIdentity.outputs['CreateIdentity.principalName']]
+    jobs:
+      - template: /pipelines/jobs/deploy-chart.yaml@ipaffs-infra
+        parameters:
+          environmentName: ${{ parameters.environmentName }}
+          migrationsClientId: $(migrationsClientId)
+          namespace: $(namespace)
+          serviceClientId: $(serviceClientId)
+          servicePrincipalName: $(servicePrincipalName)

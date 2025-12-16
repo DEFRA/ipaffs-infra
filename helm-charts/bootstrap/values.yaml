@@ -1,0 +1,15 @@
+service: "bootstrap"
+project: ipaffs
+environment: poc
+
+azure:
+  location: uksouth
+
+serviceBus:
+  queues: []
+  topics: []
+
+ipaffsConfig:
+  data: []
+
+# vim: set ts=2 sts=2 sw=2 et:

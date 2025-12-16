@@ -1,0 +1,37 @@
+parameters:
+  - name: environmentName
+    type: string
+  - name: namespace
+    type: string
+
+steps:
+  - checkout: ipaffs-infra
+
+  - task: AzureCLI@2
+    name: LoginToContainerRegistry
+    displayName: Login to Azure Container Registry
+    inputs:
+      azureSubscription: $(serviceConnection)
+      scriptType: bash
+      scriptLocation: inlineScript
+      inlineScript: az acr login --name $(acrName)
+
+  - task: HelmDeploy@0
+    displayName: Helm Install - bootstrap
+    inputs:
+      connectionType: Azure Resource Manager
+      azureSubscription: $(serviceConnection)
+      azureResourceGroup: $(resourceGroupName)
+      kubernetesCluster: $(kubernetesCluster)
+      namespace: ${{ parameters.namespace }}
+      command: upgrade
+      chartName: helm-charts/bootstrap
+      releaseName: bootstrap
+      install: true
+      useClusterAdmin: true
+      arguments: >-
+        --dependency-update
+        --create-namespace
+        -f helm-charts/envs/bootstrap-${{ lower(parameters.environmentName) }}-values.yaml
+
+# vim: set ts=2 sts=2 sw=2 et:

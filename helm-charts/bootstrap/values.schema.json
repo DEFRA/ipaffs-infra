@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "properties": {
+    "azure": {
+      "type": "object",
+      "required": [
+        "location"
+      ]
+    },
+    "environment": {
+      "type": "string"
+    },
+    "ipaffsConfig": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      }
+    },
+    "project": {
+      "type": "string"
+    },
+    "service": {
+      "type": "string"
+    },
+    "serviceBus": {
+      "type": "object",
+      "properties": {
+        "queues": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "topics": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "required": [
+    "environment"
+  ],
+  "title": "Values",
+  "type": "object"
+}

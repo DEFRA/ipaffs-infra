@@ -25,6 +25,12 @@ azure:
   clientId: ""
   location: uksouth
 
+externalSecret:
+  enabled: false
+
+serviceBus:
+  enabled: false
+
 config: {}
 
 database:

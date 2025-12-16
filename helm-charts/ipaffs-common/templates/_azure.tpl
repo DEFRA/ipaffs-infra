@@ -2,7 +2,7 @@
 Azure Resource Names
 */}}
 {{- define "ipaffs-common.azure.databaseName" -}}
-{{- printf "%s-%s" .Values.service .Release.Namespace }}
+{{- printf "%s-%s"  .Values.service .Release.Namespace }}
 {{- end }}
 
 {{- define "ipaffs-common.azure.managedIdentityBaseName" -}}
