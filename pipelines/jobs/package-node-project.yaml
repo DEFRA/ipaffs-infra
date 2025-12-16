@@ -1,0 +1,22 @@
+parameters:
+  - name: serviceName
+    type: string
+  - name: dockerFile
+    type: string
+    default: Dockerfile
+
+jobs:
+  - job: Package
+    displayName: Package
+    steps:
+      - task: DownloadPipelineArtifact@2
+        displayName: 'Download service artifacts'
+        inputs:
+          artifact: 'service'
+          path: './service'
+
+      - template: /pipelines/steps/build-container-image.yaml@ipaffs-infra
+        parameters:
+          dockerFile: ${{ parameters.dockerFile }}
+          directory: ./service
+          imageName: ${{ parameters.serviceName }}

@@ -15,6 +15,19 @@ jobs:
       - script: |
           npm --prefix ./service ci
           npm --prefix ./service run build
+        displayName: 'Install dependencies and build'
+
+      - task: CopyFiles@2
+        displayName: 'Copy public'
+        inputs:
+          SourceFolder: '$(Build.SourcesDirectory)/service/public'
+          Contents: '**'
+          TargetFolder: '$(Build.SourcesDirectory)/service_artifact/public'
+
+      - task: PublishPipelineArtifact@1
+        inputs:
+          artifact: 'service'
+          targetPath: '$(Build.SourcesDirectory)/service_artifact'
         displayName: Install dependencies and build
 
 # vim: set ts=2 sts=2 sw=2 et:
