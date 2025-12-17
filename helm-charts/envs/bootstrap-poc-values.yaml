@@ -13,7 +13,7 @@ serviceBus:
     - notify-queue
     - dev-decision-notification-queue-1
     - dev-dmp-gto-queue-1
-    - enotification_event_queue
+    - enotification-event-queue
   topics: []
 
 ipaffsConfig:
