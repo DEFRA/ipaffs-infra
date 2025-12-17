@@ -32,7 +32,7 @@ stages:
 
       - deployment: SQLGroups
         displayName: SQL Groups
-        condition: eq(variables['Build.SourceBranch'], 'refs/heads/feature/aad-groups')
+        condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
         dependsOn: LookupServicePrincipals
         environment:
           name: "${{ parameters.environmentName }}"
