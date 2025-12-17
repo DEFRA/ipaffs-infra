@@ -31,7 +31,6 @@ stages:
           serviceName:  "${{ parameters.serviceName }}"
           dockerFile: "${{ parameters.dockerFile }}"
 
-
   - stage: ConfigureDeployment
     displayName: Configure Deployment
     dependsOn:
@@ -46,6 +45,17 @@ stages:
           - template: /pipelines/steps/determine-namespace.yaml@ipaffs-infra
             parameters:
               branch: $(branch)
+      - job: DeployBootstrapChart
+        displayName: Deploy bootstrap Helm chart
+        dependsOn: SetNamespace
+        variables:
+          - name: namespace
+            value: $[ dependencies.SetNamespace.outputs['Namespace.namespace'] ]
+        steps:
+          - template: /pipelines/steps/deploy-bootstrap-chart.yaml@ipaffs-infra
+            parameters:
+              environmentName: ${{ parameters.environmentName }}
+              namespace: $(namespace)
 
   - stage: DeployIdentities
     displayName: Deploy and configure identity infrastructure
