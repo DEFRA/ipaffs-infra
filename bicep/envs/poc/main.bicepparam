@@ -761,4 +761,11 @@ param vnetParams = {
   ]
 }
 
+param monitoringParams = {
+  logAnalyticsName: 'POCIMPINFLA1401'
+  prometheusName: 'POCIMPINFPR1401'
+  grafanaName: 'POCIMPINFGA1401'
+  principalObjectId: '4b2fbef7-de9d-4836-a44e-46c56aad3d9e' // AG-Azure-IMP_POC1-Contributors'
+}
+
 // vim: set ts=2 sts=2 sw=2 et:

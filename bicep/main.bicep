@@ -13,6 +13,7 @@ param keyVaultParams object
 param nsgParams object
 param sqlParams object
 param vnetParams object
+param monitoringParams object
 
 param createdDate string = utcNow('yyyy-MM-dd')
 param deploymentId string = uniqueString(utcNow())
@@ -49,6 +50,7 @@ module aks './modules/aks.bicep' = {
     location: location
     tags: tags
     vnetName: vnet.outputs.vnetName
+    logAnalyticsId: monitoring.outputs.logAnalyticsId
   }
   dependsOn: [
     nsg
@@ -139,6 +141,17 @@ module vnet './modules/virtual-network.bicep' = {
   }
 }
 
+module monitoring './modules/monitoring.bicep' = {
+  name: 'monitoring-${deploymentId}'
+  scope: resourceGroup()
+  params: {
+    deploymentId: deploymentId
+    location: location
+    tags: tags
+    monitoringParams: monitoringParams
+  }
+}
+
 output acrLoginServer string = acr.outputs.acrLoginServer
 output acrName string = acr.outputs.acrName
 output aksClusterName string = aks.outputs.aksClusterName
@@ -151,3 +164,4 @@ output sqlAdminGroupId string = sql.outputs.sqlAdminGroupId
 output sqlServerName string = sql.outputs.sqlServerName
 
 // vim: set ts=2 sts=2 sw=2 et:
+
