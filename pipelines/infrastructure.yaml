@@ -1,4 +1,14 @@
 ---
+trigger:
+  branches:
+    exclude:
+      - '*'
+
+pr:
+  branches:
+    exclude:
+      - '*'
+
 pool:
   name: DEFRA-COMMON-ubuntu2204-SSV5
 
