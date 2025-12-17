@@ -28,6 +28,9 @@ azure:
 externalSecret:
   enabled: false
 
+redis:
+  enabled: false
+
 serviceBus:
   enabled: false
 
