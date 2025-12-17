@@ -32,7 +32,12 @@
       "type": "object",
       "required": [
         "enabled"
-      ]
+      ],
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        }
+      }
     },
     "secretStore": {
       "type": "object",

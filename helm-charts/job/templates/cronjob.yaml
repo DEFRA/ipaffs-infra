@@ -34,6 +34,17 @@ spec:
                 {{ end }}
               {{ end }}
               imagePullPolicy: {{ .Values.container.imagePullPolicy }}
+              envFrom:
+                - configMapRef:
+                    name: ipaffs-config
+{{- if .Values.externalSecret.enabled }}
+                - secretRef:
+                    name: {{ printf "%s-secrets" .Values.service }}
+{{- end }}
+{{- if .Values.serviceBus.enabled }}
+                - secretRef:
+                    name: {{ printf "%s-servicebus" .Values.service }}
+{{- end }}
               {{ with .Values.env }}
               env:
                 {{- toYaml . | nindent 16 }}
