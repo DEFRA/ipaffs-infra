@@ -6,7 +6,7 @@ Azure Resource Names
 {{- end }}
 
 {{- define "ipaffs-common.azure.managedIdentityBaseName" -}}
-{{- printf "%simpinfmi1401" .Values.environment }}
+{{- printf "%simpinfmi1401-%s" .Values.environment  .Values.service }}
 {{- end }}
 
 {{- define "ipaffs-common.azure.redisName" -}}
