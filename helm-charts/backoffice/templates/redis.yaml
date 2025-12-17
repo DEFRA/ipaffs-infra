@@ -22,6 +22,17 @@ spec:
     maxmemory-delta: "100"
     maxmemory-policy: allkeys-lru
   redisVersion: "6"
+  operatorSpec:
+    secrets:
+      hostName:
+        name: {{ printf "%s-redis" .Values.service }}
+        key: REDIS_HOST
+      sslPort:
+        name: {{ printf "%s-redis" .Values.service }}
+        key: REDIS_PORT
+      primaryKey:
+        name: {{ printf "%s-redis" .Values.service }}
+        key: REDIS_PASSWORD
 
 {{ end }}
 
