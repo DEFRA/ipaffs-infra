@@ -8,7 +8,7 @@ metadata:
   labels:
     {{- include "ipaffs-common.labels" $root | nindent 4 }}
   annotations:
-    serviceoperator.azure.com/reconcile-policy: detach-on-delete
+    serviceoperator.azure.com/reconcile-policy: manage
 spec:
   location: {{ $root.Values.azure.location }}
   minimumTlsVersion: "1.2"
