@@ -35,7 +35,7 @@ metadata:
     {{- include "ipaffs-common.labels" . | nindent 4 }}
 type: Opaque
 stringData:
-  DATABASE_CONNECTION_STRING: "Server=tcp:{{ template \"ipaffs-common.azure.sqlServerHostname\" . }},1433;Database={{ template \"ipaffs-common.azure.databaseName\" . }};Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
+  DATABASE_CONNECTION_STRING: "Server=tcp:{{ template "ipaffs-common.azure.sqlServerHostname" . }},1433;Database={{ template "ipaffs-common.azure.databaseName" . }};Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
 
 {{ end }}
 
