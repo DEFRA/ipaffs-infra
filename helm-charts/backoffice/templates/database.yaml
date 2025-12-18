@@ -26,6 +26,17 @@ spec:
   collation: SQL_Latin1_General_CP1_CI_AS
   location: {{ .Values.azure.location }}
 
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ printf "%s-database" .Values.service }}
+  labels:
+    {{- include "ipaffs-common.labels" . | nindent 4 }}
+type: Opaque
+stringData:
+  DATABASE_CONNECTION_STRING: "Server=tcp:{{ template \"ipaffs-common.azure.sqlServerHostname\" . }},1433;Database={{ template \"ipaffs-common.azure.databaseName\" . }};Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
+
 {{ end }}
 
 # vim: set ts=2 sts=2 sw=2 et:
