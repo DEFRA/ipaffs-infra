@@ -67,7 +67,7 @@ stages:
       - template: /pipelines/jobs/deploy-identities.yaml@ipaffs-infra
         parameters:
           environmentName: ${{ parameters.environmentName }}
-          migrations: ${{ parameters.serviceName }}
+          migrations: ${{ parameters.migrations }}
           namespace: $(namespace)
           serviceName: $(serviceName)
 
