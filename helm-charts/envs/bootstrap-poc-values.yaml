@@ -20,6 +20,7 @@ ipaffsConfig:
   data:
     JWT_CERT_ISSUER: "api://imports-proxy"
     JWT_AUDIENCE: "a2617985-5645-47ec-8912-7a943b3895ba"
+    JWT_WELL_KNOWNS: "api://imports-proxy/.well-known/openid-configuration"
     ENV_DOMAIN: "-poc.azurewebsites.net"
 
 # vim: set ts=2 sts=2 sw=2 et:
