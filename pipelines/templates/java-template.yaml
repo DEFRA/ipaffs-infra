@@ -11,6 +11,10 @@ parameters:
   - name: dockerFile
     type: string
     default: Dockerfile
+  - name: migrations
+    type: boolean
+    default: false
+
 
 stages:
   - stage: BuildService
@@ -63,7 +67,7 @@ stages:
       - template: /pipelines/jobs/deploy-identities.yaml@ipaffs-infra
         parameters:
           environmentName: ${{ parameters.environmentName }}
-          migrations: false
+          migrations: ${{ parameters.migrations }}
           namespace: $(namespace)
           serviceName: $(serviceName)
 
