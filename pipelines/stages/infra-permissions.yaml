@@ -14,31 +14,11 @@ stages:
       - template: "/pipelines/vars/common.yaml"
       - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
     jobs:
-      - job: LookupPrincipals
-        displayName: Look up principals
-        steps:
-          - checkout: self
-
-          - task: AzureCLI@2
-            name: DirectoryReadersGroup
-            displayName: AG-AAD-Azure-Managed-Identities-Directory-Readers
-            env:
-              OBJECT_NAME: AG-AAD-Azure-Managed-Identities-Directory-Readers
-              OBJECT_TYPE: group
-            inputs:
-              azureSubscription: $(serviceConnection)
-              scriptType: bash
-              scriptPath: scripts/pipeline/lookup-directory-object.sh
-
       - deployment: GroupMemberships
         displayName: Group Memberships
         condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
-        dependsOn: LookupPrincipals
         environment:
           name: "${{ parameters.environmentName }}"
-        variables:
-          - name: directoryReadersGroupId
-            value: $[dependencies.LookupPrincipals.outputs['DirectoryReadersGroup.objectId']]
         strategy:
           runOnce:
             deploy:
@@ -49,7 +29,7 @@ stages:
                   name: AddToDirectoryReadersGroup
                   displayName: Add SQL Server Managed Identity to Directory Readers Group
                   env:
-                    GROUP_ID: $(directoryReadersGroupId)
+                    GROUP_ID: $(directoryReadersGroupObjectId)
                     PRINCIPAL_ID: $(sqlServerManagedIdentityObjectId)
                   inputs:
                     azureSubscription: $(serviceConnection)
