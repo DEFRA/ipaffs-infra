@@ -7,38 +7,38 @@ parameters:
       - POC
 
 stages:
-  - stage: CreateEntraGroups
-    displayName: Create Entra Groups
+  - stage: InfraPermissions
+    displayName: Set up Infrastructure Permissions
     variables:
       - group: "${{ parameters.environmentName }}"
       - template: "/pipelines/vars/common.yaml"
       - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
     jobs:
-      - job: LookupServicePrincipals
-        displayName: Look up service principals
+      - job: LookupPrincipals
+        displayName: Look up principals
         steps:
           - checkout: self
 
           - task: AzureCLI@2
-            name: ServiceConnection
-            displayName: Local Service Connection
+            name: DirectoryReadersGroup
+            displayName: AG-AAD-Azure-Managed-Identities-Directory-Readers
             env:
-              OBJECT_NAME: $(serviceConnection)
-              OBJECT_TYPE: servicePrincipal
+              OBJECT_NAME: AG-AAD-Azure-Managed-Identities-Directory-Readers
+              OBJECT_TYPE: group
             inputs:
               azureSubscription: $(serviceConnection)
               scriptType: bash
               scriptPath: scripts/pipeline/lookup-directory-object.sh
 
-      - deployment: SQLGroups
-        displayName: SQL Groups
+      - deployment: GroupMemberships
+        displayName: Group Memberships
         condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
-        dependsOn: LookupServicePrincipals
+        dependsOn: LookupPrincipals
         environment:
           name: "${{ parameters.environmentName }}"
         variables:
-          - name: serviceConnectionObjectId
-            value: $[dependencies.LookupServicePrincipals.outputs['ServiceConnection.objectId']]
+          - name: directoryReadersGroupId
+            value: $[dependencies.LookupPrincipals.outputs['DirectoryReadersGroup.objectId']]
         strategy:
           runOnce:
             deploy:
@@ -46,14 +46,14 @@ stages:
                 - checkout: self
 
                 - task: AzureCLI@2
-                  displayName: AG-Azure-IMP_POC-SQLAdmins
+                  name: AddToDirectoryReadersGroup
+                  displayName: Add SQL Server Managed Identity to Directory Readers Group
                   env:
-                    GROUP_NAME: AG-Azure-IMP_POC-SQLAdmins
-                    GROUP_DESCRIPTION: Entra access group for IPAFFS SQL Admins
-                    GROUP_OWNER_OBJECT_IDS: $(serviceConnectionObjectId)
+                    GROUP_ID: $(directoryReadersGroupId)
+                    PRINCIPAL_ID: $(sqlServerManagedIdentityObjectId)
                   inputs:
-                    azureSubscription: $(upstreamServiceConnection)
+                    azureSubscription: $(serviceConnection)
                     scriptType: bash
-                    scriptPath: scripts/pipeline/create-entra-group.sh
+                    scriptPath: scripts/pipeline/add-principal-to-group.sh
 
 # vim: set ts=2 sts=2 sw=2 et:

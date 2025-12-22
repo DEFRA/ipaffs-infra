@@ -58,6 +58,10 @@ stages:
                   parameters:
                     environmentName: "${{ parameters.environmentName }}"
 
+  - template: /pipelines/stages/infra-permissions.yaml
+    parameters:
+      environmentName: ${{ parameters.environmentName }}
+
   - template: /pipelines/stages/privatelink-dns-records.yaml
     parameters:
       environmentName: ${{ parameters.environmentName }}

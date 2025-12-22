@@ -42,7 +42,7 @@ steps:
 
   - task: AzureCLI@2
     displayName: Deploy - Main
-    # condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+    condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
     inputs:
       azureSubscription: $(serviceConnection)
       scriptType: bash
@@ -57,7 +57,7 @@ steps:
 
   - task: AzureCLI@2
     displayName: Wait for Deployment - Main
-    # condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+    condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
     inputs:
       azureSubscription: $(serviceConnection)
       scriptType: bash
@@ -93,5 +93,6 @@ steps:
         scripts/pipeline/update-group-variable.sh kubernetesCluster aksClusterName
         scripts/pipeline/update-group-variable.sh sqlAdminGroupId sqlAdminGroupId
         scripts/pipeline/update-group-variable.sh sqlServerName sqlServerName
+        scripts/pipeline/update-group-variable.sh sqlServerManagedIdentityObjectId sqlServerManagedIdentityObjectId
 
 # vim: set ts=2 sts=2 sw=2 et:
