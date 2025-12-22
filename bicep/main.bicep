@@ -162,6 +162,6 @@ output keyVaultName string = keyVault.outputs.keyVaultName
 output keyVaultUri string = keyVault.outputs.keyVaultUri
 output sqlAdminGroupId string = sql.outputs.sqlAdminGroupId
 output sqlServerName string = sql.outputs.sqlServerName
+output sqlServerManagedIdentityObjectId string = sql.outputs.sqlServerManagedIdentityObjectId
 
 // vim: set ts=2 sts=2 sw=2 et:
-
