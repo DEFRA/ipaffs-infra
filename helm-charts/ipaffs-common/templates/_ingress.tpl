@@ -5,13 +5,15 @@ Ingress hosts
   {{- if gt (len .Values.ingress.hosts) 0 -}}
     {{- $hosts := list -}}
     {{- range .Values.ingress.hosts }}
-      {{- $host := . -}}
       {{- $env := eq $.Values.environment "poc" | ternary "dev" $.Values.environment }}
-      {{- $suffix := printf "-%s" $.Release.Namespace }}
-      {{- $_suffix := eq $.Release.Namespace $.Values.Environment | ternary "" $suffix }}
-      {{- $hostWithSuffix := printf "%s%s.aks.imp.%s.azure.defra.cloud" $host $suffix $env -}}
+      {{- $_suffix := printf "-%s" $.Release.Namespace }}
+      {{- $_lowerNamespace := lower $.Release.Namespace }}
+      {{- $_lowerEnvironment := lower $.Values.environment }}
+      {{- $suffix := eq $_lowerNamespace $_lowerEnvironment | ternary "" $_suffix }}
+      {{- $host := printf "%s%s" . $suffix -}}
+      {{- $hostWithDomain := printf "%s.aks.imp.%s.azure.defra.cloud" $host $env -}}
       {{- $hosts = append $hosts $host }}
-      {{- $hosts = append $hosts $hostWithSuffix }}
+      {{- $hosts = append $hosts $hostWithDomain }}
     {{- end -}}
     {{- $hosts | join "\n" -}}
   {{- end -}}
