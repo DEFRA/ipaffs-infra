@@ -28,6 +28,7 @@ stages:
     jobs:
       - template: /pipelines/jobs/package-java-project.yaml@ipaffs-infra
         parameters:
+          migrations: ${{ parameters.migrations }}
           serviceName:  "${{ parameters.serviceName }}"
           dockerFile: "${{ parameters.dockerFile }}"
 
