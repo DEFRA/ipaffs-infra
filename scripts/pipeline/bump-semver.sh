@@ -14,7 +14,7 @@ if [[ "${CURRENT_VERSION}" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
   minor="${BASH_REMATCH[2]}"
   patch="${BASH_REMATCH[3]}"
   minor=$((minor + 1))
-  NEW_VERSION="${major}.${minor}.${patch}"
+  NEW_VERSION="${major}.${minor}.0"
 else
   echo "Invalid version format: ${CURRENT_VERSION}" >&2
   exit 1
