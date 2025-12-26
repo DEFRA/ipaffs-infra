@@ -86,6 +86,10 @@ spec:
           resources:
             {{- toYaml . | nindent 12 }}
           {{- end }}
+        {{- if .Values.azure.adalBridge }}
+        - name: workload-identity-adal-bridge
+          image: "manicminer/workload-identity-adal-bridge:0.1.0"
+        {{- end }}
       {{ if .Values.initContainer.enabled -}}
       initContainers:
         - name: {{ .Chart.Name }}-init
