@@ -88,7 +88,10 @@ spec:
           {{- end }}
         {{- if .Values.azure.adalBridge }}
         - name: workload-identity-adal-bridge
-          image: "manicminer/workload-identity-adal-bridge:0.1.1"
+          image: "manicminer/workload-identity-adal-bridge:0.2.0"
+          env:
+            - name: LOG_LEVEL
+              value: "info"
         {{- end }}
       {{ if .Values.initContainer.enabled -}}
       initContainers:
