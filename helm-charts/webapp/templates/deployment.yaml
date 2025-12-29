@@ -43,6 +43,7 @@ spec:
         azure.workload.identity/use: "true"
     spec:
       serviceAccountName: {{ .Values.service }}-service
+      shareProcessNamespace: true
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.container.image }}"
@@ -87,7 +88,7 @@ spec:
           {{- end }}
         {{- if .Values.azure.adalBridge }}
         - name: workload-identity-adal-bridge
-          image: "manicminer/workload-identity-adal-bridge:0.3.0"
+          image: "manicminer/workload-identity-adal-bridge:0.3.1"
           env:
             - name: LOG_LEVEL
               value: "info"

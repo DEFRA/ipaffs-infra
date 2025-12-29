@@ -31,6 +31,7 @@ spec:
         azure.workload.identity/use: "true"
     spec:
       serviceAccountName: "{{ .Values.service }}-migrations"
+      shareProcessNamespace: true
       restartPolicy: Never
       containers:
         - name: database-migration
@@ -61,7 +62,7 @@ spec:
               value: "{{ .Values.database.legacyPassword2 }}"
         {{- if .Values.azure.adalBridge }}
         - name: workload-identity-adal-bridge
-          image: "manicminer/workload-identity-adal-bridge:0.3.0"
+          image: "manicminer/workload-identity-adal-bridge:0.3.1"
           env:
             - name: LOG_LEVEL
               value: "info"
