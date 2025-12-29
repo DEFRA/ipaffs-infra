@@ -24,6 +24,7 @@ initContainer:
 azure:
   clientId: ""
   location: uksouth
+  adalBridge: false
 
 externalSecret:
   enabled: false

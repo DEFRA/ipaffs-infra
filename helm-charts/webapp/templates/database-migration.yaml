@@ -31,10 +31,11 @@ spec:
         azure.workload.identity/use: "true"
     spec:
       serviceAccountName: "{{ .Values.service }}-migrations"
+      shareProcessNamespace: true
       restartPolicy: Never
       containers:
         - name: database-migration
-          image: {{ .Values.database.migrations.image }}
+          image: "{{ .Values.database.migrations.image }}"
           {{ if .Values.database.migrations.command }}
           command: ["{{ .Values.database.migrations.command }}"]
           {{ end }}
@@ -59,6 +60,13 @@ spec:
               value: "{{ .Values.database.legacyPassword1 }}"
             - name: NEW_BASE_SERVICE_DB_PASSWORD
               value: "{{ .Values.database.legacyPassword2 }}"
+        {{- if .Values.azure.adalBridge }}
+        - name: workload-identity-adal-bridge
+          image: "manicminer/workload-identity-adal-bridge:0.3.1"
+          env:
+            - name: LOG_LEVEL
+              value: "info"
+        {{- end }}
 {{ end }}
 
 # vim: set ts=2 sts=2 sw=2 et:
