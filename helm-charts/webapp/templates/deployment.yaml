@@ -40,7 +40,6 @@ spec:
     metadata:
       labels:
         {{- include "ipaffs-common.labels" . | nindent 8 }}
-      annotations:
         azure.workload.identity/use: "true"
     spec:
       serviceAccountName: {{ .Values.service }}-service
