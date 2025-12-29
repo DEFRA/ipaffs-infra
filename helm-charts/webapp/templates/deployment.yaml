@@ -77,6 +77,10 @@ spec:
           {{ with .Values.env }}
           env:
             {{- toYaml . | nindent 12 }}
+            - name: DATABASE_DB_CONNECTION_STRING
+              value: "jdbc:sqlserver://{{ template "ipaffs-common.azure.sqlServerHostname" . }}:1433;databaseName={{ template "ipaffs-common.azure.databaseName" . }};encrypt=true;socketTimeout=1800000;loginTimeout=15;authentication=ActiveDirectoryManagedIdentity;msiClientId={{ .Values.azure.clientId }}"
+            - name: MANAGED_IDENTITY_USER
+              value: "{{ .Values.database.principalName }}"
           {{ end }}
           ports:
             - name: http
