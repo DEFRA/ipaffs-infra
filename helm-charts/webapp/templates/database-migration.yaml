@@ -62,7 +62,7 @@ spec:
               value: "{{ .Values.database.legacyPassword2 }}"
         {{- if .Values.azure.adalBridge }}
         - name: workload-identity-adal-bridge
-          image: "manicminer/workload-identity-adal-bridge:0.4.0"
+          image: "manicminer/workload-identity-adal-bridge:0.4.1"
           env:
             - name: LOG_LEVEL
               value: "info"
