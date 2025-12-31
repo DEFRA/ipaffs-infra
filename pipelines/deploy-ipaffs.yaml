@@ -26,6 +26,12 @@ parameters:
     displayName: Services
     type: object
     default:
+      - name: archive-notifications
+        migrations: false
+        pipeline: archive-notifications-service
+      - name: auto-clearance
+        migrations: false
+        pipeline: auto-clearance-service
       - name: bcpadmin
         migrations: false
         pipeline: bcpadmin-frontend
@@ -43,6 +49,18 @@ resources:
       endpoint: DEFRA
       name: DEFRA/ipaffs-infra
       ref: refs/heads/main
+
+    - repository: archive-notifications
+      type: github
+      endpoint: DEFRA
+      name: DEFRA/ipaffs-archive-notifications-microservice
+      ref: refs/heads/feature/IMTA-19940-ado-pipeline
+
+    - repository: auto-clearance
+      type: github
+      endpoint: DEFRA
+      name: DEFRA/ipaffs-auto-clearance-microservice
+      ref: refs/heads/master
 
     - repository: decision
       type: github
@@ -93,8 +111,6 @@ stages:
 
   - ${{ each service in parameters.services }}:
       - stage: Metadata_${{ service.name }}
-        dependsOn:
-          - ConfigureDeployment
         displayName: Metadata for ${{ service.name }}
         jobs:
           - job: Metadata
