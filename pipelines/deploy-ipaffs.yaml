@@ -119,7 +119,7 @@ stages:
       displayName: Deploy Helm Charts for ${{ service.name }}
       dependsOn:
         - ConfigureDeployment
-        - DeployIdentities
+        - DeployIdentities_${{ service.name }}
       variables:
         - name: migrationsClientId
           value: $[stageDependencies['DeployIdentities_${{ service.name }}'].MigrationsIdentity.outputs['CreateIdentity.clientId']]
