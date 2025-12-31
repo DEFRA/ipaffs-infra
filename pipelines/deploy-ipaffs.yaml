@@ -80,9 +80,23 @@ stages:
               namespace: ${{ parameters.namespace }}
 
   - ${{ each service in parameters.services }}:
-    - stage: Metadata_${{ service.name }}
-      displayName: Metadata for ${{ service.name }}
+    - stage: DeployIdentities_${{ service.name }}
+      displayName: Deploy identities for ${{ service.name }}
+        - ConfigureDeployment
       jobs:
+        - template: /pipelines/jobs/deploy-identities.yaml
+          parameters:
+            environmentName: ${{ parameters.environmentName }}
+            migrations: ${{ service.migrations }}
+            namespace: ${{ parameters.namespace }}
+            serviceName: ${{ service.name }}
+
+  - ${{ each service in parameters.services }}:
+      - stage: Metadata_${{ service.name }}
+        dependsOn:
+          - ConfigureDeployment
+        displayName: Metadata for ${{ service.name }}
+        jobs:
           - job: Metadata
             displayName: Get metadata
             variables:
@@ -104,20 +118,6 @@ stages:
                     pipelineId="$(az pipelines show --org https://dev.azure.com/defragovuk/ --project DEFRA-EUTD-IPAFFS --folder-path Services --name "${PIPELINE}" --query 'id')"
                     latestBuildId="$(az pipelines runs list --org https://dev.azure.com/defragovuk/ --project DEFRA-EUTD-IPAFFS --query-order FinishTimeDesc --result succeeded --status completed --pipeline-ids "${pipelineId}" --branch "${BRANCH}")"
                     echo "##vso[task.setvariable variable=version;isOutput=true]${latestBuildId}"
-
-  - ${{ each service in parameters.services }}:
-    - stage: DeployIdentities_${{ service.name }}
-      displayName: Deploy identities for ${{ service.name }}
-      dependsOn:
-        - ConfigureDeployment
-        - Metadata_${{ service.name }}
-      jobs:
-        - template: /pipelines/jobs/deploy-identities.yaml
-          parameters:
-            environmentName: ${{ parameters.environmentName }}
-            migrations: ${{ service.migrations }}
-            namespace: ${{ parameters.namespace }}
-            serviceName: ${{ service.name }}
 
   - ${{ each service in parameters.services }}:
     - stage: DeployChart_${{ service.name }}
