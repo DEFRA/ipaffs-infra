@@ -11,10 +11,14 @@ parameters:
     type: string
   - name: servicePrincipalName
     type: string
+  - name: serviceName
+    type: string
+  - name: serviceVersion
+    type: string
 
 jobs:
-  - job: RunHelmfile
-    displayName: Run Helmfile to deploy charts
+  - job: DeployChart-${{ parameters.serviceName }}
+    displayName: Deploy ${{ parameters.serviceName }}
     variables:
       - group: "${{ parameters.environmentName }}"
       - template: "/pipelines/vars/common.yaml"
@@ -55,8 +59,8 @@ jobs:
           AZURE_MANAGED_IDENTITY_PRINCIPAL_NAME: ${{ parameters.servicePrincipalName }}
           AZURE_MANAGED_IDENTITY_MIGRATIONS_CLIENT_ID: ${{ parameters.migrationsClientId }}
           AZURE_MANAGED_IDENTITY_EXTERNAL_SECRETS_CLIENT_ID: $(externalSecretsClientId)
-          CONTAINER_IMAGE: "ipaffs/$(serviceName):$(Build.BuildNumber)"
-          MIGRATIONS_IMAGE: "ipaffs/$(serviceName)-configuration:$(Build.BuildNumber)"
+          CONTAINER_IMAGE: "ipaffs/${{ parameters.serviceName }}:${{ parameters.serviceVersion }}"
+          MIGRATIONS_IMAGE: "ipaffs/{{ parameters.serviceName }})-configuration:${{ parameters.serviceVersion }}"
           NAMESPACE: ${{ parameters.namespace }}
         inputs:
           azureSubscription: $(serviceConnection)

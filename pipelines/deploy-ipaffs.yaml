@@ -1,0 +1,135 @@
+---
+trigger: none
+
+pool:
+  name: DEFRA-COMMON-ubuntu2204-SSV5
+
+parameters:
+  - name: environmentName
+    displayName: Environment
+    type: string
+    default: POC
+    values:
+      - POC
+
+  - name: namespace
+    displayName: Namespace
+    type: string
+
+  - name: branch
+    displayName: Branch Name
+    type: string
+
+  - name: services
+    displayName: Services
+    type: object
+    default:
+      - name: bcpadmin
+        migrations: false
+        pipeline: bcpadmin-frontend
+      - name: decision
+        migrations: true
+        pipeline: decision-service
+      - name: proxy
+        migrations: false
+        pipeline: imports-proxy
+
+resources:
+  repositories:
+    - repository: decision
+      type: github
+      endpoint: DEFRA
+      name: DEFRA/ipaffs-decision-microservice
+      ref: refs/heads/IMTA-19931-deploy-on-kubernetes-decision-service
+
+    - repository: bcpadmin
+      type: github
+      endpoint: DEFRA
+      name: DEFRA/ipaffs-frontend-bcpadmin
+      ref: refs/heads/master
+
+    - repository: proxy
+      type: github
+      endpoint: DEFRA
+      name: DEFRA/ipaffs-imports-proxy
+      ref: refs/heads/feature/login-muxer
+
+variables:
+  - group: "${{ parameters.environmentName }}"
+  - template: "vars/common.yaml"
+  - template: "vars/${{ lower(parameters.environmentName) }}.yaml"
+
+stages:
+  - stage: ConfigureDeployment
+    displayName: Configure Deployment
+    jobs:
+      - ${{ each service in parameters.services }}:
+        - job: metadata-${{ service.name }}
+          displayName: Get metadata ${{ service.name }}
+          variables:
+            - name: trunkBranch
+              value: $[resources.repositories['${{ service.name }}'].ref]
+          steps:
+            - task: AzureCLI@2
+              name: serviceDetails
+              displayName: Latest version for ${{ service.name }}
+              env:
+                PIPELINE: ${{ service.pipeline }}
+                BRANCH: $(trunkBranch)
+              inputs:
+                azureSubscription: $(upstreamServiceConnection)
+                scriptType: bash
+                scriptLocation: inlineScript
+                inlineScript: |
+                  set -ex
+                  pipelineId="$(az pipelines show --org https://dev.azure.com/defragovuk/ --project DEFRA-EUTD-IPAFFS --folder-path Services --name "${PIPELINE}" --query 'id')"
+                  latestBuildId="$(az pipelines runs list --org https://dev.azure.com/defragovuk/ --project DEFRA-EUTD-IPAFFS --query-order FinishTimeDesc --result succeeded --status completed --pipeline-ids "${pipelineId}" --branch "${BRANCH}")"
+                  echo "##vso[task.setvariable variable=version;isOutput=true]${latestBuildId}"
+
+      - job: DeployBootstrapChart
+        displayName: Deploy bootstrap Helm chart
+        steps:
+          - template: /pipelines/steps/deploy-bootstrap-chart.yaml
+            parameters:
+              environmentName: ${{ parameters.environmentName }}
+              namespace: ${{ parameters.namespace }}
+
+  - ${{ each service in parameters.services }}:
+    - stage: DeployIdentities-${{ service.name }}
+      displayName: Deploy identities for ${{ service.name }}
+      dependsOn: ConfigureDeployment
+      jobs:
+        - template: /pipelines/jobs/deploy-identities.yaml
+          parameters:
+            environmentName: ${{ parameters.environmentName }}
+            migrations: ${{ service.migrations }}
+            namespace: ${{ parameters.namespace }}
+            serviceName: ${{ service.name }}
+
+  - ${{ each service in parameters.services }}:
+    - stage: DeployChart-${{ service.name }}
+      displayName: Deploy Helm Charts for ${{ service.name }}
+      dependsOn:
+        - ConfigureDeployment
+        - DeployIdentities
+      variables:
+        - name: migrationsClientId
+          value: $[stageDependencies['DeployIdentities-${{ service.name }}'].MigrationsIdentity.outputs['CreateIdentity.clientId']]
+        - name: serviceClientId
+          value: $[stageDependencies['DeployIdentities-${{ service.name }}'].ServiceIdentity.outputs['CreateIdentity.clientId']]
+        - name: servicePrincipalName
+          value: $[stageDependencies['DeployIdentities-${{ service.name }}'].ServiceIdentity.outputs['CreateIdentity.principalName']]
+        - name: serviceVersion
+          value: $[stageDependencies.ConfigureDeployment['metadata-${{ service.name }}'].outputs['serviceDetails.version']]
+      jobs:
+        - template: /pipelines/jobs/deploy-chart.yaml
+          parameters:
+            environmentName: ${{ parameters.environmentName }}
+            migrationsClientId: $(migrationsClientId)
+            namespace: ${{ parameters.namespace }}
+            serviceClientId: $(serviceClientId)
+            servicePrincipalName: $(servicePrincipalName)
+            serviceName: ${{ service.name }}
+            serviceVersion: $(serviceVersion)
+
+# vim: set ts=2 sts=2 sw=2 et:
