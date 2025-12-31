@@ -17,8 +17,8 @@ parameters:
     type: string
 
 jobs:
-  - job: DeployChart-${{ parameters.serviceName }}
-    displayName: Deploy ${{ parameters.serviceName }}
+  - job: DeployChart
+    displayName: Deploy Helm Charts
     variables:
       - group: "${{ parameters.environmentName }}"
       - template: "/pipelines/vars/common.yaml"
