@@ -16,11 +16,6 @@ livenessProbe:
   initialDelaySeconds: 10
   periodSeconds: 5
 
-initContainer:
-  enabled: false
-  image: ""
-  command: ""
-
 azure:
   clientId: ""
   location: uksouth

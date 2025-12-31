@@ -1,20 +1,3 @@
-# TODO!
-# deploy app! --> start pipeline
-# pipeline step: migrations MI needs to be created and added to a group (DONE)
-# pipeline step: service MI to be created
-# pipeline step: then helm chart installation starts (DONE)
-# hook 1 (preinstall,preupgrade): run migrations which uses the migrations MI created in pipeline, then terminates (DONEish)
-# hook 2 (preinstall,preupgrade): create an app MI, store clientid in configmap (PENDING)
-# main helm install: adopt the service MI, deploy the app, include lookup for clientid from configmap (DONEish)
-# pipeline step: delete the migrations MI (PENDING)
-#
-# ... time passes
-#
-# something triggers helm uninstall to delete the service
-# main helm uninstall: things get shot
-# hook 3 (post-delete): job that runs kubectl to delete hook 2 (app MI) (PENDING)
-#
-#
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -47,41 +30,42 @@ spec:
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.container.image }}"
-          {{ if .Values.container.command }}
+          {{- if .Values.container.command }}
           command: ["{{ .Values.container.command }}"]
-          {{ end }}
-          {{ if .Values.container.args }}
+          {{- end }}
+          {{- if .Values.container.args }}
           args:
-            {{ range .Values.container.args }}
+            {{- range .Values.container.args }}
             - "{{ . }}"
-            {{ end }}
-          {{ end }}
+            {{- end }}
+          {{- end }}
           imagePullPolicy: {{ .Values.container.imagePullPolicy }}
           envFrom:
             - configMapRef:
                 name: ipaffs-config
             - configMapRef:
                 name: {{ .Values.service }}
-{{- if .Values.externalSecret.enabled }}
+            {{- if .Values.externalSecret.enabled }}
             - secretRef:
                 name: {{ printf "%s-secrets" .Values.service }}
-{{- end }}
-{{- if .Values.redis.enabled }}
+            {{- end }}
+            {{- if .Values.redis.enabled }}
             - secretRef:
                 name: {{ printf "%s-redis" .Values.service }}
-{{- end }}
-{{- if .Values.serviceBus.enabled }}
+            {{- end }}
+            {{- if .Values.serviceBus.enabled }}
             - secretRef:
                 name: {{ printf "%s-servicebus" .Values.service }}
-{{- end }}
+            {{- end }}
           env:
+            # TODO: tidy this
             - name: DATABASE_DB_CONNECTION_STRING
               value: "jdbc:sqlserver://{{ template "ipaffs-common.azure.sqlServerHostname" . }}:1433;databaseName={{ template "ipaffs-common.azure.databaseName" . }};encrypt=true;socketTimeout=1800000;loginTimeout=15;authentication=ActiveDirectoryManagedIdentity;msiClientId={{ .Values.azure.clientId }}"
             - name: MANAGED_IDENTITY_USER
               value: "{{ .Values.database.principalName }}"
-          {{ with .Values.env }}
+          {{- with .Values.env }}
             {{- toYaml . | nindent 12 }}
-          {{ end }}
+          {{- end }}
           ports:
             - name: http
               containerPort: 8000
@@ -90,18 +74,14 @@ spec:
           resources:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-        {{- if .Values.azure.adalBridge }}
+      {{- if .Values.azure.adalBridge }}
+      initContainers:
         - name: workload-identity-adal-bridge
           image: "manicminer/workload-identity-adal-bridge:0.4.1"
+          restartPolicy: Always
           env:
             - name: LOG_LEVEL
               value: "info"
-        {{- end }}
-      {{ if .Values.initContainer.enabled -}}
-      initContainers:
-        - name: {{ .Chart.Name }}-init
-          image: "{{ .Values.initContainer.image }}"
-          command: {{ .Values.initContainer.command }}
-      {{ end }}
+      {{- end }}
 
 # vim: set ts=2 sts=2 sw=2 et:

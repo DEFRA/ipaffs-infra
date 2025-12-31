@@ -1,4 +1,4 @@
-{{ if .Values.database.migrations.enabled }}
+{{- if .Values.database.migrations.enabled }}
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -36,15 +36,15 @@ spec:
       containers:
         - name: database-migration
           image: "{{ .Values.database.migrations.image }}"
-          {{ if .Values.database.migrations.command }}
+          {{- if .Values.database.migrations.command }}
           command: ["{{ .Values.database.migrations.command }}"]
-          {{ end }}
-          {{ if .Values.database.migrations.args }}
+          {{- end }}
+          {{- if .Values.database.migrations.args }}
           args:
-            {{ range .Values.database.migrations.args }}
+            {{- range .Values.database.migrations.args }}
             - "{{ . }}"
-            {{ end }}
-          {{ end }}
+            {{- end }}
+          {{- end }}
           env:
             - name: DATABASE_DB_CONNECTION_STRING
               value: "jdbc:sqlserver://{{ template "ipaffs-common.azure.sqlServerHostname" . }}:1433;databaseName={{ template "ipaffs-common.azure.databaseName" . }};encrypt=true;socketTimeout=1800000;loginTimeout=15;authentication=ActiveDirectoryManagedIdentity;msiClientId={{ .Values.database.migrations.clientId }}"
@@ -60,13 +60,15 @@ spec:
               value: "{{ .Values.database.legacyPassword1 }}"
             - name: NEW_BASE_SERVICE_DB_PASSWORD
               value: "{{ .Values.database.legacyPassword2 }}"
-        {{- if .Values.azure.adalBridge }}
+      {{- if .Values.azure.adalBridge }}
+      initContainers:
         - name: workload-identity-adal-bridge
           image: "manicminer/workload-identity-adal-bridge:0.4.1"
+          restartPolicy: Always
           env:
             - name: LOG_LEVEL
               value: "info"
-        {{- end }}
-{{ end }}
+      {{- end }}
+{{- end }}
 
 # vim: set ts=2 sts=2 sw=2 et:
