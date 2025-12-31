@@ -66,7 +66,7 @@ stages:
     displayName: Configure Deployment
     jobs:
       - ${{ each service in parameters.services }}:
-        - job: metadata-${{ service.name }}
+        - job: metadata_${{ service.name }}
           displayName: Get metadata ${{ service.name }}
           variables:
             - name: trunkBranch
@@ -97,7 +97,7 @@ stages:
               namespace: ${{ parameters.namespace }}
 
   - ${{ each service in parameters.services }}:
-    - stage: DeployIdentities-${{ service.name }}
+    - stage: DeployIdentities_${{ service.name }}
       displayName: Deploy identities for ${{ service.name }}
       dependsOn: ConfigureDeployment
       jobs:
@@ -109,20 +109,20 @@ stages:
             serviceName: ${{ service.name }}
 
   - ${{ each service in parameters.services }}:
-    - stage: DeployChart-${{ service.name }}
+    - stage: DeployChart_${{ service.name }}
       displayName: Deploy Helm Charts for ${{ service.name }}
       dependsOn:
         - ConfigureDeployment
         - DeployIdentities
       variables:
         - name: migrationsClientId
-          value: $[stageDependencies['DeployIdentities-${{ service.name }}'].MigrationsIdentity.outputs['CreateIdentity.clientId']]
+          value: $[stageDependencies['DeployIdentities_${{ service.name }}'].MigrationsIdentity.outputs['CreateIdentity.clientId']]
         - name: serviceClientId
-          value: $[stageDependencies['DeployIdentities-${{ service.name }}'].ServiceIdentity.outputs['CreateIdentity.clientId']]
+          value: $[stageDependencies['DeployIdentities_${{ service.name }}'].ServiceIdentity.outputs['CreateIdentity.clientId']]
         - name: servicePrincipalName
-          value: $[stageDependencies['DeployIdentities-${{ service.name }}'].ServiceIdentity.outputs['CreateIdentity.principalName']]
+          value: $[stageDependencies['DeployIdentities_${{ service.name }}'].ServiceIdentity.outputs['CreateIdentity.principalName']]
         - name: serviceVersion
-          value: $[stageDependencies.ConfigureDeployment['metadata-${{ service.name }}'].outputs['serviceDetails.version']]
+          value: $[stageDependencies.ConfigureDeployment['metadata_${{ service.name }}'].outputs['serviceDetails.version']]
       jobs:
         - template: /pipelines/jobs/deploy-chart.yaml
           parameters:
