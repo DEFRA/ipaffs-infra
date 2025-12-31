@@ -11,6 +11,8 @@ parameters:
     type: string
   - name: servicePrincipalName
     type: string
+  - name: repository
+    type: string
   - name: serviceName
     type: string
   - name: serviceVersion
@@ -25,7 +27,7 @@ jobs:
       - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
 
     steps:
-      - checkout: self
+      - checkout: ${{ parameters.repository }}
 
       - task: AzureCLI@2
         name: LoginToContainerRegistry

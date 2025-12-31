@@ -140,6 +140,7 @@ stages:
             environmentName: ${{ parameters.environmentName }}
             migrationsClientId: $(migrationsClientId)
             namespace: ${{ parameters.namespace }}
+            repository: ${{ service.name }}
             serviceClientId: $(serviceClientId)
             servicePrincipalName: $(servicePrincipalName)
             serviceName: ${{ service.name }}
