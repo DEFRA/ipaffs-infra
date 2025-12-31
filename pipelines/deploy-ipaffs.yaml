@@ -15,10 +15,12 @@ parameters:
   - name: namespace
     displayName: Namespace
     type: string
+    default: foo
 
   - name: branch
     displayName: Branch Name
     type: string
+    default: feature/foo
 
   - name: services
     displayName: Services
