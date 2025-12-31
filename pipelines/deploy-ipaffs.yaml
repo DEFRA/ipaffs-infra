@@ -85,7 +85,7 @@ stages:
                 PIPELINE: ${{ service.pipeline }}
                 BRANCH: $(trunkBranch)
               inputs:
-                azureSubscription: $(upstreamServiceConnection)
+                azureSubscription: $(serviceConnection)
                 scriptType: bash
                 scriptLocation: inlineScript
                 inlineScript: |
