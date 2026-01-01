@@ -148,13 +148,13 @@ stages:
         - Setup_${{ replace(service.name, '-', '_') }}
       variables:
         - name: migrationsClientId
-          value: $[stageDependencies['DeployIdentities_${{ replace(service.name, '-', '_') }}'].MigrationsIdentity.outputs['CreateIdentity.clientId']]
+          value: $[stageDependencies['Setup_${{ replace(service.name, '-', '_') }}'].MigrationsIdentity.outputs['CreateIdentity.clientId']]
         - name: serviceClientId
-          value: $[stageDependencies['DeployIdentities_${{ replace(service.name, '-', '_') }}'].ServiceIdentity.outputs['CreateIdentity.clientId']]
+          value: $[stageDependencies['Setup_${{ replace(service.name, '-', '_') }}'].ServiceIdentity.outputs['CreateIdentity.clientId']]
         - name: servicePrincipalName
-          value: $[stageDependencies['DeployIdentities_${{ replace(service.name, '-', '_') }}'].ServiceIdentity.outputs['CreateIdentity.principalName']]
+          value: $[stageDependencies['Setup_${{ replace(service.name, '-', '_') }}'].ServiceIdentity.outputs['CreateIdentity.principalName']]
         - name: serviceVersion
-          value: $[stageDependencies['Metadata_${{ replace(service.name, '-', '_') }}'].Metadata.outputs['serviceDetails.version']]
+          value: $[stageDependencies['Setup_${{ replace(service.name, '-', '_') }}'].Metadata.outputs['serviceDetails.version']]
       jobs:
         - template: /pipelines/jobs/deploy-chart.yaml
           parameters:
