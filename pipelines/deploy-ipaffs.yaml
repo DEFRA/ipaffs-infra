@@ -89,13 +89,16 @@ stages:
   - stage: ConfigureDeployment
     displayName: Configure Deployment
     jobs:
-      - job: DeployBootstrapChart
-        displayName: Deploy bootstrap Helm chart
+      - job: ConfigureNamespace
+        displayName: Configure Namespace
         steps:
           - template: /pipelines/steps/create-namespace.yaml
             parameters:
               namespace: ${{ parameters.namespace }}
 
+      - job: DeployBootstrapChart
+        displayName: Deploy bootstrap Helm chart
+        steps:
           - template: /pipelines/steps/deploy-bootstrap-chart.yaml
             parameters:
               environmentName: ${{ parameters.environmentName }}
