@@ -3,15 +3,6 @@ parameters:
     type: string
 
 steps:
-  - task: AzureCLI@2
-    name: LoginToContainerRegistry
-    displayName: Login to Azure Container Registry
-    inputs:
-      azureSubscription: $(serviceConnection)
-      scriptType: bash
-      scriptLocation: inlineScript
-      inlineScript: az acr login --name $(acrName)
-
   - task: Kubernetes@1
     name: KubectlCreateNamespace
     displayName: Create namespace
