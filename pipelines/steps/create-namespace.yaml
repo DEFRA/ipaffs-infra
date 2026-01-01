@@ -4,8 +4,22 @@ parameters:
 
 steps:
   - task: Kubernetes@1
+    name: KubectlGetNamespace
+    displayName: Get namespace
+    continueOnError: true
+    inputs:
+      connectionType: Azure Resource Manager
+      azureSubscriptionEndpoint: $(serviceConnection)
+      azureResourceGroup: $(resourceGroupName)
+      kubernetesCluster: $(kubernetesCluster)
+      useClusterAdmin: true
+      command: create
+      arguments: namespace ${{ parameters.namespace }}
+
+  - task: Kubernetes@1
     name: KubectlCreateNamespace
     displayName: Create namespace
+    condition: failed()
     inputs:
       connectionType: Azure Resource Manager
       azureSubscriptionEndpoint: $(serviceConnection)
