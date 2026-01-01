@@ -36,6 +36,7 @@ jobs:
 
     steps:
       - checkout: ${{ parameters.repository }}
+        workspaceRepo: true
 
       - task: AzureCLI@2
         name: LoginToContainerRegistry
