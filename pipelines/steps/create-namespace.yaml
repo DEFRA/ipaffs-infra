@@ -13,7 +13,7 @@ steps:
       azureResourceGroup: $(resourceGroupName)
       kubernetesCluster: $(kubernetesCluster)
       useClusterAdmin: true
-      command: create
+      command: get
       arguments: namespace ${{ parameters.namespace }}
 
   - task: Kubernetes@1
