@@ -98,10 +98,33 @@ stages:
               namespace: ${{ parameters.namespace }}
 
   - ${{ each service in parameters.services }}:
-    - stage: DeployIdentities_${{ replace(service.name, '-', '_') }}
-      displayName: Deploy identities for ${{ service.name }}
+    - stage: Setup_${{ replace(service.name, '-', '_') }}
+      displayName: Set up ${{ service.name }}
+      dependsOn:
         - ConfigureDeployment
       jobs:
+        - job: Metadata
+          displayName: Get metadata
+          variables:
+            - name: trunkBranch
+              value: $[resources.repositories['${{ service.name }}'].ref]
+          steps:
+            - task: AzureCLI@2
+              name: serviceDetails
+              displayName: Latest version for ${{ service.name }}
+              env:
+                PIPELINE: ${{ service.pipeline }}
+                BRANCH: $(trunkBranch)
+              inputs:
+                azureSubscription: $(serviceConnection)
+                scriptType: bash
+                scriptLocation: inlineScript
+                inlineScript: |
+                  set -ex
+                  pipelineId="$(az pipelines show --org https://dev.azure.com/defragovuk/ --project DEFRA-EUTD-IPAFFS --folder-path Services --name "${PIPELINE}" --query 'id')"
+                  latestBuildId="$(az pipelines runs list --org https://dev.azure.com/defragovuk/ --project DEFRA-EUTD-IPAFFS --query-order FinishTimeDesc --result succeeded --status completed --pipeline-ids "${pipelineId}" --branch "${BRANCH}")"
+                  echo "##vso[task.setvariable variable=version;isOutput=true]${latestBuildId}"
+
         - template: /pipelines/jobs/deploy-identities.yaml
           parameters:
             environmentName: ${{ parameters.environmentName }}
@@ -110,37 +133,10 @@ stages:
             serviceName: ${{ service.name }}
 
   - ${{ each service in parameters.services }}:
-      - stage: Metadata_${{ replace(service.name, '-', '_') }}
-        displayName: Metadata for ${{ service.name }}
-        jobs:
-          - job: Metadata
-            displayName: Get metadata
-            variables:
-              - name: trunkBranch
-                value: $[resources.repositories['${{ service.name }}'].ref]
-            steps:
-              - task: AzureCLI@2
-                name: serviceDetails
-                displayName: Latest version for ${{ service.name }}
-                env:
-                  PIPELINE: ${{ service.pipeline }}
-                  BRANCH: $(trunkBranch)
-                inputs:
-                  azureSubscription: $(serviceConnection)
-                  scriptType: bash
-                  scriptLocation: inlineScript
-                  inlineScript: |
-                    set -ex
-                    pipelineId="$(az pipelines show --org https://dev.azure.com/defragovuk/ --project DEFRA-EUTD-IPAFFS --folder-path Services --name "${PIPELINE}" --query 'id')"
-                    latestBuildId="$(az pipelines runs list --org https://dev.azure.com/defragovuk/ --project DEFRA-EUTD-IPAFFS --query-order FinishTimeDesc --result succeeded --status completed --pipeline-ids "${pipelineId}" --branch "${BRANCH}")"
-                    echo "##vso[task.setvariable variable=version;isOutput=true]${latestBuildId}"
-
-  - ${{ each service in parameters.services }}:
     - stage: DeployChart_${{ replace(service.name, '-', '_') }}
       displayName: Deploy Helm Charts for ${{ service.name }}
       dependsOn:
-        - DeployIdentities_${{ replace(service.name, '-', '_') }}
-        - Metadata_${{ replace(service.name, '-', '_') }}
+        - Setup_${{ replace(service.name, '-', '_') }}
       variables:
         - name: migrationsClientId
           value: $[stageDependencies['DeployIdentities_${{ replace(service.name, '-', '_') }}'].MigrationsIdentity.outputs['CreateIdentity.clientId']]
