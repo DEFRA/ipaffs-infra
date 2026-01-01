@@ -95,9 +95,11 @@ stages:
           - template: /pipelines/steps/create-namespace.yaml
             parameters:
               namespace: ${{ parameters.namespace }}
+              owner: $(Build.RequestedForEmail)
 
       - job: DeployBootstrapChart
         displayName: Deploy bootstrap Helm chart
+        dependsOn: ConfigureNamespace
         steps:
           - template: /pipelines/steps/deploy-bootstrap-chart.yaml
             parameters:
