@@ -3,20 +3,28 @@ parameters:
     type: string
     values:
       - POC
+
   - name: migrationsClientId
     type: string
+
   - name: namespace
     type: string
+
   - name: serviceClientId
     type: string
+
   - name: servicePrincipalName
     type: string
-  - name: repository
-    type: string
+
   - name: serviceName
     type: string
+
   - name: serviceVersion
     type: string
+
+  - name: repository
+    type: string
+    default: self
 
 jobs:
   - job: DeployChart
