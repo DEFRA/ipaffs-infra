@@ -43,15 +43,15 @@ parameters:
         pipeline: bip-service
 
       - name: bordernotification-frontend
-        migrations: true
+        migrations: false
         pipeline: bordernotification-frontend
 
       - name: checks-frontend
-        migrations: true
+        migrations: false
         pipeline: checks-frontend
 
       - name: control-frontend
-        migrations: true
+        migrations: false
         pipeline: control-frontend
 
       - name: countries-service
@@ -59,7 +59,7 @@ parameters:
         pipeline: countries-service
 
       - name: decision-frontend
-        migrations: true
+        migrations: false
         pipeline: decision-frontend
 
       - name: decision-service
@@ -67,7 +67,7 @@ parameters:
         pipeline: decision-service
 
       - name: dmp-integration-service
-        migrations: true
+        migrations: false
         pipeline: dmp-integration-service
 
       - name: economic-operator-service
@@ -75,23 +75,23 @@ parameters:
         pipeline: economic-operator-service
 
       - name: enotification-event-listener-service
-        migrations: true
+        migrations: false
         pipeline: enotification-event-listener-service
 
       - name: notification-frontend
-        migrations: true
+        migrations: false
         pipeline: notification-frontend
 
       - name: notify-service
-        migrations: true
+        migrations: false
         pipeline: notify-service
 
       - name: risk-interface-service
-        migrations: true
+        migrations: false
         pipeline: risk-interface-service
 
       - name: risk-locking-service
-        migrations: true
+        migrations: false
         pipeline: risk-locking-service
 
       - name: proxy
@@ -99,7 +99,7 @@ parameters:
         pipeline: imports-proxy
 
       - name: upload-frontend
-        migrations: true
+        migrations: false
         pipeline: upload-frontend
 
 resources:
