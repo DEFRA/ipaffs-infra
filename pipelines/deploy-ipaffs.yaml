@@ -92,6 +92,10 @@ stages:
       - job: DeployBootstrapChart
         displayName: Deploy bootstrap Helm chart
         steps:
+          - template: /pipelines/steps/create-namespace.yaml
+            parameters:
+              namespace: ${{ parameters.namespace }}
+
           - template: /pipelines/steps/deploy-bootstrap-chart.yaml
             parameters:
               environmentName: ${{ parameters.environmentName }}

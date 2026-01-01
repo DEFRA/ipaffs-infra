@@ -1,0 +1,39 @@
+parameters:
+  - name: namespace
+    type: string
+
+steps:
+  - task: AzureCLI@2
+    name: LoginToContainerRegistry
+    displayName: Login to Azure Container Registry
+    inputs:
+      azureSubscription: $(serviceConnection)
+      scriptType: bash
+      scriptLocation: inlineScript
+      inlineScript: az acr login --name $(acrName)
+
+  - task: Kubernetes@1
+    name: KubectlCreateNamespace
+    displayName: Create namespace
+    inputs:
+      connectionType: Azure Resource Manager
+      azureSubscriptionEndpoint: $(serviceConnection)
+      azureResourceGroup: $(resourceGroupName)
+      kubernetesCluster: $(kubernetesCluster)
+      useClusterAdmin: true
+      command: create
+      arguments: namespace ${{ parameters.namespace }}
+
+  - task: Kubernetes@1
+    name: KubectlLabelNamespace
+    displayName: Label namespace
+    inputs:
+      connectionType: Azure Resource Manager
+      azureSubscriptionEndpoint: $(serviceConnection)
+      azureResourceGroup: $(resourceGroupName)
+      kubernetesCluster: $(kubernetesCluster)
+      useClusterAdmin: true
+      command: label
+      arguments: namespace ${{ parameters.namespace }} owner=${{ Build.RequestedForEmail }} --overwrite=true
+
+# vim: set ts=2 sts=2 sw=2 et:
