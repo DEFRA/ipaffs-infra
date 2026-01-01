@@ -84,8 +84,6 @@ variables:
   - group: "${{ parameters.environmentName }}"
   - template: "vars/common.yaml"
   - template: "vars/${{ lower(parameters.environmentName) }}.yaml"
-  - name: serviceName
-    value: "{{ replace(parameters.serviceName, '-', '_') }}"
 
 stages:
   - stage: ConfigureDeployment
@@ -100,8 +98,8 @@ stages:
               namespace: ${{ parameters.namespace }}
 
   - ${{ each service in parameters.services }}:
-    - stage: DeployIdentities_$(serviceName)
-      displayName: Deploy identities for $(serviceName)
+    - stage: DeployIdentities_${{ replace(service.name, '-', '_') }}
+      displayName: Deploy identities for ${{ service.name }}
         - ConfigureDeployment
       jobs:
         - template: /pipelines/jobs/deploy-identities.yaml
@@ -109,21 +107,21 @@ stages:
             environmentName: ${{ parameters.environmentName }}
             migrations: ${{ service.migrations }}
             namespace: ${{ parameters.namespace }}
-            serviceName: $(serviceName)
+            serviceName: ${{ service.name }}
 
   - ${{ each service in parameters.services }}:
-      - stage: Metadata_$(serviceName)
-        displayName: Metadata for $(serviceName)
+      - stage: Metadata_${{ replace(service.name, '-', '_') }}
+        displayName: Metadata for ${{ service.name }}
         jobs:
           - job: Metadata
             displayName: Get metadata
             variables:
               - name: trunkBranch
-                value: $[resources.repositories['$(serviceName)'].ref]
+                value: $[resources.repositories['${{ service.name }}'].ref]
             steps:
               - task: AzureCLI@2
                 name: serviceDetails
-                displayName: Latest version for $(serviceName)
+                displayName: Latest version for ${{ service.name }}
                 env:
                   PIPELINE: ${{ service.pipeline }}
                   BRANCH: $(trunkBranch)
@@ -138,30 +136,30 @@ stages:
                     echo "##vso[task.setvariable variable=version;isOutput=true]${latestBuildId}"
 
   - ${{ each service in parameters.services }}:
-    - stage: DeployChart_$(serviceName)
-      displayName: Deploy Helm Charts for $(serviceName)
+    - stage: DeployChart_${{ replace(service.name, '-', '_') }}
+      displayName: Deploy Helm Charts for ${{ service.name }}
       dependsOn:
-        - DeployIdentities_$(serviceName)
-        - Metadata_$(serviceName)
+        - DeployIdentities_${{ replace(service.name, '-', '_') }}
+        - Metadata_${{ replace(service.name, '-', '_') }}
       variables:
         - name: migrationsClientId
-          value: $[stageDependencies['DeployIdentities_$(serviceName)'].MigrationsIdentity.outputs['CreateIdentity.clientId']]
+          value: $[stageDependencies['DeployIdentities_${{ replace(service.name, '-', '_') }}'].MigrationsIdentity.outputs['CreateIdentity.clientId']]
         - name: serviceClientId
-          value: $[stageDependencies['DeployIdentities_$(serviceName)'].ServiceIdentity.outputs['CreateIdentity.clientId']]
+          value: $[stageDependencies['DeployIdentities_${{ replace(service.name, '-', '_') }}'].ServiceIdentity.outputs['CreateIdentity.clientId']]
         - name: servicePrincipalName
-          value: $[stageDependencies['DeployIdentities_$(serviceName)'].ServiceIdentity.outputs['CreateIdentity.principalName']]
+          value: $[stageDependencies['DeployIdentities_${{ replace(service.name, '-', '_') }}'].ServiceIdentity.outputs['CreateIdentity.principalName']]
         - name: serviceVersion
-          value: $[stageDependencies['Metadata_$(serviceName)'].Metadata.outputs['serviceDetails.version']]
+          value: $[stageDependencies['Metadata_${{ replace(service.name, '-', '_') }}'].Metadata.outputs['serviceDetails.version']]
       jobs:
         - template: /pipelines/jobs/deploy-chart.yaml
           parameters:
             environmentName: ${{ parameters.environmentName }}
             migrationsClientId: $(migrationsClientId)
             namespace: ${{ parameters.namespace }}
-            repository: $(serviceName)
+            repository: ${{ service.name }}
             serviceClientId: $(serviceClientId)
             servicePrincipalName: $(servicePrincipalName)
-            serviceName: $(serviceName)
+            serviceName: ${{ service.name }}
             serviceVersion: $(serviceVersion)
 
 # vim: set ts=2 sts=2 sw=2 et:
