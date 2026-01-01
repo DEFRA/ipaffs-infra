@@ -29,18 +29,78 @@ parameters:
       - name: archive-notifications
         migrations: false
         pipeline: archive-notifications-service
+
       - name: auto-clearance
         migrations: false
         pipeline: auto-clearance-service
+
       - name: bcpadmin
         migrations: false
         pipeline: bcpadmin-frontend
-      - name: decision
+
+      - name: bip-service
+        migrations: true
+        pipeline: bip-service
+
+      - name: bordernotification-frontend
+        migrations: true
+        pipeline: bordernotification-frontend
+
+      - name: checks-frontend
+        migrations: true
+        pipeline: checks-frontend
+
+      - name: control-frontend
+        migrations: true
+        pipeline: control-frontend
+
+      - name: countries-service
+        migrations: true
+        pipeline: countries-service
+
+      - name: decision-frontend
+        migrations: true
+        pipeline: decision-frontend
+
+      - name: decision-service
         migrations: true
         pipeline: decision-service
+
+      - name: dmp-integration-service
+        migrations: true
+        pipeline: dmp-integration-service
+
+      - name: economic-operator-service
+        migrations: true
+        pipeline: economic-operator-service
+
+      - name: enotification-event-listener-service
+        migrations: true
+        pipeline: enotification-event-listener-service
+
+      - name: notification-frontend
+        migrations: true
+        pipeline: notification-frontend
+
+      - name: notify-service
+        migrations: true
+        pipeline: notify-service
+
+      - name: risk-interface-service
+        migrations: true
+        pipeline: risk-interface-service
+
+      - name: risk-locking-service
+        migrations: true
+        pipeline: risk-locking-service
+
       - name: proxy
         migrations: false
         pipeline: imports-proxy
+
+      - name: upload-frontend
+        migrations: true
+        pipeline: upload-frontend
 
 resources:
   repositories:
@@ -62,16 +122,94 @@ resources:
       name: DEFRA/ipaffs-auto-clearance-microservice
       ref: refs/heads/master
 
-    - repository: decision
+    - repository: bcpadmin
+      type: github
+      endpoint: DEFRA
+      name: DEFRA/ipaffs-frontend-bcpadmin
+      ref: refs/heads/master
+
+    - repository: bip-service
+      type: github
+      endpoint: DEFRA
+      name: DEFRA/ipaffs-bip-microservice
+      ref: refs/heads/feature/bip-service-aks
+
+    - repository: bordernotification-frontend
+      type: github
+      endpoint: DEFRA
+      name: DEFRA/ipaffs-frontend-bordernotification
+      ref: refs/heads/master
+
+    - repository: checks-frontend
+      type: github
+      endpoint: DEFRA
+      name: DEFRA/ipaffs-frontend-checks
+      ref: refs/heads/master
+
+    - repository: control-frontend
+      type: github
+      endpoint: DEFRA
+      name: DEFRA/ipaffs-frontend-control
+      ref: refs/heads/master
+
+    - repository: countries-service
+      type: github
+      endpoint: DEFRA
+      name: DEFRA/ipaffs-countries-microservice
+      ref: refs/heads/feature/aks
+
+    - repository: decision-frontend
+      type: github
+      endpoint: DEFRA
+      name: DEFRA/ipaffs-frontend-decision
+      ref: refs/heads/master
+
+    - repository: decision-service
       type: github
       endpoint: DEFRA
       name: DEFRA/ipaffs-decision-microservice
       ref: refs/heads/IMTA-19931-deploy-on-kubernetes-decision-service
 
-    - repository: bcpadmin
+    - repository: dmp-integration-service
       type: github
       endpoint: DEFRA
-      name: DEFRA/ipaffs-frontend-bcpadmin
+      name: DEFRA/ipaffs-dmp-integration-microservice
+      ref: refs/heads/master
+
+    - repository: economic-operator-service
+      type: github
+      endpoint: DEFRA
+      name: DEFRA/ipaffs-economicoperator-microservice
+      ref: refs/heads/feature/economicoperator-aks
+
+    - repository: enotification-event-listener-service
+      type: github
+      endpoint: DEFRA
+      name: DEFRA/ipaffs-enotification-event-listener-microservice
+      ref: refs/heads/master
+
+    - repository: notification-frontend
+      type: github
+      endpoint: DEFRA
+      name: DEFRA/ipaffs-frontend-notification
+      ref: refs/heads/master
+
+    - repository: notify-service
+      type: github
+      endpoint: DEFRA
+      name: DEFRA/ipaffs-notify-microservice
+      ref: refs/heads/master
+
+    - repository: risk-interface-service
+      type: github
+      endpoint: DEFRA
+      name: DEFRA/ipaffs-risk-interface-microservice
+      ref: refs/heads/master
+
+    - repository: risk-locking-service
+      type: github
+      endpoint: DEFRA
+      name: DEFRA/ipaffs-risk-locking-microservice
       ref: refs/heads/master
 
     - repository: proxy
@@ -79,6 +217,12 @@ resources:
       endpoint: DEFRA
       name: DEFRA/ipaffs-imports-proxy
       ref: refs/heads/feature/login-muxer
+
+    - repository: upload-frontend
+      type: github
+      endpoint: DEFRA
+      name: DEFRA/ipaffs-frontend-upload
+      ref: refs/heads/master
 
 variables:
   - group: "${{ parameters.environmentName }}"
