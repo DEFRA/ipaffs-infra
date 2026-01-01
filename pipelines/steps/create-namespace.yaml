@@ -33,6 +33,8 @@ steps:
       arguments: namespace ${{ parameters.namespace }}
 
   - task: Bash@3
+    name: DetermineOwner
+    displayName: Determine owner
     inputs:
       targetType: inline
       script:
