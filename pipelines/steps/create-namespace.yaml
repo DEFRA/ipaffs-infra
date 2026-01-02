@@ -2,6 +2,9 @@ parameters:
   - name: namespace
     type: string
 
+  - name: branch
+    type: string
+
   - name: owner
     type: string
 
@@ -33,6 +36,15 @@ steps:
       arguments: namespace ${{ parameters.namespace }}
 
   - task: Bash@3
+    name: EncodeBranchName
+    displayName: Encode branch name
+    inputs:
+      targetType: inline
+      script:
+        owner="$(echo -n "${{ parameters.branch }}" | base64)"
+        echo "##vso[task.setvariable variable=branch]${branch}"
+
+  - task: Bash@3
     name: DetermineOwner
     displayName: Determine owner
     inputs:
@@ -51,6 +63,6 @@ steps:
       kubernetesCluster: $(kubernetesCluster)
       useClusterAdmin: true
       command: label
-      arguments: namespace ${{ parameters.namespace }} defra.gov.uk/owner=$(owner) --overwrite=true
+      arguments: namespace ${{ parameters.namespace }} "defra.gov.uk/branch=$(branch)" "defra.gov.uk/owner=$(owner)" --overwrite=true
 
 # vim: set ts=2 sts=2 sw=2 et:

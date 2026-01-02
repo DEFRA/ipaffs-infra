@@ -239,6 +239,7 @@ stages:
           - template: /pipelines/steps/create-namespace.yaml
             parameters:
               namespace: ${{ parameters.namespace }}
+              branch: ${{ parameters.branch }}
               owner: $(Build.RequestedForEmail)
 
       - job: DeployBootstrapChart
