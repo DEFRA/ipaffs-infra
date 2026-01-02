@@ -58,9 +58,11 @@ spec:
                 name: {{ printf "%s-servicebus" .Values.service }}
             {{- end }}
           env:
-            # TODO: tidy this
-            - name: DATABASE_DB_CONNECTION_STRING
-              value: "jdbc:sqlserver://{{ template "ipaffs-common.azure.sqlServerHostname" . }}:1433;databaseName={{ template "ipaffs-common.azure.databaseName" . }};encrypt=true;socketTimeout=1800000;loginTimeout=15;authentication=ActiveDirectoryManagedIdentity;msiClientId={{ .Values.azure.clientId }}"
+          {{- range $databaseName := .Values.database.databaseNames }}
+          {{- $db := dict "databaseName" $databaseName "Values" $.Values "Release" $.Release }}
+            - name: DATABASE_DB_CONNECTION_STRING_{{ upper (snakecase $databaseName) }}
+              value: "jdbc:sqlserver://{{ template "ipaffs-common.azure.sqlServerHostname" . }}:1433;databaseName={{ template "ipaffs-common.azure.databaseName" $db }};encrypt=true;socketTimeout=1800000;loginTimeout=15;authentication=ActiveDirectoryManagedIdentity;msiClientId={{ .Values.azure.clientId }}"
+          {{- end }}
             - name: MANAGED_IDENTITY_USER
               value: "{{ .Values.database.principalName }}"
           {{- with .Values.env }}

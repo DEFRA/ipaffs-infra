@@ -34,9 +34,8 @@ config: {}
 
 database:
   enabled: false
+  databaseNames: []
   principalName: ""
-  legacyPassword1: ""
-  legacyPassword2: ""
   migrations:
     clientId: ""
     enabled: false
