@@ -140,7 +140,7 @@ resources:
       type: github
       endpoint: DEFRA
       name: DEFRA/ipaffs-bip-microservice
-      ref: refs/heads/feature/bip-service-aks
+      ref: refs/heads/feature/bip-service-aks-new
 
     - repository: bordernotification-frontend
       type: github
@@ -164,7 +164,7 @@ resources:
       type: github
       endpoint: DEFRA
       name: DEFRA/ipaffs-countries-microservice
-      ref: refs/heads/feature/aks
+      ref: refs/heads/master
 
     - repository: decision-frontend
       type: github
@@ -176,7 +176,7 @@ resources:
       type: github
       endpoint: DEFRA
       name: DEFRA/ipaffs-decision-microservice
-      ref: refs/heads/IMTA-19931-deploy-on-kubernetes-decision-service
+      ref: refs/heads/master
 
     - repository: dmp-integration-service
       type: github
