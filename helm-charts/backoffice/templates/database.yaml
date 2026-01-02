@@ -1,15 +1,4 @@
 {{ if .Values.database.enabled }}
-apiVersion: sql.azure.com/v1api20211101
-kind: Server
-metadata:
-  name: {{ template "ipaffs-common.azure.sqlServer" . }}
-  labels:
-    {{- include "ipaffs-common.labels" . | nindent 4 }}
-spec:
-  owner:
-    name: {{ template "ipaffs-common.azure.resourceGroup" . }}
-  location: {{ .Values.azure.location }}
-
 {{ range $databaseName := .Values.database.databaseNames }}
 {{ $db := dict "databaseName" $databaseName "Values" $.Values "Release" $.Release }}
 ---

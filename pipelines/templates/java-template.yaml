@@ -46,17 +46,6 @@ stages:
           - template: /pipelines/steps/determine-namespace.yaml@ipaffs-infra
             parameters:
               branch: $(branch)
-      - job: DeployBootstrapChart
-        displayName: Deploy bootstrap Helm chart
-        dependsOn: SetNamespace
-        variables:
-          - name: namespace
-            value: $[ dependencies.SetNamespace.outputs['Namespace.namespace'] ]
-        steps:
-          - template: /pipelines/steps/deploy-bootstrap-chart.yaml@ipaffs-infra
-            parameters:
-              environmentName: ${{ parameters.environmentName }}
-              namespace: $(namespace)
 
   - stage: DeployIdentities
     displayName: Deploy and configure identity infrastructure
@@ -90,7 +79,11 @@ stages:
       - template: /pipelines/jobs/deploy-chart.yaml@ipaffs-infra
         parameters:
           environmentName: ${{ parameters.environmentName }}
-          migrationsClientId: $(migrationsClientId)
           namespace: $(namespace)
+          serviceName: $(serviceName)
+          serviceVersion: $(Build.BuildNumber)
+          migrationsClientId: $(migrationsClientId)
           serviceClientId: $(serviceClientId)
           servicePrincipalName: $(servicePrincipalName)
+
+# vim: set ts=2 sts=2 sw=2 et:

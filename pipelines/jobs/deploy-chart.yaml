@@ -3,25 +3,40 @@ parameters:
     type: string
     values:
       - POC
+
   - name: migrationsClientId
     type: string
+
   - name: namespace
     type: string
+
   - name: serviceClientId
     type: string
+
   - name: servicePrincipalName
     type: string
 
+  - name: serviceName
+    type: string
+
+  - name: serviceVersion
+    type: string
+
+  - name: repository
+    type: string
+    default: self
+
 jobs:
-  - job: RunHelmfile
-    displayName: Run Helmfile to deploy charts
+  - job: DeployChart
+    displayName: Deploy Helm Charts
     variables:
       - group: "${{ parameters.environmentName }}"
       - template: "/pipelines/vars/common.yaml"
       - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
 
     steps:
-      - checkout: self
+      - checkout: ${{ parameters.repository }}
+        workspaceRepo: true
 
       - task: AzureCLI@2
         name: LoginToContainerRegistry
@@ -55,8 +70,8 @@ jobs:
           AZURE_MANAGED_IDENTITY_PRINCIPAL_NAME: ${{ parameters.servicePrincipalName }}
           AZURE_MANAGED_IDENTITY_MIGRATIONS_CLIENT_ID: ${{ parameters.migrationsClientId }}
           AZURE_MANAGED_IDENTITY_EXTERNAL_SECRETS_CLIENT_ID: $(externalSecretsClientId)
-          CONTAINER_IMAGE: "ipaffs/$(serviceName):$(Build.BuildNumber)"
-          MIGRATIONS_IMAGE: "ipaffs/$(serviceName)-configuration:$(Build.BuildNumber)"
+          CONTAINER_IMAGE: "ipaffs/${{ parameters.serviceName }}:${{ parameters.serviceVersion }}"
+          MIGRATIONS_IMAGE: "ipaffs/{{ parameters.serviceName }})-configuration:${{ parameters.serviceVersion }}"
           NAMESPACE: ${{ parameters.namespace }}
         inputs:
           azureSubscription: $(serviceConnection)

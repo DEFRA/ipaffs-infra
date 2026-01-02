@@ -10,7 +10,7 @@ Azure Resource Names
 {{- end }}
 
 {{- define "ipaffs-common.azure.redisName" -}}
-{{- printf "%simpinfrd1401-%s" .Values.environment .Release.Namespace }}
+{{- printf "%simpinfrd1401-%s-%s" .Values.environment .Values.service .Release.Namespace }}
 {{- end }}
 
 {{- define "ipaffs-common.azure.resourceGroup" -}}

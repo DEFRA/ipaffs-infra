@@ -1,0 +1,319 @@
+---
+trigger:
+  branches:
+    exclude:
+      - '*'
+
+pr:
+  branches:
+    exclude:
+      - '*'
+
+pool:
+  name: DEFRA-COMMON-ubuntu2204-SSV5
+
+parameters:
+  - name: environmentName
+    displayName: Environment
+    type: string
+    default: POC
+    values:
+      - POC
+
+  - name: namespace
+    displayName: Namespace
+    type: string
+    default: foo
+
+  - name: branch
+    displayName: Branch Name
+    type: string
+    default: feature/foo
+
+  - name: services
+    displayName: Services
+    type: object
+    default:
+      - name: archive-notifications
+        migrations: false
+        pipeline: archive-notifications-service
+
+      - name: auto-clearance
+        migrations: false
+        pipeline: auto-clearance-service
+
+      - name: bcpadmin
+        migrations: false
+        pipeline: bcpadmin-frontend
+
+      - name: bip-service
+        migrations: true
+        pipeline: bip-service
+
+      - name: bordernotification-frontend
+        migrations: false
+        pipeline: bordernotification-frontend
+
+      - name: checks-frontend
+        migrations: false
+        pipeline: checks-frontend
+
+      - name: control-frontend
+        migrations: false
+        pipeline: control-frontend
+
+      - name: countries-service
+        migrations: true
+        pipeline: countries-service
+
+      - name: decision-frontend
+        migrations: false
+        pipeline: decision-frontend
+
+      - name: decision-service
+        migrations: true
+        pipeline: decision-service
+
+      - name: dmp-integration-service
+        migrations: false
+        pipeline: dmp-integration-service
+
+      - name: economic-operator-service
+        migrations: true
+        pipeline: economic-operator-service
+
+      - name: enotification-event-listener-service
+        migrations: false
+        pipeline: enotification-event-listener-service
+
+      - name: notification-frontend
+        migrations: false
+        pipeline: notification-frontend
+
+      - name: notify-service
+        migrations: false
+        pipeline: notify-service
+
+      - name: risk-interface-service
+        migrations: false
+        pipeline: risk-interface-service
+
+      - name: risk-locking-service
+        migrations: false
+        pipeline: risk-locking-service
+
+      - name: proxy
+        migrations: false
+        pipeline: imports-proxy
+
+      - name: upload-frontend
+        migrations: false
+        pipeline: upload-frontend
+
+resources:
+  repositories:
+    - repository: ipaffs-infra
+      type: github
+      endpoint: DEFRA
+      name: DEFRA/ipaffs-infra
+      ref: refs/heads/main
+
+    - repository: archive-notifications
+      type: github
+      endpoint: DEFRA
+      name: DEFRA/ipaffs-archive-notifications-microservice
+      ref: refs/heads/feature/IMTA-19940-ado-pipeline
+
+    - repository: auto-clearance
+      type: github
+      endpoint: DEFRA
+      name: DEFRA/ipaffs-auto-clearance-microservice
+      ref: refs/heads/master
+
+    - repository: bcpadmin
+      type: github
+      endpoint: DEFRA
+      name: DEFRA/ipaffs-frontend-bcpadmin
+      ref: refs/heads/master
+
+    - repository: bip-service
+      type: github
+      endpoint: DEFRA
+      name: DEFRA/ipaffs-bip-microservice
+      ref: refs/heads/feature/bip-service-aks-new
+
+    - repository: bordernotification-frontend
+      type: github
+      endpoint: DEFRA
+      name: DEFRA/ipaffs-frontend-bordernotification
+      ref: refs/heads/master
+
+    - repository: checks-frontend
+      type: github
+      endpoint: DEFRA
+      name: DEFRA/ipaffs-frontend-checks
+      ref: refs/heads/master
+
+    - repository: control-frontend
+      type: github
+      endpoint: DEFRA
+      name: DEFRA/ipaffs-frontend-control
+      ref: refs/heads/master
+
+    - repository: countries-service
+      type: github
+      endpoint: DEFRA
+      name: DEFRA/ipaffs-countries-microservice
+      ref: refs/heads/master
+
+    - repository: decision-frontend
+      type: github
+      endpoint: DEFRA
+      name: DEFRA/ipaffs-frontend-decision
+      ref: refs/heads/master
+
+    - repository: decision-service
+      type: github
+      endpoint: DEFRA
+      name: DEFRA/ipaffs-decision-microservice
+      ref: refs/heads/master
+
+    - repository: dmp-integration-service
+      type: github
+      endpoint: DEFRA
+      name: DEFRA/ipaffs-dmp-integration-microservice
+      ref: refs/heads/master
+
+    - repository: economic-operator-service
+      type: github
+      endpoint: DEFRA
+      name: DEFRA/ipaffs-economicoperator-microservice
+      ref: refs/heads/feature/economicoperator-aks
+
+    - repository: enotification-event-listener-service
+      type: github
+      endpoint: DEFRA
+      name: DEFRA/ipaffs-enotification-event-listener-microservice
+      ref: refs/heads/master
+
+    - repository: notification-frontend
+      type: github
+      endpoint: DEFRA
+      name: DEFRA/ipaffs-frontend-notification
+      ref: refs/heads/master
+
+    - repository: notify-service
+      type: github
+      endpoint: DEFRA
+      name: DEFRA/ipaffs-notify-microservice
+      ref: refs/heads/master
+
+    - repository: risk-interface-service
+      type: github
+      endpoint: DEFRA
+      name: DEFRA/ipaffs-risk-interface-microservice
+      ref: refs/heads/master
+
+    - repository: risk-locking-service
+      type: github
+      endpoint: DEFRA
+      name: DEFRA/ipaffs-risk-locking-microservice
+      ref: refs/heads/master
+
+    - repository: proxy
+      type: github
+      endpoint: DEFRA
+      name: DEFRA/ipaffs-imports-proxy
+      ref: refs/heads/feature/login-muxer
+
+    - repository: upload-frontend
+      type: github
+      endpoint: DEFRA
+      name: DEFRA/ipaffs-frontend-upload
+      ref: refs/heads/master
+
+variables:
+  - group: "${{ parameters.environmentName }}"
+  - template: "vars/common.yaml"
+  - template: "vars/${{ lower(parameters.environmentName) }}.yaml"
+
+stages:
+  - stage: ConfigureDeployment
+    displayName: Configure Deployment
+    jobs:
+      - job: ConfigureNamespace
+        displayName: Configure Namespace
+        steps:
+          - template: /pipelines/steps/create-namespace.yaml
+            parameters:
+              namespace: ${{ parameters.namespace }}
+              branch: ${{ parameters.branch }}
+              owner: $(Build.RequestedForEmail)
+
+      - job: DeployBootstrapChart
+        displayName: Deploy bootstrap Helm chart
+        dependsOn: ConfigureNamespace
+        steps:
+          - template: /pipelines/steps/deploy-bootstrap-chart.yaml
+            parameters:
+              environmentName: ${{ parameters.environmentName }}
+              namespace: ${{ parameters.namespace }}
+
+  - ${{ each service in parameters.services }}:
+    - stage: Setup_${{ replace(service.name, '-', '_') }}
+      displayName: Set up ${{ service.name }}
+      dependsOn:
+        - ConfigureDeployment
+      jobs:
+        - job: Metadata
+          displayName: Get metadata
+          variables:
+            - name: trunkBranch
+              value: $[resources.repositories['${{ service.name }}'].ref]
+          steps:
+            - task: AzureCLI@2
+              name: serviceDetails
+              displayName: Latest version for ${{ service.name }}
+              env:
+                FOLDER: Services
+                PIPELINE: ${{ service.pipeline }}
+                BRANCH: $(trunkBranch)
+              inputs:
+                azureSubscription: $(serviceConnection)
+                scriptType: bash
+                scriptPath: scripts/pipeline/get-latest-build.sh
+
+        - template: /pipelines/jobs/deploy-identities.yaml
+          parameters:
+            environmentName: ${{ parameters.environmentName }}
+            migrations: ${{ service.migrations }}
+            namespace: ${{ parameters.namespace }}
+            serviceName: ${{ service.name }}
+
+  - ${{ each service in parameters.services }}:
+    - stage: DeployChart_${{ replace(service.name, '-', '_') }}
+      displayName: Deploy Helm Charts for ${{ service.name }}
+      dependsOn:
+        - Setup_${{ replace(service.name, '-', '_') }}
+      variables:
+        - name: migrationsClientId
+          value: $[stageDependencies['Setup_${{ replace(service.name, '-', '_') }}'].MigrationsIdentity.outputs['CreateIdentity.clientId']]
+        - name: serviceClientId
+          value: $[stageDependencies['Setup_${{ replace(service.name, '-', '_') }}'].ServiceIdentity.outputs['CreateIdentity.clientId']]
+        - name: servicePrincipalName
+          value: $[stageDependencies['Setup_${{ replace(service.name, '-', '_') }}'].ServiceIdentity.outputs['CreateIdentity.principalName']]
+        - name: serviceVersion
+          value: $[stageDependencies['Setup_${{ replace(service.name, '-', '_') }}'].Metadata.outputs['serviceDetails.version']]
+      jobs:
+        - template: /pipelines/jobs/deploy-chart.yaml
+          parameters:
+            environmentName: ${{ parameters.environmentName }}
+            migrationsClientId: $(migrationsClientId)
+            namespace: ${{ parameters.namespace }}
+            repository: ${{ service.name }}
+            serviceClientId: $(serviceClientId)
+            servicePrincipalName: $(servicePrincipalName)
+            serviceName: ${{ service.name }}
+            serviceVersion: $(serviceVersion)
+
+# vim: set ts=2 sts=2 sw=2 et:
