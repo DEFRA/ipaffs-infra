@@ -61,7 +61,7 @@ spec:
           {{- range $databaseName := .Values.database.databaseNames }}
           {{- $db := dict "databaseName" $databaseName "Values" $.Values "Release" $.Release }}
             - name: DATABASE_DB_CONNECTION_STRING_{{ upper (snakecase $databaseName) }}
-              value: "jdbc:sqlserver://{{ template "ipaffs-common.azure.sqlServerHostname" . }}:1433;databaseName={{ template "ipaffs-common.azure.databaseName" $db }};encrypt=true;socketTimeout=1800000;loginTimeout=15;authentication=ActiveDirectoryManagedIdentity;msiClientId={{ .Values.azure.clientId }}"
+              value: "jdbc:sqlserver://{{ template "ipaffs-common.azure.sqlServerHostname" $db }}:1433;databaseName={{ template "ipaffs-common.azure.databaseName" $db }};encrypt=true;socketTimeout=1800000;loginTimeout=15;authentication=ActiveDirectoryManagedIdentity;msiClientId={{ $db.Values.azure.clientId }}"
           {{- end }}
             - name: MANAGED_IDENTITY_USER
               value: "{{ .Values.database.principalName }}"

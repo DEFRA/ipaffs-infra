@@ -7,12 +7,12 @@ kind: ServersDatabase
 metadata:
   name: {{ template "ipaffs-common.azure.databaseName" $db }}
   labels:
-    {{- include "ipaffs-common.labels" . | nindent 4 }}
+    {{- include "ipaffs-common.labels" $db | nindent 4 }}
   annotations:
     serviceoperator.azure.com/reconcile-policy: manage
 spec:
   owner:
-    name: {{ template "ipaffs-common.azure.sqlServer" . }}
+    name: {{ template "ipaffs-common.azure.sqlServer" $db }}
   collation: SQL_Latin1_General_CP1_CI_AS
   location: {{ .Values.azure.location }}
 
