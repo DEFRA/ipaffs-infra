@@ -140,7 +140,7 @@ resources:
       type: github
       endpoint: DEFRA
       name: DEFRA/ipaffs-bip-microservice
-      ref: refs/heads/feature/bip-service-aks-new
+      ref: refs/heads/master
 
     - repository: bordernotification-frontend
       type: github
