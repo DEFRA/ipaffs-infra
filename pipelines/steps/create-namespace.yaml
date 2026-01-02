@@ -40,8 +40,9 @@ steps:
     displayName: Encode branch name
     inputs:
       targetType: inline
-      script:
-        owner="$(echo -n "${{ parameters.branch }}" | base64)"
+      script: |
+        set -eux
+        branch="$(echo -n "${{ parameters.branch }}" | base64 | tr -d '=')"
         echo "##vso[task.setvariable variable=branch]${branch}"
 
   - task: Bash@3
@@ -49,7 +50,8 @@ steps:
     displayName: Determine owner
     inputs:
       targetType: inline
-      script:
+      script: |
+        set -eux
         owner="$(echo "${{ parameters.owner }}" | sed 's/[^a-zA-Z0-9._-]/_/g' | cut -c1-63)"
         echo "##vso[task.setvariable variable=owner]${owner}"
 
@@ -63,6 +65,6 @@ steps:
       kubernetesCluster: $(kubernetesCluster)
       useClusterAdmin: true
       command: label
-      arguments: namespace ${{ parameters.namespace }} "defra.gov.uk/branch=$(branch)" "defra.gov.uk/owner=$(owner)" --overwrite=true
+      arguments: namespace ${{ parameters.namespace }} defra.gov.uk/branch=$(branch) defra.gov.uk/owner=$(owner) --overwrite=true
 
 # vim: set ts=2 sts=2 sw=2 et:
