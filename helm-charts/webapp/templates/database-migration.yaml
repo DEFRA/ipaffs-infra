@@ -46,20 +46,15 @@ spec:
             {{- end }}
           {{- end }}
           env:
-            - name: DATABASE_DB_CONNECTION_STRING
-              value: "jdbc:sqlserver://{{ template "ipaffs-common.azure.sqlServerHostname" . }}:1433;databaseName={{ template "ipaffs-common.azure.databaseName" . }};encrypt=true;socketTimeout=1800000;loginTimeout=15;authentication=ActiveDirectoryManagedIdentity;msiClientId={{ .Values.database.migrations.clientId }}"
-
-            # TODO: in the countries service migrations, these are different users (?) but should work OK referencing the same user, since at least they are wrapped in IF NOT EXISTS conditionals
+          {{- range $databaseName := .Values.database.databaseNames }}
+          {{- $db := dict "databaseName" $databaseName "Values" $.Values "Release" $.Release }}
+            - name: DATABASE_DB_CONNECTION_STRING_{{ upper (snakecase $databaseName) }}
+              value: "jdbc:sqlserver://{{ template "ipaffs-common.azure.sqlServerHostname" . }}:1433;databaseName={{ template "ipaffs-common.azure.databaseName" $db }};encrypt=true;socketTimeout=1800000;loginTimeout=15;authentication=ActiveDirectoryManagedIdentity;msiClientId={{ .Values.database.migrations.clientId }}"
+          {{- end }}
             - name: BASE_SERVICE_DB_USER_AD
               value: "{{ .Values.database.principalName }}"
             - name: MANAGED_IDENTITY_USER
               value: "{{ .Values.database.principalName }}"
-
-            # TODO: probably need to continue setting these, but they should come from a credential store
-            - name: BASE_SERVICE_DB_PASSWORD
-              value: "{{ .Values.database.legacyPassword1 }}"
-            - name: NEW_BASE_SERVICE_DB_PASSWORD
-              value: "{{ .Values.database.legacyPassword2 }}"
       {{- if .Values.azure.adalBridge }}
       initContainers:
         - name: workload-identity-adal-bridge

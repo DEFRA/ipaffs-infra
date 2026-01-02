@@ -1,9 +1,11 @@
 {{ if .Values.database.enabled }}
-
+{{ range $databaseName := .Values.database.databaseNames }}
+{{ $db := dict "databaseName" $databaseName "Values" $.Values "Release" $.Release }}
+---
 apiVersion: sql.azure.com/v1api20211101
 kind: ServersDatabase
 metadata:
-  name: {{ template "ipaffs-common.azure.databaseName" . }}
+  name: {{ template "ipaffs-common.azure.databaseName" $db }}
   labels:
     {{- include "ipaffs-common.labels" . | nindent 4 }}
   annotations:
@@ -14,6 +16,7 @@ spec:
   collation: SQL_Latin1_General_CP1_CI_AS
   location: {{ .Values.azure.location }}
 
+{{ end }}
 {{ end }}
 
 # vim: set ts=2 sts=2 sw=2 et:
