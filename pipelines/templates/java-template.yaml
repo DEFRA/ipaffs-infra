@@ -79,7 +79,11 @@ stages:
       - template: /pipelines/jobs/deploy-chart.yaml@ipaffs-infra
         parameters:
           environmentName: ${{ parameters.environmentName }}
-          migrationsClientId: $(migrationsClientId)
           namespace: $(namespace)
+          serviceName: $(serviceName)
+          serviceVersion: $(Build.BuildNumber)
+          migrationsClientId: $(migrationsClientId)
           serviceClientId: $(serviceClientId)
           servicePrincipalName: $(servicePrincipalName)
+
+# vim: set ts=2 sts=2 sw=2 et:
