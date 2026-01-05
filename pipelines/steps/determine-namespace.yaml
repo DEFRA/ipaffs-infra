@@ -2,6 +2,12 @@ parameters:
   - name: branch
     type: string
 
+  - name: environmentName
+    type: string
+
+  - name: trunkBranch
+    type: string
+
 steps:
   - checkout: ipaffs-infra
 
@@ -30,6 +36,8 @@ steps:
     displayName: Determine namespace
     env:
       BRANCH: ${{ parameters.branch }}
+      ENVIRONMENT: ${{ parameters.environmentName }}
+      TRUNK: ${{ parameters.trunkBranch }}
     inputs:
       azureSubscription: $(serviceConnection)
       scriptType: bash

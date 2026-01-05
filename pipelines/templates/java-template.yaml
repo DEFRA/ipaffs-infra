@@ -1,4 +1,4 @@
-
+---
 parameters:
   - name: environmentName
     displayName: Environment
@@ -6,11 +6,14 @@ parameters:
     default: POC
     values:
       - POC
+
   - name: serviceName
     type: string
+
   - name: dockerFile
     type: string
     default: Dockerfile
+
   - name: migrations
     type: boolean
     default: false
@@ -39,6 +42,8 @@ stages:
     variables:
       - name: branch
         value: $[replace(variables['Build.SourceBranch'], 'refs/heads/', '')]
+      - name: trunkBranch
+        value: master
     jobs:
       - job: SetNamespace
         displayName: Set Namespace
@@ -46,6 +51,8 @@ stages:
           - template: /pipelines/steps/determine-namespace.yaml@ipaffs-infra
             parameters:
               branch: $(branch)
+              environmentName: ${{ parameters.environmentName }}
+              trunkBranch: $(trunkBranch)
 
   - stage: DeployIdentities
     displayName: Deploy and configure identity infrastructure

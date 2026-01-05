@@ -2,10 +2,14 @@
 
 set -eux
 
-encodedBranch="$(echo -n "${BRANCH}" | base64 | tr -d '=')"
-namespace="$(kubectl get namespace -l "defra.gov.uk/branch=${encodedBranch}" -o json | jq -r '.items[0].metadata.name')"
+if [[ "${BRANCH}" -eq "${TRUNK}" ]]; {
+  namespace="$(echo "${ENVIRONMENT}" | tr '[:upper:]' '[:lower:]')"
+} else {
+  encodedBranch="$(echo -n "${BRANCH}" | base64 | tr -d '=')"
+  namespace="$(kubectl get namespace -l "defra.gov.uk/branch=${encodedBranch}" -o json | jq -r '.items[0].metadata.name')"
+}
 
-if [[ "${namespace}" == "null" ]]; then
+if [[ -z "${namespace}" ]] || [[ "${namespace}" -eq "null" ]]; then
   echo "No namespace found for branch \`${BRANCH}\`" >&2
   exit 1
 fi
