@@ -58,6 +58,7 @@ stages:
   - stage: DeployIdentities
     displayName: Deploy and configure identity infrastructure
     dependsOn: ConfigureDeployment
+    condition: eq(dependencies.ConfigureDeployment.result, 'Succeeded')
     variables:
       - name: namespace
         value: $[stageDependencies.ConfigureDeployment.SetNamespace.outputs['Namespace.namespace']]
@@ -74,6 +75,7 @@ stages:
     dependsOn:
       - ConfigureDeployment
       - DeployIdentities
+    condition: eq(dependencies.ConfigureDeployment.result, 'Succeeded')
     variables:
       - name: namespace
         value: $[stageDependencies.ConfigureDeployment.SetNamespace.outputs['Namespace.namespace']]
