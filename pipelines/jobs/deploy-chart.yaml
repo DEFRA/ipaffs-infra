@@ -71,7 +71,7 @@ jobs:
           AZURE_MANAGED_IDENTITY_MIGRATIONS_CLIENT_ID: ${{ parameters.migrationsClientId }}
           AZURE_MANAGED_IDENTITY_EXTERNAL_SECRETS_CLIENT_ID: $(externalSecretsClientId)
           CONTAINER_IMAGE: "ipaffs/${{ parameters.serviceName }}:${{ parameters.serviceVersion }}"
-          MIGRATIONS_IMAGE: "ipaffs/${{ parameters.serviceName }})-configuration:${{ parameters.serviceVersion }}"
+          MIGRATIONS_IMAGE: "ipaffs/${{ parameters.serviceName }}-configuration:${{ parameters.serviceVersion }}"
           NAMESPACE: ${{ parameters.namespace }}
         inputs:
           azureSubscription: $(serviceConnection)
