@@ -7,7 +7,7 @@ kind: ServersDatabase
 metadata:
   name: {{ template "ipaffs-common.azure.databaseName" $db }}
   labels:
-    {{- include "ipaffs-common.labels" $db | nindent 4 }}
+    {{- include "ipaffs-common.labels" $ | nindent 4 }}
   annotations:
     serviceoperator.azure.com/reconcile-policy: manage
 spec:
