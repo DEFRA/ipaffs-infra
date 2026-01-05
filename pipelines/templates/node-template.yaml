@@ -47,6 +47,7 @@ stages:
     jobs:
       - job: SetNamespace
         displayName: Set Namespace
+        continueOnError: true
         steps:
           - template: /pipelines/steps/determine-namespace.yaml@ipaffs-infra
             parameters:
