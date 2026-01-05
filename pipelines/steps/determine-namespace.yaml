@@ -3,6 +3,8 @@ parameters:
     type: string
 
 steps:
+  - checkout: ipaffs-infra
+
   - task: AzureCLI@2
     name: LoginToContainerRegistry
     displayName: Login to Azure Container Registry
@@ -30,6 +32,6 @@ steps:
       BRANCH: ${{ parameters.branch }}
     inputs:
       scriptType: bash
-      scriptPath: scripts/pipeline/find-namespace-for-branch.sh@ipaffs-infra
+      scriptPath: scripts/pipeline/find-namespace-for-branch.sh
 
 # vim: set ts=2 sts=2 sw=2 et:
