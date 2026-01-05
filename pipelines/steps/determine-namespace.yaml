@@ -30,6 +30,6 @@ steps:
       BRANCH: ${{ parameters.branch }}
     inputs:
       scriptType: bash
-      scriptPath: scripts/pipeline/find-namespace-for-branch.sh
+      scriptPath: scripts/pipeline/find-namespace-for-branch.sh@ipaffs-infra
 
 # vim: set ts=2 sts=2 sw=2 et:
