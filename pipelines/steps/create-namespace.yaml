@@ -10,8 +10,8 @@ parameters:
 
 steps:
   - task: Kubernetes@1
-    name: KubectlGetNamespace
-    displayName: Get namespace
+    name: KubectlCreateNamespace
+    displayName: Create namespace
     continueOnError: true
     inputs:
       connectionType: Azure Resource Manager
@@ -19,20 +19,19 @@ steps:
       azureResourceGroup: $(resourceGroupName)
       kubernetesCluster: $(kubernetesCluster)
       useClusterAdmin: true
-      command: get
+      command: create
       arguments: namespace ${{ lower(parameters.namespace) }}
 
   - task: Kubernetes@1
-    name: KubectlCreateNamespace
-    displayName: Create namespace
-    condition: failed()
+    name: KubectlGetNamespace
+    displayName: Get namespace
     inputs:
       connectionType: Azure Resource Manager
       azureSubscriptionEndpoint: $(serviceConnection)
       azureResourceGroup: $(resourceGroupName)
       kubernetesCluster: $(kubernetesCluster)
       useClusterAdmin: true
-      command: create
+      command: get
       arguments: namespace ${{ lower(parameters.namespace) }}
 
   - task: Bash@3
