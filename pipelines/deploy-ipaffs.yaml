@@ -58,6 +58,10 @@ parameters:
         migrations: false
         pipeline: checks-frontend
 
+      - name: checks-service
+        migrations: true
+        pipeline: checks-service
+
       - name: control-frontend
         migrations: false
         pipeline: control-frontend
@@ -93,6 +97,10 @@ parameters:
       - name: notify-service
         migrations: false
         pipeline: notify-service
+
+      - name: permissions-service
+        migrations: true
+        pipeline: permissions-service
 
       - name: risk-interface-service
         migrations: false
@@ -146,6 +154,12 @@ resources:
       type: github
       endpoint: DEFRA
       name: DEFRA/ipaffs-frontend-bordernotification
+      ref: refs/heads/master
+
+    - repository: checks-service
+      type: github
+      endpoint: DEFRA
+      name: DEFRA/ipaffs-checks-microservice
       ref: refs/heads/master
 
     - repository: checks-frontend
@@ -206,6 +220,12 @@ resources:
       type: github
       endpoint: DEFRA
       name: DEFRA/ipaffs-notify-microservice
+      ref: refs/heads/master
+
+    - repository: permissions-service
+      type: github
+      endpoint: DEFRA
+      name: DEFRA/ipaffs-permissions
       ref: refs/heads/master
 
     - repository: risk-interface-service
