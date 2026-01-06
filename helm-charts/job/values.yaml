@@ -2,6 +2,9 @@ service: ""
 project: ipaffs
 environment: poc
 
+azure:
+  clientId: ""
+
 externalSecret:
   enabled: false
 
@@ -13,6 +16,11 @@ concurrencyPolicy: Forbid
 successfulJobsHistoryLimit: 3
 failedJobsHistoryLimit: 1
 suspend: false
+
+database:
+  databaseNames: []
+
+config: {}
 
 container:
   image: ""

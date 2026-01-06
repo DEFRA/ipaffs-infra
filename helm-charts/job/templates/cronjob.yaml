@@ -37,6 +37,8 @@ spec:
               envFrom:
                 - configMapRef:
                     name: ipaffs-config
+                - configMapRef:
+                    name: {{ .Values.service }}
 {{- if .Values.externalSecret.enabled }}
                 - secretRef:
                     name: {{ printf "%s-secrets" .Values.service }}
