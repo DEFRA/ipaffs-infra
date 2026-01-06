@@ -10,4 +10,5 @@ if [[ "${latestBuildId}" == "" ]]; then
   exit 1
 fi
 
+set +x
 echo "##vso[task.setvariable variable=version;isOutput=true]${latestBuildId}"

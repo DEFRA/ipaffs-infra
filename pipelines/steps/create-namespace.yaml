@@ -40,7 +40,7 @@ steps:
     inputs:
       targetType: inline
       script: |
-        set -eux
+        set -eu
         branch="$(echo -n "${{ parameters.branch }}" | base64 | tr -d '=')"
         echo "##vso[task.setvariable variable=branch]${branch}"
 
@@ -50,7 +50,7 @@ steps:
     inputs:
       targetType: inline
       script: |
-        set -eux
+        set -eu
         owner="$(echo "${{ parameters.owner }}" | sed 's/[^a-zA-Z0-9._-]/_/g' | cut -c1-63)"
         echo "##vso[task.setvariable variable=owner]${owner}"
 
