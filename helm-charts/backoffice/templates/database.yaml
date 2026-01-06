@@ -14,7 +14,7 @@ spec:
   owner:
     name: {{ template "ipaffs-common.azure.sqlServer" $db }}
   collation: SQL_Latin1_General_CP1_CI_AS
-  location: {{ .Values.azure.location }}
+  location: {{ $.Values.azure.location }}
 
 {{ end }}
 {{ end }}
