@@ -45,6 +45,23 @@ spec:
             - "{{ . }}"
             {{- end }}
           {{- end }}
+          envFrom:
+            - configMapRef:
+                name: ipaffs-config
+            - configMapRef:
+                name: {{ .Values.service }}
+            {{- if .Values.externalSecret.enabled }}
+            - secretRef:
+                name: {{ printf "%s-secrets" .Values.service }}
+            {{- end }}
+            {{- if .Values.redis.enabled }}
+            - secretRef:
+                name: {{ printf "%s-redis" .Values.service }}
+            {{- end }}
+            {{- if .Values.serviceBus.enabled }}
+            - secretRef:
+                name: {{ printf "%s-servicebus" .Values.service }}
+            {{- end }}
           env:
           {{- range $databaseName := .Values.database.databaseNames }}
           {{- $db := dict "databaseName" $databaseName "Values" $.Values "Release" $.Release }}
