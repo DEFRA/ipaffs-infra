@@ -51,9 +51,11 @@ groupResult="$(curl -X POST -H "Authorization: Bearer ${TOKEN}" -H "Content-Type
 [[ $? -ne 0 ]] && exit 1
 [[ "$(jq -r '.error.code' <<<"${groupResult}")" == "null" ]] || exit 1
 objectId="$(echo "${groupResult}" | jq -r '.id')"
+set +x
 echo "##vso[task.setvariable variable=objectId;isOutput=true]${objectId}"
 
 # Now wait for the group to consistently appear (i.e. propagate)
+set -x
 max_attempts=10
 successful=0
 attempt=0

@@ -20,6 +20,7 @@ else
   exit 1
 fi
 
+set +x
 echo "##vso[task.setvariable variable=newVersion;isOutput=true]${NEW_VERSION}"
 
 # vim: set ts=2 sts=2 sw=2 et:
