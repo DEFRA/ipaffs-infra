@@ -12,6 +12,14 @@
     "environment": {
       "type": "string"
     },
+    "azure": {
+      "type": "object",
+      "properties": {
+        "clientId": {
+          "type": "string"
+        }
+      }
+    },
     "externalSecret": {
       "type": "object",
       "required": [
@@ -55,6 +63,20 @@
     },
     "suspend": {
       "type": "boolean"
+    },
+    "database": {
+      "type": "object",
+      "properties": {
+        "databaseNames": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "config": {
+      "type": "object"
     },
     "container": {
       "type": "object",
