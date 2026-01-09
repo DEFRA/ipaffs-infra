@@ -22,7 +22,7 @@ stages:
               targetType: inline
               script: |
                 set -ex
-                cat <<- EOF >'$(Build.SourcesDirectory)/runtime.bicepparam'
+                cat <<- 'EOF' >'$(Build.SourcesDirectory)/runtime.bicepparam'
                 using none
                 extends 'bicep/envs/${{ lower(parameters.environmentName) }}/main.bicepparam'
 
