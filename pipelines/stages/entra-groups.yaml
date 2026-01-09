@@ -26,10 +26,8 @@ stages:
               scriptType: bash
               scriptPath: scripts/pipeline/lookup-directory-object.sh
 
-      - deployment: SearchGroups
+      - job: SearchGroups
         displayName: Search Service Groups
-        environment:
-          name: "${{ parameters.environmentName }}"
         condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
         dependsOn: LookupServicePrincipals
         variables:
@@ -39,38 +37,33 @@ stages:
             value: AG-Azure-IMP_${{ parameters.environmentName }}-SearchReaders
           - name: serviceConnectionObjectId
             value: $[dependencies.LookupServicePrincipals.outputs['ServiceConnection.objectId']]
-        strategy:
-          runOnce:
-            deploy:
-              steps:
-                - checkout: self
+        steps:
+          - checkout: self
 
-                - task: AzureCLI@2
-                  name: SearchContributors
-                  env:
-                    GROUP_NAME: $(contributorsGroupName)
-                    GROUP_DESCRIPTION: Entra access group for IPAFFS Search Services Contributors
-                    GROUP_OWNER_OBJECT_IDS: $(serviceConnectionObjectId)
-                  inputs:
-                    azureSubscription: $(upstreamServiceConnection)
-                    scriptType: bash
-                    scriptPath: scripts/pipeline/create-entra-group.sh
+          - task: AzureCLI@2
+            name: SearchContributors
+            env:
+              GROUP_NAME: $(contributorsGroupName)
+              GROUP_DESCRIPTION: Entra access group for IPAFFS Search Services Contributors
+              GROUP_OWNER_OBJECT_IDS: $(serviceConnectionObjectId)
+            inputs:
+              azureSubscription: $(upstreamServiceConnection)
+              scriptType: bash
+              scriptPath: scripts/pipeline/create-entra-group.sh
 
-                - task: AzureCLI@2
-                  name: SearchReaders
-                  env:
-                    GROUP_NAME: $(readersGroupName)
-                    GROUP_DESCRIPTION: Entra access group for IPAFFS Search Services Readers
-                    GROUP_OWNER_OBJECT_IDS: $(serviceConnectionObjectId)
-                  inputs:
-                    azureSubscription: $(upstreamServiceConnection)
-                    scriptType: bash
-                    scriptPath: scripts/pipeline/create-entra-group.sh
+          - task: AzureCLI@2
+            name: SearchReaders
+            env:
+              GROUP_NAME: $(readersGroupName)
+              GROUP_DESCRIPTION: Entra access group for IPAFFS Search Services Readers
+              GROUP_OWNER_OBJECT_IDS: $(serviceConnectionObjectId)
+            inputs:
+              azureSubscription: $(upstreamServiceConnection)
+              scriptType: bash
+              scriptPath: scripts/pipeline/create-entra-group.sh
 
-      - deployment: SQLGroups
+      - job: SQLGroups
         displayName: SQL Groups
-        environment:
-          name: "${{ parameters.environmentName }}"
         condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
         dependsOn: LookupServicePrincipals
         variables:
@@ -78,26 +71,23 @@ stages:
             value: AG-Azure-IMP_${{ parameters.environmentName }}-SQLAdmins
           - name: serviceConnectionObjectId
             value: $[dependencies.LookupServicePrincipals.outputs['ServiceConnection.objectId']]
-        strategy:
-          runOnce:
-            deploy:
-              steps:
-                - checkout: self
+        steps:
+          - checkout: self
 
-                - task: AzureCLI@2
-                  name: SQLAdmins
-                  env:
-                    GROUP_NAME: $(groupName)
-                    GROUP_DESCRIPTION: Entra access group for IPAFFS SQL Admins
-                    GROUP_OWNER_OBJECT_IDS: $(serviceConnectionObjectId)
-                  inputs:
-                    azureSubscription: $(upstreamServiceConnection)
-                    scriptType: bash
-                    scriptPath: scripts/pipeline/create-entra-group.sh
+          - task: AzureCLI@2
+            name: SQLAdmins
+            env:
+              GROUP_NAME: $(groupName)
+              GROUP_DESCRIPTION: Entra access group for IPAFFS SQL Admins
+              GROUP_OWNER_OBJECT_IDS: $(serviceConnectionObjectId)
+            inputs:
+              azureSubscription: $(upstreamServiceConnection)
+              scriptType: bash
+              scriptPath: scripts/pipeline/create-entra-group.sh
 
 
-  - stage: SaveGroupIds
-    displayName: Save group IDs
+  - stage: SaveGroupDetails
+    displayName: Save group details
     dependsOn: CreateEntraGroups
     condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
     variables:
