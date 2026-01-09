@@ -133,11 +133,12 @@ stages:
               scriptType: bash
               scriptLocation: inlineScript
               inlineScript: |
-                scripts/pipeline/update-group-variable.sh searchContributorsGroupId "$(searchContributorsObjectId)"
-                scripts/pipeline/update-group-variable.sh searchContributorsGroupName "$(searchContributorsDisplayName)"
-                scripts/pipeline/update-group-variable.sh searchReadersGroupId "$(searchReadersObjectId)"
-                scripts/pipeline/update-group-variable.sh searchReadersGroupName "$(searchReadersDisplayName)"
-                scripts/pipeline/update-group-variable.sh sqlAdminGroupId "$(sqlAdminsObjectId)"
-                scripts/pipeline/update-group-variable.sh sqlAdminGroupName "$(sqlAdminsDisplayName)"
+                set -x
+                scripts/pipeline/update-group-variable.sh searchContributorsGroupId '$(searchContributorsObjectId)'
+                scripts/pipeline/update-group-variable.sh searchContributorsGroupName '$(searchContributorsDisplayName)'
+                scripts/pipeline/update-group-variable.sh searchReadersGroupId '$(searchReadersObjectId)'
+                scripts/pipeline/update-group-variable.sh searchReadersGroupName '$(searchReadersDisplayName)'
+                scripts/pipeline/update-group-variable.sh sqlAdminGroupId '$(sqlAdminsObjectId)'
+                scripts/pipeline/update-group-variable.sh sqlAdminGroupName '$(sqlAdminsDisplayName)'
 
 # vim: set ts=2 sts=2 sw=2 et:
