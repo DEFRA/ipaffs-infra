@@ -1,0 +1,118 @@
+parameters:
+  - name: environmentName
+    type: string
+
+stages:
+  - stage: ImportAcrArtifacts
+    displayName: Import ACR Artifacts
+    jobs:
+      - deployment: ImportContainerImages
+        displayName: Import Container Images
+        environment:
+          name: "${{ parameters.environmentName }}"
+        condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+
+                - task: AzureCLI@2
+                  displayName: Import ingress-nginx/controller
+                  inputs:
+                    azureSubscription: $(serviceConnection)
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      az acr import \
+                        --name $(acrName) \
+                        --source registry.k8s.io/ingress-nginx/controller:v1.13.3 \
+                        --image ingress-nginx/controller:v1.13.3 \
+                        --force \
+                        --verbose
+
+                - task: AzureCLI@2
+                  displayName: Import jetstack/cert-manager-controller
+                  inputs:
+                    azureSubscription: $(serviceConnection)
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      az acr import \
+                        --name $(acrName) \
+                        --source quay.io/jetstack/cert-manager-controller:v1.19.1 \
+                        --image jetstack/cert-manager-controller:v1.19.1 \
+                        --force \
+                        --verbose
+
+                - task: AzureCLI@2
+                  displayName: Import jetstack/cert-manager-cainjector
+                  inputs:
+                    azureSubscription: $(serviceConnection)
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      az acr import \
+                        --name $(acrName) \
+                        --source quay.io/jetstack/cert-manager-cainjector:v1.19.1 \
+                        --image jetstack/cert-manager-cainjector:v1.19.1 \
+                        --force \
+                        --verbose
+
+                - task: AzureCLI@2
+                  displayName: Import jetstack/cert-manager-startupapicheck
+                  inputs:
+                    azureSubscription: $(serviceConnection)
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      az acr import \
+                        --name $(acrName) \
+                        --source quay.io/jetstack/cert-manager-startupapicheck:v1.19.1 \
+                        --image jetstack/cert-manager-startupapicheck:v1.19.1 \
+                        --force \
+                        --verbose
+
+                - task: AzureCLI@2
+                  displayName: Import jetstack/cert-manager-webhook
+                  inputs:
+                    azureSubscription: $(serviceConnection)
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      az acr import \
+                        --name $(acrName) \
+                        --source quay.io/jetstack/cert-manager-webhook:v1.19.1 \
+                        --image jetstack/cert-manager-webhook:v1.19.1 \
+                        --force \
+                        --verbose
+
+                - task: AzureCLI@2
+                  displayName: Import k8s/azureserviceoperator
+                  inputs:
+                    azureSubscription: $(serviceConnection)
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      az acr import \
+                        --name $(acrName) \
+                        --source mcr.microsoft.com/k8s/azureserviceoperator:v2.16.0 \
+                        --image k8s/azureserviceoperator:v2.16.0 \
+                        --force \
+                        --verbose
+
+                - task: AzureCLI@2
+                  displayName: Import external-secrets/external-secrets
+                  inputs:
+                    azureSubscription: $(serviceConnection)
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      az acr import \
+                        --name $(acrName) \
+                        --source ghcr.io/external-secrets/external-secrets:v1.1.1 \
+                        --image external-secrets/external-secrets:v1.1.1 \
+                        --force \
+                        --verbose
+
+# vim: set ts=2 sts=2 sw=2 et:

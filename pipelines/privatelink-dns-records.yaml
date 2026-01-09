@@ -41,7 +41,7 @@ resources:
       ref: refs/tags/Release-v6-latest
 
 stages:
-  - template: /pipelines/stages/privatelink-dns-records.yaml
+  - template: stages/privatelink-dns-records.yaml
     parameters:
       environmentName: ${{ parameters.environmentName }}
 

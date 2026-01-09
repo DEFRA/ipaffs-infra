@@ -34,7 +34,7 @@ variables:
   - template: "vars/${{ lower(parameters.environmentName) }}.yaml"
 
 stages:
-  - template: /pipelines/stages/infra-permissions.yaml
+  - template: stages/infra-permissions.yaml
     parameters:
       environmentName: ${{ parameters.environmentName }}
 

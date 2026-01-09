@@ -1,10 +1,6 @@
 parameters:
   - name: environmentName
-    displayName: Environment
     type: string
-    default: POC
-    values:
-      - POC
 
 stages:
   - stage: CreateEntraGroups
@@ -30,13 +26,17 @@ stages:
               scriptType: bash
               scriptPath: scripts/pipeline/lookup-directory-object.sh
 
-      - deployment: SQLGroups
-        displayName: SQL Groups
-        condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
-        dependsOn: LookupServicePrincipals
+      - deployment: SearchGroups
+        displayName: Search Service Groups
         environment:
           name: "${{ parameters.environmentName }}"
+        condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+        dependsOn: LookupServicePrincipals
         variables:
+          - name: contributorsGroupName
+            value: AG-Azure-IMP_${{ parameters.environmentName }}-SearchContributors
+          - name: readersGroupName
+            value: AG-Azure-IMP_${{ parameters.environmentName }}-SearchReaders
           - name: serviceConnectionObjectId
             value: $[dependencies.LookupServicePrincipals.outputs['ServiceConnection.objectId']]
         strategy:
@@ -46,14 +46,98 @@ stages:
                 - checkout: self
 
                 - task: AzureCLI@2
-                  displayName: AG-Azure-IMP_POC-SQLAdmins
+                  name: SearchContributors
                   env:
-                    GROUP_NAME: AG-Azure-IMP_POC-SQLAdmins
+                    GROUP_NAME: $(contributorsGroupName)
+                    GROUP_DESCRIPTION: Entra access group for IPAFFS Search Services Contributors
+                    GROUP_OWNER_OBJECT_IDS: $(serviceConnectionObjectId)
+                  inputs:
+                    azureSubscription: $(upstreamServiceConnection)
+                    scriptType: bash
+                    scriptPath: scripts/pipeline/create-entra-group.sh
+
+                - task: AzureCLI@2
+                  name: SearchReaders
+                  env:
+                    GROUP_NAME: $(readersGroupName)
+                    GROUP_DESCRIPTION: Entra access group for IPAFFS Search Services Readers
+                    GROUP_OWNER_OBJECT_IDS: $(serviceConnectionObjectId)
+                  inputs:
+                    azureSubscription: $(upstreamServiceConnection)
+                    scriptType: bash
+                    scriptPath: scripts/pipeline/create-entra-group.sh
+
+      - deployment: SQLGroups
+        displayName: SQL Groups
+        environment:
+          name: "${{ parameters.environmentName }}"
+        condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+        dependsOn: LookupServicePrincipals
+        variables:
+          - name: groupName
+            value: AG-Azure-IMP_${{ parameters.environmentName }}-SQLAdmins
+          - name: serviceConnectionObjectId
+            value: $[dependencies.LookupServicePrincipals.outputs['ServiceConnection.objectId']]
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+
+                - task: AzureCLI@2
+                  name: SQLAdmins
+                  env:
+                    GROUP_NAME: $(groupName)
                     GROUP_DESCRIPTION: Entra access group for IPAFFS SQL Admins
                     GROUP_OWNER_OBJECT_IDS: $(serviceConnectionObjectId)
                   inputs:
                     azureSubscription: $(upstreamServiceConnection)
                     scriptType: bash
                     scriptPath: scripts/pipeline/create-entra-group.sh
+
+
+  - stage: SaveGroupIds
+    displayName: Save group IDs
+    dependsOn: CreateEntraGroups
+    condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+    variables:
+      - group: "${{ parameters.environmentName }}"
+      - template: "/pipelines/vars/common.yaml"
+      - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
+      - name: searchContributorsDisplayName
+        value: $[stageDependencies.CreateEntraGroups.SearchGroups.outputs['SearchContributors.displayName']]
+      - name: searchContributorsObjectId
+        value: $[stageDependencies.CreateEntraGroups.SearchGroups.outputs['SearchContributors.objectId']]
+      - name: searchReadersDisplayName
+        value: $[stageDependencies.CreateEntraGroups.SearchGroups.outputs['SearchReaders.displayName']]
+      - name: searchReadersObjectId
+        value: $[stageDependencies.CreateEntraGroups.SearchGroups.outputs['SearchReaders.objectId']]
+      - name: sqlAdminsDisplayName
+        value: $[stageDependencies.CreateEntraGroups.SQLGroups.outputs['SQLAdmins.displayName']]
+      - name: sqlAdminsObjectId
+        value: $[stageDependencies.CreateEntraGroups.SQLGroups.outputs['SQLAdmins.objectId']]
+    jobs:
+      - job: UpdateGroupVariables
+        displayName: Update group variables
+        steps:
+          - task: AzureCLI@2
+            name: StoreLibraryVars
+            displayName: Store Library Variables
+            condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+            env:
+              ADO_ORG_URL: $(System.CollectionUri)
+              ADO_PROJECT: $(System.TeamProject)
+              ADO_GROUP_NAME: ${{ parameters.environmentName }}
+            inputs:
+              azureSubscription: $(serviceConnection)
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                scripts/pipeline/update-group-variable.sh searchContributorsGroupId "$(searchContributorsObjectId)"
+                scripts/pipeline/update-group-variable.sh searchContributorsGroupName "$(searchContributorsDisplayName)"
+                scripts/pipeline/update-group-variable.sh searchReadersGroupId "$(searchReadersObjectId)"
+                scripts/pipeline/update-group-variable.sh searchReadersGroupName "$(searchReadersDisplayName)"
+                scripts/pipeline/update-group-variable.sh sqlAdminGroupId "$(sqlAdminsObjectId)"
+                scripts/pipeline/update-group-variable.sh sqlAdminGroupName "$(sqlAdminsDisplayName)"
 
 # vim: set ts=2 sts=2 sw=2 et:

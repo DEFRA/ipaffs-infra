@@ -38,61 +38,28 @@ resources:
       ref: refs/tags/Release-v6-latest
 
 stages:
-  - template: /pipelines/stages/entra-groups.yaml
+  - template: stages/entra-groups.yaml
     parameters:
       environmentName: ${{ parameters.environmentName }}
 
-  - stage: DeployInfrastructure
-    displayName: Deploy Infrastructure
-    jobs:
-      - deployment: DeployBicep
-        displayName: Deploy Bicep Templates
-        environment:
-          name: "${{ parameters.environmentName }}"
-        strategy:
-          runOnce:
-            deploy:
-              steps:
-                - checkout: self
-                - template: steps/deploy-bicep.yaml
-                  parameters:
-                    environmentName: "${{ parameters.environmentName }}"
-
-  - template: /pipelines/stages/infra-permissions.yaml
+  - template: stages/deploy-bicep.yaml
     parameters:
       environmentName: ${{ parameters.environmentName }}
 
-  - template: /pipelines/stages/privatelink-dns-records.yaml
+  - template: stages/infra-permissions.yaml
     parameters:
       environmentName: ${{ parameters.environmentName }}
 
-  - stage: ImportAcrArtifacts
-    displayName: Import ACR Artifacts
-    jobs:
-      - deployment: ImportContainerImages
-        displayName: Import Container Images
-        condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
-        environment:
-          name: "${{ parameters.environmentName }}"
-        strategy:
-          runOnce:
-            deploy:
-              steps:
-                - checkout: self
-                - template: steps/import-container-images.yaml
+  - template: stages/privatelink-dns-records.yaml
+    parameters:
+      environmentName: ${{ parameters.environmentName }}
 
-  - stage: DeployHelmCharts
-    displayName: Deploy Helm Charts
-    jobs:
-      - deployment: DeployHelm
-        displayName: Deploy with Helm
-        environment:
-          name: "${{ parameters.environmentName }}"
-        strategy:
-          runOnce:
-            deploy:
-              steps:
-                - checkout: self
-                - template: steps/install-helm-charts.yaml
+  - template: stages/import-acr-artifacts.yaml
+    parameters:
+      environmentName: ${{ parameters.environmentName }}
+
+  - template: stages/install-helm-charts.yaml
+    parameters:
+      environmentName: ${{ parameters.environmentName }}
 
 # vim: set ts=2 sts=2 sw=2 et:

@@ -11,7 +11,7 @@ trigger:
       - bicep/**/main.bicepparam
       - bicep/**/resource-group.bicepparam
       - pipelines/deploy-bicep.yaml
-      - pipelines/steps/deploy-bicep.yaml
+      - pipelines/stages/deploy-bicep.yaml
 
 pr:
   branches:
@@ -25,7 +25,7 @@ pr:
       - bicep/**/main.bicepparam
       - bicep/**/resource-group.bicepparam
       - pipelines/deploy-bicep.yaml
-      - pipelines/steps/deploy-bicep.yaml
+      - pipelines/stages/deploy-bicep.yaml
 
 pool:
   name: DEFRA-COMMON-ubuntu2204-SSV5
@@ -44,20 +44,8 @@ variables:
   - template: "vars/${{ lower(parameters.environmentName) }}.yaml"
 
 stages:
-  - stage: DeployInfrastructure
-    displayName: Deploy Infrastructure
-    jobs:
-      - deployment: DeployBicep
-        displayName: Deploy Bicep Templates
-        environment:
-          name: "${{ parameters.environmentName }}"
-        strategy:
-          runOnce:
-            deploy:
-              steps:
-                - checkout: self
-                - template: steps/deploy-bicep.yaml
-                  parameters:
-                    environmentName: "${{ parameters.environmentName }}"
+  - template: stages/deploy-bicep.yaml
+    parameters:
+      environmentName: ${{ parameters.environmentName }}
 
 # vim: set ts=2 sts=2 sw=2 et:

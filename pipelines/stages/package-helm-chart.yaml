@@ -1,6 +1,7 @@
 parameters:
   - name: helmChartName
     type: string
+
   - name: helmChartPath
     type: string
 

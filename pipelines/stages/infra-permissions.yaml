@@ -1,14 +1,10 @@
 parameters:
   - name: environmentName
-    displayName: Environment
     type: string
-    default: POC
-    values:
-      - POC
 
 stages:
   - stage: InfraPermissions
-    displayName: Set up Infrastructure Permissions
+    displayName: Infrastructure Permissions
     variables:
       - group: "${{ parameters.environmentName }}"
       - template: "/pipelines/vars/common.yaml"
@@ -16,9 +12,9 @@ stages:
     jobs:
       - deployment: GroupMemberships
         displayName: Group Memberships
-        condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
         environment:
           name: "${{ parameters.environmentName }}"
+        condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
         strategy:
           runOnce:
             deploy:
