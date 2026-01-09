@@ -24,7 +24,7 @@ stages:
                 set -ex
                 cat <<- 'EOF' >'$(Build.SourcesDirectory)/runtime.bicepparam'
                 using none
-                extends 'bicep/envs/${{ lower(parameters.environmentName) }}/main.bicepparam'
+                extends 'envs/${{ lower(parameters.environmentName) }}/main.bicepparam'
 
                 param entraGroups = {
                   searchContributors: {
