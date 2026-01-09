@@ -707,7 +707,7 @@ param nsgParams = {
 }
 
 param searchParams = {
-  name: 'POCIMPINFAS1401'
+  name: 'pocimpinfas1401' // note: must be lowercase
   partitionCount: 1
   replicaCount: 2
 }
