@@ -41,6 +41,8 @@ stages:
                   }
                 }
                 EOF
+                
+                cat '$(Build.SourcesDirectory)/runtime.bicepparam'
 
           - task: PublishPipelineArtifact@1
             displayName: Publish artifact
