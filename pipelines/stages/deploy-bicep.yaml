@@ -47,7 +47,7 @@ stages:
           - task: PublishPipelineArtifact@1
             displayName: Publish artifact
             inputs:
-              artifact: bicepparam
+              artifactName: bicepparam
               targetPath: $(Build.SourcesDirectory)/runtime.bicepparam
 
   - stage: DeployInfrastructure
@@ -66,8 +66,8 @@ stages:
                 - task: DownloadPipelineArtifact@2
                   displayName: Download artifact
                   inputs:
-                    artifact: bicepparam
-                    path: runtime.bicepparam
+                    artifactName: bicepparam
+                    targetPath: $(Build.SourcesDirectory)
 
                 - task: AzureCLI@2
                   displayName: WhatIf - Resource Group
@@ -107,7 +107,7 @@ stages:
                         --name "Infrastructure-$(Build.BuildId)" \
                         --resource-group $(resourceGroupName) \
                         --template-file bicep/main.bicep \
-                        --parameters runtime.bicepparam \
+                        --parameters '$(Build.SourcesDirectory)/runtime.bicepparam' \
                         --parameters tenantId="$(tenantId)"
 
                 - task: AzureCLI@2
@@ -122,7 +122,7 @@ stages:
                         --name "Infrastructure-$(Build.BuildId)" \
                         --resource-group $(resourceGroupName) \
                         --template-file bicep/main.bicep \
-                        --parameters runtime.bicepparam \
+                        --parameters '$(Build.SourcesDirectory)/runtime.bicepparam' \
                         --parameters tenantId="$(tenantId)"
 
                 - task: AzureCLI@2
