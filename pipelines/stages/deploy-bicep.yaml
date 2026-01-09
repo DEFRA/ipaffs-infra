@@ -67,7 +67,7 @@ stages:
                   displayName: Download artifact
                   inputs:
                     artifactName: bicepparam
-                    targetPath: $(Build.SourcesDirectory)
+                    targetPath: $(Build.SourcesDirectory)/bicep
 
                 - task: AzureCLI@2
                   displayName: WhatIf - Resource Group
@@ -107,7 +107,7 @@ stages:
                         --name "Infrastructure-$(Build.BuildId)" \
                         --resource-group $(resourceGroupName) \
                         --template-file bicep/main.bicep \
-                        --parameters '$(Build.SourcesDirectory)/runtime.bicepparam' \
+                        --parameters bicep/runtime.bicepparam \
                         --parameters tenantId="$(tenantId)"
 
                 - task: AzureCLI@2
@@ -122,7 +122,7 @@ stages:
                         --name "Infrastructure-$(Build.BuildId)" \
                         --resource-group $(resourceGroupName) \
                         --template-file bicep/main.bicep \
-                        --parameters '$(Build.SourcesDirectory)/runtime.bicepparam' \
+                        --parameters bicep/runtime.bicepparam \
                         --parameters tenantId="$(tenantId)"
 
                 - task: AzureCLI@2
