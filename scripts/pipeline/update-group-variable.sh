@@ -15,8 +15,7 @@ getGroupVariable() {
     --org "${ADO_ORG_URL}" \
     --project "${ADO_PROJECT}" \
     --id "${groupId}" \
-    --query "${1}.value" \
-    -o tsv
+    --query "${1}"
 }
 
 createGroupVariable() {
