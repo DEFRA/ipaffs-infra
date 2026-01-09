@@ -125,6 +125,7 @@ module search './modules/search.bicep' = {
   scope: resourceGroup()
   params: {
     deploymentId: deploymentId
+    entraGroups: entraGroups
     searchParams: searchParams
     location: location
     subnetIds: vnet.outputs.subnetIds
@@ -141,6 +142,7 @@ module sql './modules/sql.bicep' = {
   scope: resourceGroup()
   params: {
     deploymentId: deploymentId
+    entraGroups: entraGroups
     location: location
     sqlParams: sqlParams
     subnetIds: vnet.outputs.subnetIds

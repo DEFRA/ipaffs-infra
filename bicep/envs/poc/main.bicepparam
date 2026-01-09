@@ -8,6 +8,8 @@ param builtInGroups = {
   owners: 'd7806931-a3ca-42ee-83ef-6b3060845b2b' // AG-Azure-IMP_POC1-Owners
 }
 
+param entraGroups = {}
+
 param acrParams = {
   name: 'POCIMPINFAC1401'
   sku: 'Premium'
