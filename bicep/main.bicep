@@ -117,6 +117,22 @@ module nsg './modules/network-security-groups.bicep' = {
   ]
 }
 
+module search './modules/search.bicep' = {
+  name: 'search-${deploymentId}'
+  scope: resourceGroup()
+  params: {
+    deploymentId: deploymentId
+    searchParams: searchParams
+    location: location
+    subnetIds: vnet.outputs.subnetIds
+    tags: tags
+    tenantId: tenantId
+  }
+  dependsOn: [
+    nsg
+  ]
+}
+
 module sql './modules/sql.bicep' = {
   name: 'sql-${deploymentId}'
   scope: resourceGroup()
@@ -160,7 +176,6 @@ output azureServiceOperatorClientId string = aso.outputs.clientId
 output externalSecretsClientId string = externalSecrets.outputs.clientId
 output keyVaultName string = keyVault.outputs.keyVaultName
 output keyVaultUri string = keyVault.outputs.keyVaultUri
-output sqlAdminGroupId string = sql.outputs.sqlAdminGroupId
 output sqlServerName string = sql.outputs.sqlServerName
 output sqlServerManagedIdentityObjectId string = sql.outputs.sqlServerManagedIdentityObjectId
 

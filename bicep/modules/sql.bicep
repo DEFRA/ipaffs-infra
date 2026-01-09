@@ -79,7 +79,6 @@ resource sqlPrivateEndpoint 'Microsoft.Network/privateEndpoints@2024-10-01' = [f
   }
 }]
 
-output sqlAdminGroupId string = sqlServer.properties.administrators.sid
 output sqlServerName string = sqlServer.name
 output sqlServerManagedIdentityObjectId string = sqlServer.identity.principalId
 
