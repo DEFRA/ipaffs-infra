@@ -2,7 +2,7 @@
 
 set -eux
 
-DIR="$(cd "$(dirname $0)"/.. && pwd)"
+DIR="$(cd "$(dirname $0)" && pwd)"
 
 deploymentOutput() {
   az deployment group show \
