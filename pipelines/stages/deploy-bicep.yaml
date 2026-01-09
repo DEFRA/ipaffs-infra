@@ -25,7 +25,6 @@ stages:
                 cat <<- 'EOF' >'$(Build.SourcesDirectory)/runtime.bicepparam'
                 using 'main.bicep'
                 extends 'envs/${{ lower(parameters.environmentName) }}/main.bicepparam'
-
                 param entraGroups = {
                   searchContributors: {
                     id: '$(searchContributorsGroupId)'
@@ -41,7 +40,6 @@ stages:
                   }
                 }
                 EOF
-                
                 cat '$(Build.SourcesDirectory)/runtime.bicepparam'
 
           - task: PublishPipelineArtifact@1
@@ -151,34 +149,37 @@ stages:
       - template: "/pipelines/vars/common.yaml"
       - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
     jobs:
-      - checkout: self
+      - job: StoreLibraryVariables
+        displayName: Store library variables
+        steps:
+          - checkout: self
 
-      - task: AzureCLI@2
-        name: StoreLibraryVars
-        displayName: Store Library Variables
-        condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
-        env:
-          ADO_ORG_URL: $(System.CollectionUri)
-          ADO_PROJECT: $(System.TeamProject)
-          ADO_GROUP_NAME: ${{ parameters.environmentName }}
-          DEPLOYMENT_NAME: Infrastructure-$(Build.BuildId)
-          RESOURCE_GROUP: $(resourceGroupName)
-        inputs:
-          azureSubscription: $(serviceConnection)
-          scriptType: bash
-          scriptLocation: inlineScript
-          inlineScript: |
-            set -x
-            scripts/pipeline/update-group-variable-from-deployment.sh acrLoginServer acrLoginServer
-            scripts/pipeline/update-group-variable-from-deployment.sh acrName acrName
-            scripts/pipeline/update-group-variable-from-deployment.sh azureServiceOperatorClientId azureServiceOperatorClientId
-            scripts/pipeline/update-group-variable-from-deployment.sh externalSecretsClientId externalSecretsClientId
-            scripts/pipeline/update-group-variable-from-deployment.sh aksOidcIssuer aksOidcIssuer
-            scripts/pipeline/update-group-variable-from-deployment.sh keyVaultName keyVaultName
-            scripts/pipeline/update-group-variable-from-deployment.sh keyVaultUrl keyVaultUri
-            scripts/pipeline/update-group-variable-from-deployment.sh kubernetesCluster aksClusterName
-            scripts/pipeline/update-group-variable-from-deployment.sh searchServiceName searchServiceName
-            scripts/pipeline/update-group-variable-from-deployment.sh sqlServerName sqlServerName
-            scripts/pipeline/update-group-variable-from-deployment.sh sqlServerManagedIdentityObjectId sqlServerManagedIdentityObjectId
+          - task: AzureCLI@2
+            name: DeploymentOutputs
+            displayName: Deployment outputs
+            condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+            env:
+              ADO_ORG_URL: $(System.CollectionUri)
+              ADO_PROJECT: $(System.TeamProject)
+              ADO_GROUP_NAME: ${{ parameters.environmentName }}
+              DEPLOYMENT_NAME: Infrastructure-$(Build.BuildId)
+              RESOURCE_GROUP: $(resourceGroupName)
+            inputs:
+              azureSubscription: $(serviceConnection)
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                set -x
+                scripts/pipeline/update-group-variable-from-deployment.sh acrLoginServer acrLoginServer
+                scripts/pipeline/update-group-variable-from-deployment.sh acrName acrName
+                scripts/pipeline/update-group-variable-from-deployment.sh azureServiceOperatorClientId azureServiceOperatorClientId
+                scripts/pipeline/update-group-variable-from-deployment.sh externalSecretsClientId externalSecretsClientId
+                scripts/pipeline/update-group-variable-from-deployment.sh aksOidcIssuer aksOidcIssuer
+                scripts/pipeline/update-group-variable-from-deployment.sh keyVaultName keyVaultName
+                scripts/pipeline/update-group-variable-from-deployment.sh keyVaultUrl keyVaultUri
+                scripts/pipeline/update-group-variable-from-deployment.sh kubernetesCluster aksClusterName
+                scripts/pipeline/update-group-variable-from-deployment.sh searchServiceName searchServiceName
+                scripts/pipeline/update-group-variable-from-deployment.sh sqlServerName sqlServerName
+                scripts/pipeline/update-group-variable-from-deployment.sh sqlServerManagedIdentityObjectId sqlServerManagedIdentityObjectId
 
 # vim: set ts=2 sts=2 sw=2 et:
