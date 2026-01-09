@@ -6,7 +6,7 @@ trigger:
   paths:
     include:
       - pipelines/import-acr-artifacts.yaml
-      - pipelines/steps/import-container-images.yaml
+      - pipelines/stages/import-acr-artifacts.yaml
 
 pr:
   branches:
@@ -15,7 +15,7 @@ pr:
   paths:
     include:
       - pipelines/import-acr-artifacts.yaml
-      - pipelines/steps/import-container-images.yaml
+      - pipelines/stages/import-acr-artifacts.yaml
 
 pool:
   name: DEFRA-COMMON-ubuntu2204-SSV5
@@ -34,19 +34,8 @@ variables:
   - template: "vars/${{ lower(parameters.environmentName) }}.yaml"
 
 stages:
-  - stage: ImportACRArtifacts
-    displayName: Import ACR Artifacts
-    jobs:
-      - deployment: ImportContainerImages
-        displayName: Import Container Images
-        condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
-        environment:
-          name: "${{ parameters.environmentName }}"
-        strategy:
-          runOnce:
-            deploy:
-              steps:
-                - checkout: self
-                - template: steps/import-container-images.yaml
+  - template: stages/import-acr-artifacts.yaml
+    parameters:
+      environmentName: ${{ parameters.environmentName }}
 
 # vim: set ts=2 sts=2 sw=2 et:

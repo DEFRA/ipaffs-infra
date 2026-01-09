@@ -1,6 +1,7 @@
 targetScope = 'resourceGroup'
 
 param deploymentId string
+param entraGroups object
 param location string
 param sqlParams object
 param subnetIds array
@@ -20,9 +21,9 @@ resource sqlServer 'Microsoft.Sql/servers@2023-08-01' = {
     administrators: {
       administratorType: 'ActiveDirectory'
       azureADOnlyAuthentication: true
-      login: sqlParams.adminGroupName
+      login: entraGroups.sqlAdmins.name
       principalType: 'Group'
-      sid: sqlParams.adminGroupObjectId
+      sid: entraGroups.sqlAdmins.id
       tenantId: tenantId
     }
     minimalTlsVersion: '1.2'
@@ -79,7 +80,6 @@ resource sqlPrivateEndpoint 'Microsoft.Network/privateEndpoints@2024-10-01' = [f
   }
 }]
 
-output sqlAdminGroupId string = sqlServer.properties.administrators.sid
 output sqlServerName string = sqlServer.name
 output sqlServerManagedIdentityObjectId string = sqlServer.identity.principalId
 

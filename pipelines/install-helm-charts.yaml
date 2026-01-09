@@ -7,7 +7,7 @@ trigger:
     include:
       - helm-charts/*-values.yaml
       - pipelines/install-helm-charts.yaml
-      - pipelines/steps/install-helm-charts.yaml
+      - pipelines/stages/install-helm-charts.yaml
 
 pr:
   branches:
@@ -17,7 +17,7 @@ pr:
     include:
       - helm-charts/*-values.yaml
       - pipelines/install-helm-charts.yaml
-      - pipelines/steps/install-helm-charts.yaml
+      - pipelines/stages/install-helm-charts.yaml
 
 pool:
   name: DEFRA-COMMON-ubuntu2204-SSV5
@@ -41,18 +41,8 @@ variables:
       value: '--dry-run'
 
 stages:
-  - stage: InstallHelmCharts
-    displayName: Install Helm Charts
-    jobs:
-      - deployment: InstallHelmCharts
-        displayName: Install Charts
-        environment:
-          name: "${{ parameters.environmentName }}"
-        strategy:
-          runOnce:
-            deploy:
-              steps:
-                - checkout: self
-                - template: steps/install-helm-charts.yaml
+  - template: stages/install-helm-charts.yaml
+    parameters:
+      environmentName: ${{ parameters.environmentName }}
 
 # vim: set ts=2 sts=2 sw=2 et:

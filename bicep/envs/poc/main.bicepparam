@@ -3,6 +3,13 @@ using '../../main.bicep'
 param environment = 'POC'
 param tenantId = ''
 
+param builtInGroups = {
+  contributors: '4b2fbef7-de9d-4836-a44e-46c56aad3d9e' // AG-Azure-IMP_POC1-Contributors
+  owners: 'd7806931-a3ca-42ee-83ef-6b3060845b2b' // AG-Azure-IMP_POC1-Owners
+}
+
+param entraGroups = {}
+
 param acrParams = {
   name: 'POCIMPINFAC1401'
   sku: 'Premium'
@@ -17,7 +24,8 @@ param aksParams = {
   subnetId: '/subscriptions/cfa4ccd1-5a5e-420c-9bca-03218a43e46d/resourceGroups/POCIMPNETNS1401/providers/Microsoft.Network/virtualNetworks/POCIMPNETVN1401/subnets/POCIMPNETSU4402'
   adminUserName: 'adminuser'
   adminGroupObjectIDs: [
-    '65c89463-4af9-4520-bc82-77f0ead4e424' // AG-Azure-IMP_POC-SQLAdmins
+    builtInGroups.contributors
+    builtInGroups.owners
   ]
 }
 
@@ -32,8 +40,8 @@ param externalSecretsParams = {
 param keyVaultParams = {
   name: 'POCIMPINFKV1401'
   principalObjectIds: [
-    '4b2fbef7-de9d-4836-a44e-46c56aad3d9e' // AG-Azure-IMP_POC1-Contributors
-    'd7806931-a3ca-42ee-83ef-6b3060845b2b' // AG-Azure-IMP_POC1-Owners
+    builtInGroups.contributors
+    builtInGroups.owners
   ]
 }
 
@@ -698,9 +706,13 @@ param nsgParams = {
   ]
 }
 
+param searchParams = {
+  name: 'POCIMPINFAS1401'
+  partitionCount: 1
+  replicaCount: 2
+}
+
 param sqlParams = {
-  adminGroupName: 'AG-Azure-IMP_POC-SQLAdmins'
-  adminGroupObjectId: '65c89463-4af9-4520-bc82-77f0ead4e424'
   serverName: 'POCIMPDBSSQ1401'
   elasticPoolName: 'POCIMPDBSEP1401'
   maxSizeGiB: 10
@@ -765,7 +777,7 @@ param monitoringParams = {
   logAnalyticsName: 'POCIMPINFLA1401'
   prometheusName: 'POCIMPINFPR1401'
   grafanaName: 'POCIMPINFGA1401'
-  principalObjectId: '4b2fbef7-de9d-4836-a44e-46c56aad3d9e' // AG-Azure-IMP_POC1-Contributors'
+  principalObjectId: builtInGroups.contributors
 }
 
 // vim: set ts=2 sts=2 sw=2 et:

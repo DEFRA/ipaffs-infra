@@ -12,6 +12,7 @@ TOKEN="$(az account get-access-token --scope https://graph.microsoft.com/.defaul
 # Check for existing group
 result="$(OBJECT_NAME="${GROUP_NAME}" OBJECT_TYPE=group "${SCRIPTS_DIR}/pipeline/lookup-directory-object.sh")"
 if [[ $? -eq 0 ]]; then
+  echo "##vso[task.setvariable variable=displayName;isOutput=true]${GROUP_NAME}"
   echo "${result}"
   exit 0
 fi
@@ -52,6 +53,7 @@ groupResult="$(curl -X POST -H "Authorization: Bearer ${TOKEN}" -H "Content-Type
 [[ "$(jq -r '.error.code' <<<"${groupResult}")" == "null" ]] || exit 1
 objectId="$(echo "${groupResult}" | jq -r '.id')"
 set +x
+echo "##vso[task.setvariable variable=displayName;isOutput=true]${GROUP_NAME}"
 echo "##vso[task.setvariable variable=objectId;isOutput=true]${objectId}"
 
 # Now wait for the group to consistently appear (i.e. propagate)

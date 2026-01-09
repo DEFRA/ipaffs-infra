@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -ex
+set -eux
 
 # Get the ID of the library variable group
 groupId="$(az pipelines variable-group list \
@@ -10,24 +10,40 @@ groupId="$(az pipelines variable-group list \
   --query '[0].id' \
   -o tsv)"
 
-deploymentOutput() {
-  az deployment group show \
-    --name "${DEPLOYMENT_NAME}" \
-    --resource-group "${RESOURCE_GROUP}" \
-    --query properties.outputs.${1}.value \
+getGroupVariable() {
+  az pipelines variable-group variable list \
+    --org "${ADO_ORG_URL}" \
+    --project "${ADO_PROJECT}" \
+    --id "${groupId}" \
+    --query "${1}.value" \
     -o tsv
 }
 
-updateGroupVariable() {
-  az pipelines variable-group variable update \
-  --org "${ADO_ORG_URL}" \
-  --project "${ADO_PROJECT}" \
+createGroupVariable() {
+   az pipelines variable-group variable create \
+    --org "${ADO_ORG_URL}" \
+    --project "${ADO_PROJECT}" \
     --id "${groupId}" \
     --name "${1}" \
     --value "${2}"
 }
 
-# Update library group variable
-updateGroupVariable "${1}" "$(deploymentOutput "${2}")"
+updateGroupVariable() {
+   az pipelines variable-group variable update \
+    --org "${ADO_ORG_URL}" \
+    --project "${ADO_PROJECT}" \
+    --id "${groupId}" \
+    --name "${1}" \
+    --value "${2}"
+}
+
+# Get existing value
+if [[ "$(getGroupVariable "${1}")" != "" ]]; then
+  # Update library group variable
+  updateGroupVariable "${1}" "${2}"
+else
+  # Create new library variable
+  createGroupVariable "${1}" "${2}"
+fi
 
 # vim: set ts=2 sts=2 sw=2 et:

@@ -1,4 +1,7 @@
 {
+  "experimentalFeaturesEnabled": {
+    "extendableParamFiles": true
+  },
   "moduleAliases": {
     "br": {
       "SharedDefraRegistry": {

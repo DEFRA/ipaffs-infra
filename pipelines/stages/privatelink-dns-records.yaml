@@ -1,10 +1,6 @@
 parameters:
   - name: environmentName
-    displayName: Environment
     type: string
-    default: POC
-    values:
-      - POC
 
 stages:
   - stage: PrivateLinkDNSRecords

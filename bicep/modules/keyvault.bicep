@@ -65,19 +65,6 @@ resource keyVaultPrivateEndpoints 'Microsoft.Network/privateEndpoints@2024-10-01
   }
 }]
 
-//resource dnsZoneLink 'Microsoft.Network/privateDnsZones/virtualNetworkLinks@2024-06-01' = {
-//  name: 'dns-link'
-//  parent: privateDnsZone
-//
-//  properties: {
-//    registrationEnabled: false
-//
-//    virtualNetwork: {
-//      id: vnetId
-//    }
-//  }
-//}
-
 output keyVaultName string = keyVault.name
 output keyVaultId string = keyVault.id
 output keyVaultUri string = keyVault.properties.vaultUri

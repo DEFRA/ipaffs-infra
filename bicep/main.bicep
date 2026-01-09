@@ -3,6 +3,8 @@ targetScope = 'resourceGroup'
 @allowed(['POC', 'TST'])
 param environment string
 
+param builtInGroups object
+param entraGroups object
 param tenantId string
 
 param acrParams object
@@ -10,10 +12,11 @@ param aksParams object
 param asoParams object
 param externalSecretsParams object
 param keyVaultParams object
+param monitoringParams object
 param nsgParams object
+param searchParams object
 param sqlParams object
 param vnetParams object
-param monitoringParams object
 
 param createdDate string = utcNow('yyyy-MM-dd')
 param deploymentId string = uniqueString(utcNow())
@@ -117,11 +120,29 @@ module nsg './modules/network-security-groups.bicep' = {
   ]
 }
 
+module search './modules/search.bicep' = {
+  name: 'search-${deploymentId}'
+  scope: resourceGroup()
+  params: {
+    deploymentId: deploymentId
+    entraGroups: entraGroups
+    searchParams: searchParams
+    location: location
+    subnetIds: vnet.outputs.subnetIds
+    tags: tags
+    tenantId: tenantId
+  }
+  dependsOn: [
+    nsg
+  ]
+}
+
 module sql './modules/sql.bicep' = {
   name: 'sql-${deploymentId}'
   scope: resourceGroup()
   params: {
     deploymentId: deploymentId
+    entraGroups: entraGroups
     location: location
     sqlParams: sqlParams
     subnetIds: vnet.outputs.subnetIds
@@ -160,7 +181,6 @@ output azureServiceOperatorClientId string = aso.outputs.clientId
 output externalSecretsClientId string = externalSecrets.outputs.clientId
 output keyVaultName string = keyVault.outputs.keyVaultName
 output keyVaultUri string = keyVault.outputs.keyVaultUri
-output sqlAdminGroupId string = sql.outputs.sqlAdminGroupId
 output sqlServerName string = sql.outputs.sqlServerName
 output sqlServerManagedIdentityObjectId string = sql.outputs.sqlServerManagedIdentityObjectId
 
