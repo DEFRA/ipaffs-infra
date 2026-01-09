@@ -181,6 +181,7 @@ output azureServiceOperatorClientId string = aso.outputs.clientId
 output externalSecretsClientId string = externalSecrets.outputs.clientId
 output keyVaultName string = keyVault.outputs.keyVaultName
 output keyVaultUri string = keyVault.outputs.keyVaultUri
+output searchServiceName string = search.outputs.searchServiceName
 output sqlServerName string = sql.outputs.sqlServerName
 output sqlServerManagedIdentityObjectId string = sql.outputs.sqlServerManagedIdentityObjectId
 
