@@ -6,10 +6,7 @@ Ingress hosts
     {{- $hosts := list -}}
     {{- range .Values.ingress.hosts }}
       {{- $env := eq $.Values.environment "poc" | ternary "dev" $.Values.environment }}
-      {{- $_suffix := printf "-%s" $.Release.Namespace }}
-      {{- $_lowerNamespace := lower $.Release.Namespace }}
-      {{- $_lowerEnvironment := lower $.Values.environment }}
-      {{- $suffix := eq $_lowerNamespace $_lowerEnvironment | ternary "" $_suffix }}
+      {{- $suffix := eq $.Release.Namespace $.Values.environment | ternary "" (printf "-%s" $.Release.Namespace) }}
       {{- $host := printf "%s%s" . $suffix -}}
       {{- $hostWithDomain := printf "%s.aks.imp.%s.azure.defra.cloud" $host $env -}}
       {{- $hosts = append $hosts $host }}
