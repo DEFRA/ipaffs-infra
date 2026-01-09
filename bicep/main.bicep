@@ -12,10 +12,11 @@ param aksParams object
 param asoParams object
 param externalSecretsParams object
 param keyVaultParams object
+param monitoringParams object
 param nsgParams object
+param searchParams object
 param sqlParams object
 param vnetParams object
-param monitoringParams object
 
 param createdDate string = utcNow('yyyy-MM-dd')
 param deploymentId string = uniqueString(utcNow())

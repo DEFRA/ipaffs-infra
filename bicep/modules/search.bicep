@@ -1,6 +1,7 @@
 targetScope = 'resourceGroup'
 
 param deploymentId string
+param entraGroups object
 param location string
 param searchParams object
 param subnetIds array
@@ -70,7 +71,7 @@ module searchContributor './search-role-assignment.bicep' = {
   params: {
     searchServiceName: searchParams.name
     deploymentId: deploymentId
-    principalObjectId: searchParams.contributorsGroupId
+    principalObjectId: entraGroups.searchContributors.id
     principalType: 'Group'
     roleDefinitionId: searchIndexDataContributorRoleId
   }
@@ -82,7 +83,7 @@ module searchReader './search-role-assignment.bicep' = {
   params: {
     searchServiceName: searchParams.name
     deploymentId: deploymentId
-    principalObjectId: searchParams.readersGroupId
+    principalObjectId: entraGroups.searchReaders.id
     principalType: 'Group'
     roleDefinitionId: searchIndexDataReaderRoleId
   }

@@ -22,7 +22,7 @@ param aksParams = {
   subnetId: '/subscriptions/cfa4ccd1-5a5e-420c-9bca-03218a43e46d/resourceGroups/POCIMPNETNS1401/providers/Microsoft.Network/virtualNetworks/POCIMPNETVN1401/subnets/POCIMPNETSU4402'
   adminUserName: 'adminuser'
   adminGroupObjectIDs: [
-    builtinGroups.contributors
+    builtInGroups.contributors
     builtInGroups.owners
   ]
 }
@@ -38,7 +38,7 @@ param externalSecretsParams = {
 param keyVaultParams = {
   name: 'POCIMPINFKV1401'
   principalObjectIds: [
-    builtinGroups.contributors
+    builtInGroups.contributors
     builtInGroups.owners
   ]
 }
@@ -708,13 +708,9 @@ param searchParams = {
   name: 'POCIMPINFAS1401'
   partitionCount: 1
   replicaCount: 2
-  contributorsGroupId: entraGroups.searchContributors.id
-  readersGroupId: entraGroups.searchReaders.id
 }
 
 param sqlParams = {
-  adminGroupName: entraGroups.sqlAdmins.name
-  adminGroupObjectId: entraGroups.sqlAdmins.id
   serverName: 'POCIMPDBSSQ1401'
   elasticPoolName: 'POCIMPDBSEP1401'
   maxSizeGiB: 10
@@ -779,7 +775,7 @@ param monitoringParams = {
   logAnalyticsName: 'POCIMPINFLA1401'
   prometheusName: 'POCIMPINFPR1401'
   grafanaName: 'POCIMPINFGA1401'
-  principalObjectId: builtinGroups.contributors
+  principalObjectId: builtInGroups.contributors
 }
 
 // vim: set ts=2 sts=2 sw=2 et:
