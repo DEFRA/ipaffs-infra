@@ -24,9 +24,9 @@ resource redis 'Microsoft.Search/searchServices@2025-05-01' = {
     redisVersion: '6.0'
 
     sku: {
-      name: 'Basic'
+      name: 'Standard'
       family: 'C'
-      capacity: 'C'
+      capacity: '1'
     }
   }
 }
