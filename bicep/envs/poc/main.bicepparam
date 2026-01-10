@@ -706,6 +706,10 @@ param nsgParams = {
   ]
 }
 
+param redisParams = {
+  name: 'pocimpinfrd1401' // note: must be lowercase
+}
+
 param searchParams = {
   name: 'pocimpinfas1401' // note: must be lowercase
   partitionCount: 1

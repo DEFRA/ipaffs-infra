@@ -64,6 +64,25 @@ stages:
                     variables:
                       projectServiceConnection: $(serviceConnection)
                     scriptsList:
+                      - displayName: Resolve Private Endpoint IPs for Redis
+                        serviceConnectionVariableName: projectServiceConnection
+                        scriptPath: 'Get-ResourcePrivateEndPointsDnsRecordsAsJson.ps1@PipelineCommon'
+                        scriptArguments: >
+                          -ResourceGroupName '$(resourceGroupName)'
+                          -ResourceName '$(redisName)'
+
+                      - displayName: Set DNS record for Redis
+                        condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+                        scriptPath: 'Set-PrivateDnsRecordSet.ps1@PipelineCommon'
+                        scriptArguments: >
+                          -UpdateAllDnsZones $true
+
+                - template: /templates/steps/powershell.yaml@PipelineCommon
+                  parameters:
+                    azureResourceManagerConnection: AZR-MST-PrivateLinkDNS
+                    variables:
+                      projectServiceConnection: $(serviceConnection)
+                    scriptsList:
                       - displayName: Resolve Private Endpoint IPs for Search
                         serviceConnectionVariableName: projectServiceConnection
                         scriptPath: 'Get-ResourcePrivateEndPointsDnsRecordsAsJson.ps1@PipelineCommon'
