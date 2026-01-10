@@ -37,7 +37,7 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2025-07-01' = {
         vnetSubnetID: aksParams.subnetId
         enableNodePublicIP: false
         minCount: 1
-        maxCount: 3
+        maxCount: 1
         enableAutoScaling: true
       }
       {
@@ -49,7 +49,7 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2025-07-01' = {
         vnetSubnetID: aksParams.subnetId
         enableNodePublicIP: false
         minCount: 1
-        maxCount: 5
+        maxCount: 1
         enableAutoScaling: true
       }
     ]
