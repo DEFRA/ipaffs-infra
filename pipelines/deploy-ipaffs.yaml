@@ -34,6 +34,10 @@ parameters:
     displayName: Services
     type: object
     default:
+      - name: approved-establishment-service
+        migrations: true
+        pipeline: approved-establishment-service
+
       - name: archive-notifications
         migrations: false
         pipeline: archive-notifications-service
@@ -61,6 +65,10 @@ parameters:
       - name: checks-service
         migrations: true
         pipeline: checks-service
+
+      - name: commodity-code-service
+        migrations: true
+        pipeline: commodity-code-service
 
       - name: control-frontend
         migrations: false
@@ -126,6 +134,12 @@ resources:
       name: DEFRA/ipaffs-infra
       ref: refs/heads/main
 
+    - repository: approved-establishment-service
+      type: github
+      endpoint: DEFRA
+      name: DEFRA/ipaffs-approvedestablishment-microservice
+      ref: refs/heads/master
+
     - repository: archive-notifications
       type: github
       endpoint: DEFRA
@@ -156,16 +170,22 @@ resources:
       name: DEFRA/ipaffs-frontend-bordernotification
       ref: refs/heads/master
 
+    - repository: checks-frontend
+      type: github
+      endpoint: DEFRA
+      name: DEFRA/ipaffs-frontend-checks
+      ref: refs/heads/master
+
     - repository: checks-service
       type: github
       endpoint: DEFRA
       name: DEFRA/ipaffs-checks-microservice
       ref: refs/heads/master
 
-    - repository: checks-frontend
+    - repository: commodity-code-service
       type: github
       endpoint: DEFRA
-      name: DEFRA/ipaffs-frontend-checks
+      name: DEFRA/ipaffs-commoditycode-microservice
       ref: refs/heads/master
 
     - repository: control-frontend
