@@ -7,7 +7,7 @@ param subnetIds array
 param tags object
 param tenantId string
 
-resource redis 'Microsoft.Search/searchServices@2025-05-01' = {
+resource redis 'Microsoft.Cache/redis@2024-11-01' = {
   name: redisParams.name
   location: location
   tags: tags
