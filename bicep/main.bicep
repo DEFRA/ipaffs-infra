@@ -14,6 +14,7 @@ param externalSecretsParams object
 param keyVaultParams object
 param monitoringParams object
 param nsgParams object
+param redisParams object
 param searchParams object
 param sqlParams object
 param vnetParams object
@@ -120,6 +121,22 @@ module nsg './modules/network-security-groups.bicep' = {
   ]
 }
 
+module redis './modules/redis.bicep' = {
+  name: 'redis-${deploymentId}'
+  scope: resourceGroup()
+  params: {
+    deploymentId: deploymentId
+    redisParams: redisParams
+    location: location
+    subnetIds: vnet.outputs.subnetIds
+    tags: tags
+    tenantId: tenantId
+  }
+  dependsOn: [
+    nsg
+  ]
+}
+
 module search './modules/search.bicep' = {
   name: 'search-${deploymentId}'
   scope: resourceGroup()
@@ -181,6 +198,7 @@ output azureServiceOperatorClientId string = aso.outputs.clientId
 output externalSecretsClientId string = externalSecrets.outputs.clientId
 output keyVaultName string = keyVault.outputs.keyVaultName
 output keyVaultUri string = keyVault.outputs.keyVaultUri
+output redisName string = redis.outputs.redisName
 output searchServiceName string = search.outputs.searchServiceName
 output sqlServerName string = sql.outputs.sqlServerName
 output sqlServerManagedIdentityObjectId string = sql.outputs.sqlServerManagedIdentityObjectId
