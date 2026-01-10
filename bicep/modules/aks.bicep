@@ -48,7 +48,7 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2025-07-01' = {
         mode: 'User'
         vnetSubnetID: aksParams.subnetId
         enableNodePublicIP: false
-        minCount: 2
+        minCount: 1
         maxCount: 5
         enableAutoScaling: true
       }
