@@ -16,6 +16,14 @@ serviceBus:
     - enotification-event-queue
   topics: []
 
+storage:
+  blobs:
+    - approvedestablishment
+    - bip
+    - commoditycode
+    - economicoperator
+    - notificationdocuments
+
 ipaffsConfig:
   data:
     JWT_CERT_ISSUER: "api://imports-proxy"

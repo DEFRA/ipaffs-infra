@@ -1,0 +1,57 @@
+{{- $storage := default (dict "blobs" (list)) .Values.storage }}
+apiVersion: storage.azure.com/v1api20230101
+kind: StorageAccount
+metadata:
+  name: {{ template "ipaffs-common.azure.storageAccount" . }}
+  labels:
+    {{- include "ipaffs-common.labels" . | nindent 4 }}
+  annotations:
+    serviceoperator.azure.com/reconcile-policy: manage
+spec:
+  owner:
+    name: {{ template "ipaffs-common.azure.resourceGroup" . }}
+  location: {{ .Values.azure.location }}
+  kind: StorageV2
+  sku:
+    name: Standard_LRS
+  accessTier: Hot
+  operatorSpec:
+    configMaps:
+      blobEndpoint:
+        name: {{ printf "%s-storage" .Values.service }}
+        key: BLOB_ENDPOINT
+    secrets:
+      key1:
+        name: {{ printf "%s-storage" .Values.service }}
+        key: STORAGE_KEY
+
+---
+apiVersion: storage.azure.com/v1api20230101
+kind: StorageAccountsBlobService
+metadata:
+  name: {{ template "ipaffs-common.azure.storageAccount" . }}
+  namespace: default
+  annotations:
+    # This isn't an independent resource and is only deleted when the SA is deleted
+    serviceoperator.azure.com/reconcile-policy: detach-on-delete
+spec:
+  owner:
+    name: {{ template "ipaffs-common.azure.storageAccount" . }}
+
+{{- range $storage.blobs }}
+---
+apiVersion: storage.azure.com/v1api20230101
+kind: StorageAccountsBlobServicesContainer
+metadata:
+  name: {{ . }}
+  labels:
+    {{- include "ipaffs-common.labels" $ | nindent 4 }}
+  annotations:
+    serviceoperator.azure.com/reconcile-policy: manage
+spec:
+  owner:
+    name: {{ template "ipaffs-common.azure.storageAccount" $ }}
+
+{{- end }}
+
+# vim: set ts=2 sts=2 sw=2 et:

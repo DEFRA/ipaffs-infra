@@ -9,6 +9,9 @@ serviceBus:
   queues: []
   topics: []
 
+storage:
+  blobs: []
+
 ipaffsConfig:
   data: {}
 

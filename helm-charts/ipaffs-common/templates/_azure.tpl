@@ -21,6 +21,10 @@ Azure Resource Names
 {{- printf "%simpinfsb1401-%s" .Values.environment .Release.Namespace }}
 {{- end }}
 
+{{- define "ipaffs-common.azure.storageAccount" -}}
+{{- printf "%simpinfst1401%s" .Values.environment (substr 0 9 (sha256sum .Release.Namespace)) }}
+{{- end }}
+
 {{- define "ipaffs-common.azure.sqlServer" -}}
 {{- printf "%simpdbssq1401" .Values.environment }}
 {{- end }}
