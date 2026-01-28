@@ -8,7 +8,7 @@ param tags object
 param vnetName string
 param logAnalyticsId string
 
-resource aksCluster 'Microsoft.ContainerService/managedClusters@2025-07-01' = {
+resource aksCluster 'Microsoft.ContainerService/managedClusters@2025-10-01' = {
   name: aksParams.name
   location: location
   tags: tags
@@ -20,56 +20,12 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2025-07-01' = {
   properties: {
     dnsPrefix: aksParams.dnsPrefix
     kubernetesVersion: aksParams.version
+    publicNetworkAccess: 'Disabled'
 
     aadProfile: {
       managed: true
       enableAzureRBAC: true
       adminGroupObjectIDs: aksParams.adminGroupObjectIDs
-    }
-
-    agentPoolProfiles: [
-      {
-        name: 'system'
-        vmSize: 'Standard_E16as_v6' // TODO: change to 'Standard_E2as_v6'
-        osType: 'Linux'
-        type: 'VirtualMachineScaleSets'
-        mode: 'System'
-        vnetSubnetID: aksParams.subnetId
-        enableNodePublicIP: false
-        minCount: 1
-        maxCount: 1
-        enableAutoScaling: true
-      }
-      {
-        name: 'user'
-        vmSize: 'Standard_E16as_v6'
-        osType: 'Linux'
-        type: 'VirtualMachineScaleSets'
-        mode: 'User'
-        vnetSubnetID: aksParams.subnetId
-        enableNodePublicIP: false
-        minCount: 1
-        maxCount: 1
-        enableAutoScaling: true
-      }
-    ]
-
-    networkProfile: {
-      networkPlugin: 'azure'
-      networkPolicy: 'calico'
-      loadBalancerSku: 'standard'
-      outboundType: 'userDefinedRouting'
-      serviceCidr: '10.240.0.0/16'
-      dnsServiceIP: '10.240.0.10'
-    }
-
-    apiServerAccessProfile: {
-      enablePrivateCluster: true
-      privateDNSZone: 'none'
-    }
-
-    oidcIssuerProfile: {
-      enabled: true
     }
 
     addonProfiles: {
@@ -82,6 +38,55 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2025-07-01' = {
       }
     }
 
+    agentPoolProfiles: [
+      {
+        name: 'system'
+        enableAutoScaling: true
+        enableNodePublicIP: false
+        maxCount: aksParams.nodePools.system.maxCount
+        minCount: aksParams.nodePools.system.minCount
+        mode: 'System'
+        nodeResourceGroup: aksParams.nodeResourceGroup
+        osType: 'Linux'
+        type: 'VirtualMachineScaleSets'
+        vmSize: aksParams.nodePools.system.vmSize
+        vnetSubnetID: aksParams.nodePools.system.subnetId
+
+        securityProfile: {
+          enableSecureBoot: true
+          enableVTPM: true
+        }
+      }
+      {
+        name: 'user'
+        enableAutoScaling: true
+        enableNodePublicIP: false
+        maxCount: aksParams.nodePools.user.maxCount
+        minCount: aksParams.nodePools.user.minCount
+        mode: 'User'
+        nodeResourceGroup: aksParams.nodeResourceGroup
+        osType: 'Linux'
+        type: 'VirtualMachineScaleSets'
+        vmSize: aksParams.nodePools.user.vmSize
+        vnetSubnetID: aksParams.nodePools.user.subnetId
+
+        securityProfile: {
+          enableSecureBoot: true
+          enableVTPM: true
+        }
+      }
+    ]
+
+    apiServerAccessProfile: {
+      enablePrivateCluster: true
+      privateDNSZone: 'none'
+    }
+
+    autoUpgradeProfile: {
+      nodeOSUpgradeChannel: 'SecurityPatch'
+      upgradeChannel: 'none'
+    }
+
     azureMonitorProfile: {
       metrics: {
         enabled: true
@@ -89,6 +94,27 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2025-07-01' = {
           metricAnnotationsAllowList: '*'
           metricLabelsAllowlist: '*'
         }
+      }
+    }
+
+    oidcIssuerProfile: {
+      enabled: true
+    }
+
+    networkProfile: {
+      dnsServiceIP: '10.240.0.10'
+      loadBalancerSku: 'standard'
+      networkPlugin: 'azure'
+      networkPluginMode: 'overlay'
+      networkPolicy: 'calico'
+      outboundType: 'userDefinedRouting'
+      podCidr: '10.240.0.0/16'
+      serviceCidr: '10.240.0.0/16'
+    }
+
+    securityProfile: {
+      workloadIdentity: {
+        enabled: true
       }
     }
   }

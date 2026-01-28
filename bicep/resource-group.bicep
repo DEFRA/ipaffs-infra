@@ -2,7 +2,7 @@ targetScope = 'subscription'
 
 param name string
 
-@allowed(['POC', 'TST'])
+@allowed(['POC', 'DEV', 'TST'])
 param environment string
 
 @allowed(['northeuropa', 'uksouth'])
