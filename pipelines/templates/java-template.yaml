@@ -4,8 +4,6 @@ parameters:
     displayName: Environment
     type: string
     default: POC
-    values:
-      - POC
 
   - name: serviceName
     type: string
