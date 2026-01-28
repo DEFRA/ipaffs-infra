@@ -111,7 +111,7 @@ stages:
                         --resource-group $(resourceGroupName) \
                         --template-file bicep/main.bicep \
                         --parameters bicep/runtime.bicepparam \
-                        --parameters subscriptionId="$(subscriptionId)"
+                        --parameters subscriptionId="$(subscriptionId)" \
                         --parameters tenantId="$(tenantId)"
 
                 - task: AzureCLI@2
@@ -127,7 +127,7 @@ stages:
                         --resource-group $(resourceGroupName) \
                         --template-file bicep/main.bicep \
                         --parameters bicep/runtime.bicepparam \
-                        --parameters subscriptionId="$(subscriptionId)"
+                        --parameters subscriptionId="$(subscriptionId)" \
                         --parameters tenantId="$(tenantId)"
 
                 - task: AzureCLI@2
