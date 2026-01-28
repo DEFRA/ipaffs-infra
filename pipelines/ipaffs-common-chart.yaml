@@ -26,6 +26,7 @@ parameters:
     default: POC
     values:
       - POC
+      - DEV
 
 variables:
   - group: "${{ parameters.environmentName }}"

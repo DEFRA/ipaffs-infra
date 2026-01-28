@@ -1,11 +1,12 @@
 targetScope = 'resourceGroup'
 
-@allowed(['POC', 'TST'])
+@allowed(['POC', 'DEV', 'TST'])
 param environment string
 
 param builtInGroups object
 param entraGroups object
 param tenantId string
+param subscriptionId string
 
 param acrParams object
 param aksParams object

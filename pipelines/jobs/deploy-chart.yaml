@@ -1,8 +1,6 @@
 parameters:
   - name: environmentName
     type: string
-    values:
-      - POC
 
   - name: migrationsClientId
     type: string

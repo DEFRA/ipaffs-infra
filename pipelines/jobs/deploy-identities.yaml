@@ -2,8 +2,6 @@ parameters:
   - name: environmentName
     type: string
     default: POC
-    values:
-      - POC
 
   - name: migrations
     type: boolean
