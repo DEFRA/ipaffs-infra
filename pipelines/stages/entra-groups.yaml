@@ -119,7 +119,8 @@ stages:
               ADO_PROJECT: $(System.TeamProject)
               ADO_GROUP_NAME: ${{ parameters.environmentName }}
             inputs:
-              azureSubscription: $(serviceConnection)
+              # TODO: fix this for all envs
+              azureSubscription: ADO-DefraGovUK-AZR-POC_IMP
               scriptType: bash
               scriptLocation: inlineScript
               inlineScript: |

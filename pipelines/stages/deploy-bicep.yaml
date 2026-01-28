@@ -167,7 +167,8 @@ stages:
               DEPLOYMENT_NAME: Infrastructure-$(Build.BuildId)
               RESOURCE_GROUP: $(resourceGroupName)
             inputs:
-              azureSubscription: $(serviceConnection)
+              # TODO: fix this for all envs
+              azureSubscription: ADO-DefraGovUK-AZR-POC_IMP
               scriptType: bash
               scriptLocation: inlineScript
               inlineScript: |
