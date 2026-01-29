@@ -1,7 +1,5 @@
 #!/bin/bash
 
-## NOTE: Currently only service principals are supported as group owners
-
 set -x
 
 SCRIPTS_DIR="$(cd "$(dirname $0)"/.. && pwd)"
@@ -40,8 +38,15 @@ read -r -d '' groupJson <<EOF
 EOF
 
 # Check for existing group
-objectId="$(OBJECT_NAME="${GROUP_NAME}" OBJECT_TYPE=group "${SCRIPTS_DIR}/pipeline/lookup-directory-object.sh" -o plain)"
-if [[ $? -eq 0 ]]; then
+objectId=
+if [[ -z "${GROUP_ID}" ]]; then
+  result="$(OBJECT_NAME="${GROUP_NAME}" OBJECT_TYPE=group "${SCRIPTS_DIR}/pipeline/lookup-directory-object.sh" -o plain)"
+  [[ $? -eq 0 ]] && objectId="${result}"
+else
+  objectId="${GROUP_ID}"
+fi
+
+if [[ -n "${objectId}" ]]; then
   # Update the group
   groupResult="$(curl -X PATCH -H "Authorization: Bearer ${TOKEN}" -H "Content-Type: application/json; charset=utf-8" -d "${groupJson}" "https://graph.microsoft.com/v1.0/groups/${objectId}")"
   [[ $? -ne 0 ]] && exit 1

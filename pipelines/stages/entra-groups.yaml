@@ -29,6 +29,7 @@ stages:
               GROUP_NAME: $(adminsGroupName)
               GROUP_DESCRIPTION: Entra user group for IPAFFS Project Admins
               GROUP_OWNER_OBJECT_IDS: $(groupOwnerObjectIds)
+              GROUP_ID: 139a07e1-02c0-49ce-a9cf-4b0f5b582426
             inputs:
               azureSubscription: $(serviceConnection)
               scriptType: bash
@@ -50,6 +51,7 @@ stages:
               GROUP_NAME: $(developersGroupName)
               GROUP_DESCRIPTION: Entra user group for IPAFFS Developers
               GROUP_OWNER_OBJECT_IDS: $(groupOwnerObjectIds)
+              GROUP_ID: a0fecc06-e286-4264-8bc0-980da0189a29
             inputs:
               azureSubscription: $(serviceConnection)
               scriptType: bash
@@ -71,6 +73,7 @@ stages:
               GROUP_NAME: $(readersGroupName)
               GROUP_DESCRIPTION: Entra user group for IPAFFS Readers
               GROUP_OWNER_OBJECT_IDS: $(groupOwnerObjectIds)
+              GROUP_ID: eef5a29d-607a-43fd-96a8-664e51165878
             inputs:
               azureSubscription: $(serviceConnection)
               scriptType: bash
