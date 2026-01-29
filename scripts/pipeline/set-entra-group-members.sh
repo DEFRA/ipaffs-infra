@@ -2,7 +2,7 @@
 
 ## NOTE: Currently only users are supported as group members
 
-set -x -o pipefail
+set -x
 
 SCRIPTS_DIR="$(cd "$(dirname $0)"/.. && pwd)"
 
@@ -29,7 +29,7 @@ prefix='https://graph.microsoft.com/v1.0/servicePrincipals/'
 for i in "${!memberUPNs[@]}"; do
   upn="$(echo "${memberUPNs[i]}" | awk '{$1=$1};1')"
   [[ "${upn}" == "" ]] && continue
-  oid="$(OBJECT_NAME="${upn}" OBJECT_TYPE=user "${SCRIPTS_DIR}/pipeline/lookup-directory-object.sh" -o plain | tr -d '\n')"
+  oid="$(OBJECT_NAME="${upn}" OBJECT_TYPE=user "${SCRIPTS_DIR}/pipeline/lookup-directory-object.sh" -o plain)"
   if [[ $? -ne 0 ]]; then
     echo "User not found: ${upn}" >&2
     exit 1
