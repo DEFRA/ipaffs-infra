@@ -9,17 +9,12 @@ SCRIPTS_DIR="$(cd "$(dirname $0)"/.. && pwd)"
 TOKEN="$(az account get-access-token --scope https://graph.microsoft.com/.default --query accessToken -o tsv)"
 [[ $? -ne 0 ]] && exit 1
 
-# Check for existing group
-result="$(OBJECT_NAME="${GROUP_NAME}" OBJECT_TYPE=group "${SCRIPTS_DIR}/pipeline/lookup-directory-object.sh")"
-if [[ $? -eq 0 ]]; then
-  echo "##vso[task.setvariable variable=displayName;isOutput=true]${GROUP_NAME}"
-  echo "${result}"
-  exit 0
-fi
-
 # Parse owner object IDs
-declare -a ownerObjectIds
-[[ -n "${GROUP_OWNER_OBJECT_IDS}" ]] && IFS=',' read -ra ownerObjectIds <<<"${GROUP_OWNER_OBJECT_IDS}"
+declare -a ownerPrincipalNames
+if [[ -n "${GROUP_OWNERS}" ]]; then
+  cleanOwners="$(echo "${GROUP_OWNERS}" | tr -d '\n')"
+  IFS=' ' read -ra ownerPrincipalNames <<<"${cleanOwners}"
+fi
 
 # Include servicePrincipalId as owner (if set), which is set when addSpnToEnvironment: true
 [[ -n "${servicePrincipalId}" ]] && ownerObjectIds+=("${servicePrincipalId}")
@@ -27,8 +22,10 @@ declare -a ownerObjectIds
 # Compile owners
 ownersJson=
 prefix='https://graph.microsoft.com/v1.0/servicePrincipals/'
-for i in "${!ownerObjectIds[@]}"; do
-  oid="${ownerObjectIds[i]}"
+for i in "${!ownerPrincipalNames[@]}"; do
+  displayName="$(echo "${ownerPrincipalNames[i]}" | awk '{$1=$1};1')"
+  [[ "${displayName}" == "" ]] && continue
+  oid="$(OBJECT_NAME="${displayName}" OBJECT_TYPE=user "${SCRIPTS_DIR}/pipeline/lookup-directory-object.sh" -o plain)"
   ownersJson="${ownersJson}\"${prefix}${oid}\""
   (( i < ${#ownerObjectIds[@]} - 1 )) && ownersJson="${ownersJson}, "
 done
@@ -47,11 +44,21 @@ read -r -d '' groupJson <<EOF
 }
 EOF
 
-# Create the group
-groupResult="$(curl -X POST -H "Authorization: Bearer ${TOKEN}" -H "Content-Type: application/json; charset=utf-8" -d "${groupJson}" "https://graph.microsoft.com/v1.0/groups")"
-[[ $? -ne 0 ]] && exit 1
-[[ "$(jq -r '.error.code' <<<"${groupResult}")" == "null" ]] || exit 1
-objectId="$(echo "${groupResult}" | jq -r '.id')"
+# Check for existing group
+objectId="$(OBJECT_NAME="${GROUP_NAME}" OBJECT_TYPE=group "${SCRIPTS_DIR}/pipeline/lookup-directory-object.sh" -o plain)"
+if [[ $? -eq 0 ]]; then
+  # Update the group
+  groupResult="$(curl -X PATCH -H "Authorization: Bearer ${TOKEN}" -H "Content-Type: application/json; charset=utf-8" -d "${groupJson}" "https://graph.microsoft.com/v1.0/groups/${objectId}")"
+  [[ $? -ne 0 ]] && exit 1
+  [[ "$(jq -r '.error.code' <<<"${groupResult}")" == "null" ]] || exit 1
+else
+  # Create the group
+  groupResult="$(curl -X POST -H "Authorization: Bearer ${TOKEN}" -H "Content-Type: application/json; charset=utf-8" -d "${groupJson}" "https://graph.microsoft.com/v1.0/groups")"
+  [[ $? -ne 0 ]] && exit 1
+  [[ "$(jq -r '.error.code' <<<"${groupResult}")" == "null" ]] || exit 1
+  objectId="$(echo "${groupResult}" | jq -r '.id')"
+fi
+
 set +x
 echo "##vso[task.setvariable variable=displayName;isOutput=true]${GROUP_NAME}"
 echo "##vso[task.setvariable variable=objectId;isOutput=true]${objectId}"

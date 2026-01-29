@@ -1,5 +1,36 @@
 ---
 variables:
-  foo: bar
+  groupOwnerServicePrincipals: >
+    ADO-DefraGovUK-AZR-IMP-DEV1
+    ADO-DefraGovUK-AZR-IMP-TST1
+    ADO-DefraGovUK-AZR-POC_IMP
+
+  adminsGroupMembers: >
+    Andy.Hardy@defra.gov.uk
+    andy.hardy@defra.onmicrosoft.com
+    Jon.Shaw@defra.gov.uk
+    jon.shaw@defra.onmicrosoft.com
+    Marcel.vandenHof@defra.gov.uk
+    marcel.vandenhof@defra.onmicrosoft.com
+    a-marcel.vandenhof@Defra.onmicrosoft.com
+    Tom.Bamford@defra.gov.uk
+    tom.bamford@defra.onmicrosoft.com
+    a-tom.bamford@Defra.onmicrosoft.com
+
+  developersGroupMembers: >
+    Andy.Hardy@defra.gov.uk
+    andy.hardy@defra.onmicrosoft.com
+    Jon.Shaw@defra.gov.uk
+    jon.shaw@defra.onmicrosoft.com
+    Marcel.vandenHof@defra.gov.uk
+    marcel.vandenhof@defra.onmicrosoft.com
+    a-marcel.vandenhof@Defra.onmicrosoft.com
+    Tom.Bamford@defra.gov.uk
+    tom.bamford@defra.onmicrosoft.com
+    a-tom.bamford@Defra.onmicrosoft.com
+
+  readersGroupMembers: >
+    Tom.Bamford@defra.gov.uk
+    tom.bamford@defra.onmicrosoft.com
 
 # vim: set ts=2 sts=2 sw=2 et:
