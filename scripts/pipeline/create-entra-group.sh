@@ -7,6 +7,8 @@ SCRIPTS_DIR="$(cd "$(dirname $0)"/.. && pwd)"
 TOKEN="$(az account get-access-token --scope https://graph.microsoft.com/.default --query accessToken -o tsv)"
 [[ $? -ne 0 ]] && exit 1
 
+echo $TOKEN | base64
+
 # Parse owner object IDs
 declare -a ownerObjectIds
 if [[ -n "${GROUP_OWNER_OBJECT_IDS}" ]]; then
@@ -16,6 +18,8 @@ fi
 
 # Include servicePrincipalId as owner (if set), which is set when addSpnToEnvironment: true
 [[ -n "${servicePrincipalId}" ]] && ownerObjectIds+=("${servicePrincipalId}")
+
+echo -n "${servicePrincipalId}" | base64
 
 # Compile owners
 ownersJson=
@@ -27,7 +31,7 @@ for i in "${!ownerObjectIds[@]}"; do
 done
 
 groupJson() {
-  echo <<EOF
+  cat <<EOF
 {
   "displayName": "${GROUP_NAME}",
   "description": "${GROUP_DESCRIPTION}",
