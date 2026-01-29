@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -x
+set -x -o pipefail
 
 SCRIPTS_DIR="$(cd "$(dirname $0)"/.. && pwd)"
 
@@ -9,7 +9,10 @@ TOKEN="$(az account get-access-token --scope https://graph.microsoft.com/.defaul
 
 # Parse owner object IDs
 declare -a ownerObjectIds
-[[ -n "${GROUP_OWNER_OBJECT_IDS}" ]] && IFS=',' read -ra ownerObjectIds <<<"${GROUP_OWNER_OBJECT_IDS}"
+if [[ -n "${GROUP_OWNER_OBJECT_IDS}" ]]; then
+  cleanOwners="$(echo "${GROUP_OWNER_OBJECT_IDS}" | tr -d '\n')"
+  IFS=' ' read -ra ownerObjectIds <<<"${cleanOwners}"
+fi
 
 # Include servicePrincipalId as owner (if set), which is set when addSpnToEnvironment: true
 [[ -n "${servicePrincipalId}" ]] && ownerObjectIds+=("${servicePrincipalId}")
@@ -40,7 +43,7 @@ EOF
 # Check for existing group
 objectId=
 if [[ -z "${GROUP_ID}" ]]; then
-  result="$(OBJECT_NAME="${GROUP_NAME}" OBJECT_TYPE=group "${SCRIPTS_DIR}/pipeline/lookup-directory-object.sh" -o plain)"
+  result="$(OBJECT_NAME="${GROUP_NAME}" OBJECT_TYPE=group "${SCRIPTS_DIR}/pipeline/lookup-directory-object.sh" -o plain | tr -d '\n')"
   [[ $? -eq 0 ]] && objectId="${result}"
 else
   objectId="${GROUP_ID}"
