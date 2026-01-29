@@ -6,7 +6,6 @@ param environment string
 param builtInGroups object
 param entraGroups object
 param tenantId string
-param subscriptionId string
 
 param acrParams object
 param aksParams object

@@ -2,7 +2,6 @@ using '../../main.bicep'
 
 param environment = 'POC'
 param tenantId = ''
-param subscriptionId = ''
 
 param builtInGroups = {
   contributors: '4b2fbef7-de9d-4836-a44e-46c56aad3d9e' // AG-Azure-IMP_POC1-Contributors
