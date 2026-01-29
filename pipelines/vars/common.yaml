@@ -1,6 +1,7 @@
 ---
 variables:
   groupOwnerServicePrincipals: >
+    AZR-SSV5-IPAFFS
     ADO-DefraGovUK-AZR-IMP-DEV1
     ADO-DefraGovUK-AZR-IMP-TST1
     ADO-DefraGovUK-AZR-POC_IMP

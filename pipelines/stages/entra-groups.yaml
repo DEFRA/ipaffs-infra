@@ -3,8 +3,8 @@ parameters:
     type: string
 
 stages:
-  - stage: CreateEntraGroups
-    displayName: Create Entra Groups
+  - stage: CreateUserGroups
+    displayName: Create Entra User Groups
     variables:
       - group: "${{ parameters.environmentName }}"
       - template: "/pipelines/vars/common.yaml"
@@ -30,7 +30,7 @@ stages:
               GROUP_DESCRIPTION: Entra user group for IPAFFS Project Admins
               GROUP_OWNERS: $(groupOwnerServicePrincipals)
             inputs:
-              azureSubscription: $(upstreamServiceConnection)
+              azureSubscription: $(serviceConnection)
               scriptType: bash
               scriptPath: scripts/pipeline/create-entra-group.sh
 
@@ -51,7 +51,7 @@ stages:
               GROUP_DESCRIPTION: Entra user group for IPAFFS Developers
               GROUP_OWNERS: $(groupOwnerServicePrincipals)
             inputs:
-              azureSubscription: $(upstreamServiceConnection)
+              azureSubscription: $(serviceConnection)
               scriptType: bash
               scriptPath: scripts/pipeline/create-entra-group.sh
 
@@ -72,7 +72,7 @@ stages:
               GROUP_DESCRIPTION: Entra user group for IPAFFS Readers
               GROUP_OWNERS: $(groupOwnerServicePrincipals)
             inputs:
-              azureSubscription: $(upstreamServiceConnection)
+              azureSubscription: $(serviceConnection)
               scriptType: bash
               scriptPath: scripts/pipeline/create-entra-group.sh
 
@@ -86,6 +86,17 @@ stages:
               scriptType: bash
               scriptPath: scripts/pipeline/set-entra-group-members.sh
 
+
+  - stage: CreateAccessGroups
+    displayName: Create Entra Access Groups
+    dependsOn: CreateUserGroups
+    variables:
+      - group: "${{ parameters.environmentName }}"
+      - template: "/pipelines/vars/common.yaml"
+      - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
+      - name: teamAdminsObjectId
+        value: $[stageDependencies.CreateUserGroups.TeamGroups.outputs['AdminsGroup.objectId']]
+    jobs:
       - job: SearchGroups
         displayName: Search Service Groups
         #condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
@@ -107,6 +118,16 @@ stages:
               azureSubscription: $(upstreamServiceConnection)
               scriptType: bash
               scriptPath: scripts/pipeline/create-entra-group.sh
+
+          - task: AzureCLI@2
+            name: SearchContributorsMember
+            env:
+              GROUP_ID: $(SearchContributors.objectId)
+              PRINCIPAL_ID: $(teamAdminsObjectId)
+            inputs:
+              azureSubscription: $(serviceConnection)
+              scriptType: bash
+              scriptPath: scripts/pipeline/add-principal-to-group.sh
 
           - task: AzureCLI@2
             name: SearchReaders
@@ -139,27 +160,37 @@ stages:
               scriptType: bash
               scriptPath: scripts/pipeline/create-entra-group.sh
 
+          - task: AzureCLI@2
+            name: SQLAdminsMember
+            env:
+              GROUP_ID: $(SQLAdmins.objectId)
+              PRINCIPAL_ID: $(teamAdminsObjectId)
+            inputs:
+              azureSubscription: $(serviceConnection)
+              scriptType: bash
+              scriptPath: scripts/pipeline/add-principal-to-group.sh
+
 
   - stage: SaveGroupDetails
     displayName: Save group details
-    dependsOn: CreateEntraGroups
+    dependsOn: CreateAccessGroups
     #condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
     variables:
       - group: "${{ parameters.environmentName }}"
       - template: "/pipelines/vars/common.yaml"
       - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
       - name: searchContributorsDisplayName
-        value: $[stageDependencies.CreateEntraGroups.SearchGroups.outputs['SearchContributors.displayName']]
+        value: $[stageDependencies.CreateAccessGroups.SearchGroups.outputs['SearchContributors.displayName']]
       - name: searchContributorsObjectId
-        value: $[stageDependencies.CreateEntraGroups.SearchGroups.outputs['SearchContributors.objectId']]
+        value: $[stageDependencies.CreateAccessGroups.SearchGroups.outputs['SearchContributors.objectId']]
       - name: searchReadersDisplayName
-        value: $[stageDependencies.CreateEntraGroups.SearchGroups.outputs['SearchReaders.displayName']]
+        value: $[stageDependencies.CreateAccessGroups.SearchGroups.outputs['SearchReaders.displayName']]
       - name: searchReadersObjectId
-        value: $[stageDependencies.CreateEntraGroups.SearchGroups.outputs['SearchReaders.objectId']]
+        value: $[stageDependencies.CreateAccessGroups.SearchGroups.outputs['SearchReaders.objectId']]
       - name: sqlAdminsDisplayName
-        value: $[stageDependencies.CreateEntraGroups.SQLGroups.outputs['SQLAdmins.displayName']]
+        value: $[stageDependencies.CreateAccessGroups.SQLGroups.outputs['SQLAdmins.displayName']]
       - name: sqlAdminsObjectId
-        value: $[stageDependencies.CreateEntraGroups.SQLGroups.outputs['SQLAdmins.objectId']]
+        value: $[stageDependencies.CreateAccessGroups.SQLGroups.outputs['SQLAdmins.objectId']]
     jobs:
       - job: UpdateGroupVariables
         displayName: Update group variables
