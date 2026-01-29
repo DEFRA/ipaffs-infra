@@ -25,9 +25,9 @@ prefix='https://graph.microsoft.com/v1.0/servicePrincipals/'
 for i in "${!ownerPrincipalNames[@]}"; do
   displayName="$(echo "${ownerPrincipalNames[i]}" | awk '{$1=$1};1')"
   [[ "${displayName}" == "" ]] && continue
-  oid="$(OBJECT_NAME="${displayName}" OBJECT_TYPE=user "${SCRIPTS_DIR}/pipeline/lookup-directory-object.sh" -o plain)"
+  oid="$(OBJECT_NAME="${displayName}" OBJECT_TYPE=servicePrincipal "${SCRIPTS_DIR}/pipeline/lookup-directory-object.sh" -o plain)"
   ownersJson="${ownersJson}\"${prefix}${oid}\""
-  (( i < ${#ownerObjectIds[@]} - 1 )) && ownersJson="${ownersJson}, "
+  (( i < ${#ownerPrincipalNames[@]} - 1 )) && ownersJson="${ownersJson}, "
 done
 
 read -r -d '' groupJson <<EOF
