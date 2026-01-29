@@ -26,6 +26,55 @@ stages:
               scriptType: bash
               scriptPath: scripts/pipeline/lookup-directory-object.sh
 
+      - job: TeamGroups
+        displayName: Team Groups
+        condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+        dependsOn: LookupServicePrincipals
+        variables:
+          - name: adminsGroupName
+            value: AAG-Users-IPAFFS-ProjAdmins
+          - name: developersGroupName
+            value: AAG-Users-IPAFFS-Developers
+          - name: readersGroupName
+            value: AAG-Users-IPAFFS-Readers
+          - name: serviceConnectionObjectId
+            value: $[dependencies.LookupServicePrincipals.outputs['ServiceConnection.objectId']]
+        steps:
+          - checkout: self
+
+          - task: AzureCLI@2
+            name: Admins
+            env:
+              GROUP_NAME: $(adminsGroupName)
+              GROUP_DESCRIPTION: Entra user group for IPAFFS Project Admins
+              GROUP_OWNER_OBJECT_IDS: $(serviceConnectionObjectId)
+            inputs:
+              azureSubscription: $(upstreamServiceConnection)
+              scriptType: bash
+              scriptPath: scripts/pipeline/create-entra-group.sh
+
+          - task: AzureCLI@2
+            name: Developers
+            env:
+              GROUP_NAME: $(developersGroupName)
+              GROUP_DESCRIPTION: Entra user group for IPAFFS Developers
+              GROUP_OWNER_OBJECT_IDS: $(serviceConnectionObjectId)
+            inputs:
+              azureSubscription: $(upstreamServiceConnection)
+              scriptType: bash
+              scriptPath: scripts/pipeline/create-entra-group.sh
+
+          - task: AzureCLI@2
+            name: Readers
+            env:
+              GROUP_NAME: $(readersGroupName)
+              GROUP_DESCRIPTION: Entra user group for IPAFFS Readers
+              GROUP_OWNER_OBJECT_IDS: $(serviceConnectionObjectId)
+            inputs:
+              azureSubscription: $(upstreamServiceConnection)
+              scriptType: bash
+              scriptPath: scripts/pipeline/create-entra-group.sh
+
       - job: SearchGroups
         displayName: Search Service Groups
         condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
