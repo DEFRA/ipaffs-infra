@@ -28,7 +28,7 @@ stages:
             env:
               GROUP_NAME: $(adminsGroupName)
               GROUP_DESCRIPTION: Entra user group for IPAFFS Project Admins
-              GROUP_OWNERS: $(groupOwnerServicePrincipals)
+              GROUP_OWNER_OBJECT_IDS: $(groupOwnerObjectIds)
             inputs:
               azureSubscription: $(serviceConnection)
               scriptType: bash
@@ -49,7 +49,7 @@ stages:
             env:
               GROUP_NAME: $(developersGroupName)
               GROUP_DESCRIPTION: Entra user group for IPAFFS Developers
-              GROUP_OWNERS: $(groupOwnerServicePrincipals)
+              GROUP_OWNER_OBJECT_IDS: $(groupOwnerObjectIds)
             inputs:
               azureSubscription: $(serviceConnection)
               scriptType: bash
@@ -70,7 +70,7 @@ stages:
             env:
               GROUP_NAME: $(readersGroupName)
               GROUP_DESCRIPTION: Entra user group for IPAFFS Readers
-              GROUP_OWNERS: $(groupOwnerServicePrincipals)
+              GROUP_OWNER_OBJECT_IDS: $(groupOwnerObjectIds)
             inputs:
               azureSubscription: $(serviceConnection)
               scriptType: bash
@@ -113,7 +113,7 @@ stages:
             env:
               GROUP_NAME: $(contributorsGroupName)
               GROUP_DESCRIPTION: Entra access group for IPAFFS Search Services Contributors
-              GROUP_OWNERS: $(serviceConnection)
+              GROUP_OWNER_OBJECT_IDS: $(groupOwnerObjectIds)
             inputs:
               azureSubscription: $(upstreamServiceConnection)
               scriptType: bash
@@ -134,7 +134,7 @@ stages:
             env:
               GROUP_NAME: $(readersGroupName)
               GROUP_DESCRIPTION: Entra access group for IPAFFS Search Services Readers
-              GROUP_OWNERS: $(serviceConnection)
+              GROUP_OWNER_OBJECT_IDS: $(groupOwnerObjectIds)
             inputs:
               azureSubscription: $(upstreamServiceConnection)
               scriptType: bash
@@ -154,7 +154,7 @@ stages:
             env:
               GROUP_NAME: $(groupName)
               GROUP_DESCRIPTION: Entra access group for IPAFFS SQL Admins
-              GROUP_OWNERS: $(serviceConnection)
+              GROUP_OWNER_OBJECT_IDS: $(groupOwnerObjectIds)
             inputs:
               azureSubscription: $(upstreamServiceConnection)
               scriptType: bash

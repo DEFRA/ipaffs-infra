@@ -1,10 +1,14 @@
 ---
 variables:
-  groupOwnerServicePrincipals: >
-    AZR-SSV5-IPAFFS
-    ADO-DefraGovUK-AZR-IMP-DEV1
-    ADO-DefraGovUK-AZR-IMP-TST1
-    ADO-DefraGovUK-AZR-POC_IMP
+  # AZR-SSV5-IPAFFS: 09b875f4-3dea-4c69-bf36-e6915741d4c4
+  # ADO-DefraGovUK-AZR-IMP-DEV1: c5daee65-10cb-4d04-b721-d3da81357568
+  # ADO-DefraGovUK-AZR-IMP-TST1: 7b097afb-e281-4bc4-8086-c1ff4f47964b
+  # ADO-DefraGovUK-AZR-POC_IMP: ed3eec58-96fd-4c14-9a5c-933608b9c678
+  groupOwnerObjectIds: >
+    09b875f4-3dea-4c69-bf36-e6915741d4c4
+    c5daee65-10cb-4d04-b721-d3da81357568
+    7b097afb-e281-4bc4-8086-c1ff4f47964b
+    ed3eec58-96fd-4c14-9a5c-933608b9c678
 
   adminsGroupMembers: >
     Andy.Hardy@defra.gov.uk

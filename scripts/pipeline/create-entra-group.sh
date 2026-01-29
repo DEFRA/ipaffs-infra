@@ -10,11 +10,8 @@ TOKEN="$(az account get-access-token --scope https://graph.microsoft.com/.defaul
 [[ $? -ne 0 ]] && exit 1
 
 # Parse owner object IDs
-declare -a ownerPrincipalNames
-if [[ -n "${GROUP_OWNERS}" ]]; then
-  cleanOwners="$(echo "${GROUP_OWNERS}" | tr -d '\n')"
-  IFS=' ' read -ra ownerPrincipalNames <<<"${cleanOwners}"
-fi
+declare -a ownerObjectIds
+[[ -n "${GROUP_OWNER_OBJECT_IDS}" ]] && IFS=',' read -ra ownerObjectIds <<<"${GROUP_OWNER_OBJECT_IDS}"
 
 # Include servicePrincipalId as owner (if set), which is set when addSpnToEnvironment: true
 [[ -n "${servicePrincipalId}" ]] && ownerObjectIds+=("${servicePrincipalId}")
@@ -22,12 +19,10 @@ fi
 # Compile owners
 ownersJson=
 prefix='https://graph.microsoft.com/v1.0/servicePrincipals/'
-for i in "${!ownerPrincipalNames[@]}"; do
-  displayName="$(echo "${ownerPrincipalNames[i]}" | awk '{$1=$1};1')"
-  [[ "${displayName}" == "" ]] && continue
-  oid="$(OBJECT_NAME="${displayName}" OBJECT_TYPE=servicePrincipal "${SCRIPTS_DIR}/pipeline/lookup-directory-object.sh" -o plain)"
+for i in "${!ownerObjectIds[@]}"; do
+  oid="${ownerObjectIds[i]}"
   ownersJson="${ownersJson}\"${prefix}${oid}\""
-  (( i < ${#ownerPrincipalNames[@]} - 1 )) && ownersJson="${ownersJson}, "
+  (( i < ${#ownerObjectIds[@]} - 1 )) && ownersJson="${ownersJson}, "
 done
 
 read -r -d '' groupJson <<EOF
