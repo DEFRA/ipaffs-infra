@@ -53,7 +53,8 @@ exit 0
 # Update the group
 groupResult="$(curl -X PATCH -H "Authorization: Bearer ${TOKEN}" -H "Content-Type: application/json; charset=utf-8" -d "${groupJson}" "https://graph.microsoft.com/v1.0/groups/${groupObjectId}")"
 [[ $? -ne 0 ]] && exit 1
-[[ "$(jq -r '.error.code' <<<"${groupResult}")" == "null" ]] || exit 1
+errorCode="$(jq -r '.error.code' <<<"${groupResult}")"
+[[ "${errorCode}" == "null" ]] || [[ "${errorCode}" == "" ]] || exit 1
 
 exit 0
 

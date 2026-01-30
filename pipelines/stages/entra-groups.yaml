@@ -24,6 +24,21 @@ stages:
           - checkout: self
 
           - task: AzureCLI@2
+            name: AdminsGroupDelete
+            inputs:
+              azureSubscription: $(upstreamServiceConnection)
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                set -x
+                TOKEN="$(az account get-access-token --scope https://graph.microsoft.com/.default --query accessToken -o tsv)"
+                [[ $? -ne 0 ]] && exit 1
+                groupResult="$(curl -X DELETE -H "Authorization: Bearer ${TOKEN}" https://graph.microsoft.com/v1.0/groups/139a07e1-02c0-49ce-a9cf-4b0f5b582426)"
+                [[ $? -ne 0 ]] && exit 1
+                errorCode="$(jq -r '.error.code' <<<"${groupResult}")"
+                [[ "${errorCode}" == "null" ]] || [[ "${errorCode}" == "" ]] || exit 1
+
+          - task: AzureCLI@2
             name: AdminsGroup
             env:
               GROUP_NAME: $(adminsGroupName)
@@ -31,8 +46,7 @@ stages:
               GROUP_OWNER_OBJECT_IDS: $(groupOwnerObjectIds)
               GROUP_ID: 139a07e1-02c0-49ce-a9cf-4b0f5b582426
             inputs:
-              azureSubscription: $(serviceConnection)
-              addSpnToEnvironment: true
+              azureSubscription: $(upstreamServiceConnection)
               scriptType: bash
               scriptPath: scripts/pipeline/create-entra-group.sh
 
@@ -54,8 +68,7 @@ stages:
               GROUP_OWNER_OBJECT_IDS: $(groupOwnerObjectIds)
               GROUP_ID: a0fecc06-e286-4264-8bc0-980da0189a29
             inputs:
-              azureSubscription: $(serviceConnection)
-              addSpnToEnvironment: true
+              azureSubscription: $(upstreamServiceConnection)
               scriptType: bash
               scriptPath: scripts/pipeline/create-entra-group.sh
 
@@ -77,8 +90,7 @@ stages:
               GROUP_OWNER_OBJECT_IDS: $(groupOwnerObjectIds)
               GROUP_ID: eef5a29d-607a-43fd-96a8-664e51165878
             inputs:
-              azureSubscription: $(serviceConnection)
-              addSpnToEnvironment: true
+              azureSubscription: $(upstreamServiceConnection)
               scriptType: bash
               scriptPath: scripts/pipeline/create-entra-group.sh
 

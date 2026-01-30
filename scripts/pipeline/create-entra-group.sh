@@ -27,6 +27,15 @@ groupJson() {
     (( i < ${#ownerObjectIds[@]} - 1 )) && ownersJson="${ownersJson}, "
   done
 
+  # Determine whether to include owners property
+  ownersProperty=
+  [[ "${ownersJson}" = *[!\ ]* ]] && read -r -d '' ownersProperty <<EOF
+,
+   "owners@odata.bind": [
+     ${ownersJson}
+   ]
+EOF
+
   # Output group manifest
   cat <<EOF
 {
@@ -35,88 +44,102 @@ groupJson() {
   "securityEnabled": true,
   "mailEnabled": false,
   "isAssignableToRole": ${GROUP_IS_ROLE_ASSIGNABLE:-false},
-  "mailNickname": "${GROUP_NAME}",
-  "owners@odata.bind": [
-    ${ownersJson}
-  ]
+  "mailNickname": "${GROUP_NAME}"${ownersProperty}
 }
 EOF
 }
 
 # Check for existing group
+operation=create
 objectId=
-if [[ -z "${GROUP_ID}" ]]; then
-  result="$(OBJECT_NAME="${GROUP_NAME}" OBJECT_TYPE=group "${SCRIPTS_DIR}/pipeline/lookup-directory-object.sh" -o plain)"
-  [[ $? -eq 0 ]] && objectId="${result}"
-else
+if [[ -n "${GROUP_ID}" ]]; then
+  operation=update
   objectId="${GROUP_ID}"
+else
+  result="$(OBJECT_NAME="${GROUP_NAME}" OBJECT_TYPE=group "${SCRIPTS_DIR}/pipeline/lookup-directory-object.sh" -o plain)"
+  if [[ $? -eq 0 ]]; then
+    operation=update
+    objectId="${result}"
+  fi
 fi
 
-if [[ -n "${objectId}" ]]; then
-  # Update the group
-  groupResult="$(curl -X PATCH -H "Authorization: Bearer ${TOKEN}" -H "Content-Type: application/json; charset=utf-8" -d "$(groupJson)" "https://graph.microsoft.com/v1.0/groups/${objectId}")"
-  [[ $? -ne 0 ]] && exit 1
-  if [[ "$(jq -r '.error.code' <<<"${groupResult}")" != "null" ]]; then
-    if [[ "${groupResult}" =~ "One or more added object references already exist" ]]; then
-      # Retry without calling principal as owner, since the API silently prepends it
-      for i in "${!ownerObjectIds[@]}"; do
-        [[ "${ownerObjectIds[i]}" == "${principalId}" ]] && unset ownerObjectIds[i]
-      done
-      groupResult="$(curl -X PATCH -H "Authorization: Bearer ${TOKEN}" -H "Content-Type: application/json; charset=utf-8" -d "$(groupJson)" "https://graph.microsoft.com/v1.0/groups/${objectId}")"
-      [[ $? -ne 0 ]] && exit 1
-      [[ "$(jq -r '.error.code' <<<"${groupResult}")" == "null" ]] || exit 1
-    else
-      exit 1
+case "${operation}" in
+  create)
+    groupResult="$(curl -X POST -H "Authorization: Bearer ${TOKEN}" -H "Content-Type: application/json; charset=utf-8" -d "$(groupJson)" "https://graph.microsoft.com/v1.0/groups")"
+    [[ $? -ne 0 ]] && exit 1
+    errorCode="$(jq -r '.error.code' <<<"${groupResult}")"
+
+    if [[ "${errorCode}" != "null" ]] && [[ "${errorCode}" != "" ]]; then
+      if [[ "${groupResult}" =~ "One or more added object references already exist" ]]; then
+        # Retry without calling principal as owner, since the API silently prepends it
+        for i in "${!ownerObjectIds[@]}"; do
+          [[ "${ownerObjectIds[i]}" == "${principalId}" ]] && unset ownerObjectIds[i]
+        done
+        groupResult="$(curl -X POST -H "Authorization: Bearer ${TOKEN}" -H "Content-Type: application/json; charset=utf-8" -d "$(groupJson)" "https://graph.microsoft.com/v1.0/groups")"
+        [[ $? -ne 0 ]] && exit 1
+        errorCode="$(jq -r '.error.code' <<<"${groupResult}")"
+        [[ "${errorCode}" == "null" ]] || [[ "${errorCode}" == "" ]] || exit 1
+      else
+        exit 1
+      fi
     fi
-  fi
-else
-  # Create the group
-  groupResult="$(curl -X POST -H "Authorization: Bearer ${TOKEN}" -H "Content-Type: application/json; charset=utf-8" -d "$(groupJson)" "https://graph.microsoft.com/v1.0/groups")"
-  [[ $? -ne 0 ]] && exit 1
-  if [[ "$(jq -r '.error.code' <<<"${groupResult}")" != "null" ]]; then
-    if [[ "${groupResult}" =~ "One or more added object references already exist" ]]; then
-      # Retry without calling principal as owner, since the API silently prepends it
-      for i in "${!ownerObjectIds[@]}"; do
-        [[ "${ownerObjectIds[i]}" == "${principalId}" ]] && unset ownerObjectIds[i]
-      done
-      groupResult="$(curl -X POST -H "Authorization: Bearer ${TOKEN}" -H "Content-Type: application/json; charset=utf-8" -d "$(groupJson)" "https://graph.microsoft.com/v1.0/groups")"
-      [[ $? -ne 0 ]] && exit 1
-      [[ "$(jq -r '.error.code' <<<"${groupResult}")" == "null" ]] || exit 1
-    else
-      exit 1
+    objectId="$(echo "${groupResult}" | jq -r '.id')"
+    ;;
+
+  update)
+    groupResult="$(curl -X PATCH -H "Authorization: Bearer ${TOKEN}" -H "Content-Type: application/json; charset=utf-8" -d "$(groupJson)" "https://graph.microsoft.com/v1.0/groups/${objectId}")"
+    [[ $? -ne 0 ]] && exit 1
+    errorCode="$(jq -r '.error.code' <<<"${groupResult}")"
+
+    if [[ "${errorCode}" != "null" ]] && [[ "${errorCode}" != "" ]]; then
+      if [[ "${groupResult}" =~ "One or more added object references already exist" ]]; then
+        # Retry without calling principal as owner, since the API silently prepends it
+        for i in "${!ownerObjectIds[@]}"; do
+          [[ "${ownerObjectIds[i]}" == "${principalId}" ]] && unset ownerObjectIds[i]
+        done
+        groupResult="$(curl -X PATCH -H "Authorization: Bearer ${TOKEN}" -H "Content-Type: application/json; charset=utf-8" -d "$(groupJson)" "https://graph.microsoft.com/v1.0/groups/${objectId}")"
+        [[ $? -ne 0 ]] && exit 1
+        errorCode="$(jq -r '.error.code' <<<"${groupResult}")"
+        [[ "${errorCode}" == "null" ]] || [[ "${errorCode}" == "" ]] || exit 1
+      else
+        exit 1
+      fi
     fi
-  fi
-  objectId="$(echo "${groupResult}" | jq -r '.id')"
-fi
+    ;;
+esac
 
 set +x
 echo "##vso[task.setvariable variable=displayName;isOutput=true]${GROUP_NAME}"
 echo "##vso[task.setvariable variable=objectId;isOutput=true]${objectId}"
 
-# Now wait for the group to consistently appear (i.e. propagate)
-set -x
-max_attempts=10
-successful=0
-attempt=0
-wait=2
+if [[ "${operation}" == "create" ]]; then
+  # Now wait for the group to consistently appear (i.e. propagate)
+  set -x
+  max_attempts=10
+  successful=0
+  attempt=0
+  wait=2
 
-while (( attempt < max_attempts )); do
-  (( attempt++ ))
+  while (( attempt < max_attempts )); do
+    (( attempt++ ))
 
-  result="$(curl -w '%{http_code}' -s -o /dev/null -H "Authorization: Bearer ${TOKEN}" "https://graph.microsoft.com/v1.0/groups/${objectId}")"
-  if [[ "${result}" == "200" ]]; then
-    (( successful++ ))
-    (( successful == 5 )) && exit 0
-    wait=2
-    sleep 5
-  else
-    successful=0
-    sleep $wait
-    (( wait*=2 ))
-    (( wait > 60 )) && wait=60
-  fi
-done
+    result="$(curl -w '%{http_code}' -s -o /dev/null -H "Authorization: Bearer ${TOKEN}" "https://graph.microsoft.com/v1.0/groups/${objectId}")"
+    if [[ "${result}" == "200" ]]; then
+      (( successful++ ))
+      (( successful == 5 )) && exit 0
+      wait=2
+      sleep 5
+    else
+      successful=0
+      sleep $wait
+      (( wait*=2 ))
+      (( wait > 60 )) && wait=60
+    fi
+  done
 
-exit 1
+  exit 1
+fi
+
+exit 0
 
 # vim: set ts=2 sts=2 sw=2 et:
