@@ -23,9 +23,11 @@ groupJson() {
   prefix='https://graph.microsoft.com/v1.0/servicePrincipals/'
   for i in "${!ownerObjectIds[@]}"; do
     oid="${ownerObjectIds[i]}"
-    ownersJson="${ownersJson}\"${prefix}${oid}\""
-    (( i < ${#ownerObjectIds[@]} - 1 )) && ownersJson="${ownersJson}, "
+    ownersJson="${ownersJson}\"${prefix}${oid}\", "
   done
+
+  # Trim trailing comma/space from json array
+  (( ${#ownersJson} > 2 )) && ownersJson="${ownersJson::-2}"
 
   # Determine whether to include owners property
   ownersProperty=
