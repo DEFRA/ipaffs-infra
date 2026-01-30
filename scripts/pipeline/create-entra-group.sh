@@ -17,16 +17,17 @@ if [[ -n "${GROUP_OWNER_OBJECT_IDS}" ]]; then
   IFS=' ' read -ra ownerObjectIds <<<"${cleanOwners}"
 fi
 
-# Compile owners
-ownersJson=
-prefix='https://graph.microsoft.com/v1.0/servicePrincipals/'
-for i in "${!ownerObjectIds[@]}"; do
-  oid="${ownerObjectIds[i]}"
-  ownersJson="${ownersJson}\"${prefix}${oid}\""
-  (( i < ${#ownerObjectIds[@]} - 1 )) && ownersJson="${ownersJson}, "
-done
-
 groupJson() {
+  # Compile owners
+  ownersJson=
+  prefix='https://graph.microsoft.com/v1.0/servicePrincipals/'
+  for i in "${!ownerObjectIds[@]}"; do
+    oid="${ownerObjectIds[i]}"
+    ownersJson="${ownersJson}\"${prefix}${oid}\""
+    (( i < ${#ownerObjectIds[@]} - 1 )) && ownersJson="${ownersJson}, "
+  done
+
+  # Output group manifest
   cat <<EOF
 {
   "displayName": "${GROUP_NAME}",
