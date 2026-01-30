@@ -7,7 +7,8 @@ SCRIPTS_DIR="$(cd "$(dirname $0)"/.. && pwd)"
 TOKEN="$(az account get-access-token --scope https://graph.microsoft.com/.default --query accessToken -o tsv)"
 [[ $? -ne 0 ]] && exit 1
 
-echo $TOKEN | base64
+# Parse the calling principal's object ID from the token claims
+principalId="$(echo "${TOKEN}" | cut -d. -f2 | base64 -d | jq -r '.oid')"
 
 # Parse owner object IDs
 declare -a ownerObjectIds
@@ -15,11 +16,6 @@ if [[ -n "${GROUP_OWNER_OBJECT_IDS}" ]]; then
   cleanOwners="$(echo "${GROUP_OWNER_OBJECT_IDS}" | tr -d '\n')"
   IFS=' ' read -ra ownerObjectIds <<<"${cleanOwners}"
 fi
-
-# Include servicePrincipalId as owner (if set), which is set when addSpnToEnvironment: true
-[[ -n "${servicePrincipalId}" ]] && ownerObjectIds+=("${servicePrincipalId}")
-
-echo -n "${servicePrincipalId}" | base64
 
 # Compile owners
 ownersJson=
@@ -63,7 +59,7 @@ if [[ -n "${objectId}" ]]; then
     if [[ "${groupResult}" =~ "One or more added object references already exist" ]]; then
       # Retry without calling principal as owner, since the API silently prepends it
       for i in "${!ownerObjectIds[@]}"; do
-        [[ "${ownerObjectIds[i]}" == "foo" ]] && unset ownerObjectIds[i]
+        [[ "${ownerObjectIds[i]}" == "${principalId}" ]] && unset ownerObjectIds[i]
       done
       groupResult="$(curl -X PATCH -H "Authorization: Bearer ${TOKEN}" -H "Content-Type: application/json; charset=utf-8" -d "$(groupJson)" "https://graph.microsoft.com/v1.0/groups/${objectId}")"
       [[ $? -ne 0 ]] && exit 1
@@ -80,7 +76,7 @@ else
     if [[ "${groupResult}" =~ "One or more added object references already exist" ]]; then
       # Retry without calling principal as owner, since the API silently prepends it
       for i in "${!ownerObjectIds[@]}"; do
-        [[ "${ownerObjectIds[i]}" == "foo" ]] && unset ownerObjectIds[i]
+        [[ "${ownerObjectIds[i]}" == "${principalId}" ]] && unset ownerObjectIds[i]
       done
       groupResult="$(curl -X POST -H "Authorization: Bearer ${TOKEN}" -H "Content-Type: application/json; charset=utf-8" -d "$(groupJson)" "https://graph.microsoft.com/v1.0/groups")"
       [[ $? -ne 0 ]] && exit 1
