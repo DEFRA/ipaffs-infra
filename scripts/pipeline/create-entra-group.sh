@@ -4,6 +4,17 @@ set -x
 
 SCRIPTS_DIR="$(cd "$(dirname $0)"/.. && pwd)"
 
+skipUpdatingOwners=
+
+while getopts "s" opt; do
+  case $opt in
+    s)
+      # Skip updating owners on existing groups
+      skipUpdatingOwners=1
+      ;;
+  esac
+done
+
 TOKEN="$(az account get-access-token --scope https://graph.microsoft.com/.default --query accessToken -o tsv)"
 [[ $? -ne 0 ]] && exit 1
 
@@ -20,11 +31,13 @@ fi
 groupJson() {
   # Compile owners
   ownersJson=
-  prefix='https://graph.microsoft.com/v1.0/servicePrincipals/'
-  for i in "${!ownerObjectIds[@]}"; do
-    oid="${ownerObjectIds[i]}"
-    ownersJson="${ownersJson}\"${prefix}${oid}\", "
-  done
+  if [[ -z "${skipUpdatingOwners}" ]] || [[ "${operation}" != "update" ]]; then
+    prefix='https://graph.microsoft.com/v1.0/servicePrincipals/'
+    for i in "${!ownerObjectIds[@]}"; do
+      oid="${ownerObjectIds[i]}"
+      ownersJson="${ownersJson}\"${prefix}${oid}\", "
+    done
+  fi
 
   # Trim trailing comma/space from json array
   (( ${#ownersJson} > 2 )) && ownersJson="${ownersJson::-2}"
