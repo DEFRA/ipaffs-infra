@@ -10,10 +10,15 @@ TOKEN="$(az account get-access-token --scope https://graph.microsoft.com/.defaul
 [[ $? -ne 0 ]] && exit 1
 
 # Check for existing group
-groupObjectId="$(OBJECT_NAME="${GROUP_NAME}" OBJECT_TYPE=group "${SCRIPTS_DIR}/pipeline/lookup-directory-object.sh" -o none)"
-if [[ $? -ne 0 ]]; then
-  echo "Group not found: ${GROUP_NAME}" >&2
-  exit 1
+groupObjectId=
+if [[ -n "${GROUP_ID}" ]]; then
+  groupObjectId="${GROUP_ID}"
+else
+  groupObjectId="$(OBJECT_NAME="${GROUP_NAME}" OBJECT_TYPE=group "${SCRIPTS_DIR}/pipeline/lookup-directory-object.sh" -o none)"
+  if [[ $? -ne 0 ]]; then
+    echo "Group not found: ${GROUP_NAME}" >&2
+    exit 1
+  fi
 fi
 
 # Parse member object IDs

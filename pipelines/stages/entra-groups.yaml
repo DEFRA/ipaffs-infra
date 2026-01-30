@@ -15,28 +15,13 @@ stages:
         #condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
         variables:
           - name: adminsGroupName
-            value: AAG-Users-IPAFFS-ProjAdmins
+            value: AAG-Users-IMP-IPAFFS-ProjAdmins
           - name: developersGroupName
-            value: AAG-Users-IPAFFS-Developers
+            value: AAG-Users-IMP-IPAFFS-Developers
           - name: readersGroupName
-            value: AAG-Users-IPAFFS-Readers
+            value: AAG-Users-IMP-IPAFFS-Readers
         steps:
           - checkout: self
-
-          - task: AzureCLI@2
-            name: AdminsGroupDelete
-            inputs:
-              azureSubscription: $(upstreamServiceConnection)
-              scriptType: bash
-              scriptLocation: inlineScript
-              inlineScript: |
-                set -x
-                TOKEN="$(az account get-access-token --scope https://graph.microsoft.com/.default --query accessToken -o tsv)"
-                [[ $? -ne 0 ]] && exit 1
-                groupResult="$(curl -X DELETE -H "Authorization: Bearer ${TOKEN}" https://graph.microsoft.com/v1.0/groups/139a07e1-02c0-49ce-a9cf-4b0f5b582426)"
-                [[ $? -ne 0 ]] && exit 1
-                errorCode="$(jq -r '.error.code' <<<"${groupResult}")"
-                [[ "${errorCode}" == "null" ]] || [[ "${errorCode}" == "" ]] || exit 1
 
           - task: AzureCLI@2
             name: AdminsGroup
@@ -44,7 +29,6 @@ stages:
               GROUP_NAME: $(adminsGroupName)
               GROUP_DESCRIPTION: Entra user group for IPAFFS Project Admins
               GROUP_OWNER_OBJECT_IDS: $(groupOwnerObjectIds)
-              GROUP_ID: 139a07e1-02c0-49ce-a9cf-4b0f5b582426
             inputs:
               azureSubscription: $(upstreamServiceConnection)
               scriptType: bash
@@ -53,7 +37,7 @@ stages:
           - task: AzureCLI@2
             name: AdminsMembers
             env:
-              GROUP_NAME: $(adminsGroupName)
+              GROUP_ID: $(AdminsGroup.objectId)
               GROUP_MEMBERS: $(adminsGroupMembers)
             inputs:
               azureSubscription: $(serviceConnection)
@@ -66,7 +50,6 @@ stages:
               GROUP_NAME: $(developersGroupName)
               GROUP_DESCRIPTION: Entra user group for IPAFFS Developers
               GROUP_OWNER_OBJECT_IDS: $(groupOwnerObjectIds)
-              GROUP_ID: a0fecc06-e286-4264-8bc0-980da0189a29
             inputs:
               azureSubscription: $(upstreamServiceConnection)
               scriptType: bash
@@ -75,7 +58,7 @@ stages:
           - task: AzureCLI@2
             name: DevelopersMembers
             env:
-              GROUP_NAME: $(developersGroupName)
+              GROUP_ID: $(DevelopersGroup.objectId)
               GROUP_MEMBERS: $(developersGroupMembers)
             inputs:
               azureSubscription: $(serviceConnection)
@@ -88,7 +71,6 @@ stages:
               GROUP_NAME: $(readersGroupName)
               GROUP_DESCRIPTION: Entra user group for IPAFFS Readers
               GROUP_OWNER_OBJECT_IDS: $(groupOwnerObjectIds)
-              GROUP_ID: eef5a29d-607a-43fd-96a8-664e51165878
             inputs:
               azureSubscription: $(upstreamServiceConnection)
               scriptType: bash
@@ -97,7 +79,7 @@ stages:
           - task: AzureCLI@2
             name: ReadersMembers
             env:
-              GROUP_NAME: $(readersGroupName)
+              GROUP_ID: $(ReadersGroup.objectId)
               GROUP_MEMBERS: $(readersGroupMembers)
             inputs:
               azureSubscription: $(serviceConnection)
