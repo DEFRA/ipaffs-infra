@@ -20,7 +20,7 @@ else
   fi
 fi
 
-membersResult="$(curl -H "Authorization: Bearer ${TOKEN}" "https://graph.microsoft.com/v1.0/groups/${groupObjectId}/members")"
+membersResult="$(curl -H "Authorization: Bearer ${TOKEN}" "https://graph.microsoft.com/v1.0/groups/${groupObjectId}/members?\$select=id,userPrincipalName")"
 [[ $? -ne 0 ]] && exit 1
 errorCode="$(jq -r '.error.code' <<<"${membersResult}")"
 [[ "${errorCode}" == "null" ]] || [[ "${errorCode}" == "" ]] || exit 1
@@ -30,8 +30,8 @@ mapfile -t existingGroupMembers < <(echo "${membersResult}" | jq -r '.value[].id
 
 # Parse desired member object IDs
 declare -a desiredGroupMembers
-if [[ -n "${GROUP_MEMBERS}" ]]; then
-  cleanMembers="$(echo "${GROUP_MEMBERS}" | tr -d '\n')"
+if [[ -n "${OBJECT_IDS}" ]]; then
+  cleanMembers="$(echo "${OBJECT_IDS}" | tr -d '\n')"
   IFS=' ' read -ra desiredGroupMembers <<<"${cleanMembers}"
 fi
 
