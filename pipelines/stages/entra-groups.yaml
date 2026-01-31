@@ -48,6 +48,7 @@ stages:
           - task: AzureCLI@2
             name: DetermineAdminsMembers
             env:
+              GROUP_ID: $(AdminsGroup.objectId)
               OBJECT_IDS: $(GetAdminsMembers.objectIds)
             inputs:
               azureSubscription: $(upstreamServiceConnection)
@@ -99,6 +100,7 @@ stages:
           - task: AzureCLI@2
             name: DetermineDevelopersMembers
             env:
+              GROUP_ID: $(DevelopersGroup.objectId)
               OBJECT_IDS: $(GetDevelopersMembers.objectIds)
             inputs:
               azureSubscription: $(upstreamServiceConnection)
@@ -150,6 +152,7 @@ stages:
           - task: AzureCLI@2
             name: DetermineReadersMembers
             env:
+              GROUP_ID: $(ReadersGroup.objectId)
               OBJECT_IDS: $(GetReadersMembers.objectIds)
             inputs:
               azureSubscription: $(upstreamServiceConnection)
