@@ -26,8 +26,7 @@ errorCode="$(jq -r '.error.code' <<<"${membersResult}")"
 [[ "${errorCode}" == "null" ]] || [[ "${errorCode}" == "" ]] || exit 1
 
 # Parse existing group member object IDs
-declare -a existingGroupMembers
-read -r -d '' existingGroupMembers <<<"$(echo "${membersResult}" | jq -r '.value[].id')"
+mapfile -t existingGroupMembers < <(echo "${membersResult}" | jq -r '.value[].id')
 
 # Parse desired member object IDs
 declare -a desiredGroupMembers
