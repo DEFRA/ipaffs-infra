@@ -11,13 +11,12 @@ parseObjectId() {
 
 getODataUri() {
   local oid="${1}"
-  local objectType="${2}"
-  if [[ "${oid}" == "" ]]; then
-      echo "Invalid object ID specified" >&2
-      exit 1
-  fi
+  local objectType="${2:-directoryObject}"
 
   case "${objectType}" in
+    directoryObject)
+      echo "https://graph.microsoft.com/v1.0/directoryObjects/${oid}"
+      ;;
     group)
       echo "https://graph.microsoft.com/v1.0/groups/${oid}"
       ;;

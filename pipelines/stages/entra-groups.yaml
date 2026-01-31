@@ -46,14 +46,33 @@ stages:
               scriptArguments: "-o ado -t user"
 
           - task: AzureCLI@2
-            name: SetAdminsMembers
+            name: DetermineAdminsMembers
+            env:
+              OBJECT_IDS: $(GetAdminsMembers.objectIds)
+            inputs:
+              azureSubscription: $(upstreamServiceConnection)
+              scriptType: bash
+              scriptPath: scripts/pipeline/determine-group-members.sh
+
+          - task: AzureCLI@2
+            name: AddAdminsMembers
             env:
               GROUP_ID: $(AdminsGroup.objectId)
-              GROUP_MEMBERS: $(GetAdminsMembers.odataUris)
+              GROUP_MEMBERS: $(DetermineAdminsMembers.membersToAdd)
             inputs:
               azureSubscription: $(serviceConnection)
               scriptType: bash
-              scriptPath: scripts/pipeline/set-entra-group-members.sh
+              scriptPath: scripts/pipeline/add-entra-group-members.sh
+
+          - task: AzureCLI@2
+            name: RemoveAdminsMembers
+            env:
+              GROUP_ID: $(AdminsGroup.objectId)
+              GROUP_MEMBERS: $(DetermineAdminsMembers.membersToRemove)
+            inputs:
+              azureSubscription: $(serviceConnection)
+              scriptType: bash
+              scriptPath: scripts/pipeline/remove-entra-group-members.sh
 
           - task: AzureCLI@2
             name: DevelopersGroup
@@ -78,14 +97,33 @@ stages:
               scriptArguments: "-o ado -t user"
 
           - task: AzureCLI@2
-            name: SetDevelopersMembers
+            name: DetermineDevelopersMembers
+            env:
+              OBJECT_IDS: $(GetDevelopersMembers.objectIds)
+            inputs:
+              azureSubscription: $(upstreamServiceConnection)
+              scriptType: bash
+              scriptPath: scripts/pipeline/determine-group-members.sh
+
+          - task: AzureCLI@2
+            name: AddDevelopersMembers
             env:
               GROUP_ID: $(DevelopersGroup.objectId)
-              GROUP_MEMBERS: $(GetDevelopersMembers.odataUris)
+              GROUP_MEMBERS: $(DetermineDevelopersMembers.membersToAdd)
             inputs:
               azureSubscription: $(serviceConnection)
               scriptType: bash
-              scriptPath: scripts/pipeline/set-entra-group-members.sh
+              scriptPath: scripts/pipeline/add-entra-group-members.sh
+
+          - task: AzureCLI@2
+            name: RemoveDevelopersMembers
+            env:
+              GROUP_ID: $(DevelopersGroup.objectId)
+              GROUP_MEMBERS: $(DetermineDevelopersMembers.membersToRemove)
+            inputs:
+              azureSubscription: $(serviceConnection)
+              scriptType: bash
+              scriptPath: scripts/pipeline/remove-entra-group-members.sh
 
           - task: AzureCLI@2
             name: ReadersGroup
@@ -110,14 +148,33 @@ stages:
               scriptArguments: "-o ado -t user"
 
           - task: AzureCLI@2
-            name: SetReadersMembers
+            name: DetermineReadersMembers
+            env:
+              OBJECT_IDS: $(GetReadersMembers.objectIds)
+            inputs:
+              azureSubscription: $(upstreamServiceConnection)
+              scriptType: bash
+              scriptPath: scripts/pipeline/determine-group-members.sh
+
+          - task: AzureCLI@2
+            name: AddReadersMembers
             env:
               GROUP_ID: $(ReadersGroup.objectId)
-              GROUP_MEMBERS: $(GetReadersMembers.odataUris)
+              GROUP_MEMBERS: $(DetermineReadersMembers.membersToAdd)
             inputs:
               azureSubscription: $(serviceConnection)
               scriptType: bash
-              scriptPath: scripts/pipeline/set-entra-group-members.sh
+              scriptPath: scripts/pipeline/add-entra-group-members.sh
+
+          - task: AzureCLI@2
+            name: RemoveReadersMembers
+            env:
+              GROUP_ID: $(ReadersGroup.objectId)
+              GROUP_MEMBERS: $(DetermineReadersMembers.membersToRemove)
+            inputs:
+              azureSubscription: $(serviceConnection)
+              scriptType: bash
+              scriptPath: scripts/pipeline/remove-entra-group-members.sh
 
 
   - stage: CreateAccessGroups

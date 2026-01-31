@@ -1,7 +1,5 @@
 #!/bin/bash
 
-## NOTE: Members must be provided as qualified OData URIs
-
 set -x
 
 SCRIPTS_DIR="$(cd "$(dirname $0)"/.. && pwd)"
@@ -14,26 +12,26 @@ groupObjectId=
 if [[ -n "${GROUP_ID}" ]]; then
   groupObjectId="${GROUP_ID}"
 else
-  groupObjectId="$(OBJECT_NAME="${GROUP_NAME}" OBJECT_TYPE=group "${SCRIPTS_DIR}/pipeline/lookup-directory-object.sh" -o none)"
+  groupObjectId="$(OBJECT_NAME="${GROUP_NAME}" OBJECT_TYPE=group "${SCRIPTS_DIR}/pipeline/lookup-directory-object.sh" -o oid)"
   if [[ $? -ne 0 ]]; then
     echo "Group not found: ${GROUP_NAME}" >&2
     exit 1
   fi
 fi
 
-# Parse member object IDs
-declare -a memberUris
+# Parse member URIs
+declare -a memberIds
 if [[ -n "${GROUP_MEMBERS}" ]]; then
   cleanMembers="$(echo "${GROUP_MEMBERS}" | tr -d '\n')"
-  IFS=' ' read -ra memberUris <<<"${cleanMembers}"
+  IFS=' ' read -ra memberIds <<<"${cleanMembers}"
 fi
 
 # Compile members
 membersJson=
-for i in "${!memberUris[@]}"; do
-  uri="$(echo "${memberUris[i]}" | awk '{$1=$1};1')"
-  membersJson="${membersJson}\"${uri}\""
-  (( i < ${#memberUris[@]} - 1 )) && membersJson="${membersJson}, "
+for i in "${!memberIds[@]}"; do
+  oid="$(echo "${memberIds[i]}" | awk '{$1=$1};1')"
+  membersJson="${membersJson}\"https://graph.microsoft.com/v1.0/directoryObjects/${oid}\""
+  (( i < ${#memberIds[@]} - 1 )) && membersJson="${membersJson}, "
 done
 
 read -r -d '' groupJson <<EOF
