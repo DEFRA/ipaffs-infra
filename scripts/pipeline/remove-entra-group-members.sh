@@ -29,7 +29,6 @@ if [[ -n "${GROUP_MEMBERS}" ]]; then
 fi
 
 # Remove members
-membersJson=
 for i in "${!memberIds[@]}"; do
   memberId="$(echo "${memberIds[i]}" | awk '{$1=$1};1')"
   result="$(curl -X DELETE -H "Authorization: Bearer ${TOKEN}" -H "Content-Type: application/json; charset=utf-8" -d "${groupJson}" "https://graph.microsoft.com/v1.0/groups/${groupObjectId}/members/${memberId}/\$ref")"

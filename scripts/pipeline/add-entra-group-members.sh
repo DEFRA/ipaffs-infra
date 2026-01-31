@@ -34,6 +34,11 @@ for i in "${!memberIds[@]}"; do
   (( i < ${#memberIds[@]} - 1 )) && membersJson="${membersJson}, "
 done
 
+if [[ "${membersJson}" == "" ]]; then
+  echo "No members to be added" >&2
+  exit 0
+fi
+
 read -r -d '' groupJson <<EOF
 {
   "members@odata.bind": [
