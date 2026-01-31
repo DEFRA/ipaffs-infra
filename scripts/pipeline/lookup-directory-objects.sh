@@ -1,8 +1,9 @@
 #!/bin/bash
 
-set -x
+set -ux
 
 SCRIPTS_DIR="$(cd "$(dirname $0)"/.. && pwd)"
+source "${SCRIPTS_DIR}/pipeline/_common.sh"
 
 output=oid
 objectType=
@@ -23,30 +24,6 @@ if [[ "${objectType}" == "" ]]; then
   exit 1
 fi
 
-getODataUri() {
-  local oid="${1}"
-  if [[ "${oid}" == "" ]]; then
-      echo "Invalid object ID specified" >&2
-      exit 1
-  fi
-
-  case "${objectType}" in
-    group)
-      echo "https://graph.microsoft.com/v1.0/groups/${oid}"
-      ;;
-    servicePrincipal)
-      echo "https://graph.microsoft.com/v1.0/servicePrincipals/${oid}"
-      ;;
-    user)
-      echo "https://graph.microsoft.com/v1.0/users/${oid}"
-      ;;
-    *)
-      echo "Invalid objectType specified: \`${OBJECT_TYPE}\`" >&2
-      exit 1
-      ;;
-  esac
-}
-
 # Parse names (can be UPNs for users, or displayNames for groups/service principals)
 declare -a names
 if [[ -n "${NAMES}" ]]; then
@@ -63,7 +40,7 @@ for i in "${!names[@]}"; do
 
   oid="$(OBJECT_NAME="${name}" OBJECT_TYPE="${objectType}" "${SCRIPTS_DIR}/pipeline/lookup-directory-object.sh" -o oid)"
   [[ $? -ne 0 ]] && exit 1
-  odataUri="$(getODataUri "${oid}")"
+  odataUri="$(getODataUri "${oid}" "${objectType}")"
   [[ $? -ne 0 ]] && exit 1
 
   oids="${oids} ${oid}"

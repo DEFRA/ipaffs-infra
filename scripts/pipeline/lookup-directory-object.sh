@@ -2,6 +2,9 @@
 
 set -ux
 
+SCRIPTS_DIR="$(cd "$(dirname $0)"/.. && pwd)"
+source "${SCRIPTS_DIR}/pipeline/_common.sh"
+
 output=oid
 
 while getopts "o:" opt; do
@@ -14,41 +17,6 @@ done
 
 TOKEN="$(az account get-access-token --scope https://graph.microsoft.com/.default --query accessToken -o tsv)"
 [[ $? -ne 0 ]] && exit 1
-
-parseObjectId() {
-  local result="${1}"
-  [[ "$(jq -r '.error.code' <<<"${result}")" == "null" ]] || exit 1
-  local objectId="$(jq -r '.value[0].id' <<<"${result}")"
-  if [[ -n "${objectId}" ]] && [[ "${objectId}" != "null" ]]; then
-    echo "${objectId}"
-    return 0
-  fi
-  return 1
-}
-
-getODataUri() {
-  local oid="${1}"
-  if [[ "${oid}" == "" ]]; then
-      echo "Invalid object ID specified" >&2
-      exit 1
-  fi
-
-  case "${OBJECT_TYPE}" in
-    group)
-      echo "https://graph.microsoft.com/v1.0/groups/${oid}"
-      ;;
-    servicePrincipal)
-      echo "https://graph.microsoft.com/v1.0/servicePrincipals/${oid}"
-      ;;
-    user)
-      echo "https://graph.microsoft.com/v1.0/users/${oid}"
-      ;;
-    *)
-      echo "Invalid OBJECT_TYPE specified: \`${OBJECT_TYPE}\`" >&2
-      exit 1
-      ;;
-  esac
-}
 
 oid=
 searchResult=
@@ -73,7 +41,7 @@ esac
 
 oid="$(parseObjectId "${searchResult}")"
 [[ $? -ne 0 ]] && exit 1
-odataUri="$(getODataUri "${oid}")"
+odataUri="$(getODataUri "${oid}" "${OBJECT_TYPE}")"
 [[ $? -ne 0 ]] && exit 1
 
 case "${output}" in
