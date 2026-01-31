@@ -2,7 +2,7 @@
 
 set -ux
 
-output=plain
+output=oid
 
 while getopts "o:" opt; do
   case $opt in
@@ -24,6 +24,30 @@ parseObjectId() {
     return 0
   fi
   return 1
+}
+
+getODataUri() {
+  local oid="${1}"
+  if [[ "${oid}" == "" ]]; then
+      echo "Invalid object ID specified" >&2
+      exit 1
+  fi
+
+  case "${OBJECT_TYPE}" in
+    group)
+      echo "https://graph.microsoft.com/v1.0/groups/${oid}"
+      ;;
+    servicePrincipal)
+      echo "https://graph.microsoft.com/v1.0/servicePrincipals/${oid}"
+      ;;
+    user)
+      echo "https://graph.microsoft.com/v1.0/users/${oid}"
+      ;;
+    *)
+      echo "Invalid OBJECT_TYPE specified: \`${OBJECT_TYPE}\`" >&2
+      exit 1
+      ;;
+  esac
 }
 
 oid=
@@ -49,15 +73,22 @@ esac
 
 oid="$(parseObjectId "${searchResult}")"
 [[ $? -ne 0 ]] && exit 1
+odataUri="$(getODataUri "${oid}")"
+[[ $? -ne 0 ]] && exit 1
 
 case "${output}" in
-  plain)
+  oid)
     set +x
     echo "${oid}"
+    ;;
+  odataUri)
+    set +x
+    echo "${odataUri}"
     ;;
   ado)
     set +x
     echo "##vso[task.setvariable variable=objectId;isOutput=true]${oid}"
+    echo "##vso[task.setvariable variable=odataUri;isOutput=true]${odataUri}"
     ;;
   none)
     ;;

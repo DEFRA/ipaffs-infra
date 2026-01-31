@@ -71,7 +71,7 @@ if [[ -n "${GROUP_ID}" ]]; then
   operation=update
   objectId="${GROUP_ID}"
 else
-  result="$(OBJECT_NAME="${GROUP_NAME}" OBJECT_TYPE=group "${SCRIPTS_DIR}/pipeline/lookup-directory-object.sh" -o plain)"
+  result="$(OBJECT_NAME="${GROUP_NAME}" OBJECT_TYPE=group "${SCRIPTS_DIR}/pipeline/lookup-directory-object.sh" -o oid)"
   if [[ $? -eq 0 ]]; then
     operation=update
     objectId="${result}"

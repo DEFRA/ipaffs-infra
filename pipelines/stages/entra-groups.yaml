@@ -36,10 +36,20 @@ stages:
               scriptArguments: "-s"
 
           - task: AzureCLI@2
-            name: AdminsMembers
+            name: GetAdminsMembers
+            env:
+              NAMES: $(adminsGroupMembers)
+            inputs:
+              azureSubscription: $(upstreamServiceConnection)
+              scriptType: bash
+              scriptPath: scripts/pipeline/lookup-directory-objects.sh
+              scriptArguments: "-o ado -t user"
+
+          - task: AzureCLI@2
+            name: SetAdminsMembers
             env:
               GROUP_ID: $(AdminsGroup.objectId)
-              GROUP_MEMBERS: $(adminsGroupMembers)
+              GROUP_MEMBERS: $(GetAdminsMembers.odataUris)
             inputs:
               azureSubscription: $(serviceConnection)
               scriptType: bash
@@ -58,10 +68,20 @@ stages:
               scriptArguments: "-s"
 
           - task: AzureCLI@2
-            name: DevelopersMembers
+            name: GetDevelopersMembers
+            env:
+              NAMES: $(developersGroupMembers)
+            inputs:
+              azureSubscription: $(upstreamServiceConnection)
+              scriptType: bash
+              scriptPath: scripts/pipeline/lookup-directory-objects.sh
+              scriptArguments: "-o ado -t user"
+
+          - task: AzureCLI@2
+            name: SetDevelopersMembers
             env:
               GROUP_ID: $(DevelopersGroup.objectId)
-              GROUP_MEMBERS: $(developersGroupMembers)
+              GROUP_MEMBERS: $(GetDevelopersMembers.odataUris)
             inputs:
               azureSubscription: $(serviceConnection)
               scriptType: bash
@@ -80,10 +100,20 @@ stages:
               scriptArguments: "-s"
 
           - task: AzureCLI@2
-            name: ReadersMembers
+            name: GetReadersMembers
+            env:
+              NAMES: $(readersGroupMembers)
+            inputs:
+              azureSubscription: $(upstreamServiceConnection)
+              scriptType: bash
+              scriptPath: scripts/pipeline/lookup-directory-objects.sh
+              scriptArguments: "-o ado -t user"
+
+          - task: AzureCLI@2
+            name: SetReadersMembers
             env:
               GROUP_ID: $(ReadersGroup.objectId)
-              GROUP_MEMBERS: $(readersGroupMembers)
+              GROUP_MEMBERS: $(GetReadersMembers.odataUris)
             inputs:
               azureSubscription: $(serviceConnection)
               scriptType: bash
