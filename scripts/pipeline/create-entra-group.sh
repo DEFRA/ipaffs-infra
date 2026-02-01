@@ -47,7 +47,6 @@ EOF
   "description": "${GROUP_DESCRIPTION}",
   "securityEnabled": true,
   "mailEnabled": false,
-  "isAssignableToRole": ${GROUP_IS_ROLE_ASSIGNABLE:-false},
   "mailNickname": "${GROUP_NAME}"${ownersProperty}
 }
 EOF
