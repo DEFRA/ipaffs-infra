@@ -12,7 +12,7 @@ stages:
     jobs:
       - job: TeamGroups
         displayName: Team Groups
-        #condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+        condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
         steps:
           - checkout: self
 
@@ -184,7 +184,7 @@ stages:
     jobs:
       - job: SearchGroups
         displayName: Search Service Groups
-        #condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+        condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
         steps:
           - checkout: self
 
@@ -236,7 +236,7 @@ stages:
 
       - job: SQLGroups
         displayName: SQL Groups
-        #condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+        condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
         steps:
           - checkout: self
 
@@ -279,7 +279,7 @@ stages:
     dependsOn:
       - CreateUserGroups
       - CreateAccessGroups
-    #condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+    condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
     variables:
       - group: "${{ parameters.environmentName }}"
       - template: "/pipelines/vars/common.yaml"
