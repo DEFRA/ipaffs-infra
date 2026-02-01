@@ -1,5 +1,30 @@
 #!/bin/bash
 
+## lookup-directory-objects.sh
+##
+## Wraps the `look-directory-object.sh` script to find multiple Entra principals. The supplied names should
+## all be of the same principal type. Finding different types of principals requires invoking this script
+## multiple times (one for each principal type).
+##
+## Required script arguments:
+## -t TYPE    The type of principal to search for. TYPE is one of: `group`, `servicePrincipal`, or `user`.
+##
+## Optional script arguments:
+## -o OUTPUT  The type of output the script should produce. OUTPUT is one of: `oid`, `odataUri`, or `ado`.
+##            Defaults to `oid` if not specified.
+##
+## Required environment variables:
+## NAMES - Space-separated set of principal names to locate. For groups or service principals, this
+##         should be the display name. For users, this should be the user principal name (UPN).
+##
+## Standard output:
+## When OUTPUT is `oid`, a space-separated set of object IDs is printed to stdout.
+## When OUTPUT is `odataUri`, a space-separated set of OData URIs is printed to stdout.
+##
+## ADO Variable Outputs (only emitted when OUTPUT is `ado`):
+## objectId - The object ID of the group/servicePrincipal/user.
+## odataUri - The OData URI of the object, for use when creating relationship records with MS Graph.
+
 set -ux
 
 SCRIPTS_DIR="$(cd "$(dirname $0)"/.. && pwd)"

@@ -1,5 +1,20 @@
 #!/bin/bash
 
+## add-entra-group-members.sh
+##
+## Adds one or more members to an Entra group.
+##
+## Required environment variables:
+## GROUP_NAME    - The display name of a group to locate and add members
+## GROUP_ID      - The object ID of a group to add members
+## GROUP_MEMBERS - Space-delimited set of member object IDs to add to the group
+##
+## One of GROUP_ID or GROUP_NAME should be provided. Specifying GROUP_ID avoids searching for the group,
+## which is useful when the script does not have permissions to read all group details.
+##
+## Note: This script will _not_ gracefully handle adding a group member that already exists. The provided
+## set of GROUP_MEMBERS should have no duplicates, and should not include any existing group members.
+
 set -x
 
 SCRIPTS_DIR="$(cd "$(dirname $0)"/.. && pwd)"

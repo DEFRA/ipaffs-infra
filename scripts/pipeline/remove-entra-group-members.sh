@@ -1,6 +1,16 @@
 #!/bin/bash
 
-## NOTE: Members to remove must be provided as object IDs
+## remove-entra-group-members.sh
+##
+## Removes one or more members from an Entra group.
+##
+## Required environment variables:
+## GROUP_NAME    - The display name of a group to locate and remove members
+## GROUP_ID      - The object ID of a group to remove members
+## GROUP_MEMBERS - Space-delimited set of member object IDs to remove from the group
+##
+## One of GROUP_ID or GROUP_NAME should be provided. Specifying GROUP_ID avoids searching for the group,
+## which is useful when the script does not have permissions to read all group details.
 
 set -x
 

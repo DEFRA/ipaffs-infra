@@ -1,5 +1,24 @@
 #!/bin/bash
 
+## create-entra-group.sh
+##
+## Creates an Entra security group and ensures it has desired ownership to enable ongoing group management.
+## For existing groups, this script is idempotent and will attempt to locate the group by its display name,
+## and will update the group properties.
+##
+## Required environment variables:
+## GROUP_NAME        - The display name of a group to locate and add members
+## GROUP_DESCRIPTION - The object ID of a group to add members
+##
+## Optional environment variables:
+## GROUP_OWNER_OBJECT_IDS   - Set of object IDs for principals that will own the group. This is only set
+##                            at group creation time, and can include the calling principal (the script
+##                            will gracefully handle known API issues around automagic ownership).
+##
+## ADO Variable Outputs:
+## displayName - The display name of the group, as provided via the GROUP_NAME environment variable.
+## objectId    - The object ID of the group that was created, or the existing group that was updated.
+
 set -x
 
 SCRIPTS_DIR="$(cd "$(dirname $0)"/.. && pwd)"

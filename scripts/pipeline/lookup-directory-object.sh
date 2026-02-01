@@ -1,5 +1,19 @@
 #!/bin/bash
 
+## lookup-directory-object.sh
+##
+## Searches for an Entra group, service principal or user by name and returns the object ID, along with
+## the OData URI for use in creating relationship records (e.g. members, owners, managers etc).
+##
+## Required environment variables:
+## OBJECT_NAME - The name of the object to find. For groups or service principals, this should be the
+##               display name. For users, this should be the user principal name (UPN).
+## OBJECT_TYPE - The type of object to find, one of: `group`, `servicePrincipal`, or `user`.
+##
+## ADO Variable Outputs:
+## objectId - The object ID of the group/servicePrincipal/user.
+## odataUri - The OData URI of the object, for use when creating relationship records with MS Graph.
+
 set -ux
 
 SCRIPTS_DIR="$(cd "$(dirname $0)"/.. && pwd)"

@@ -1,5 +1,22 @@
 #!/bin/bash
 
+## determine-group-members.sh
+##
+## Given a declarative set of desired group members, queries a group to determine which new members need
+## to be added, and which existing group members need to be removed, to achieve the desired member set.
+##
+## Required environment variables:
+## GROUP_NAME - The display name of a group to locate and add members
+## GROUP_ID   - The object ID of a group to add members
+## OBJECT_IDS - Space-delimited declarative set of member object IDs the group should have.
+##
+## One of GROUP_ID or GROUP_NAME should be provided. Specifying GROUP_ID avoids searching for the group,
+## which is useful when the script does not have permissions to read all group details.
+##
+## ADO Variable Outputs:
+## membersToAdd    - Space-delimited set of object IDs that will need adding as group members.
+## membersToRemove - Space-delimited set of object IDs that will need removing as group members.
+
 set -x
 
 SCRIPTS_DIR="$(cd "$(dirname $0)"/.. && pwd)"
