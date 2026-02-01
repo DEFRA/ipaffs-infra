@@ -1,5 +1,5 @@
 ---
 variables:
-  foo: bar
+  serviceConnectionPrincipalId: 7b097afb-e281-4bc4-8086-c1ff4f47964b
 
 # vim: set ts=2 sts=2 sw=2 et:
