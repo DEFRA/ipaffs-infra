@@ -38,7 +38,7 @@ stages:
               scriptArguments: "-o ado -t user"
 
           - task: AzureCLI@2
-            name: DetermineAdminsMembers
+            name: DetermineAdminsMemberChanges
             env:
               GROUP_ID: $(AdminsGroup.objectId)
               OBJECT_IDS: $(GetAdminsMembers.objectIds)
@@ -51,7 +51,7 @@ stages:
             name: AddAdminsMembers
             env:
               GROUP_ID: $(AdminsGroup.objectId)
-              GROUP_MEMBERS: $(DetermineAdminsMembers.membersToAdd)
+              GROUP_MEMBERS: $(DetermineAdminsMemberChanges.membersToAdd)
             inputs:
               azureSubscription: $(serviceConnection)
               scriptType: bash
@@ -61,7 +61,7 @@ stages:
             name: RemoveAdminsMembers
             env:
               GROUP_ID: $(AdminsGroup.objectId)
-              GROUP_MEMBERS: $(DetermineAdminsMembers.membersToRemove)
+              GROUP_MEMBERS: $(DetermineAdminsMemberChanges.membersToRemove)
             inputs:
               azureSubscription: $(serviceConnection)
               scriptType: bash
@@ -89,7 +89,7 @@ stages:
               scriptArguments: "-o ado -t user"
 
           - task: AzureCLI@2
-            name: DetermineDevelopersMembers
+            name: DetermineDevelopersMemberChanges
             env:
               GROUP_ID: $(DevelopersGroup.objectId)
               OBJECT_IDS: $(GetDevelopersMembers.objectIds)
@@ -102,7 +102,7 @@ stages:
             name: AddDevelopersMembers
             env:
               GROUP_ID: $(DevelopersGroup.objectId)
-              GROUP_MEMBERS: $(DetermineDevelopersMembers.membersToAdd)
+              GROUP_MEMBERS: $(DetermineDevelopersMemberChanges.membersToAdd)
             inputs:
               azureSubscription: $(serviceConnection)
               scriptType: bash
@@ -112,7 +112,7 @@ stages:
             name: RemoveDevelopersMembers
             env:
               GROUP_ID: $(DevelopersGroup.objectId)
-              GROUP_MEMBERS: $(DetermineDevelopersMembers.membersToRemove)
+              GROUP_MEMBERS: $(DetermineDevelopersMemberChanges.membersToRemove)
             inputs:
               azureSubscription: $(serviceConnection)
               scriptType: bash
@@ -140,7 +140,7 @@ stages:
               scriptArguments: "-o ado -t user"
 
           - task: AzureCLI@2
-            name: DetermineReadersMembers
+            name: DetermineReadersMemberChanges
             env:
               GROUP_ID: $(ReadersGroup.objectId)
               OBJECT_IDS: $(GetReadersMembers.objectIds)
@@ -153,7 +153,7 @@ stages:
             name: AddReadersMembers
             env:
               GROUP_ID: $(ReadersGroup.objectId)
-              GROUP_MEMBERS: $(DetermineReadersMembers.membersToAdd)
+              GROUP_MEMBERS: $(DetermineReadersMemberChanges.membersToAdd)
             inputs:
               azureSubscription: $(serviceConnection)
               scriptType: bash
@@ -163,7 +163,7 @@ stages:
             name: RemoveReadersMembers
             env:
               GROUP_ID: $(ReadersGroup.objectId)
-              GROUP_MEMBERS: $(DetermineReadersMembers.membersToRemove)
+              GROUP_MEMBERS: $(DetermineReadersMemberChanges.membersToRemove)
             inputs:
               azureSubscription: $(serviceConnection)
               scriptType: bash
@@ -202,7 +202,7 @@ stages:
               scriptPath: scripts/pipeline/create-entra-group.sh
 
           - task: AzureCLI@2
-            name: SearchContributorsAdminsMember
+            name: SearchContributorsMembersAdmins
             env:
               GROUP_ID: $(SearchContributors.objectId)
               PRINCIPAL_ID: $(teamAdminsObjectId)
@@ -212,7 +212,7 @@ stages:
               scriptPath: scripts/pipeline/add-principal-to-group.sh
 
           - task: AzureCLI@2
-            name: SearchContributorsDevelopersMember
+            name: SearchContributorsMembersDevelopers
             env:
               GROUP_ID: $(SearchContributors.objectId)
               PRINCIPAL_ID: $(teamDevelopersObjectId)
