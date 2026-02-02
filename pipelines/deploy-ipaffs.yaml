@@ -99,6 +99,10 @@ parameters:
         migrations: false
         pipeline: enotification-event-listener-service
 
+      - name: enotification-event-service
+        migrations: true
+        pipeline: enotification-event-service
+
       - name: notification-frontend
         migrations: false
         pipeline: notification-frontend
@@ -229,6 +233,12 @@ resources:
       type: github
       endpoint: DEFRA
       name: DEFRA/ipaffs-enotification-event-listener-microservice
+      ref: refs/heads/master
+
+    - repository: enotification-event-service
+      type: github
+      endpoint: DEFRA
+      name: DEFRA/ipaffs-enotification-event-microservice
       ref: refs/heads/master
 
     - repository: notification-frontend
