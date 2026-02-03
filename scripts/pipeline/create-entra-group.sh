@@ -6,6 +6,9 @@
 ## For existing groups, this script is idempotent and will attempt to locate the group by its display name,
 ## and will update the group properties.
 ##
+## Optional script arguments:
+## -u  Update-only flag, do not create a new group when specified
+##
 ## Required environment variables:
 ## GROUP_NAME        - The display name of a group to locate and add members
 ## GROUP_DESCRIPTION - The object ID of a group to add members
@@ -22,6 +25,16 @@
 set -x
 
 SCRIPTS_DIR="$(cd "$(dirname $0)"/.. && pwd)"
+
+updateOnly=
+
+while getopts "u" opt; do
+  case $opt in
+    u)
+      updateOnly=1
+      ;;
+  esac
+done
 
 TOKEN="$(az account get-access-token --scope https://graph.microsoft.com/.default --query accessToken -o tsv)"
 [[ $? -ne 0 ]] && exit 1
@@ -83,6 +96,16 @@ else
     operation=update
     objectId="${result}"
   fi
+fi
+
+if [[ -n "${updateOnly}" ]] && [[ "${operation}" == "create" ]]; then
+  echo "update-only option was specified but existing group could not be identified" >&2
+  exit 1
+fi
+
+if [[ "${operation}" == "update" ]] && [[ -z "${objectId}" ]]; then
+  echo "Wanted to update an existing group but could not determine group object ID" >&2
+  exit 1
 fi
 
 case "${operation}" in
