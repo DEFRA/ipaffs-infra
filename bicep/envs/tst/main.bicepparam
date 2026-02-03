@@ -1,34 +1,34 @@
 using '../../main.bicep'
 
-param environment = 'DEV'
+param environment = 'TST'
 param tenantId = ''
 
 param builtInGroups = {
-  contributors: '04b12060-3b12-49aa-a92a-d62873d8d29e' // AG-Azure-IMP_DEV1-Contributors
-  owners: 'dbaf1ee8-c128-4f27-b159-791866210c2e' // AG-Azure-IMP_DEV1-Owners
+  contributors: '04b12060-3b12-49aa-a92a-d62873d8d29e' // AG-Azure-IMP_TST1-Contributors
+  owners: 'dbaf1ee8-c128-4f27-b159-791866210c2e' // AG-Azure-IMP_TST1-Owners
 }
 
 param entraGroups = {}
 
 param subnetNames = {
-  aksApiServer: 'DEVIMPNETSU4401'
-  aksSystemNodes: 'DEVIMPNETSU4402'
-  aksUserNodes: 'DEVIMPNETSU4406'
-  appGatewayForContainers: 'DEVIMPNETSU4405'
-  privateEndpoints: 'DEVIMPNETSU4404'
-  privateLink: 'DEVIMPNETSU4403'
+  aksApiServer: 'TSTIMPNETSU4401'
+  aksSystemNodes: 'TSTIMPNETSU4402'
+  aksUserNodes: 'TSTIMPNETSU4406'
+  appGatewayForContainers: 'TSTIMPNETSU4405'
+  privateEndpoints: 'TSTIMPNETSU4404'
+  privateLink: 'TSTIMPNETSU4403'
 }
 
 param acrParams = {
-  name: 'DEVIMPINFAC1401'
+  name: 'TSTIMPINFAC1401'
   sku: 'Premium'
   adminEnabled: true
 }
 
 param aksParams = {
-  name: 'DEVIMPINFAK1401'
-  dnsPrefix: 'devimpinfak1401'
-  nodeResourceGroup: 'DEVIMPINFRG1402'
+  name: 'TSTIMPINFAK1401'
+  dnsPrefix: 'tstimpinfak1401'
+  nodeResourceGroup: 'TSTIMPINFRG1402'
   sshRSAPublicKey: 'ssh-rsa AAAA...'
   version: '1.35'
 
@@ -51,15 +51,15 @@ param aksParams = {
 }
 
 param asoParams = {
-  managedIdentityName: 'DEVIMPINFMI1401-AzureServiceOperator'
+  managedIdentityName: 'TSTIMPINFMI1401-AzureServiceOperator'
 }
 
 param externalSecretsParams = {
-  managedIdentityName: 'DEVIMPINFMI1401-ExternalSecrets'
+  managedIdentityName: 'TSTIMPINFMI1401-ExternalSecrets'
 }
 
 param keyVaultParams = {
-  name: 'DEVIMPINFKV1401'
+  name: 'TSTIMPINFKV1401'
   principalObjectIds: [
     builtInGroups.contributors
     builtInGroups.owners
@@ -69,7 +69,7 @@ param keyVaultParams = {
 param nsgParams = {
   networkSecurityGroups: [
     {
-      name: 'DEVIMPNETNS1401'
+      name: 'TSTIMPNETNS1401'
       purpose: 'AKS ILB NSG'
       securityRules: [
         {
@@ -149,7 +149,7 @@ param nsgParams = {
       ]
     }
     {
-      name: 'DEVIMPNETNS1402'
+      name: 'TSTIMPNETNS1402'
       purpose: 'AKS System Node Pool NSG'
       securityRules: [
         {
@@ -482,7 +482,7 @@ param nsgParams = {
       ]
     }
     {
-      name: 'DEVIMPNETNS1403'
+      name: 'TSTIMPNETNS1403'
       purpose: 'PrivateLink NSG'
       securityRules: [
         {
@@ -506,7 +506,7 @@ param nsgParams = {
       ]
     }
     {
-      name: 'DEVIMPNETNS1404'
+      name: 'TSTIMPNETNS1404'
       purpose: 'Private Endpoints NSG'
       securityRules: [
         {
@@ -530,7 +530,7 @@ param nsgParams = {
       ]
     }
     {
-      name: 'DEVIMPNETNS1405'
+      name: 'TSTIMPNETNS1405'
       purpose: 'App Gateway for Containers NSG'
       securityRules: [
         {
@@ -554,7 +554,7 @@ param nsgParams = {
       ]
     }
     {
-      name: 'DEVIMPNETNS1406'
+      name: 'TSTIMPNETNS1406'
       purpose: 'AKS User Node Pool NSG'
       securityRules: [
         {
@@ -797,7 +797,7 @@ param nsgParams = {
       ]
     }
     {
-      name: 'DEVIMPNETNS1407'
+      name: 'TSTIMPNETNS1407'
       purpose: 'Reserved NSG'
       securityRules: [
         {
@@ -821,7 +821,7 @@ param nsgParams = {
       ]
     }
     {
-      name: 'DEVIMPNETNS1408'
+      name: 'TSTIMPNETNS1408'
       purpose: 'Reserved NSG'
       securityRules: [
         {
@@ -848,105 +848,105 @@ param nsgParams = {
 }
 
 param redisParams = {
-  name: 'devimpinfrd1401' // note: must be lowercase
+  name: 'tstimpinfrd1401' // note: must be lowercase
 }
 
 param searchParams = {
-  name: 'devimpinfas1401' // note: must be lowercase
+  name: 'tstimpinfas1401' // note: must be lowercase
   partitionCount: 1
   replicaCount: 2
 }
 
 param sqlParams = {
-  serverName: 'DEVIMPDBSSQ1401'
-  elasticPoolName: 'DEVIMPDBSEP1401'
+  serverName: 'TSTIMPDBSSQ1401'
+  elasticPoolName: 'TSTIMPDBSEP1401'
   maxSizeGiB: 10
   vCores: 2
 }
 
 param vnetParams = {
-  name: 'DEVIMPNETVN1401'
-  addressPrefixes: ['10.179.144.0/22']
+  name: 'TSTIMPNETVN1401'
+  addressPrefixes: ['10.179.132.0/22']
   dnsServers: [
     '10.176.0.4'
     '10.176.0.5'
   ]
   routeTable: {
-    name: 'UDR-Spoke-Route-From-DEVIMPNETVN1401-01'
+    name: 'UDR-Spoke-Route-From-TSTIMPNETVN1401-01'
     virtualApplianceIp: '10.176.0.100'
   }
   subnets: [
     // AKS API Server, 14 usable addresses
     {
-      name: 'DEVIMPNETSU4401'
-      addressPrefix: '10.179.144.0/28'
+      name: 'TSTIMPNETSU4401'
+      addressPrefix: '10.179.132.0/28'
       serviceEndpoints: []
-      routeTableId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPNETNS1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-DEVIMPNETVN1401-01'
-      networkSecurityGroupId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPNETNS1401/providers/Microsoft.Network/networkSecurityGroups/DEVIMPNETNS1401'
+      routeTableId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/TSTIMPNETNS1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-TSTIMPNETVN1401-01'
+      networkSecurityGroupId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/TSTIMPNETNS1401/providers/Microsoft.Network/networkSecurityGroups/TSTIMPNETNS1401'
     }
     // AKS System Node Pool, 14 usable addresses
     {
-      name: 'DEVIMPNETSU4402'
-      addressPrefix: '10.179.144.16/28'
+      name: 'TSTIMPNETSU4402'
+      addressPrefix: '10.179.132.16/28'
       serviceEndpoints: []
-      routeTableId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPNETNS1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-DEVIMPNETVN1401-01'
-      networkSecurityGroupId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPNETNS1401/providers/Microsoft.Network/networkSecurityGroups/DEVIMPNETNS1402'
+      routeTableId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/TSTIMPNETNS1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-TSTIMPNETVN1401-01'
+      networkSecurityGroupId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/TSTIMPNETNS1401/providers/Microsoft.Network/networkSecurityGroups/TSTIMPNETNS1402'
     }
     // PrivateLink, 30 usable addresses
     {
-      name: 'DEVIMPNETSU4403'
-      addressPrefix: '10.179.144.32/27'
+      name: 'TSTIMPNETSU4403'
+      addressPrefix: '10.179.132.32/27'
       serviceEndpoints: []
-      routeTableId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPNETNS1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-DEVIMPNETVN1401-01'
-      networkSecurityGroupId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPNETNS1401/providers/Microsoft.Network/networkSecurityGroups/DEVIMPNETNS1403'
+      routeTableId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/TSTIMPNETNS1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-TSTIMPNETVN1401-01'
+      networkSecurityGroupId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/TSTIMPNETNS1401/providers/Microsoft.Network/networkSecurityGroups/TSTIMPNETNS1403'
     }
     // Private Endpoints, 62 usable addresses
     {
-      name: 'DEVIMPNETSU4404'
-      addressPrefix: '10.179.144.64/26'
+      name: 'TSTIMPNETSU4404'
+      addressPrefix: '10.179.132.64/26'
       serviceEndpoints: []
-      routeTableId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPNETNS1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-DEVIMPNETVN1401-01'
-      networkSecurityGroupId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPNETNS1401/providers/Microsoft.Network/networkSecurityGroups/DEVIMPNETNS1404'
+      routeTableId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/TSTIMPNETNS1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-TSTIMPNETVN1401-01'
+      networkSecurityGroupId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/TSTIMPNETNS1401/providers/Microsoft.Network/networkSecurityGroups/TSTIMPNETNS1404'
     }
     // App Gateway for Containers, see https://learn.microsoft.com/en-us/azure/application-gateway/for-containers/container-networking
     {
-      name: 'DEVIMPNETSU4405'
-      addressPrefix: '10.179.145.0/24'
+      name: 'TSTIMPNETSU4405'
+      addressPrefix: '10.179.133.0/24'
       serviceEndpoints: []
-      routeTableId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPNETNS1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-DEVIMPNETVN1401-01'
-      networkSecurityGroupId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPNETNS1401/providers/Microsoft.Network/networkSecurityGroups/DEVIMPNETNS1405'
+      routeTableId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/TSTIMPNETNS1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-TSTIMPNETVN1401-01'
+      networkSecurityGroupId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/TSTIMPNETNS1401/providers/Microsoft.Network/networkSecurityGroups/TSTIMPNETNS1405'
     }
     // AKS User Node Pool, 253 usable addresses
     {
-      name: 'DEVIMPNETSU4406'
-      addressPrefix: '10.179.146.0/24'
+      name: 'TSTIMPNETSU4406'
+      addressPrefix: '10.179.134.0/24'
       serviceEndpoints: []
-      routeTableId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPNETNS1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-DEVIMPNETVN1401-01'
-      networkSecurityGroupId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPNETNS1401/providers/Microsoft.Network/networkSecurityGroups/DEVIMPNETNS1407'
+      routeTableId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/TSTIMPNETNS1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-TSTIMPNETVN1401-01'
+      networkSecurityGroupId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/TSTIMPNETNS1401/providers/Microsoft.Network/networkSecurityGroups/TSTIMPNETNS1407'
     }
     // Reserved, 126 usable addresses
     {
-      name: 'DEVIMPNETSU4407'
-      addressPrefix: '10.179.147.0/25'
+      name: 'TSTIMPNETSU4407'
+      addressPrefix: '10.179.135.0/25'
       serviceEndpoints: []
-      routeTableId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPNETNS1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-DEVIMPNETVN1401-01'
-      networkSecurityGroupId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPNETNS1401/providers/Microsoft.Network/networkSecurityGroups/DEVIMPNETNS1408'
+      routeTableId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/TSTIMPNETNS1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-TSTIMPNETVN1401-01'
+      networkSecurityGroupId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/TSTIMPNETNS1401/providers/Microsoft.Network/networkSecurityGroups/TSTIMPNETNS1408'
     }
     // Reserved, 126 usable addresses
     {
-      name: 'DEVIMPNETSU4408'
-      addressPrefix: '10.179.147.128/25'
+      name: 'TSTIMPNETSU4408'
+      addressPrefix: '10.179.135.128/25'
       serviceEndpoints: []
-      routeTableId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPNETNS1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-DEVIMPNETVN1401-01'
-      networkSecurityGroupId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPNETNS1401/providers/Microsoft.Network/networkSecurityGroups/DEVIMPNETNS1409'
+      routeTableId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/TSTIMPNETNS1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-TSTIMPNETVN1401-01'
+      networkSecurityGroupId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/TSTIMPNETNS1401/providers/Microsoft.Network/networkSecurityGroups/TSTIMPNETNS1409'
     }
   ]
 }
 
 param monitoringParams = {
-  logAnalyticsName: 'DEVIMPINFLA1401'
-  prometheusName: 'DEVIMPINFPR1401'
-  grafanaName: 'DEVIMPINFGA1401'
+  logAnalyticsName: 'TSTIMPINFLA1401'
+  prometheusName: 'TSTIMPINFPR1401'
+  grafanaName: 'TSTIMPINFGA1401'
   principalObjectId: builtInGroups.contributors
 }
 

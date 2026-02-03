@@ -5,8 +5,11 @@ param entraGroups object
 param location string
 param searchParams object
 param subnetIds array
+param subnetNames object
 param tags object
 param tenantId string
+
+var subnetId = first(filter(subnetIds, subnetId => contains(subnetId, subnetNames.privateEndpoints)))
 
 resource searchService 'Microsoft.Search/searchServices@2025-05-01' = {
   name: searchParams.name
@@ -40,7 +43,7 @@ resource searchService 'Microsoft.Search/searchServices@2025-05-01' = {
   }
 }
 
-resource searchServicePrivateEndpoints 'Microsoft.Network/privateEndpoints@2024-10-01' = [for subnetId in subnetIds: {
+resource searchServicePrivateEndpoints 'Microsoft.Network/privateEndpoints@2024-10-01' = {
   name: '${searchParams.name}-${last(split(subnetId, '/'))}'
   location: location
   tags: tags
@@ -60,7 +63,7 @@ resource searchServicePrivateEndpoints 'Microsoft.Network/privateEndpoints@2024-
       }
     ]
   }
-}]
+}
 
 var searchIndexDataContributorRoleId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '8ebe5a00-799e-43f5-93ac-243d3dce84a7')
 var searchIndexDataReaderRoleId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '1407120a-92aa-4202-b7e9-c0e197c71c8f')

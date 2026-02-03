@@ -5,6 +5,7 @@ param environment string
 
 param builtInGroups object
 param entraGroups object
+param subnetNames object
 param tenantId string
 
 param acrParams object
@@ -37,6 +38,7 @@ module acr './modules/acr.bicep' = {
     deploymentId: deploymentId
     location: location
     subnetIds: vnet.outputs.subnetIds
+    subnetNames: subnetNames
     tags: tags
   }
   dependsOn: [
@@ -52,9 +54,11 @@ module aks './modules/aks.bicep' = {
     aksParams: aksParams
     deploymentId: deploymentId
     location: location
+    logAnalyticsId: monitoring.outputs.logAnalyticsId
+    subnetIds: vnet.outputs.subnetIds
+    subnetNames: subnetNames
     tags: tags
     vnetName: vnet.outputs.vnetName
-    logAnalyticsId: monitoring.outputs.logAnalyticsId
   }
   dependsOn: [
     nsg
@@ -99,6 +103,7 @@ module keyVault './modules/keyvault.bicep' = {
     keyVaultParams: keyVaultParamsWithManagedIdentities
     location: location
     subnetIds: vnet.outputs.subnetIds
+    subnetNames: subnetNames
     tags: tags
     tenantId: tenantId
   }
@@ -129,6 +134,7 @@ module redis './modules/redis.bicep' = {
     redisParams: redisParams
     location: location
     subnetIds: vnet.outputs.subnetIds
+    subnetNames: subnetNames
     tags: tags
     tenantId: tenantId
   }
@@ -146,6 +152,7 @@ module search './modules/search.bicep' = {
     searchParams: searchParams
     location: location
     subnetIds: vnet.outputs.subnetIds
+    subnetNames: subnetNames
     tags: tags
     tenantId: tenantId
   }
@@ -163,6 +170,7 @@ module sql './modules/sql.bicep' = {
     location: location
     sqlParams: sqlParams
     subnetIds: vnet.outputs.subnetIds
+    subnetNames: subnetNames
     tags: tags
     tenantId: tenantId
   }

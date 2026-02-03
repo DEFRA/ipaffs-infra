@@ -4,7 +4,10 @@ param acrParams object
 param deploymentId string
 param location string
 param subnetIds array
+param subnetNames object
 param tags object
+
+var subnetId = first(filter(subnetIds, subnetId => contains(subnetId, subnetNames.privateEndpoints)))
 
 resource acr 'Microsoft.ContainerRegistry/registries@2025-04-01' = {
   name: acrParams.name
@@ -20,7 +23,7 @@ resource acr 'Microsoft.ContainerRegistry/registries@2025-04-01' = {
   }
 }
 
-resource acrPrivateEndpoint 'Microsoft.Network/privateEndpoints@2024-10-01' = [for subnetId in subnetIds: {
+resource acrPrivateEndpoint 'Microsoft.Network/privateEndpoints@2024-10-01' = {
   name: '${acrParams.name}-${last(split(subnetId, '/'))}'
   location: location
   tags: tags
@@ -42,7 +45,7 @@ resource acrPrivateEndpoint 'Microsoft.Network/privateEndpoints@2024-10-01' = [f
       }
     ]
   }
-}]
+}
 
 output acrName string = acr.name
 output acrLoginServer string = acr.properties.loginServer

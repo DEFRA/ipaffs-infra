@@ -5,8 +5,11 @@ param entraGroups object
 param location string
 param sqlParams object
 param subnetIds array
+param subnetNames object
 param tags object
 param tenantId string
+
+var subnetId = first(filter(subnetIds, subnetId => contains(subnetId, subnetNames.privateEndpoints)))
 
 resource sqlServer 'Microsoft.Sql/servers@2023-08-01' = {
   name: sqlParams.serverName
@@ -56,7 +59,7 @@ resource elasticPool 'Microsoft.Sql/servers/elasticPools@2023-08-01' = {
   }
 }
 
-resource sqlPrivateEndpoint 'Microsoft.Network/privateEndpoints@2024-10-01' = [for subnetId in subnetIds: {
+resource sqlPrivateEndpoint 'Microsoft.Network/privateEndpoints@2024-10-01' = {
   name: '${sqlParams.serverName}-${last(split(subnetId, '/'))}'
   location: location
   tags: tags
@@ -78,7 +81,7 @@ resource sqlPrivateEndpoint 'Microsoft.Network/privateEndpoints@2024-10-01' = [f
       }
     ]
   }
-}]
+}
 
 output sqlServerName string = sqlServer.name
 output sqlServerManagedIdentityObjectId string = sqlServer.identity.principalId
