@@ -99,6 +99,14 @@ parameters:
         migrations: false
         pipeline: enotification-event-listener-service
 
+      - name: enotification-processing-service
+        migrations: false
+        pipeline: enotification-processing-service
+
+      - name: enotification-submission-service
+        migrations: false
+        pipeline: enotification-submission-service
+
       - name: enotification-event-service
         migrations: true
         pipeline: enotification-event-service
@@ -233,6 +241,18 @@ resources:
       type: github
       endpoint: DEFRA
       name: DEFRA/ipaffs-enotification-event-listener-microservice
+      ref: refs/heads/master
+
+    - repository: enotification-processing-service
+      type: github
+      endpoint: DEFRA
+      name: DEFRA/ipaffs-enotification-processing-microservice
+      ref: refs/heads/master
+
+    - repository: enotification-submission-service
+      type: github
+      endpoint: DEFRA
+      name: DEFRA/ipaffs-enotification-submission-microservice
       ref: refs/heads/master
 
     - repository: enotification-event-service
