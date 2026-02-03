@@ -115,6 +115,10 @@ parameters:
         migrations: true
         pipeline: in-service-messaging-service
 
+      - name: openid-token-service
+        migrations: false
+        pipeline: openid-token-service
+
       - name: notification-frontend
         migrations: false
         pipeline: notification-frontend
@@ -269,6 +273,12 @@ resources:
       type: github
       endpoint: DEFRA
       name: DEFRA/ipaffs-in-service-messaging-microservice
+      ref: refs/heads/master
+
+    - repository: openid-token-service
+      type: github
+      endpoint: DEFRA
+      name: DEFRA/ipaffs-openid-token-microservice
       ref: refs/heads/master
 
     - repository: notification-frontend
