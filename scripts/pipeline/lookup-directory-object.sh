@@ -5,6 +5,10 @@
 ## Searches for an Entra group, service principal or user by name and returns the object ID, along with
 ## the OData URI for use in creating relationship records (e.g. members, owners, managers etc).
 ##
+## Optional script arguments:
+## -o OUTPUT  The type of output the script should produce. OUTPUT is one of: `oid`, `odataUri`, or `ado`.
+##            Defaults to `oid` if not specified.
+##
 ## Required environment variables:
 ## OBJECT_NAME - The name of the object to find. For groups or service principals, this should be the
 ##               display name. For users, this should be the user principal name (UPN).

@@ -26,6 +26,7 @@ stages:
               azureSubscription: $(upstreamServiceConnection)
               scriptType: bash
               scriptPath: scripts/pipeline/create-entra-group.sh
+              scriptArguments: "-u"
 
           - task: AzureCLI@2
             name: GetAdminsMembers
@@ -77,6 +78,7 @@ stages:
               azureSubscription: $(upstreamServiceConnection)
               scriptType: bash
               scriptPath: scripts/pipeline/create-entra-group.sh
+              scriptArguments: "-u"
 
           - task: AzureCLI@2
             name: GetDevelopersMembers
@@ -128,6 +130,7 @@ stages:
               azureSubscription: $(upstreamServiceConnection)
               scriptType: bash
               scriptPath: scripts/pipeline/create-entra-group.sh
+              scriptArguments: "-u"
 
           - task: AzureCLI@2
             name: GetReadersMembers
