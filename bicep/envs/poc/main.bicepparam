@@ -10,6 +10,13 @@ param builtInGroups = {
 
 param entraGroups = {}
 
+param subnetNames = {
+  aksApiServer: 'POCIMPNETSU4401'
+  aksSystemNodes: 'POCIMPNETSU4402'
+  aksUserNodes: 'POCIMPNETSU4403'
+  privateEndpoints: 'POCIMPNETSU4404'
+}
+
 param acrParams = {
   name: 'POCIMPINFAC1401'
   sku: 'Premium'
