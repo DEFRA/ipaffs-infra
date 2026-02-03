@@ -4,8 +4,11 @@ param deploymentId string
 param location string
 param keyVaultParams object
 param subnetIds array
+param subnetNames object
 param tags object
 param tenantId string
+
+var subnetId = first(filter(subnetIds, subnetId => contains(subnetId, subnetNames.privateEndpoints)))
 
 resource keyVault 'Microsoft.KeyVault/vaults@2025-05-01' = {
   name: keyVaultParams.name
@@ -43,7 +46,7 @@ resource keyVault 'Microsoft.KeyVault/vaults@2025-05-01' = {
   }
 }
 
-resource keyVaultPrivateEndpoints 'Microsoft.Network/privateEndpoints@2024-10-01' = [for subnetId in subnetIds: {
+resource keyVaultPrivateEndpoints 'Microsoft.Network/privateEndpoints@2024-10-01' = {
   name: '${keyVaultParams.name}-${last(split(subnetId, '/'))}'
   location: location
   tags: tags
@@ -63,7 +66,7 @@ resource keyVaultPrivateEndpoints 'Microsoft.Network/privateEndpoints@2024-10-01
       }
     ]
   }
-}]
+}
 
 output keyVaultName string = keyVault.name
 output keyVaultId string = keyVault.id

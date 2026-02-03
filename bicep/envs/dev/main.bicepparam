@@ -10,6 +10,15 @@ param builtInGroups = {
 
 param entraGroups = {}
 
+param subnetNames = {
+  aksApiServer: 'DEVIMPNETSU4401'
+  aksSystemNodes: 'DEVIMPNETSU4402'
+  aksUserNodes: 'DEVIMPNETSU4406'
+  appGatewayForContainers: 'DEVIMPNETSU4405'
+  privateEndpoints: 'DEVIMPNETSU4404'
+  privateLink: 'DEVIMPNETSU4403'
+}
+
 param acrParams = {
   name: 'DEVIMPINFAC1401'
   sku: 'Premium'
@@ -21,7 +30,6 @@ param aksParams = {
   dnsPrefix: 'devimpinfak1401'
   nodeResourceGroup: 'DEVIMPINFRG1402'
   sshRSAPublicKey: 'ssh-rsa AAAA...'
-  subnetId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPINFRG1401/providers/Microsoft.Network/virtualNetworks/DEVIMPNETVN1401/subnets/DEVIMPNETSU4401'
   version: '1.35'
 
   nodePools: {
@@ -29,13 +37,11 @@ param aksParams = {
       minCount: 3
       maxCount: 5
       vmSize: 'Standard_E2as_v6'
-      subnetId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPINFRG1401/providers/Microsoft.Network/virtualNetworks/DEVIMPNETVN1401/subnets/DEVIMPNETSU4402'
     }
     user: {
       minCount: 3
       maxCount: 12
       vmSize: 'Standard_E16as_v6'
-      subnetId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPINFRG1401/providers/Microsoft.Network/virtualNetworks/DEVIMPNETVN1401/subnets/DEVIMPNETSU4406'
     }
   }
   adminGroupObjectIDs: [
@@ -860,7 +866,7 @@ param sqlParams = {
 
 param vnetParams = {
   name: 'DEVIMPNETVN1401'
-  addressPrefixes: ['10.179.124.0/22']
+  addressPrefixes: ['10.179.144.0/22']
   dnsServers: [
     '10.176.0.4'
     '10.176.0.5'
@@ -873,7 +879,7 @@ param vnetParams = {
     // AKS API Server, 14 usable addresses
     {
       name: 'DEVIMPNETSU4401'
-      addressPrefix: '10.179.124.0/28'
+      addressPrefix: '10.179.144.0/28'
       serviceEndpoints: []
       routeTableId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPNETNS1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-DEVIMPNETVN1401-01'
       networkSecurityGroupId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPNETNS1401/providers/Microsoft.Network/networkSecurityGroups/DEVIMPNETNS1401'
@@ -881,7 +887,7 @@ param vnetParams = {
     // AKS System Node Pool, 14 usable addresses
     {
       name: 'DEVIMPNETSU4402'
-      addressPrefix: '10.179.124.16/28'
+      addressPrefix: '10.179.144.16/28'
       serviceEndpoints: []
       routeTableId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPNETNS1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-DEVIMPNETVN1401-01'
       networkSecurityGroupId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPNETNS1401/providers/Microsoft.Network/networkSecurityGroups/DEVIMPNETNS1402'
@@ -889,7 +895,7 @@ param vnetParams = {
     // PrivateLink, 30 usable addresses
     {
       name: 'DEVIMPNETSU4403'
-      addressPrefix: '10.179.124.32/27'
+      addressPrefix: '10.179.144.32/27'
       serviceEndpoints: []
       routeTableId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPNETNS1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-DEVIMPNETVN1401-01'
       networkSecurityGroupId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPNETNS1401/providers/Microsoft.Network/networkSecurityGroups/DEVIMPNETNS1403'
@@ -897,7 +903,7 @@ param vnetParams = {
     // Private Endpoints, 62 usable addresses
     {
       name: 'DEVIMPNETSU4404'
-      addressPrefix: '10.179.124.64/26'
+      addressPrefix: '10.179.144.64/26'
       serviceEndpoints: []
       routeTableId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPNETNS1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-DEVIMPNETVN1401-01'
       networkSecurityGroupId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPNETNS1401/providers/Microsoft.Network/networkSecurityGroups/DEVIMPNETNS1404'
@@ -905,7 +911,7 @@ param vnetParams = {
     // App Gateway for Containers, see https://learn.microsoft.com/en-us/azure/application-gateway/for-containers/container-networking
     {
       name: 'DEVIMPNETSU4405'
-      addressPrefix: '10.179.125.0/24'
+      addressPrefix: '10.179.145.0/24'
       serviceEndpoints: []
       routeTableId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPNETNS1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-DEVIMPNETVN1401-01'
       networkSecurityGroupId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPNETNS1401/providers/Microsoft.Network/networkSecurityGroups/DEVIMPNETNS1405'
@@ -913,7 +919,7 @@ param vnetParams = {
     // AKS User Node Pool, 253 usable addresses
     {
       name: 'DEVIMPNETSU4406'
-      addressPrefix: '10.179.126.0/24'
+      addressPrefix: '10.179.146.0/24'
       serviceEndpoints: []
       routeTableId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPNETNS1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-DEVIMPNETVN1401-01'
       networkSecurityGroupId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPNETNS1401/providers/Microsoft.Network/networkSecurityGroups/DEVIMPNETNS1407'
@@ -921,7 +927,7 @@ param vnetParams = {
     // Reserved, 126 usable addresses
     {
       name: 'DEVIMPNETSU4407'
-      addressPrefix: '10.179.127.0/25'
+      addressPrefix: '10.179.147.0/25'
       serviceEndpoints: []
       routeTableId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPNETNS1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-DEVIMPNETVN1401-01'
       networkSecurityGroupId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPNETNS1401/providers/Microsoft.Network/networkSecurityGroups/DEVIMPNETNS1408'
@@ -929,7 +935,7 @@ param vnetParams = {
     // Reserved, 126 usable addresses
     {
       name: 'DEVIMPNETSU4408'
-      addressPrefix: '10.179.127.128/25'
+      addressPrefix: '10.179.147.128/25'
       serviceEndpoints: []
       routeTableId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPNETNS1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-DEVIMPNETVN1401-01'
       networkSecurityGroupId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPNETNS1401/providers/Microsoft.Network/networkSecurityGroups/DEVIMPNETNS1409'

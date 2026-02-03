@@ -1,35 +1,49 @@
 using '../../main.bicep'
 
-param environment = 'POC'
+param environment = 'TST'
 param tenantId = ''
 
 param builtInGroups = {
-  contributors: '4b2fbef7-de9d-4836-a44e-46c56aad3d9e' // AG-Azure-IMP_POC1-Contributors
-  owners: 'd7806931-a3ca-42ee-83ef-6b3060845b2b' // AG-Azure-IMP_POC1-Owners
+  contributors: '04b12060-3b12-49aa-a92a-d62873d8d29e' // AG-Azure-IMP_TST1-Contributors
+  owners: 'dbaf1ee8-c128-4f27-b159-791866210c2e' // AG-Azure-IMP_TST1-Owners
 }
 
 param entraGroups = {}
 
 param subnetNames = {
-  aksApiServer: 'POCIMPNETSU4401'
-  aksSystemNodes: 'POCIMPNETSU4402'
-  aksUserNodes: 'POCIMPNETSU4403'
-  privateEndpoints: 'POCIMPNETSU4404'
+  aksApiServer: 'TSTIMPNETSU4401'
+  aksSystemNodes: 'TSTIMPNETSU4402'
+  aksUserNodes: 'TSTIMPNETSU4406'
+  appGatewayForContainers: 'TSTIMPNETSU4405'
+  privateEndpoints: 'TSTIMPNETSU4404'
+  privateLink: 'TSTIMPNETSU4403'
 }
 
 param acrParams = {
-  name: 'POCIMPINFAC1401'
+  name: 'TSTIMPINFAC1401'
   sku: 'Premium'
   adminEnabled: true
 }
 
 param aksParams = {
-  name: 'POCIMPINFAK1401'
-  dnsPrefix: 'POCIMPINFAK1401'
-  version: '1.32'
+  name: 'TSTIMPINFAK1401'
+  dnsPrefix: 'tstimpinfak1401'
+  nodeResourceGroup: 'TSTIMPINFRG1402'
   sshRSAPublicKey: 'ssh-rsa AAAA...'
-  subnetId: '/subscriptions/cfa4ccd1-5a5e-420c-9bca-03218a43e46d/resourceGroups/POCIMPNETNS1401/providers/Microsoft.Network/virtualNetworks/POCIMPNETVN1401/subnets/POCIMPNETSU4402'
-  adminUserName: 'adminuser'
+  version: '1.35'
+
+  nodePools: {
+    system: {
+      minCount: 3
+      maxCount: 5
+      vmSize: 'Standard_E2as_v6'
+    }
+    user: {
+      minCount: 3
+      maxCount: 12
+      vmSize: 'Standard_E16as_v6'
+    }
+  }
   adminGroupObjectIDs: [
     builtInGroups.contributors
     builtInGroups.owners
@@ -37,15 +51,15 @@ param aksParams = {
 }
 
 param asoParams = {
-  managedIdentityName: 'POCIMPINFMI1401-AzureServiceOperator'
+  managedIdentityName: 'TSTIMPINFMI1401-AzureServiceOperator'
 }
 
 param externalSecretsParams = {
-  managedIdentityName: 'POCIMPINFMI1401-ExternalSecrets'
+  managedIdentityName: 'TSTIMPINFMI1401-ExternalSecrets'
 }
 
 param keyVaultParams = {
-  name: 'POCIMPINFKV1401'
+  name: 'TSTIMPINFKV1401'
   principalObjectIds: [
     builtInGroups.contributors
     builtInGroups.owners
@@ -55,7 +69,7 @@ param keyVaultParams = {
 param nsgParams = {
   networkSecurityGroups: [
     {
-      name: 'POCIMPNETNS1401'
+      name: 'TSTIMPNETNS1401'
       purpose: 'AKS ILB NSG'
       securityRules: [
         {
@@ -135,7 +149,7 @@ param nsgParams = {
       ]
     }
     {
-      name: 'POCIMPNETNS1402'
+      name: 'TSTIMPNETNS1402'
       purpose: 'AKS System Node Pool NSG'
       securityRules: [
         {
@@ -468,7 +482,79 @@ param nsgParams = {
       ]
     }
     {
-      name: 'POCIMPNETNS1403'
+      name: 'TSTIMPNETNS1403'
+      purpose: 'PrivateLink NSG'
+      securityRules: [
+        {
+          name: 'DenyAllOtherOutbound'
+          properties: {
+            protocol: '*'
+            sourcePortRange: '*'
+            destinationPortRange: '*'
+            sourceAddressPrefix: '*'
+            destinationAddressPrefix: '*'
+            access: 'Deny'
+            priority: 4000
+            direction: 'Outbound'
+            sourcePortRanges: []
+            destinationPortRanges: []
+            sourceAddressPrefixes: []
+            destinationAddressPrefixes: []
+            description: 'Deny All Other Outbound'
+          }
+        }
+      ]
+    }
+    {
+      name: 'TSTIMPNETNS1404'
+      purpose: 'Private Endpoints NSG'
+      securityRules: [
+        {
+          name: 'DenyAllOtherOutbound'
+          properties: {
+            protocol: '*'
+            sourcePortRange: '*'
+            destinationPortRange: '*'
+            sourceAddressPrefix: '*'
+            destinationAddressPrefix: '*'
+            access: 'Deny'
+            priority: 4000
+            direction: 'Outbound'
+            sourcePortRanges: []
+            destinationPortRanges: []
+            sourceAddressPrefixes: []
+            destinationAddressPrefixes: []
+            description: 'Deny All Other Outbound'
+          }
+        }
+      ]
+    }
+    {
+      name: 'TSTIMPNETNS1405'
+      purpose: 'App Gateway for Containers NSG'
+      securityRules: [
+        {
+          name: 'DenyAllOtherOutbound'
+          properties: {
+            protocol: '*'
+            sourcePortRange: '*'
+            destinationPortRange: '*'
+            sourceAddressPrefix: '*'
+            destinationAddressPrefix: '*'
+            access: 'Deny'
+            priority: 4000
+            direction: 'Outbound'
+            sourcePortRanges: []
+            destinationPortRanges: []
+            sourceAddressPrefixes: []
+            destinationAddressPrefixes: []
+            description: 'Deny All Other Outbound'
+          }
+        }
+      ]
+    }
+    {
+      name: 'TSTIMPNETNS1406'
       purpose: 'AKS User Node Pool NSG'
       securityRules: [
         {
@@ -710,84 +796,157 @@ param nsgParams = {
         }
       ]
     }
+    {
+      name: 'TSTIMPNETNS1407'
+      purpose: 'Reserved NSG'
+      securityRules: [
+        {
+          name: 'DenyAllOtherOutbound'
+          properties: {
+            protocol: '*'
+            sourcePortRange: '*'
+            destinationPortRange: '*'
+            sourceAddressPrefix: '*'
+            destinationAddressPrefix: '*'
+            access: 'Deny'
+            priority: 4000
+            direction: 'Outbound'
+            sourcePortRanges: []
+            destinationPortRanges: []
+            sourceAddressPrefixes: []
+            destinationAddressPrefixes: []
+            description: 'Deny All Other Outbound'
+          }
+        }
+      ]
+    }
+    {
+      name: 'TSTIMPNETNS1408'
+      purpose: 'Reserved NSG'
+      securityRules: [
+        {
+          name: 'DenyAllOtherOutbound'
+          properties: {
+            protocol: '*'
+            sourcePortRange: '*'
+            destinationPortRange: '*'
+            sourceAddressPrefix: '*'
+            destinationAddressPrefix: '*'
+            access: 'Deny'
+            priority: 4000
+            direction: 'Outbound'
+            sourcePortRanges: []
+            destinationPortRanges: []
+            sourceAddressPrefixes: []
+            destinationAddressPrefixes: []
+            description: 'Deny All Other Outbound'
+          }
+        }
+      ]
+    }
   ]
 }
 
 param redisParams = {
-  name: 'pocimpinfrd1401' // note: must be lowercase
+  name: 'tstimpinfrd1401' // note: must be lowercase
 }
 
 param searchParams = {
-  name: 'pocimpinfas1401' // note: must be lowercase
+  name: 'tstimpinfas1401' // note: must be lowercase
   partitionCount: 1
   replicaCount: 2
 }
 
 param sqlParams = {
-  serverName: 'POCIMPDBSSQ1401'
-  elasticPoolName: 'POCIMPDBSEP1401'
+  serverName: 'TSTIMPDBSSQ1401'
+  elasticPoolName: 'TSTIMPDBSEP1401'
   maxSizeGiB: 10
   vCores: 2
 }
 
 param vnetParams = {
-  name: 'POCIMPNETVN1401'
-  addressPrefixes: ['10.179.104.0/22']
+  name: 'TSTIMPNETVN1401'
+  addressPrefixes: ['10.179.132.0/22']
   dnsServers: [
     '10.176.0.4'
     '10.176.0.5'
   ]
   routeTable: {
-    name: 'UDR-Spoke-Route-From-POCIMPNETVN1401-01'
+    name: 'UDR-Spoke-Route-From-TSTIMPNETVN1401-01'
     virtualApplianceIp: '10.176.0.100'
   }
   subnets: [
+    // AKS API Server, 14 usable addresses
     {
-      name: 'POCIMPNETSU4401'
-      addressPrefix: '10.179.104.0/27'
+      name: 'TSTIMPNETSU4401'
+      addressPrefix: '10.179.132.0/28'
       serviceEndpoints: []
-      routeTableId: '/subscriptions/cfa4ccd1-5a5e-420c-9bca-03218a43e46d/resourceGroups/POCIMPNETNS1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-POCIMPNETVN1401-01'
-      networkSecurityGroupId: '/subscriptions/cfa4ccd1-5a5e-420c-9bca-03218a43e46d/resourceGroups/POCIMPNETNS1401/providers/Microsoft.Network/networkSecurityGroups/POCIMPNETNS1401'
+      routeTableId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/TSTIMPNETNS1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-TSTIMPNETVN1401-01'
+      networkSecurityGroupId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/TSTIMPNETNS1401/providers/Microsoft.Network/networkSecurityGroups/TSTIMPNETNS1401'
     }
+    // AKS System Node Pool, 14 usable addresses
     {
-      name: 'POCIMPNETSU4402'
-      addressPrefix: '10.179.104.128/25'
+      name: 'TSTIMPNETSU4402'
+      addressPrefix: '10.179.132.16/28'
       serviceEndpoints: []
-      routeTableId: '/subscriptions/cfa4ccd1-5a5e-420c-9bca-03218a43e46d/resourceGroups/POCIMPNETNS1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-POCIMPNETVN1401-01'
-      networkSecurityGroupId: '/subscriptions/cfa4ccd1-5a5e-420c-9bca-03218a43e46d/resourceGroups/POCIMPNETNS1401/providers/Microsoft.Network/networkSecurityGroups/POCIMPNETNS1402'
+      routeTableId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/TSTIMPNETNS1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-TSTIMPNETVN1401-01'
+      networkSecurityGroupId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/TSTIMPNETNS1401/providers/Microsoft.Network/networkSecurityGroups/TSTIMPNETNS1402'
     }
+    // PrivateLink, 30 usable addresses
     {
-      name: 'POCIMPNETSU4403'
-      addressPrefix: '10.179.105.0/24'
+      name: 'TSTIMPNETSU4403'
+      addressPrefix: '10.179.132.32/27'
       serviceEndpoints: []
-      routeTableId: '/subscriptions/cfa4ccd1-5a5e-420c-9bca-03218a43e46d/resourceGroups/POCIMPNETNS1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-POCIMPNETVN1401-01'
-      networkSecurityGroupId: '/subscriptions/cfa4ccd1-5a5e-420c-9bca-03218a43e46d/resourceGroups/POCIMPNETNS1401/providers/Microsoft.Network/networkSecurityGroups/POCIMPNETNS1403'
+      routeTableId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/TSTIMPNETNS1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-TSTIMPNETVN1401-01'
+      networkSecurityGroupId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/TSTIMPNETNS1401/providers/Microsoft.Network/networkSecurityGroups/TSTIMPNETNS1403'
     }
+    // Private Endpoints, 62 usable addresses
     {
-      name: 'POCIMPNETSU4404'
-      addressPrefix: '10.179.106.0/25'
+      name: 'TSTIMPNETSU4404'
+      addressPrefix: '10.179.132.64/26'
       serviceEndpoints: []
-      routeTableId: '/subscriptions/cfa4ccd1-5a5e-420c-9bca-03218a43e46d/resourceGroups/POCIMPNETNS1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-POCIMPNETVN1401-01'
+      routeTableId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/TSTIMPNETNS1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-TSTIMPNETVN1401-01'
+      networkSecurityGroupId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/TSTIMPNETNS1401/providers/Microsoft.Network/networkSecurityGroups/TSTIMPNETNS1404'
     }
+    // App Gateway for Containers, see https://learn.microsoft.com/en-us/azure/application-gateway/for-containers/container-networking
     {
-      name: 'POCIMPNETSU4405'
-      addressPrefix: '10.179.106.128/25'
+      name: 'TSTIMPNETSU4405'
+      addressPrefix: '10.179.133.0/24'
       serviceEndpoints: []
-      routeTableId: '/subscriptions/cfa4ccd1-5a5e-420c-9bca-03218a43e46d/resourceGroups/POCIMPNETNS1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-POCIMPNETVN1401-01'
+      routeTableId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/TSTIMPNETNS1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-TSTIMPNETVN1401-01'
+      networkSecurityGroupId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/TSTIMPNETNS1401/providers/Microsoft.Network/networkSecurityGroups/TSTIMPNETNS1405'
     }
+    // AKS User Node Pool, 253 usable addresses
     {
-      name: 'POCIMPNETSU4406'
-      addressPrefix: '10.179.107.0/24'
+      name: 'TSTIMPNETSU4406'
+      addressPrefix: '10.179.134.0/24'
       serviceEndpoints: []
-      routeTableId: '/subscriptions/cfa4ccd1-5a5e-420c-9bca-03218a43e46d/resourceGroups/POCIMPNETNS1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-POCIMPNETVN1401-01'
+      routeTableId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/TSTIMPNETNS1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-TSTIMPNETVN1401-01'
+      networkSecurityGroupId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/TSTIMPNETNS1401/providers/Microsoft.Network/networkSecurityGroups/TSTIMPNETNS1407'
+    }
+    // Reserved, 126 usable addresses
+    {
+      name: 'TSTIMPNETSU4407'
+      addressPrefix: '10.179.135.0/25'
+      serviceEndpoints: []
+      routeTableId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/TSTIMPNETNS1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-TSTIMPNETVN1401-01'
+      networkSecurityGroupId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/TSTIMPNETNS1401/providers/Microsoft.Network/networkSecurityGroups/TSTIMPNETNS1408'
+    }
+    // Reserved, 126 usable addresses
+    {
+      name: 'TSTIMPNETSU4408'
+      addressPrefix: '10.179.135.128/25'
+      serviceEndpoints: []
+      routeTableId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/TSTIMPNETNS1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-TSTIMPNETVN1401-01'
+      networkSecurityGroupId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/TSTIMPNETNS1401/providers/Microsoft.Network/networkSecurityGroups/TSTIMPNETNS1409'
     }
   ]
 }
 
 param monitoringParams = {
-  logAnalyticsName: 'POCIMPINFLA1401'
-  prometheusName: 'POCIMPINFPR1401'
-  grafanaName: 'POCIMPINFGA1401'
+  logAnalyticsName: 'TSTIMPINFLA1401'
+  prometheusName: 'TSTIMPINFPR1401'
+  grafanaName: 'TSTIMPINFGA1401'
   principalObjectId: builtInGroups.contributors
 }
 

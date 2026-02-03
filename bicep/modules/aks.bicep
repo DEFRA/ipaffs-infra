@@ -4,9 +4,15 @@ param acrName string
 param aksParams object
 param deploymentId string
 param location string
+param logAnalyticsId string
+param subnetIds array
+param subnetNames object
 param tags object
 param vnetName string
-param logAnalyticsId string
+
+var apiServerSubnetId = first(filter(subnetIds, subnetId => contains(subnetId, subnetNames.aksApiServer)))
+var systemNodePoolSubnetId = first(filter(subnetIds, subnetId => contains(subnetId, subnetNames.aksSystemNodes)))
+var userNodePoolSubnetId = first(filter(subnetIds, subnetId => contains(subnetId, subnetNames.aksUserNodes)))
 
 resource aksCluster 'Microsoft.ContainerService/managedClusters@2025-10-01' = {
   name: aksParams.name
@@ -50,7 +56,7 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2025-10-01' = {
         osType: 'Linux'
         type: 'VirtualMachineScaleSets'
         vmSize: aksParams.nodePools.system.vmSize
-        vnetSubnetID: aksParams.nodePools.system.subnetId
+        vnetSubnetID: systemNodePoolSubnetId
 
         securityProfile: {
           enableSecureBoot: true
@@ -68,7 +74,7 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2025-10-01' = {
         osType: 'Linux'
         type: 'VirtualMachineScaleSets'
         vmSize: aksParams.nodePools.user.vmSize
-        vnetSubnetID: aksParams.nodePools.user.subnetId
+        vnetSubnetID: userNodePoolSubnetId
 
         securityProfile: {
           enableSecureBoot: true
@@ -80,6 +86,7 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2025-10-01' = {
     apiServerAccessProfile: {
       enablePrivateCluster: true
       privateDNSZone: 'none'
+      subnetId: apiServerSubnetId
     }
 
     autoUpgradeProfile: {
