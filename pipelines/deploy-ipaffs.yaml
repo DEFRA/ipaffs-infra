@@ -111,6 +111,10 @@ parameters:
         migrations: true
         pipeline: enotification-event-service
 
+      - name: in-service-messaging-service
+        migrations: true
+        pipeline: in-service-messaging-service
+
       - name: notification-frontend
         migrations: false
         pipeline: notification-frontend
@@ -259,6 +263,12 @@ resources:
       type: github
       endpoint: DEFRA
       name: DEFRA/ipaffs-enotification-event-microservice
+      ref: refs/heads/master
+
+    - repository: in-service-messaging-service
+      type: github
+      endpoint: DEFRA
+      name: DEFRA/ipaffs-in-service-messaging-microservice
       ref: refs/heads/master
 
     - repository: notification-frontend
