@@ -138,8 +138,8 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2025-10-01' = {
       networkPluginMode: 'overlay'
       networkPolicy: 'calico'
       outboundType: 'userDefinedRouting'
-      podCidr: '10.240.0.0/16'
-      serviceCidr: '10.240.0.0/16'
+      podCidrs: ['10.240.0.0/16']
+      serviceCidrs: ['10.0.0.0/16']
     }
 
     securityProfile: {
