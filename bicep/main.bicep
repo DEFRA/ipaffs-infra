@@ -41,9 +41,6 @@ module acr './modules/acr.bicep' = {
     subnetNames: subnetNames
     tags: tags
   }
-  dependsOn: [
-    nsg
-  ]
 }
 
 module aks './modules/aks.bicep' = {
@@ -60,9 +57,6 @@ module aks './modules/aks.bicep' = {
     tags: tags
     vnetName: vnet.outputs.vnetName
   }
-  dependsOn: [
-    nsg
-  ]
 }
 
 module aso './modules/azure-service-operator.bicep' = {
@@ -107,9 +101,6 @@ module keyVault './modules/keyvault.bicep' = {
     tags: tags
     tenantId: tenantId
   }
-  dependsOn: [
-    nsg
-  ]
 }
 
 module nsg './modules/network-security-groups.bicep' = {
@@ -121,9 +112,6 @@ module nsg './modules/network-security-groups.bicep' = {
     tags: tags
     nsgParams: nsgParams
   }
-  dependsOn: [
-    vnet
-  ]
 }
 
 module redis './modules/redis.bicep' = {
@@ -138,9 +126,6 @@ module redis './modules/redis.bicep' = {
     tags: tags
     tenantId: tenantId
   }
-  dependsOn: [
-    nsg
-  ]
 }
 
 module search './modules/search.bicep' = {
@@ -156,9 +141,6 @@ module search './modules/search.bicep' = {
     tags: tags
     tenantId: tenantId
   }
-  dependsOn: [
-    nsg
-  ]
 }
 
 module sql './modules/sql.bicep' = {
@@ -185,6 +167,9 @@ module vnet './modules/virtual-network.bicep' = {
     tags: tags
     vnetParams: vnetParams
   }
+  dependsOn: [
+    nsg
+  ]
 }
 
 module monitoring './modules/monitoring.bicep' = {
