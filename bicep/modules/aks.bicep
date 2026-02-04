@@ -26,6 +26,7 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2025-10-01' = {
   properties: {
     dnsPrefix: aksParams.dnsPrefix
     kubernetesVersion: aksParams.version
+    nodeResourceGroup: aksParams.nodeResourceGroup
     publicNetworkAccess: 'Disabled'
 
     aadProfile: {
@@ -52,7 +53,6 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2025-10-01' = {
         maxCount: aksParams.nodePools.system.maxCount
         minCount: aksParams.nodePools.system.minCount
         mode: 'System'
-        nodeResourceGroup: aksParams.nodeResourceGroup
         osType: 'Linux'
         type: 'VirtualMachineScaleSets'
         vmSize: aksParams.nodePools.system.vmSize
@@ -70,7 +70,6 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2025-10-01' = {
         maxCount: aksParams.nodePools.user.maxCount
         minCount: aksParams.nodePools.user.minCount
         mode: 'User'
-        nodeResourceGroup: aksParams.nodeResourceGroup
         osType: 'Linux'
         type: 'VirtualMachineScaleSets'
         vmSize: aksParams.nodePools.user.vmSize
