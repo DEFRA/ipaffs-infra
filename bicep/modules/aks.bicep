@@ -84,6 +84,7 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2025-10-01' = {
 
     apiServerAccessProfile: {
       enablePrivateCluster: true
+      enableVnetIntegration: true
       privateDNSZone: 'none'
       subnetId: apiServerSubnetId
     }
