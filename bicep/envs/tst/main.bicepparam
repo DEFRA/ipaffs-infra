@@ -29,7 +29,7 @@ param aksParams = {
   name: 'TSTIMPINFAK1401'
   dnsPrefix: 'tstimpinfak1401'
   nodeResourceGroup: 'TSTIMPINFRG1402'
-  sshRSAPublicKey: 'ssh-rsa AAAA...'
+  userAssignedIdentityName: 'DEVIMPINFAK1401'
   version: '1.34'
 
   nodePools: {

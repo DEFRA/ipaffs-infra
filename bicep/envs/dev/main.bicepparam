@@ -29,7 +29,7 @@ param aksParams = {
   name: 'DEVIMPINFAK1401'
   dnsPrefix: 'devimpinfak1401'
   nodeResourceGroup: 'DEVIMPINFRG1402'
-  sshRSAPublicKey: 'ssh-rsa AAAA...'
+  userAssignedIdentityName: 'DEVIMPINFAK1401'
   version: '1.34'
 
   nodePools: {

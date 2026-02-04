@@ -14,13 +14,22 @@ var apiServerSubnetId = first(filter(subnetIds, subnetId => contains(subnetId, s
 var systemNodePoolSubnetId = first(filter(subnetIds, subnetId => contains(subnetId, subnetNames.aksSystemNodes)))
 var userNodePoolSubnetId = first(filter(subnetIds, subnetId => contains(subnetId, subnetNames.aksUserNodes)))
 
+resource userAssignedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2024-11-30' = {
+  name: aksParams.userAssignedIdentityName
+  location: location
+  tags: tags
+}
+
 resource aksCluster 'Microsoft.ContainerService/managedClusters@2025-10-01' = {
   name: aksParams.name
   location: location
   tags: tags
 
   identity: {
-    type: 'SystemAssigned'
+    type: 'UserAssigned'
+    userAssignedIdentities: {
+      '${userAssignedIdentity.id}': {}
+    }
   }
 
   properties: {
