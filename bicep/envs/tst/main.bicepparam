@@ -30,7 +30,7 @@ param aksParams = {
   dnsPrefix: 'tstimpinfak1401'
   nodeResourceGroup: 'TSTIMPINFRG1402'
   sshRSAPublicKey: 'ssh-rsa AAAA...'
-  version: '1.35'
+  version: '1.34'
 
   nodePools: {
     system: {

@@ -30,7 +30,7 @@ param aksParams = {
   dnsPrefix: 'devimpinfak1401'
   nodeResourceGroup: 'DEVIMPINFRG1402'
   sshRSAPublicKey: 'ssh-rsa AAAA...'
-  version: '1.35'
+  version: '1.34'
 
   nodePools: {
     system: {
