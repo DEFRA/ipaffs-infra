@@ -10,6 +10,9 @@ param subnetNames object
 param tags object
 param vnetName string
 
+var acrPullRoleId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '7f951dda-4ed3-4680-a7ca-43fe172d538d')
+var networkContributorRoleId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '4d97b98b-1d4f-4787-a291-c67834d212e7')
+
 var apiServerSubnetId = first(filter(subnetIds, subnetId => contains(subnetId, subnetNames.aksApiServer)))
 var systemNodePoolSubnetId = first(filter(subnetIds, subnetId => contains(subnetId, subnetNames.aksSystemNodes)))
 var userNodePoolSubnetId = first(filter(subnetIds, subnetId => contains(subnetId, subnetNames.aksUserNodes)))
@@ -18,6 +21,17 @@ resource userAssignedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@
   name: aksParams.userAssignedIdentityName
   location: location
   tags: tags
+}
+
+module vnetNetworkContributor './vnet-role-assignment.bicep' = {
+  name: 'vnetNetworkContributor-${deploymentId}'
+  scope: resourceGroup()
+  params: {
+    deploymentId: deploymentId
+    principalObjectId: userAssignedIdentity.properties.principalId
+    roleDefinitionId: networkContributorRoleId
+    vnetName: vnetName
+  }
 }
 
 resource aksCluster 'Microsoft.ContainerService/managedClusters@2025-10-01' = {
@@ -136,11 +150,6 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2025-10-01' = {
   }
 }
 
-
-
-var acrPullRoleId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '7f951dda-4ed3-4680-a7ca-43fe172d538d')
-var networkContributorRoleId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '4d97b98b-1d4f-4787-a291-c67834d212e7')
-
 module acrPull './acr-role-assignment.bicep' = {
   name: 'acrPull-${deploymentId}'
   scope: resourceGroup()
@@ -149,17 +158,6 @@ module acrPull './acr-role-assignment.bicep' = {
     deploymentId: deploymentId
     principalObjectId: aksCluster.properties.identityProfile.kubeletIdentity.objectId
     roleDefinitionId: acrPullRoleId
-  }
-}
-
-module vnetNetworkContributor './vnet-role-assignment.bicep' = {
-  name: 'vnetNetworkContributor-${deploymentId}'
-  scope: resourceGroup()
-  params: {
-    deploymentId: deploymentId
-    principalObjectId: aksCluster.identity.principalId
-    roleDefinitionId: networkContributorRoleId
-    vnetName: vnetName
   }
 }
 
