@@ -132,13 +132,15 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2025-10-01' = {
     }
 
     networkProfile: {
-      dnsServiceIP: '10.240.0.10'
+      dnsServiceIP: '10.0.0.10'
+      ipFamilies: ['IPv4']
       loadBalancerSku: 'standard'
       networkPlugin: 'azure'
       networkPluginMode: 'overlay'
       networkPolicy: 'calico'
       outboundType: 'userDefinedRouting'
       podCidrs: ['10.240.0.0/16']
+      podLinkLocalAccess: 'IMDS'
       serviceCidrs: ['10.0.0.0/16']
     }
 
