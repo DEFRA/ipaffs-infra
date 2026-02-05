@@ -46,6 +46,44 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2025-10-01' = {
     }
   }
 
+    apiServerAccessProfile: {
+      enablePrivateCluster: true
+      enableVnetIntegration: true
+      privateDNSZone: 'none'
+      subnetId: apiServerSubnetId
+    }
+
+    autoUpgradeProfile: {
+      nodeOSUpgradeChannel: 'SecurityPatch'
+      upgradeChannel: 'none'
+    }
+
+    azureMonitorProfile: {
+      metrics: {
+        enabled: true
+        kubeStateMetrics: {
+          metricAnnotationsAllowList: '*'
+          metricLabelsAllowlist: '*'
+        }
+      }
+    }
+
+    networkProfile: {
+      dnsServiceIP: '10.0.0.10'
+      ipFamilies: ['IPv4']
+      loadBalancerSku: 'standard'
+      networkPlugin: 'azure'
+      networkPluginMode: 'overlay'
+      networkPolicy: 'calico'
+      outboundType: 'userDefinedRouting'
+      podCidrs: ['10.240.0.0/16']
+      serviceCidrs: ['10.0.0.0/16']
+    }
+
+    oidcIssuerProfile: {
+      enabled: true
+    }
+
   properties: {
     dnsPrefix: aksParams.dnsPrefix
     kubernetesVersion: aksParams.version
@@ -104,45 +142,6 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2025-10-01' = {
         }
       }
     ]
-
-    apiServerAccessProfile: {
-      enablePrivateCluster: true
-      enableVnetIntegration: true
-      privateDNSZone: 'none'
-      subnetId: apiServerSubnetId
-    }
-
-    autoUpgradeProfile: {
-      nodeOSUpgradeChannel: 'SecurityPatch'
-      upgradeChannel: 'none'
-    }
-
-    azureMonitorProfile: {
-      metrics: {
-        enabled: true
-        kubeStateMetrics: {
-          metricAnnotationsAllowList: '*'
-          metricLabelsAllowlist: '*'
-        }
-      }
-    }
-
-    oidcIssuerProfile: {
-      enabled: true
-    }
-
-    networkProfile: {
-      dnsServiceIP: '10.0.0.10'
-      ipFamilies: ['IPv4']
-      loadBalancerSku: 'standard'
-      networkPlugin: 'azure'
-      networkPluginMode: 'overlay'
-      networkPolicy: 'calico'
-      outboundType: 'userDefinedRouting'
-      podCidrs: ['10.240.0.0/16']
-      podLinkLocalAccess: 'IMDS'
-      serviceCidrs: ['10.0.0.0/16']
-    }
 
     securityProfile: {
       workloadIdentity: {
