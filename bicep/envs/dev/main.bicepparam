@@ -882,7 +882,7 @@ param vnetParams = {
       addressPrefix: '10.179.144.0/28'
       delegations: [
         {
-          name: 'Microsoft.ContainerService/managedClusters'
+          name: 'Microsoft.ContainerService.managedClusters'
           id: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPINFRG1401/providers/Microsoft.Network/availableDelegations/Microsoft.ContainerService.managedClusters'
           type: 'Microsoft.Network/availableDelegations'
         }
@@ -897,7 +897,7 @@ param vnetParams = {
       addressPrefix: '10.179.144.16/28'
       delegations: [
         {
-          name: 'Microsoft.ContainerService/managedClusters'
+          name: 'Microsoft.ContainerService.managedClusters'
           id: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPINFRG1401/providers/Microsoft.Network/availableDelegations/Microsoft.ContainerService.managedClusters'
           type: 'Microsoft.Network/availableDelegations'
         }
@@ -936,7 +936,7 @@ param vnetParams = {
       addressPrefix: '10.179.146.0/24'
       delegations: [
         {
-          name: 'Microsoft.ContainerService/managedClusters'
+          name: 'Microsoft.ContainerService.managedClusters'
           id: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPINFRG1401/providers/Microsoft.Network/availableDelegations/Microsoft.ContainerService.managedClusters'
           type: 'Microsoft.Network/availableDelegations'
         }
