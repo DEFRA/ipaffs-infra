@@ -896,14 +896,7 @@ param vnetParams = {
     {
       name: 'DEVIMPNETSU4402'
       addressPrefix: '10.179.144.16/28'
-      delegations: [
-        {
-          name: '0'
-          properties: {
-            serviceName: 'Microsoft.ContainerService/managedClusters'
-          }
-        }
-      ]
+      delegations: []
       serviceEndpoints: []
       routeTableId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPINFRG1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-DEVIMPNETVN1401-01'
       networkSecurityGroupId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPINFRG1401/providers/Microsoft.Network/networkSecurityGroups/DEVIMPNETNS1402'
@@ -912,6 +905,7 @@ param vnetParams = {
     {
       name: 'DEVIMPNETSU4403'
       addressPrefix: '10.179.144.32/27'
+      delegations: []
       serviceEndpoints: []
       routeTableId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPINFRG1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-DEVIMPNETVN1401-01'
       networkSecurityGroupId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPINFRG1401/providers/Microsoft.Network/networkSecurityGroups/DEVIMPNETNS1403'
@@ -920,6 +914,7 @@ param vnetParams = {
     {
       name: 'DEVIMPNETSU4404'
       addressPrefix: '10.179.144.64/26'
+      delegations: []
       serviceEndpoints: []
       routeTableId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPINFRG1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-DEVIMPNETVN1401-01'
       networkSecurityGroupId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPINFRG1401/providers/Microsoft.Network/networkSecurityGroups/DEVIMPNETNS1404'
@@ -936,14 +931,7 @@ param vnetParams = {
     {
       name: 'DEVIMPNETSU4406'
       addressPrefix: '10.179.146.0/24'
-      delegations: [
-        {
-          name: '0'
-          properties: {
-            serviceName: 'Microsoft.ContainerService/managedClusters'
-          }
-        }
-      ]
+      delegations: []
       serviceEndpoints: []
       routeTableId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPINFRG1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-DEVIMPNETVN1401-01'
       networkSecurityGroupId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPINFRG1401/providers/Microsoft.Network/networkSecurityGroups/DEVIMPNETNS1406'
@@ -952,6 +940,7 @@ param vnetParams = {
     {
       name: 'DEVIMPNETSU4407'
       addressPrefix: '10.179.147.0/25'
+      delegations: []
       serviceEndpoints: []
       routeTableId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPINFRG1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-DEVIMPNETVN1401-01'
       networkSecurityGroupId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPINFRG1401/providers/Microsoft.Network/networkSecurityGroups/DEVIMPNETNS1407'
@@ -960,6 +949,7 @@ param vnetParams = {
     {
       name: 'DEVIMPNETSU4408'
       addressPrefix: '10.179.147.128/25'
+      delegations: []
       serviceEndpoints: []
       routeTableId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPINFRG1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-DEVIMPNETVN1401-01'
       networkSecurityGroupId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPINFRG1401/providers/Microsoft.Network/networkSecurityGroups/DEVIMPNETNS1408'
