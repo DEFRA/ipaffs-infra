@@ -37,14 +37,13 @@ stages:
               steps:
                 - checkout: self
 
-                - task: AzureCLI@2
+                - task: Bash@3
                   inputs:
-                    azureSubscription: ADO-DefraGovUK-AZR-POC_IMP
-                    scriptType: bash
-                    scriptLocation: inlineScript
-                    inlineScript: |
+                    targetType: inline
+                    script: |
+                      echo "$(System.AccessToken)" | az devops login --org https://dev.azure.com/defragovuk/
                       az pipelines run \
-                        --org https://dev.azure.com/defragovuk \
+                        --org https://dev.azure.com/defragovuk/ \
                         --project CCoE-Infrastructure \
                         --id 1851 \
                         --parameters 'VirtualNetworkName=DEVIMPNETVN1401 Subscription=AZR-IMP-DEV1 Tenant=770a2450-0227-4c62-90c7-4e38537f1102 PeerToSec=false'
