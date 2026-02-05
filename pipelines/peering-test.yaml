@@ -1,0 +1,53 @@
+---
+trigger:
+  branches:
+    exclude:
+      - '*'
+
+pr:
+  branches:
+    exclude:
+      - '*'
+
+pool:
+  name: DEFRA-COMMON-ubuntu2204-SSV5
+
+parameters:
+  - name: environmentName
+    displayName: Environment
+    type: string
+    default: DEV
+    values:
+      - DEV
+
+variables:
+  - group: "${{ parameters.environmentName }}"
+  - template: "vars/common.yaml"
+  - template: "vars/${{ lower(parameters.environmentName) }}.yaml"
+
+stages:
+  - stage: PeeringTest
+    jobs:
+      - deployment: TriggerPeeringPipeline
+        environment:
+          name: "${{ parameters.environmentName }}"
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+
+                - task: AzureCLI@2
+                  inputs:
+                    azureSubscription: $(serviceConnection)
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      az pipelines run \
+                        --org https://dev.azure.com/defragovuk \
+                        --project CCoE-Infrastructure \
+                        --id 1851 \
+                        --parameters 'VirtualNetworkName=DEVIMPNETVN1401 Subscription=AZR-IMP-DEV1 Tenant=770a2450-0227-4c62-90c7-4e38537f1102 PeerToSec=false'
+
+
+# vim: set ts=2 sts=2 sw=2 et:
