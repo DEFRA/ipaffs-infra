@@ -882,7 +882,7 @@ param vnetParams = {
       addressPrefix: '10.179.144.0/28'
       delegations: [
         {
-          name: 'Microsoft.ContainerService.managedClusters'
+          name: '0'
           properties: {
             serviceName: 'Microsoft.ContainerService/managedClusters'
           }
@@ -898,7 +898,7 @@ param vnetParams = {
       addressPrefix: '10.179.144.16/28'
       delegations: [
         {
-          name: 'Microsoft.ContainerService.managedClusters'
+          name: '0'
           properties: {
             serviceName: 'Microsoft.ContainerService/managedClusters'
           }
@@ -938,7 +938,7 @@ param vnetParams = {
       addressPrefix: '10.179.146.0/24'
       delegations: [
         {
-          name: 'Microsoft.ContainerService.managedClusters'
+          name: '0'
           properties: {
             serviceName: 'Microsoft.ContainerService/managedClusters'
           }
