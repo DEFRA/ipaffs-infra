@@ -139,6 +139,10 @@ parameters:
         migrations: false
         pipeline: risk-locking-service
 
+      - name: traces-data-processor-service
+        migrations: true
+        pipeline: traces-data-processor-service
+
       - name: proxy
         migrations: false
         pipeline: imports-proxy
@@ -309,6 +313,12 @@ resources:
       type: github
       endpoint: DEFRA
       name: DEFRA/ipaffs-risk-locking-microservice
+      ref: refs/heads/master
+
+    - repository: traces-data-processor-service
+      type: github
+      endpoint: DEFRA
+      name: DEFRA/ipaffs-traces-data-processor-microservice
       ref: refs/heads/master
 
     - repository: proxy
