@@ -881,9 +881,11 @@ param vnetParams = {
       name: 'DEVIMPNETSU4401'
       addressPrefix: '10.179.144.0/28'
       delegations: [
-        name: 'Microsoft.ContainerService/managedClusters'
-        id: resourceId('Microsoft.Network/availableDelegations', 'Microsoft.ContainerService.managedClusters')
-        type: 'Microsoft.Network/availableDelegations'
+        {
+          name: 'Microsoft.ContainerService/managedClusters'
+          id: resourceId('Microsoft.Network/availableDelegations', 'Microsoft.ContainerService.managedClusters')
+          type: 'Microsoft.Network/availableDelegations'
+        }
       ]
       serviceEndpoints: []
       routeTableId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPINFRG1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-DEVIMPNETVN1401-01'
@@ -894,9 +896,11 @@ param vnetParams = {
       name: 'DEVIMPNETSU4402'
       addressPrefix: '10.179.144.16/28'
       delegations: [
-        name: 'Microsoft.ContainerService/managedClusters'
-        id: resourceId('Microsoft.Network/availableDelegations', 'Microsoft.ContainerService.managedClusters')
-        type: 'Microsoft.Network/availableDelegations'
+        {
+          name: 'Microsoft.ContainerService/managedClusters'
+          id: resourceId('Microsoft.Network/availableDelegations', 'Microsoft.ContainerService.managedClusters')
+          type: 'Microsoft.Network/availableDelegations'
+        }
       ]
       serviceEndpoints: []
       routeTableId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPINFRG1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-DEVIMPNETVN1401-01'
@@ -931,9 +935,11 @@ param vnetParams = {
       name: 'DEVIMPNETSU4406'
       addressPrefix: '10.179.146.0/24'
       delegations: [
-        name: 'Microsoft.ContainerService/managedClusters'
-        id: resourceId('Microsoft.Network/availableDelegations', 'Microsoft.ContainerService.managedClusters')
-        type: 'Microsoft.Network/availableDelegations'
+        {
+          name: 'Microsoft.ContainerService/managedClusters'
+          id: resourceId('Microsoft.Network/availableDelegations', 'Microsoft.ContainerService.managedClusters')
+          type: 'Microsoft.Network/availableDelegations'
+        }
       ]
       serviceEndpoints: []
       routeTableId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPINFRG1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-DEVIMPNETVN1401-01'
