@@ -22,9 +22,9 @@ stages:
               targetType: inline
               script: |
                 set -ex
-                cat <<- 'EOF' >'$(Build.SourcesDirectory)/20-infra-runtime.bicepparam'
-                using '20-infra.bicep'
-                extends 'envs/${{ lower(parameters.environmentName) }}/20-infra.bicepparam'
+                cat <<- 'EOF' >'$(Build.SourcesDirectory)/30-infra-runtime.bicepparam'
+                using '30-infra.bicep'
+                extends 'envs/${{ lower(parameters.environmentName) }}/30-infra.bicepparam'
                 param entraGroups = {
                   searchContributors: {
                     id: '$(searchContributorsGroupId)'
@@ -40,13 +40,13 @@ stages:
                   }
                 }
                 EOF
-                cat '$(Build.SourcesDirectory)/20-infra-runtime.bicepparam'
+                cat '$(Build.SourcesDirectory)/30-infra-runtime.bicepparam'
 
           - task: PublishPipelineArtifact@1
             displayName: Publish artifact
             inputs:
               artifactName: bicepparam
-              targetPath: $(Build.SourcesDirectory)/20-infra-runtime.bicepparam
+              targetPath: $(Build.SourcesDirectory)/30-infra-runtime.bicepparam
 
   - stage: DeployInfrastructure
     displayName: Deploy infrastructure
@@ -112,7 +112,7 @@ stages:
                       az deployment group what-if \
                         --name "Network-$(Build.BuildId)" \
                         --resource-group $(resourceGroupName) \
-                        --template-file bicep/10-network.bicep \
+                        --template-file bicep/20-network.bicep \
                         --parameters bicep/envs/${{ lower(parameters.environmentName) }}/20-network.bicepparam \
                         --parameters tenantId="$(tenantId)"
 
@@ -128,7 +128,7 @@ stages:
                       az deployment group create \
                         --name "Network-$(Build.BuildId)" \
                         --resource-group $(resourceGroupName) \
-                        --template-file bicep/10-network.bicep \
+                        --template-file bicep/20-network.bicep \
                         --parameters bicep/envs/${{ lower(parameters.environmentName) }}/20-network.bicepparam \
                         --parameters tenantId="$(tenantId)"
 
@@ -143,8 +143,8 @@ stages:
                       az deployment group what-if \
                         --name "Infrastructure-$(Build.BuildId)" \
                         --resource-group $(resourceGroupName) \
-                        --template-file bicep/20-infra.bicep \
-                        --parameters bicep/20-infra-runtime.bicepparam \
+                        --template-file bicep/30-infra.bicep \
+                        --parameters bicep/30-infra-runtime.bicepparam \
                         --parameters tenantId="$(tenantId)"
 
                 - task: AzureCLI@2
@@ -159,8 +159,8 @@ stages:
                       az deployment group create \
                         --name "Infrastructure-$(Build.BuildId)" \
                         --resource-group $(resourceGroupName) \
-                        --template-file bicep/20-infra.bicep \
-                        --parameters bicep/20-infra-runtime.bicepparam \
+                        --template-file bicep/30-infra.bicep \
+                        --parameters bicep/30-infra-runtime.bicepparam \
                         --parameters tenantId="$(tenantId)"
 
                 - task: AzureCLI@2
