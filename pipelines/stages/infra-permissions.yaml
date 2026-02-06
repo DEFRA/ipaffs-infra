@@ -28,7 +28,8 @@ stages:
                     GROUP_ID: $(directoryReadersGroupObjectId)
                     PRINCIPAL_ID: $(sqlServerManagedIdentityObjectId)
                   inputs:
-                    azureSubscription: $(serviceConnection)
+                    # TODO: Get other SPs added as group owners
+                    azureSubscription: ADO-DefraGovUK-AZR-POC_IMP
                     scriptType: bash
                     scriptPath: scripts/pipeline/add-principal-to-group.sh
 
