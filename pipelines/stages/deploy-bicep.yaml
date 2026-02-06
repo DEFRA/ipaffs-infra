@@ -22,8 +22,9 @@ stages:
               targetType: inline
               script: |
                 set -ex
-                cat <<- 'EOF' >'$(Build.SourcesDirectory)/runtime.bicepparam'
-                extends 'envs/${{ lower(parameters.environmentName) }}/main.bicepparam'
+                cat <<- 'EOF' >'$(Build.SourcesDirectory)/20-infra-runtime.bicepparam'
+                using '20-infra.bicep'
+                extends 'envs/${{ lower(parameters.environmentName) }}/20-infra.bicepparam'
                 param entraGroups = {
                   searchContributors: {
                     id: '$(searchContributorsGroupId)'
@@ -83,7 +84,7 @@ stages:
                         --name "ResourceGroup-$(Build.BuildId)" \
                         --location $(location) \
                         --template-file bicep/10-resource-group.bicep \
-                        --parameters bicep/envs/${{ lower(parameters.environmentName) }}/resource-group.bicepparam
+                        --parameters bicep/envs/${{ lower(parameters.environmentName) }}/10-resource-group.bicepparam
 
                 - task: AzureCLI@2
                   displayName: Deploy - ResourceGroup
@@ -98,7 +99,7 @@ stages:
                         --name "ResourceGroup-$(Build.BuildId)" \
                         --location $(location) \
                         --template-file bicep/10-resource-group.bicep \
-                        --parameters bicep/envs/${{ lower(parameters.environmentName) }}/resource-group.bicepparam
+                        --parameters bicep/envs/${{ lower(parameters.environmentName) }}/10-resource-group.bicepparam
 
                 - task: AzureCLI@2
                   displayName: WhatIf - Network
@@ -112,7 +113,7 @@ stages:
                         --name "Network-$(Build.BuildId)" \
                         --resource-group $(resourceGroupName) \
                         --template-file bicep/10-network.bicep \
-                        --parameters bicep/runtime.bicepparam \
+                        --parameters bicep/envs/${{ lower(parameters.environmentName) }}/20-network.bicepparam \
                         --parameters tenantId="$(tenantId)"
 
                 - task: AzureCLI@2
@@ -128,7 +129,7 @@ stages:
                         --name "Network-$(Build.BuildId)" \
                         --resource-group $(resourceGroupName) \
                         --template-file bicep/10-network.bicep \
-                        --parameters bicep/runtime.bicepparam \
+                        --parameters bicep/envs/${{ lower(parameters.environmentName) }}/20-network.bicepparam \
                         --parameters tenantId="$(tenantId)"
 
                 - task: AzureCLI@2
@@ -143,7 +144,7 @@ stages:
                         --name "Infrastructure-$(Build.BuildId)" \
                         --resource-group $(resourceGroupName) \
                         --template-file bicep/20-infra.bicep \
-                        --parameters bicep/runtime.bicepparam \
+                        --parameters bicep/20-infra-runtime.bicepparam \
                         --parameters tenantId="$(tenantId)"
 
                 - task: AzureCLI@2
@@ -159,7 +160,7 @@ stages:
                         --name "Infrastructure-$(Build.BuildId)" \
                         --resource-group $(resourceGroupName) \
                         --template-file bicep/20-infra.bicep \
-                        --parameters bicep/runtime.bicepparam \
+                        --parameters bicep/20-infra-runtime.bicepparam \
                         --parameters tenantId="$(tenantId)"
 
                 - task: AzureCLI@2

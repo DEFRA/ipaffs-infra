@@ -7,6 +7,7 @@ param builtInGroups object
 param entraGroups object
 param subnetNames object
 param tenantId string
+param vnetName string
 
 param createdDate string = utcNow('yyyy-MM-dd')
 param deploymentId string = uniqueString(utcNow())
@@ -27,10 +28,9 @@ param monitoringParams object
 param redisParams object
 param searchParams object
 param sqlParams object
-param vnetParams object
 
 resource vnet 'Microsoft.Network/virtualNetworks@2025-05-01' existing = {
-  name: vnetParams.name
+  name: vnetName
 }
 
 var subnetIds = [for subnet in items(vnet.properties.subnets): subnet.id]
@@ -60,7 +60,7 @@ module aks './modules/aks.bicep' = {
     subnetIds: subnetIds
     subnetNames: subnetNames
     tags: tags
-    vnetName: vnetParams.name
+    vnetName: vnetName
   }
 }
 

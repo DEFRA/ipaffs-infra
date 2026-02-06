@@ -9,8 +9,8 @@ trigger:
       - bicep/20-network.bicep
       - bicep/30-infra.bicep
       - bicep/modules/*.bicep
-      - bicep/**/main.bicepparam
-      - bicep/**/resource-group.bicepparam
+      - bicep/**/30-infra.bicepparam
+      - bicep/**/10-10-resource-group.bicepparam
       - pipelines/deploy-bicep.yaml
       - pipelines/stages/deploy-bicep.yaml
 
@@ -24,8 +24,8 @@ pr:
       - bicep/20-network.bicep
       - bicep/30-infra.bicep
       - bicep/modules/*.bicep
-      - bicep/**/main.bicepparam
-      - bicep/**/resource-group.bicepparam
+      - bicep/**/30-infra.bicepparam
+      - bicep/**/10-10-resource-group.bicepparam
       - pipelines/deploy-bicep.yaml
       - pipelines/stages/deploy-bicep.yaml
 

@@ -3,11 +3,6 @@ targetScope = 'resourceGroup'
 @allowed(['DEV', 'TST'])
 param environment string
 
-param builtInGroups object
-param entraGroups object
-param subnetNames object
-param tenantId string
-
 param createdDate string = utcNow('yyyy-MM-dd')
 param deploymentId string = uniqueString(utcNow())
 param location string = resourceGroup().location
