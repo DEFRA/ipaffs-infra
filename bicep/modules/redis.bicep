@@ -29,7 +29,7 @@ resource redis 'Microsoft.Cache/redis@2024-11-01' = {
     sku: {
       name: 'Standard'
       family: 'C'
-      capacity: '1'
+      capacity: 1
     }
   }
 }
