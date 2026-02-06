@@ -70,8 +70,8 @@ param keyVaultParams = {
 param nsgParams = {
   networkSecurityGroups: [
     {
-      name: 'DEVIMPNETNS1401'
-      purpose: 'AKS API Server'
+      name: 'DEVIMPNETNS1401-AKS'
+      purpose: 'AKS'
       securityRules: [
         {
           name: 'AllowOutboundGateway'
@@ -116,79 +116,45 @@ param nsgParams = {
           }
         }
         {
-          name: 'AllowOutboundAADAuth'
-          properties: {
-            protocol: 'Tcp'
-            sourcePortRange: '*'
-            destinationPortRange: '443'
-            sourceAddressPrefix: 'VirtualNetwork'
-            destinationAddressPrefix: 'AzureActiveDirectory'
-            access: 'Allow'
-            priority: 2000
-            direction: 'Outbound'
-            description: 'Allow AAD Auth Outbound to AzureActiveDirectory'
-          }
-        }
-        {
-          name: 'AllowOutboundAzMonitor'
-          properties: {
-            protocol: 'Tcp'
-            sourcePortRange: '*'
-            destinationPortRanges: ['443', '1886']
-            sourceAddressPrefix: 'VirtualNetwork'
-            destinationAddressPrefix: 'AzureMonitor'
-            access: 'Allow'
-            priority: 2010
-            direction: 'Outbound'
-            description: 'Allow AzMonitor Outbound ports(443,1886) from VirtualNetwork to AzureMonitor'
-          }
-        }
-      ]
-    }
-    {
-      name: 'DEVIMPNETNS1402'
-      purpose: 'AKS System Node Pool'
-      securityRules: [
-        {
-          name: 'AllowOutboundGateway'
+          name: 'AllowVnetToAksServiceCidr'
           properties: {
             protocol: '*'
             sourcePortRange: '*'
             destinationPortRange: '*'
             sourceAddressPrefix: 'VirtualNetwork'
-            destinationAddressPrefix: '10.176.0.100/32'
+            destinationAddressPrefix: '10.0.0.0/16'
             access: 'Allow'
-            priority: 1000
+            priority: 1100
             direction: 'Outbound'
-            description: 'Allow all outbound traffic to hub gateway virtual appliance'
+            description: 'Allow VNet to AKS Service CIDR'
           }
         }
         {
-          name: 'AllowOutboundDns'
+          name: 'AllowVnetToAksPodCidr'
           properties: {
-            protocol: 'Udp'
+            protocol: '*'
             sourcePortRange: '*'
-            destinationPortRange: '53'
+            destinationPortRange: '*'
             sourceAddressPrefix: 'VirtualNetwork'
-            destinationAddressPrefix: '10.176.0.4/31'
+            destinationAddressPrefix: '10.240.0.0/16'
             access: 'Allow'
-            priority: 1010
+            priority: 1110
             direction: 'Outbound'
-            description: 'Allow outbound DNS to hub resolvers'
+            description: 'Allow VNet to AKS Pod CIDR'
           }
         }
         {
-          name: 'AllowOutboundDnsTcp'
+          name: 'AllowAksPodCidrToAksPodCidr'
           properties: {
-            protocol: 'Tcp'
+            protocol: '*'
             sourcePortRange: '*'
-            destinationPortRange: '53'
-            sourceAddressPrefix: 'VirtualNetwork'
-            destinationAddressPrefix: '10.176.0.4/31'
+            destinationPortRange: '*'
+            sourceAddressPrefix: '10.240.0.0/16'
+            destinationAddressPrefix: '10.240.0.0/16'
             access: 'Allow'
-            priority: 1011
+            priority: 1120
             direction: 'Outbound'
-            description: 'Allow outbound DNS to hub resolvers'
+            description: 'Allow AKS Pod CIDR to AKS Pod CIDR'
           }
         }
         {
@@ -222,174 +188,32 @@ param nsgParams = {
       ]
     }
     {
-      name: 'DEVIMPNETNS1403'
+      name: 'DEVIMPNETNS1401-PrivateLink'
       purpose: 'PrivateLink'
       securityRules: []
     }
     {
-      name: 'DEVIMPNETNS1404'
+      name: 'DEVIMPNETNS1401-PrivateEndpoint'
       purpose: 'Private Endpoints'
-      securityRules: []
-    }
-    {
-      name: 'DEVIMPNETNS1405'
-      purpose: 'App Gateway for Containers'
       securityRules: [
         {
-          name: 'AllowOutboundGateway'
+          name: 'AllowAksPodCidrToPrivateEndpoints'
           properties: {
             protocol: '*'
             sourcePortRange: '*'
             destinationPortRange: '*'
-            sourceAddressPrefix: 'VirtualNetwork'
-            destinationAddressPrefix: '10.176.0.100/32'
+            sourceAddressPrefix: '10.240.0.0/16'
+            destinationAddressPrefix: '10.179.144.64/26'
             access: 'Allow'
-            priority: 1000
-            direction: 'Outbound'
-            description: 'Allow all outbound traffic to hub gateway virtual appliance'
-          }
-        }
-        {
-          name: 'AllowOutboundDns'
-          properties: {
-            protocol: 'Udp'
-            sourcePortRange: '*'
-            destinationPortRange: '53'
-            sourceAddressPrefix: 'VirtualNetwork'
-            destinationAddressPrefix: '10.176.0.4/31'
-            access: 'Allow'
-            priority: 1010
-            direction: 'Outbound'
-            description: 'Allow outbound DNS to hub resolvers'
-          }
-        }
-        {
-          name: 'AllowOutboundDnsTcp'
-          properties: {
-            protocol: 'Tcp'
-            sourcePortRange: '*'
-            destinationPortRange: '53'
-            sourceAddressPrefix: 'VirtualNetwork'
-            destinationAddressPrefix: '10.176.0.4/31'
-            access: 'Allow'
-            priority: 1011
-            direction: 'Outbound'
-            description: 'Allow outbound DNS to hub resolvers'
-          }
-        }
-        {
-          name: 'AllowOutboundAADAuth'
-          properties: {
-            protocol: 'Tcp'
-            sourcePortRange: '*'
-            destinationPortRange: '443'
-            sourceAddressPrefix: 'VirtualNetwork'
-            destinationAddressPrefix: 'AzureActiveDirectory'
-            access: 'Allow'
-            priority: 2000
-            direction: 'Outbound'
-            description: 'Allow AAD Auth Outbound to AzureActiveDirectory'
-          }
-        }
-        {
-          name: 'AllowOutboundAzMonitor'
-          properties: {
-            protocol: 'Tcp'
-            sourcePortRange: '*'
-            destinationPortRanges: ['443', '1886']
-            sourceAddressPrefix: 'VirtualNetwork'
-            destinationAddressPrefix: 'AzureMonitor'
-            access: 'Allow'
-            priority: 2010
-            direction: 'Outbound'
-            description: 'Allow AzMonitor Outbound ports(443,1886) from VirtualNetwork to AzureMonitor'
+            priority: 1100
+            direction: 'Inbound'
+            description: 'Allow AKS Pod CIDR to Private Endpoints'
           }
         }
       ]
     }
     {
-      name: 'DEVIMPNETNS1406'
-      purpose: 'AKS User Node Pool'
-      securityRules: [
-        {
-          name: 'AllowOutboundGateway'
-          properties: {
-            protocol: '*'
-            sourcePortRange: '*'
-            destinationPortRange: '*'
-            sourceAddressPrefix: 'VirtualNetwork'
-            destinationAddressPrefix: '10.176.0.100/32'
-            access: 'Allow'
-            priority: 1000
-            direction: 'Outbound'
-            description: 'Allow all outbound traffic to hub gateway virtual appliance'
-          }
-        }
-        {
-          name: 'AllowOutboundDns'
-          properties: {
-            protocol: 'Udp'
-            sourcePortRange: '*'
-            destinationPortRange: '53'
-            sourceAddressPrefix: 'VirtualNetwork'
-            destinationAddressPrefix: '10.176.0.4/31'
-            access: 'Allow'
-            priority: 1010
-            direction: 'Outbound'
-            description: 'Allow outbound DNS to hub resolvers'
-          }
-        }
-        {
-          name: 'AllowOutboundDnsTcp'
-          properties: {
-            protocol: 'Tcp'
-            sourcePortRange: '*'
-            destinationPortRange: '53'
-            sourceAddressPrefix: 'VirtualNetwork'
-            destinationAddressPrefix: '10.176.0.4/31'
-            access: 'Allow'
-            priority: 1011
-            direction: 'Outbound'
-            description: 'Allow outbound DNS to hub resolvers'
-          }
-        }
-        {
-          name: 'AllowOutboundAADAuth'
-          properties: {
-            protocol: 'Tcp'
-            sourcePortRange: '*'
-            destinationPortRange: '443'
-            sourceAddressPrefix: 'VirtualNetwork'
-            destinationAddressPrefix: 'AzureActiveDirectory'
-            access: 'Allow'
-            priority: 2000
-            direction: 'Outbound'
-            description: 'Allow AAD Auth Outbound to AzureActiveDirectory'
-          }
-        }
-        {
-          name: 'AllowOutboundAzMonitor'
-          properties: {
-            protocol: 'Tcp'
-            sourcePortRange: '*'
-            destinationPortRanges: ['443', '1886']
-            sourceAddressPrefix: 'VirtualNetwork'
-            destinationAddressPrefix: 'AzureMonitor'
-            access: 'Allow'
-            priority: 2010
-            direction: 'Outbound'
-            description: 'Allow AzMonitor Outbound ports(443,1886) from VirtualNetwork to AzureMonitor'
-          }
-        }
-      ]
-    }
-    {
-      name: 'DEVIMPNETNS1407'
-      purpose: 'Reserved'
-      securityRules: []
-    }
-    {
-      name: 'DEVIMPNETNS1408'
+      name: 'DEVIMPNETNS1401-Reserved'
       purpose: 'Reserved'
       securityRules: []
     }
@@ -439,7 +263,7 @@ param vnetParams = {
       ]
       serviceEndpoints: []
       routeTableId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPINFRG1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-DEVIMPNETVN1401-01'
-      networkSecurityGroupId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPINFRG1401/providers/Microsoft.Network/networkSecurityGroups/DEVIMPNETNS1401'
+      networkSecurityGroupId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPINFRG1401/providers/Microsoft.Network/networkSecurityGroups/DEVIMPNETNS1401-AKS'
     }
     // AKS System Node Pool, 14 usable addresses
     {
@@ -448,7 +272,7 @@ param vnetParams = {
       delegations: []
       serviceEndpoints: []
       routeTableId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPINFRG1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-DEVIMPNETVN1401-01'
-      networkSecurityGroupId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPINFRG1401/providers/Microsoft.Network/networkSecurityGroups/DEVIMPNETNS1402'
+      networkSecurityGroupId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPINFRG1401/providers/Microsoft.Network/networkSecurityGroups/DEVIMPNETNS1401-AKS'
     }
     // PrivateLink, 30 usable addresses
     {
@@ -457,7 +281,7 @@ param vnetParams = {
       delegations: []
       serviceEndpoints: []
       routeTableId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPINFRG1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-DEVIMPNETVN1401-01'
-      networkSecurityGroupId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPINFRG1401/providers/Microsoft.Network/networkSecurityGroups/DEVIMPNETNS1403'
+      networkSecurityGroupId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPINFRG1401/providers/Microsoft.Network/networkSecurityGroups/DEVIMPNETNS1401-PrivateLink'
     }
     // Private Endpoints, 62 usable addresses
     {
@@ -466,7 +290,7 @@ param vnetParams = {
       delegations: []
       serviceEndpoints: []
       routeTableId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPINFRG1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-DEVIMPNETVN1401-01'
-      networkSecurityGroupId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPINFRG1401/providers/Microsoft.Network/networkSecurityGroups/DEVIMPNETNS1404'
+      networkSecurityGroupId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPINFRG1401/providers/Microsoft.Network/networkSecurityGroups/DEVIMPNETNS1401-PrivateEndpoint'
     }
     // App Gateway for Containers, see https://learn.microsoft.com/en-us/azure/application-gateway/for-containers/container-networking
     {
@@ -474,7 +298,7 @@ param vnetParams = {
       addressPrefix: '10.179.145.0/24'
       serviceEndpoints: []
       routeTableId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPINFRG1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-DEVIMPNETVN1401-01'
-      networkSecurityGroupId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPINFRG1401/providers/Microsoft.Network/networkSecurityGroups/DEVIMPNETNS1405'
+      networkSecurityGroupId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPINFRG1401/providers/Microsoft.Network/networkSecurityGroups/DEVIMPNETNS1401-AKS'
     }
     // AKS User Node Pool, 253 usable addresses
     {
@@ -483,7 +307,7 @@ param vnetParams = {
       delegations: []
       serviceEndpoints: []
       routeTableId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPINFRG1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-DEVIMPNETVN1401-01'
-      networkSecurityGroupId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPINFRG1401/providers/Microsoft.Network/networkSecurityGroups/DEVIMPNETNS1406'
+      networkSecurityGroupId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPINFRG1401/providers/Microsoft.Network/networkSecurityGroups/DEVIMPNETNS1401-AKS'
     }
     // Reserved, 126 usable addresses
     {
@@ -492,7 +316,7 @@ param vnetParams = {
       delegations: []
       serviceEndpoints: []
       routeTableId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPINFRG1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-DEVIMPNETVN1401-01'
-      networkSecurityGroupId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPINFRG1401/providers/Microsoft.Network/networkSecurityGroups/DEVIMPNETNS1407'
+      networkSecurityGroupId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPINFRG1401/providers/Microsoft.Network/networkSecurityGroups/DEVIMPNETNS1401-Reserved'
     }
     // Reserved, 126 usable addresses
     {
@@ -501,7 +325,7 @@ param vnetParams = {
       delegations: []
       serviceEndpoints: []
       routeTableId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPINFRG1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-DEVIMPNETVN1401-01'
-      networkSecurityGroupId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPINFRG1401/providers/Microsoft.Network/networkSecurityGroups/DEVIMPNETNS1408'
+      networkSecurityGroupId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPINFRG1401/providers/Microsoft.Network/networkSecurityGroups/DEVIMPNETNS1401-Reserved'
     }
   ]
 }
