@@ -1,3 +1,5 @@
+using '../../_null.bicep'
+
 param environment = 'DEV'
 param location = 'uksouth'
 param tenantId = ''
