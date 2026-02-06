@@ -29,6 +29,7 @@ param aksParams = {
   name: 'TSTIMPINFAK1401'
   dnsPrefix: 'tstimpinfak1401'
   nodeResourceGroup: 'TSTIMPINFRG1402'
+  sku: 'Standard'
   userAssignedIdentityName: 'DEVIMPINFAK1401'
   version: '1.34'
 
@@ -880,6 +881,14 @@ param vnetParams = {
     {
       name: 'TSTIMPNETSU4401'
       addressPrefix: '10.179.132.0/28'
+      delegations: [
+        {
+          name: '0'
+          properties: {
+            serviceName: 'Microsoft.ContainerService/managedClusters'
+          }
+        }
+      ]
       serviceEndpoints: []
       routeTableId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/TSTIMPINFRG1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-TSTIMPNETVN1401-01'
       networkSecurityGroupId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/TSTIMPINFRG1401/providers/Microsoft.Network/networkSecurityGroups/TSTIMPNETNS1401'
@@ -888,6 +897,7 @@ param vnetParams = {
     {
       name: 'TSTIMPNETSU4402'
       addressPrefix: '10.179.132.16/28'
+      delegations: []
       serviceEndpoints: []
       routeTableId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/TSTIMPINFRG1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-TSTIMPNETVN1401-01'
       networkSecurityGroupId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/TSTIMPINFRG1401/providers/Microsoft.Network/networkSecurityGroups/TSTIMPNETNS1402'
@@ -896,6 +906,7 @@ param vnetParams = {
     {
       name: 'TSTIMPNETSU4403'
       addressPrefix: '10.179.132.32/27'
+      delegations: []
       serviceEndpoints: []
       routeTableId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/TSTIMPINFRG1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-TSTIMPNETVN1401-01'
       networkSecurityGroupId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/TSTIMPINFRG1401/providers/Microsoft.Network/networkSecurityGroups/TSTIMPNETNS1403'
@@ -904,6 +915,7 @@ param vnetParams = {
     {
       name: 'TSTIMPNETSU4404'
       addressPrefix: '10.179.132.64/26'
+      delegations: []
       serviceEndpoints: []
       routeTableId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/TSTIMPINFRG1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-TSTIMPNETVN1401-01'
       networkSecurityGroupId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/TSTIMPINFRG1401/providers/Microsoft.Network/networkSecurityGroups/TSTIMPNETNS1404'
@@ -912,6 +924,7 @@ param vnetParams = {
     {
       name: 'TSTIMPNETSU4405'
       addressPrefix: '10.179.133.0/24'
+      delegations: []
       serviceEndpoints: []
       routeTableId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/TSTIMPINFRG1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-TSTIMPNETVN1401-01'
       networkSecurityGroupId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/TSTIMPINFRG1401/providers/Microsoft.Network/networkSecurityGroups/TSTIMPNETNS1405'
@@ -920,6 +933,7 @@ param vnetParams = {
     {
       name: 'TSTIMPNETSU4406'
       addressPrefix: '10.179.134.0/24'
+      delegations: []
       serviceEndpoints: []
       routeTableId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/TSTIMPINFRG1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-TSTIMPNETVN1401-01'
       networkSecurityGroupId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/TSTIMPINFRG1401/providers/Microsoft.Network/networkSecurityGroups/TSTIMPNETNS1406'
@@ -928,6 +942,7 @@ param vnetParams = {
     {
       name: 'TSTIMPNETSU4407'
       addressPrefix: '10.179.135.0/25'
+      delegations: []
       serviceEndpoints: []
       routeTableId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/TSTIMPINFRG1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-TSTIMPNETVN1401-01'
       networkSecurityGroupId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/TSTIMPINFRG1401/providers/Microsoft.Network/networkSecurityGroups/TSTIMPNETNS1407'
@@ -936,6 +951,7 @@ param vnetParams = {
     {
       name: 'TSTIMPNETSU4408'
       addressPrefix: '10.179.135.128/25'
+      delegations: []
       serviceEndpoints: []
       routeTableId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/TSTIMPINFRG1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-TSTIMPNETVN1401-01'
       networkSecurityGroupId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/TSTIMPINFRG1401/providers/Microsoft.Network/networkSecurityGroups/TSTIMPNETNS1408'

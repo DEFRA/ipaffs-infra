@@ -149,6 +149,11 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2025-10-01' = {
       }
     }
   }
+
+  sku: {
+    name: 'Base'
+    tier: aksParams.sku
+  }
 }
 
 module acrPull './acr-role-assignment.bicep' = {
