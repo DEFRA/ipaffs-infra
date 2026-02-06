@@ -33,6 +33,10 @@ param aksParams = {
   userAssignedIdentityName: 'DEVIMPINFAK1401'
   version: '1.34'
 
+  dnsServiceIp: '172.18.255.250'
+  podCidrs: ['172.16.0.0/16']
+  serviceCidrs: ['172.18.0.0/16']
+
   nodePools: {
     system: {
       minCount: 3
@@ -110,7 +114,7 @@ param nsgParams = {
             sourcePortRange: '*'
             destinationPortRange: '*'
             sourceAddressPrefix: 'VirtualNetwork'
-            destinationAddressPrefix: '10.0.0.0/16'
+            destinationAddressPrefix: '172.18.0.0/16'
             access: 'Allow'
             priority: 1100
             direction: 'Outbound'
@@ -124,7 +128,7 @@ param nsgParams = {
             sourcePortRange: '*'
             destinationPortRange: '*'
             sourceAddressPrefix: 'VirtualNetwork'
-            destinationAddressPrefix: '10.240.0.0/16'
+            destinationAddressPrefix: '172.16.0.0/16'
             access: 'Allow'
             priority: 1110
             direction: 'Outbound'
@@ -137,8 +141,8 @@ param nsgParams = {
             protocol: '*'
             sourcePortRange: '*'
             destinationPortRange: '*'
-            sourceAddressPrefix: '10.240.0.0/16'
-            destinationAddressPrefix: '10.240.0.0/16'
+            sourceAddressPrefix: '172.16.0.0/16'
+            destinationAddressPrefix: '172.16.0.0/16'
             access: 'Allow'
             priority: 1120
             direction: 'Outbound'
@@ -190,7 +194,7 @@ param nsgParams = {
             protocol: '*'
             sourcePortRange: '*'
             destinationPortRange: '*'
-            sourceAddressPrefix: '10.240.0.0/16'
+            sourceAddressPrefix: '172.16.0.0/16'
             destinationAddressPrefix: '10.179.144.64/26'
             access: 'Allow'
             priority: 1100
