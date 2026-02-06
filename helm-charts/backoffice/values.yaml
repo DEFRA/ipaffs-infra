@@ -1,6 +1,6 @@
 service: ""
 project: ipaffs
-environment: poc
+environment: dev
 
 azure:
   location: uksouth

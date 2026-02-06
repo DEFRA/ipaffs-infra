@@ -16,9 +16,8 @@ parameters:
   - name: environmentName
     displayName: Environment
     type: string
-    default: POC
+    default: DEV
     values:
-      - POC
       - DEV
 
   - name: namespace

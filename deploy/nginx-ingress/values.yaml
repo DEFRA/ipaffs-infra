@@ -1,5 +1,0 @@
-# See https://artifacthub.io/packages/helm/ingress-nginx/ingress-nginx#values for configuration reference
-controller:
-  proxySetHeaders:
-    X-Original-Host: "$host"
-  progressDeadlineSeconds: null # TODO: Workaround for Helm 3.18.0 regression, remove when fixed, see https://github.com/helm/helm/issues/30878

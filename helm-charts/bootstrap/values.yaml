@@ -1,6 +1,6 @@
 service: "bootstrap"
 project: ipaffs
-environment: poc
+environment: dev
 
 azure:
   location: uksouth

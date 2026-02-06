@@ -3,7 +3,7 @@ parameters:
   - name: environmentName
     displayName: Environment
     type: string
-    default: POC
+    default: DEV
 
   - name: nodeVersion
     type: string

@@ -1,7 +1,0 @@
-bip-service:
-  webapp:
-    image:
-      registry: pocimpinfac1401.azurecr.io
-      name: bip-service
-      tag: latest
-    environment: dev

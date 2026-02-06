@@ -1,6 +1,6 @@
 targetScope = 'resourceGroup'
 
-@allowed(['POC', 'DEV', 'TST'])
+@allowed(['DEV', 'TST'])
 param environment string
 
 param builtInGroups object
