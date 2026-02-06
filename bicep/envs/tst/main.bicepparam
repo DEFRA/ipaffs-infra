@@ -122,6 +122,20 @@ param nsgParams = {
           }
         }
         {
+          name: 'AllowInboundAVD'
+          properties: {
+            protocol: '*'
+            sourcePortRange: '*'
+            destinationPortRange: '*'
+            sourceAddressPrefix: '10.180.7.0/27'
+            destinationAddressPrefix: 'VirtualNetwork'
+            access: 'Allow'
+            priority: 1120
+            direction: 'Inbound'
+            description: 'Allow all inbound traffic from AD3 AVD'
+          }
+        }
+        {
           name: 'AllowOutboundPeeredVnet'
           properties: {
             protocol: '*'

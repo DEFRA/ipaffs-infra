@@ -122,6 +122,20 @@ param nsgParams = {
           }
         }
         {
+          name: 'AllowInboundAVD'
+          properties: {
+            protocol: '*'
+            sourcePortRange: '*'
+            destinationPortRange: '*'
+            sourceAddressPrefix: '10.180.7.0/27'
+            destinationAddressPrefix: 'VirtualNetwork'
+            access: 'Allow'
+            priority: 1120
+            direction: 'Inbound'
+            description: 'Allow all inbound traffic from AD3 AVD'
+          }
+        }
+        {
           name: 'AllowOutboundPeeredVnet'
           properties: {
             protocol: '*'
@@ -217,15 +231,57 @@ param nsgParams = {
       purpose: 'Private Endpoints'
       securityRules: [
         {
+          name: 'AllowInboundPlatformVPN'
+          properties: {
+            protocol: '*'
+            sourcePortRange: '*'
+            destinationPortRange: '*'
+            sourceAddressPrefix: '172.27.240.0/25'
+            destinationAddressPrefix: 'VirtualNetwork'
+            access: 'Allow'
+            priority: 1100
+            direction: 'Inbound'
+            description: 'Allow all inbound traffic from platform VPN'
+          }
+        }
+        {
+          name: 'AllowInboundTradeVPN'
+          properties: {
+            protocol: '*'
+            sourcePortRange: '*'
+            destinationPortRange: '*'
+            sourceAddressPrefix: '172.27.244.0/26'
+            destinationAddressPrefix: 'VirtualNetwork'
+            access: 'Allow'
+            priority: 1110
+            direction: 'Inbound'
+            description: 'Allow all inbound traffic from trade VPN'
+          }
+        }
+        {
+          name: 'AllowInboundAVD'
+          properties: {
+            protocol: '*'
+            sourcePortRange: '*'
+            destinationPortRange: '*'
+            sourceAddressPrefix: '10.180.7.0/27'
+            destinationAddressPrefix: 'VirtualNetwork'
+            access: 'Allow'
+            priority: 1120
+            direction: 'Inbound'
+            description: 'Allow all inbound traffic from AD3 AVD'
+          }
+        }
+        {
           name: 'AllowAksPodCidrToPrivateEndpoints'
           properties: {
             protocol: '*'
             sourcePortRange: '*'
             destinationPortRange: '*'
             sourceAddressPrefix: '172.16.0.0/16'
-            destinationAddressPrefix: '10.179.144.64/26'
+            destinationAddressPrefix: 'VirtualNetwork'
             access: 'Allow'
-            priority: 1100
+            priority: 2000
             direction: 'Inbound'
             description: 'Allow AKS Pod CIDR to Private Endpoints'
           }
