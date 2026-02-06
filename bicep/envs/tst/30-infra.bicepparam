@@ -1,6 +1,7 @@
 using '../../30-infra.bicep'
 extends 'common.bicepparam'
 
+param builtInGroups = [...base.builtInGroups]
 param entraGroups = {}
 param vnetName = 'DEVIMPNETVN1401'
 
@@ -46,8 +47,8 @@ param aksParams = {
     }
   }
   adminGroupObjectIDs: [
-    base.builtInGroups.contributors
-    base.builtInGroups.owners
+    builtInGroups.contributors
+    builtInGroups.owners
   ]
 }
 
@@ -62,8 +63,8 @@ param externalSecretsParams = {
 param keyVaultParams = {
   name: 'TSTIMPINFKV1401'
   principalObjectIds: [
-    base.builtInGroups.contributors
-    base.builtInGroups.owners
+    builtInGroups.contributors
+    builtInGroups.owners
   ]
 }
 
@@ -88,7 +89,7 @@ param monitoringParams = {
   logAnalyticsName: 'TSTIMPINFLA1401'
   prometheusName: 'TSTIMPINFPR1401'
   grafanaName: 'TSTIMPINFGA1401'
-  principalObjectId: base.builtInGroups.contributors
+  principalObjectId: builtInGroups.contributors
 }
 
 // vim: set ts=2 sts=2 sw=2 et:
