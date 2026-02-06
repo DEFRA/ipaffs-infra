@@ -74,45 +74,31 @@ param nsgParams = {
       purpose: 'AKS'
       securityRules: [
         {
-          name: 'AllowOutboundGateway'
+          name: 'AllowInboundPeeredVnet'
+          properties: {
+            protocol: '*'
+            sourcePortRange: '*'
+            destinationPortRange: '*'
+            sourceAddressPrefix: '10.176.0.0/23'
+            destinationAddressPrefix: 'VirtualNetwork'
+            access: 'Allow'
+            priority: 1000
+            direction: 'Inbound'
+            description: 'Allow all inbound traffic from peered Hub VNet'
+          }
+        }
+        {
+          name: 'AllowOutboundPeeredVnet'
           properties: {
             protocol: '*'
             sourcePortRange: '*'
             destinationPortRange: '*'
             sourceAddressPrefix: 'VirtualNetwork'
-            destinationAddressPrefix: '10.176.0.100/32'
+            destinationAddressPrefix: '10.176.0.0/23'
             access: 'Allow'
             priority: 1000
             direction: 'Outbound'
-            description: 'Allow all outbound traffic to hub gateway virtual appliance'
-          }
-        }
-        {
-          name: 'AllowOutboundDns'
-          properties: {
-            protocol: 'Udp'
-            sourcePortRange: '*'
-            destinationPortRange: '53'
-            sourceAddressPrefix: 'VirtualNetwork'
-            destinationAddressPrefix: '10.176.0.4/31'
-            access: 'Allow'
-            priority: 1010
-            direction: 'Outbound'
-            description: 'Allow outbound DNS to hub resolvers'
-          }
-        }
-        {
-          name: 'AllowOutboundDnsTcp'
-          properties: {
-            protocol: 'Tcp'
-            sourcePortRange: '*'
-            destinationPortRange: '53'
-            sourceAddressPrefix: 'VirtualNetwork'
-            destinationAddressPrefix: '10.176.0.4/31'
-            access: 'Allow'
-            priority: 1011
-            direction: 'Outbound'
-            description: 'Allow outbound DNS to hub resolvers'
+            description: 'Allow all outbound traffic to peered Hub VNet'
           }
         }
         {
