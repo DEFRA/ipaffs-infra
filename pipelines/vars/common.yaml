@@ -10,6 +10,7 @@ variables:
     7b097afb-e281-4bc4-8086-c1ff4f47964b
     ed3eec58-96fd-4c14-9a5c-933608b9c678
 
+  upstreamServiceConnection: AZR-SSV5-IPAFFS
   upstreamServiceConnectionPrincipalId: 09b875f4-3dea-4c69-bf36-e6915741d4c4
 
   adminsGroupMembers: >

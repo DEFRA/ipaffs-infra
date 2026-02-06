@@ -1,5 +1,6 @@
 ---
 variables:
-  serviceConnectionPrincipalId: c5daee65-10cb-4d04-b721-d3da81357568 # ADO-DefraGovUK-AZR-IMP-DEV1
+  serviceConnection: ADO-DefraGovUK-AZR-IMP-DEV1
+  serviceConnectionPrincipalId: c5daee65-10cb-4d04-b721-d3da81357568
 
 # vim: set ts=2 sts=2 sw=2 et:

@@ -159,7 +159,7 @@ stages:
         steps:
           - checkout: self
 
-          - task: Bash@3
+          - task: AzureCLI@2
             name: DeploymentOutputs
             displayName: Deployment outputs
             condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
@@ -171,8 +171,10 @@ stages:
               DEPLOYMENT_NAME: Infrastructure-$(Build.BuildId)
               RESOURCE_GROUP: $(resourceGroupName)
             inputs:
-              targetType: inline
-              script: |
+              azureSubscription: $(serviceConnection)
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
                 set -x
                 scripts/pipeline/update-group-variable-from-deployment.sh acrLoginServer acrLoginServer
                 scripts/pipeline/update-group-variable-from-deployment.sh acrName acrName
