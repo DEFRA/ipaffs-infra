@@ -23,7 +23,6 @@ stages:
               script: |
                 set -ex
                 cat <<- 'EOF' >'$(Build.SourcesDirectory)/runtime.bicepparam'
-                using none
                 extends 'envs/${{ lower(parameters.environmentName) }}/main.bicepparam'
                 param entraGroups = {
                   searchContributors: {

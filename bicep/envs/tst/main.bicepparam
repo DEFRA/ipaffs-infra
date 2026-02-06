@@ -1,5 +1,3 @@
-using none
-
 param environment = 'TST'
 param tenantId = ''
 
