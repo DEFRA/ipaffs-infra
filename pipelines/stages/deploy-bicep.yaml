@@ -40,13 +40,13 @@ stages:
                   }
                 }
                 EOF
-                cat '$(Build.SourcesDirectory)/runtime.bicepparam'
+                cat '$(Build.SourcesDirectory)/20-infra-runtime.bicepparam'
 
           - task: PublishPipelineArtifact@1
             displayName: Publish artifact
             inputs:
               artifactName: bicepparam
-              targetPath: $(Build.SourcesDirectory)/runtime.bicepparam
+              targetPath: $(Build.SourcesDirectory)/20-infra-runtime.bicepparam
 
   - stage: DeployInfrastructure
     displayName: Deploy infrastructure
