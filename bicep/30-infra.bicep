@@ -33,8 +33,6 @@ resource vnet 'Microsoft.Network/virtualNetworks@2025-05-01' existing = {
   name: vnetName
 }
 
-var subnetIds = [for subnet in items(vnet.properties.subnets): subnet.id]
-
 module acr './modules/acr.bicep' = {
   name: 'acr-${deploymentId}'
   scope: resourceGroup()
@@ -42,8 +40,8 @@ module acr './modules/acr.bicep' = {
     acrParams: acrParams
     deploymentId: deploymentId
     location: location
-    subnetIds: subnetIds
     subnetNames: subnetNames
+    subnets: vnet.properties.subnets
     tags: tags
   }
 }
@@ -57,8 +55,8 @@ module aks './modules/aks.bicep' = {
     deploymentId: deploymentId
     location: location
     logAnalyticsId: monitoring.outputs.logAnalyticsId
-    subnetIds: subnetIds
     subnetNames: subnetNames
+    subnets: vnet.properties.subnets
     tags: tags
     vnetName: vnetName
   }
@@ -101,8 +99,8 @@ module keyVault './modules/keyvault.bicep' = {
     deploymentId: deploymentId
     keyVaultParams: keyVaultParamsWithManagedIdentities
     location: location
-    subnetIds: subnetIds
     subnetNames: subnetNames
+    subnets: vnet.properties.subnets
     tags: tags
     tenantId: tenantId
   }
@@ -115,8 +113,8 @@ module redis './modules/redis.bicep' = {
     deploymentId: deploymentId
     redisParams: redisParams
     location: location
-    subnetIds: subnetIds
     subnetNames: subnetNames
+    subnets: vnet.properties.subnets
     tags: tags
     tenantId: tenantId
   }
@@ -130,8 +128,8 @@ module search './modules/search.bicep' = {
     entraGroups: entraGroups
     searchParams: searchParams
     location: location
-    subnetIds: subnetIds
     subnetNames: subnetNames
+    subnets: vnet.properties.subnets
     tags: tags
     tenantId: tenantId
   }
@@ -145,8 +143,8 @@ module sql './modules/sql.bicep' = {
     entraGroups: entraGroups
     location: location
     sqlParams: sqlParams
-    subnetIds: subnetIds
     subnetNames: subnetNames
+    subnets: vnet.properties.subnets
     tags: tags
     tenantId: tenantId
   }

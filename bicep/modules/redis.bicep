@@ -3,12 +3,12 @@ targetScope = 'resourceGroup'
 param deploymentId string
 param location string
 param redisParams object
-param subnetIds array
 param subnetNames object
+param subnets array
 param tags object
 param tenantId string
 
-var subnetId = first(filter(subnetIds, subnetId => contains(subnetId, subnetNames.privateEndpoints)))
+var subnet = first(filter(subnets, subnet => subnet.name == subnetNames.privateEndpoints))
 
 resource redis 'Microsoft.Cache/redis@2024-11-01' = {
   name: redisParams.name
@@ -35,13 +35,13 @@ resource redis 'Microsoft.Cache/redis@2024-11-01' = {
 }
 
 resource redisPrivateEndpoints 'Microsoft.Network/privateEndpoints@2024-10-01' = {
-  name: '${redisParams.name}-${last(split(subnetId, '/'))}'
+  name: '${redisParams.name}-${subnet.name}'
   location: location
   tags: tags
 
   properties: {
     subnet: {
-      id: subnetId
+      id: subnet.id
     }
 
     privateLinkServiceConnections: [

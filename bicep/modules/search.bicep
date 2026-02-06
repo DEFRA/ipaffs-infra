@@ -4,12 +4,12 @@ param deploymentId string
 param entraGroups object
 param location string
 param searchParams object
-param subnetIds array
 param subnetNames object
+param subnets array
 param tags object
 param tenantId string
 
-var subnetId = first(filter(subnetIds, subnetId => contains(subnetId, subnetNames.privateEndpoints)))
+var subnet = first(filter(subnets, subnet => subnet.name == subnetNames.privateEndpoints))
 
 resource searchService 'Microsoft.Search/searchServices@2025-05-01' = {
   name: searchParams.name
@@ -44,13 +44,13 @@ resource searchService 'Microsoft.Search/searchServices@2025-05-01' = {
 }
 
 resource searchServicePrivateEndpoints 'Microsoft.Network/privateEndpoints@2024-10-01' = {
-  name: '${searchParams.name}-${last(split(subnetId, '/'))}'
+  name: '${searchParams.name}-${subnet.name}'
   location: location
   tags: tags
 
   properties: {
     subnet: {
-      id: subnetId
+      id: subnet.id
     }
 
     privateLinkServiceConnections: [

@@ -46,8 +46,8 @@ param aksParams = {
     }
   }
   adminGroupObjectIDs: [
-    builtInGroups.contributors
-    builtInGroups.owners
+    base.builtInGroups.contributors
+    base.builtInGroups.owners
   ]
 }
 
@@ -62,8 +62,8 @@ param externalSecretsParams = {
 param keyVaultParams = {
   name: 'DEVIMPINFKV1401'
   principalObjectIds: [
-    builtInGroups.contributors
-    builtInGroups.owners
+    base.builtInGroups.contributors
+    base.builtInGroups.owners
   ]
 }
 
@@ -88,7 +88,7 @@ param monitoringParams = {
   logAnalyticsName: 'DEVIMPINFLA1401'
   prometheusName: 'DEVIMPINFPR1401'
   grafanaName: 'DEVIMPINFGA1401'
-  principalObjectId: builtInGroups.contributors
+  principalObjectId: base.builtInGroups.contributors
 }
 
 // vim: set ts=2 sts=2 sw=2 et:
