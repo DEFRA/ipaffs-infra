@@ -8,7 +8,9 @@ param environment string
 @allowed(['northeuropa', 'uksouth'])
 param location string
 
+param builtInGroups object
 param createdDate string = utcNow('yyyy-MM-dd')
+param tenantId string
 
 var tags = union(loadJsonContent('default-tags.json'), {
   CreatedDate: createdDate

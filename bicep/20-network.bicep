@@ -3,9 +3,11 @@ targetScope = 'resourceGroup'
 @allowed(['DEV', 'TST'])
 param environment string
 
+param builtInGroups object
 param createdDate string = utcNow('yyyy-MM-dd')
 param deploymentId string = uniqueString(utcNow())
 param location string = resourceGroup().location
+param tenantId string
 
 var tags = union(loadJsonContent('default-tags.json'), {
   CreatedDate: createdDate

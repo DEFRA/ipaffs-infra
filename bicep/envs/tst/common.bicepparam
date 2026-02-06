@@ -1,7 +1,6 @@
 using '../../_null.bicep'
 
 param environment = 'TST'
-param location = 'uksouth'
 param tenantId = ''
 
 param builtInGroups = {

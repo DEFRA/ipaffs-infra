@@ -5,3 +5,9 @@
 //
 // See https://github.com/Azure/azure-cli/pull/32750 for related fix, which was merged today as of writing this
 // comment, but needs to make into an Azure CLI release which is used by Azure DevOps
+
+param builtInGroups object
+param environment string
+param tenantId string
+
+// vim: set ts=2 sts=2 sw=2 et:
