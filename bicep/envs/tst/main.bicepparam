@@ -94,6 +94,34 @@ param nsgParams = {
           }
         }
         {
+          name: 'AllowInboundPlatformVPN'
+          properties: {
+            protocol: '*'
+            sourcePortRange: '*'
+            destinationPortRange: '*'
+            sourceAddressPrefix: '172.27.240.0/25'
+            destinationAddressPrefix: 'VirtualNetwork'
+            access: 'Allow'
+            priority: 1100
+            direction: 'Inbound'
+            description: 'Allow all inbound traffic from platform VPN'
+          }
+        }
+        {
+          name: 'AllowInboundTradeVPN'
+          properties: {
+            protocol: '*'
+            sourcePortRange: '*'
+            destinationPortRange: '*'
+            sourceAddressPrefix: '172.27.244.0/26'
+            destinationAddressPrefix: 'VirtualNetwork'
+            access: 'Allow'
+            priority: 1110
+            direction: 'Inbound'
+            description: 'Allow all inbound traffic from trade VPN'
+          }
+        }
+        {
           name: 'AllowOutboundPeeredVnet'
           properties: {
             protocol: '*'
