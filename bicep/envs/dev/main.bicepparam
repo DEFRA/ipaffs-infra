@@ -74,45 +74,73 @@ param nsgParams = {
       purpose: 'AKS API Server'
       securityRules: [
         {
-          name: 'AllowVnetInternal'
+          name: 'AllowOutboundGateway'
           properties: {
             protocol: '*'
             sourcePortRange: '*'
-            sourceAddressPrefix: 'VirtualNetwork'
             destinationPortRange: '*'
-            destinationAddressPrefix: 'VirtualNetwork'
+            sourceAddressPrefix: 'VirtualNetwork'
+            destinationAddressPrefix: '10.176.0.100/32'
             access: 'Allow'
             priority: 1000
-            direction: 'Inbound'
-            description: 'Allow VNet to VNet communication on any port. Required for AKS'
+            direction: 'Outbound'
+            description: 'Allow all outbound traffic to hub gateway virtual appliance'
           }
         }
         {
-          name: 'AllowAnyInboundFromAzLB'
+          name: 'AllowOutboundDns'
           properties: {
-            protocol: '*'
+            protocol: 'Udp'
             sourcePortRange: '*'
-            destinationPortRange: '*'
-            sourceAddressPrefix: 'AzureLoadBalancer'
-            destinationAddressPrefix: 'VirtualNetwork'
+            destinationPortRange: '53'
+            sourceAddressPrefix: 'VirtualNetwork'
+            destinationAddressPrefix: '10.176.0.4/31'
             access: 'Allow'
-            priority: 1200
-            direction: 'Inbound'
-            description: 'Allow Any Inbound From AzLB'
+            priority: 1010
+            direction: 'Outbound'
+            description: 'Allow outbound DNS to hub resolvers'
           }
         }
         {
-          name: 'DenyAnyOtherInbound'
+          name: 'AllowOutboundDnsTcp'
           properties: {
-            protocol: '*'
+            protocol: 'Tcp'
             sourcePortRange: '*'
-            destinationPortRange: '*'
-            sourceAddressPrefix: '*'
-            destinationAddressPrefix: '*'
-            access: 'Deny'
-            priority: 4000
-            direction: 'Inbound'
-            description: 'Deny All Other Inbound'
+            destinationPortRange: '53'
+            sourceAddressPrefix: 'VirtualNetwork'
+            destinationAddressPrefix: '10.176.0.4/31'
+            access: 'Allow'
+            priority: 1011
+            direction: 'Outbound'
+            description: 'Allow outbound DNS to hub resolvers'
+          }
+        }
+        {
+          name: 'AllowOutboundAADAuth'
+          properties: {
+            protocol: 'Tcp'
+            sourcePortRange: '*'
+            destinationPortRange: '443'
+            sourceAddressPrefix: 'VirtualNetwork'
+            destinationAddressPrefix: 'AzureActiveDirectory'
+            access: 'Allow'
+            priority: 2000
+            direction: 'Outbound'
+            description: 'Allow AAD Auth Outbound to AzureActiveDirectory'
+          }
+        }
+        {
+          name: 'AllowOutboundAzMonitor'
+          properties: {
+            protocol: 'Tcp'
+            sourcePortRange: '*'
+            destinationPortRanges: ['443', '1886']
+            sourceAddressPrefix: 'VirtualNetwork'
+            destinationAddressPrefix: 'AzureMonitor'
+            access: 'Allow'
+            priority: 2010
+            direction: 'Outbound'
+            description: 'Allow AzMonitor Outbound ports(443,1886) from VirtualNetwork to AzureMonitor'
           }
         }
       ]
@@ -122,45 +150,73 @@ param nsgParams = {
       purpose: 'AKS System Node Pool'
       securityRules: [
         {
-          name: 'AllowVnetInternal'
+          name: 'AllowOutboundGateway'
           properties: {
             protocol: '*'
             sourcePortRange: '*'
-            sourceAddressPrefix: 'VirtualNetwork'
             destinationPortRange: '*'
-            destinationAddressPrefix: 'VirtualNetwork'
+            sourceAddressPrefix: 'VirtualNetwork'
+            destinationAddressPrefix: '10.176.0.100/32'
             access: 'Allow'
             priority: 1000
-            direction: 'Inbound'
-            description: 'Allow VNet to VNet communication on any port. Required for AKS'
+            direction: 'Outbound'
+            description: 'Allow all outbound traffic to hub gateway virtual appliance'
           }
         }
         {
-          name: 'AllowAnyInboundFromAzLB'
+          name: 'AllowOutboundDns'
           properties: {
-            protocol: '*'
+            protocol: 'Udp'
             sourcePortRange: '*'
-            destinationPortRange: '*'
-            sourceAddressPrefix: 'AzureLoadBalancer'
-            destinationAddressPrefix: 'VirtualNetwork'
+            destinationPortRange: '53'
+            sourceAddressPrefix: 'VirtualNetwork'
+            destinationAddressPrefix: '10.176.0.4/31'
             access: 'Allow'
-            priority: 1200
-            direction: 'Inbound'
-            description: 'Allow Any Inbound From AzLB'
+            priority: 1010
+            direction: 'Outbound'
+            description: 'Allow outbound DNS to hub resolvers'
           }
         }
         {
-          name: 'DenyAnyOtherInbound'
+          name: 'AllowOutboundDnsTcp'
           properties: {
-            protocol: '*'
+            protocol: 'Tcp'
             sourcePortRange: '*'
-            destinationPortRange: '*'
-            sourceAddressPrefix: '*'
-            destinationAddressPrefix: '*'
-            access: 'Deny'
-            priority: 4000
-            direction: 'Inbound'
-            description: 'Deny All Other Inbound'
+            destinationPortRange: '53'
+            sourceAddressPrefix: 'VirtualNetwork'
+            destinationAddressPrefix: '10.176.0.4/31'
+            access: 'Allow'
+            priority: 1011
+            direction: 'Outbound'
+            description: 'Allow outbound DNS to hub resolvers'
+          }
+        }
+        {
+          name: 'AllowOutboundAADAuth'
+          properties: {
+            protocol: 'Tcp'
+            sourcePortRange: '*'
+            destinationPortRange: '443'
+            sourceAddressPrefix: 'VirtualNetwork'
+            destinationAddressPrefix: 'AzureActiveDirectory'
+            access: 'Allow'
+            priority: 2000
+            direction: 'Outbound'
+            description: 'Allow AAD Auth Outbound to AzureActiveDirectory'
+          }
+        }
+        {
+          name: 'AllowOutboundAzMonitor'
+          properties: {
+            protocol: 'Tcp'
+            sourcePortRange: '*'
+            destinationPortRanges: ['443', '1886']
+            sourceAddressPrefix: 'VirtualNetwork'
+            destinationAddressPrefix: 'AzureMonitor'
+            access: 'Allow'
+            priority: 2010
+            direction: 'Outbound'
+            description: 'Allow AzMonitor Outbound ports(443,1886) from VirtualNetwork to AzureMonitor'
           }
         }
       ]
@@ -168,87 +224,85 @@ param nsgParams = {
     {
       name: 'DEVIMPNETNS1403'
       purpose: 'PrivateLink'
-      securityRules: [
-        {
-          name: 'DenyAnyOtherInbound'
-          properties: {
-            protocol: '*'
-            sourcePortRange: '*'
-            destinationPortRange: '*'
-            sourceAddressPrefix: '*'
-            destinationAddressPrefix: '*'
-            access: 'Deny'
-            priority: 4000
-            direction: 'Inbound'
-            description: 'Deny All Other Inbound'
-          }
-        }
-      ]
+      securityRules: []
     }
     {
       name: 'DEVIMPNETNS1404'
       purpose: 'Private Endpoints'
-      securityRules: [
-        {
-          name: 'AllowVnetInternal'
-          properties: {
-            protocol: '*'
-            sourcePortRange: '*'
-            sourceAddressPrefix: 'VirtualNetwork'
-            destinationPortRange: '*'
-            destinationAddressPrefix: 'VirtualNetwork'
-            access: 'Allow'
-            priority: 1000
-            direction: 'Inbound'
-            description: 'Allow VNet to VNet communication on any port. Required for AKS'
-          }
-        }
-        {
-          name: 'DenyAnyOtherInbound'
-          properties: {
-            protocol: '*'
-            sourcePortRange: '*'
-            destinationPortRange: '*'
-            sourceAddressPrefix: '*'
-            destinationAddressPrefix: '*'
-            access: 'Deny'
-            priority: 4000
-            direction: 'Inbound'
-            description: 'Deny All Other Inbound'
-          }
-        }
-      ]
+      securityRules: []
     }
     {
       name: 'DEVIMPNETNS1405'
       purpose: 'App Gateway for Containers'
       securityRules: [
         {
-          name: 'AllowVnetInternal'
+          name: 'AllowOutboundGateway'
           properties: {
             protocol: '*'
             sourcePortRange: '*'
-            sourceAddressPrefix: 'VirtualNetwork'
             destinationPortRange: '*'
-            destinationAddressPrefix: 'VirtualNetwork'
+            sourceAddressPrefix: 'VirtualNetwork'
+            destinationAddressPrefix: '10.176.0.100/32'
             access: 'Allow'
             priority: 1000
-            direction: 'Inbound'
-            description: 'Allow VNet to VNet communication on any port. Required for AKS'
+            direction: 'Outbound'
+            description: 'Allow all outbound traffic to hub gateway virtual appliance'
           }
         }
         {
-          name: 'DenyAnyOtherInbound'
+          name: 'AllowOutboundDns'
           properties: {
-            protocol: '*'
+            protocol: 'Udp'
             sourcePortRange: '*'
-            destinationPortRange: '*'
-            sourceAddressPrefix: '*'
-            destinationAddressPrefix: '*'
-            access: 'Deny'
-            priority: 4000
-            direction: 'Inbound'
-            description: 'Deny All Other Inbound'
+            destinationPortRange: '53'
+            sourceAddressPrefix: 'VirtualNetwork'
+            destinationAddressPrefix: '10.176.0.4/31'
+            access: 'Allow'
+            priority: 1010
+            direction: 'Outbound'
+            description: 'Allow outbound DNS to hub resolvers'
+          }
+        }
+        {
+          name: 'AllowOutboundDnsTcp'
+          properties: {
+            protocol: 'Tcp'
+            sourcePortRange: '*'
+            destinationPortRange: '53'
+            sourceAddressPrefix: 'VirtualNetwork'
+            destinationAddressPrefix: '10.176.0.4/31'
+            access: 'Allow'
+            priority: 1011
+            direction: 'Outbound'
+            description: 'Allow outbound DNS to hub resolvers'
+          }
+        }
+        {
+          name: 'AllowOutboundAADAuth'
+          properties: {
+            protocol: 'Tcp'
+            sourcePortRange: '*'
+            destinationPortRange: '443'
+            sourceAddressPrefix: 'VirtualNetwork'
+            destinationAddressPrefix: 'AzureActiveDirectory'
+            access: 'Allow'
+            priority: 2000
+            direction: 'Outbound'
+            description: 'Allow AAD Auth Outbound to AzureActiveDirectory'
+          }
+        }
+        {
+          name: 'AllowOutboundAzMonitor'
+          properties: {
+            protocol: 'Tcp'
+            sourcePortRange: '*'
+            destinationPortRanges: ['443', '1886']
+            sourceAddressPrefix: 'VirtualNetwork'
+            destinationAddressPrefix: 'AzureMonitor'
+            access: 'Allow'
+            priority: 2010
+            direction: 'Outbound'
+            description: 'Allow AzMonitor Outbound ports(443,1886) from VirtualNetwork to AzureMonitor'
           }
         }
       ]
@@ -258,45 +312,73 @@ param nsgParams = {
       purpose: 'AKS User Node Pool'
       securityRules: [
         {
-          name: 'AllowVnetInternal'
+          name: 'AllowOutboundGateway'
           properties: {
             protocol: '*'
             sourcePortRange: '*'
-            sourceAddressPrefix: 'VirtualNetwork'
             destinationPortRange: '*'
-            destinationAddressPrefix: 'VirtualNetwork'
+            sourceAddressPrefix: 'VirtualNetwork'
+            destinationAddressPrefix: '10.176.0.100/32'
             access: 'Allow'
             priority: 1000
-            direction: 'Inbound'
-            description: 'Allow VNet to VNet communication on any port. Required for AKS'
+            direction: 'Outbound'
+            description: 'Allow all outbound traffic to hub gateway virtual appliance'
           }
         }
         {
-          name: 'AllowAnyInboundFromAzLB'
+          name: 'AllowOutboundDns'
           properties: {
-            protocol: '*'
+            protocol: 'Udp'
             sourcePortRange: '*'
-            destinationPortRange: '*'
-            sourceAddressPrefix: 'AzureLoadBalancer'
-            destinationAddressPrefix: 'VirtualNetwork'
+            destinationPortRange: '53'
+            sourceAddressPrefix: 'VirtualNetwork'
+            destinationAddressPrefix: '10.176.0.4/31'
             access: 'Allow'
-            priority: 1200
-            direction: 'Inbound'
-            description: 'Allow Any Inbound From AzLB'
+            priority: 1010
+            direction: 'Outbound'
+            description: 'Allow outbound DNS to hub resolvers'
           }
         }
         {
-          name: 'DenyAnyOtherInbound'
+          name: 'AllowOutboundDnsTcp'
           properties: {
-            protocol: '*'
+            protocol: 'Tcp'
             sourcePortRange: '*'
-            destinationPortRange: '*'
-            sourceAddressPrefix: '*'
-            destinationAddressPrefix: '*'
-            access: 'Deny'
-            priority: 4000
-            direction: 'Inbound'
-            description: 'Deny All Other Inbound'
+            destinationPortRange: '53'
+            sourceAddressPrefix: 'VirtualNetwork'
+            destinationAddressPrefix: '10.176.0.4/31'
+            access: 'Allow'
+            priority: 1011
+            direction: 'Outbound'
+            description: 'Allow outbound DNS to hub resolvers'
+          }
+        }
+        {
+          name: 'AllowOutboundAADAuth'
+          properties: {
+            protocol: 'Tcp'
+            sourcePortRange: '*'
+            destinationPortRange: '443'
+            sourceAddressPrefix: 'VirtualNetwork'
+            destinationAddressPrefix: 'AzureActiveDirectory'
+            access: 'Allow'
+            priority: 2000
+            direction: 'Outbound'
+            description: 'Allow AAD Auth Outbound to AzureActiveDirectory'
+          }
+        }
+        {
+          name: 'AllowOutboundAzMonitor'
+          properties: {
+            protocol: 'Tcp'
+            sourcePortRange: '*'
+            destinationPortRanges: ['443', '1886']
+            sourceAddressPrefix: 'VirtualNetwork'
+            destinationAddressPrefix: 'AzureMonitor'
+            access: 'Allow'
+            priority: 2010
+            direction: 'Outbound'
+            description: 'Allow AzMonitor Outbound ports(443,1886) from VirtualNetwork to AzureMonitor'
           }
         }
       ]
@@ -304,50 +386,12 @@ param nsgParams = {
     {
       name: 'DEVIMPNETNS1407'
       purpose: 'Reserved'
-      securityRules: [
-        {
-          name: 'DenyAnyOtherInbound'
-          properties: {
-            protocol: '*'
-            sourcePortRange: '*'
-            destinationPortRange: '*'
-            sourceAddressPrefix: '*'
-            destinationAddressPrefix: '*'
-            access: 'Deny'
-            priority: 4000
-            direction: 'Inbound'
-            sourcePortRanges: []
-            destinationPortRanges: []
-            sourceAddressPrefixes: []
-            destinationAddressPrefixes: []
-            description: 'Deny All Other Inbound'
-          }
-        }
-      ]
+      securityRules: []
     }
     {
       name: 'DEVIMPNETNS1408'
       purpose: 'Reserved'
-      securityRules: [
-        {
-          name: 'DenyAnyOtherInbound'
-          properties: {
-            protocol: '*'
-            sourcePortRange: '*'
-            destinationPortRange: '*'
-            sourceAddressPrefix: '*'
-            destinationAddressPrefix: '*'
-            access: 'Deny'
-            priority: 4000
-            direction: 'Inbound'
-            sourcePortRanges: []
-            destinationPortRanges: []
-            sourceAddressPrefixes: []
-            destinationAddressPrefixes: []
-            description: 'Deny All Other Inbound'
-          }
-        }
-      ]
+      securityRules: []
     }
   ]
 }
