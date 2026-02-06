@@ -5,10 +5,8 @@ param location string
 param nsgParams object
 param tags object
 
-param deploymentDate string = utcNow('yyyyMMdd-HHmmss')
-
 module networkSecurityGroup 'br/SharedDefraRegistry:network.network-security-group:0.4.2' = [for nsg in nsgParams.networkSecurityGroups:  {
-  name: '${nsg.name}-${deploymentDate}'
+  name: '${nsg.name}-${deploymentId}'
   params: {
     name: nsg.name
     location: location

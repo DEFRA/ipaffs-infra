@@ -5,8 +5,9 @@ trigger:
       - main
   paths:
     include:
-      - bicep/main.bicep
-      - bicep/resource-group.bicep
+      - bicep/10-resource-group.bicep
+      - bicep/20-network.bicep
+      - bicep/30-infra.bicep
       - bicep/modules/*.bicep
       - bicep/**/main.bicepparam
       - bicep/**/resource-group.bicepparam
@@ -19,8 +20,9 @@ pr:
       - main
   paths:
     include:
-      - bicep/main.bicep
-      - bicep/resource-group.bicep
+      - bicep/10-resource-group.bicep
+      - bicep/20-network.bicep
+      - bicep/30-infra.bicep
       - bicep/modules/*.bicep
       - bicep/**/main.bicepparam
       - bicep/**/resource-group.bicepparam

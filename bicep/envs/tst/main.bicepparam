@@ -1,4 +1,4 @@
-using '../../main.bicep'
+using none
 
 param environment = 'TST'
 param tenantId = ''

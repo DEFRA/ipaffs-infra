@@ -8,18 +8,6 @@ param entraGroups object
 param subnetNames object
 param tenantId string
 
-param acrParams object
-param aksParams object
-param asoParams object
-param externalSecretsParams object
-param keyVaultParams object
-param monitoringParams object
-param nsgParams object
-param redisParams object
-param searchParams object
-param sqlParams object
-param vnetParams object
-
 param createdDate string = utcNow('yyyy-MM-dd')
 param deploymentId string = uniqueString(utcNow())
 param location string = resourceGroup().location
@@ -30,6 +18,23 @@ var tags = union(loadJsonContent('default-tags.json'), {
   Location: location
 })
 
+param acrParams object
+param aksParams object
+param asoParams object
+param externalSecretsParams object
+param keyVaultParams object
+param monitoringParams object
+param redisParams object
+param searchParams object
+param sqlParams object
+param vnetParams object
+
+resource vnet 'Microsoft.Network/virtualNetworks@2025-05-01' existing = {
+  name: vnetParams.name
+}
+
+var subnetIds = [for subnet in items(vnet.properties.subnets): subnet.id]
+
 module acr './modules/acr.bicep' = {
   name: 'acr-${deploymentId}'
   scope: resourceGroup()
@@ -37,7 +42,7 @@ module acr './modules/acr.bicep' = {
     acrParams: acrParams
     deploymentId: deploymentId
     location: location
-    subnetIds: vnet.outputs.subnetIds
+    subnetIds: subnetIds
     subnetNames: subnetNames
     tags: tags
   }
@@ -52,10 +57,10 @@ module aks './modules/aks.bicep' = {
     deploymentId: deploymentId
     location: location
     logAnalyticsId: monitoring.outputs.logAnalyticsId
-    subnetIds: vnet.outputs.subnetIds
+    subnetIds: subnetIds
     subnetNames: subnetNames
     tags: tags
-    vnetName: vnet.outputs.vnetName
+    vnetName: vnetParams.name
   }
 }
 
@@ -96,21 +101,10 @@ module keyVault './modules/keyvault.bicep' = {
     deploymentId: deploymentId
     keyVaultParams: keyVaultParamsWithManagedIdentities
     location: location
-    subnetIds: vnet.outputs.subnetIds
+    subnetIds: subnetIds
     subnetNames: subnetNames
     tags: tags
     tenantId: tenantId
-  }
-}
-
-module nsg './modules/network-security-groups.bicep' = {
-  name: 'nsg-${deploymentId}'
-  scope: resourceGroup()
-  params: {
-    deploymentId: deploymentId
-    location: location
-    tags: tags
-    nsgParams: nsgParams
   }
 }
 
@@ -121,7 +115,7 @@ module redis './modules/redis.bicep' = {
     deploymentId: deploymentId
     redisParams: redisParams
     location: location
-    subnetIds: vnet.outputs.subnetIds
+    subnetIds: subnetIds
     subnetNames: subnetNames
     tags: tags
     tenantId: tenantId
@@ -136,7 +130,7 @@ module search './modules/search.bicep' = {
     entraGroups: entraGroups
     searchParams: searchParams
     location: location
-    subnetIds: vnet.outputs.subnetIds
+    subnetIds: subnetIds
     subnetNames: subnetNames
     tags: tags
     tenantId: tenantId
@@ -151,25 +145,11 @@ module sql './modules/sql.bicep' = {
     entraGroups: entraGroups
     location: location
     sqlParams: sqlParams
-    subnetIds: vnet.outputs.subnetIds
+    subnetIds: subnetIds
     subnetNames: subnetNames
     tags: tags
     tenantId: tenantId
   }
-}
-
-module vnet './modules/virtual-network.bicep' = {
-  name: 'vnet-${deploymentId}'
-  scope: resourceGroup()
-  params: {
-    deploymentId: deploymentId
-    location: location
-    tags: tags
-    vnetParams: vnetParams
-  }
-  dependsOn: [
-    nsg
-  ]
 }
 
 module monitoring './modules/monitoring.bicep' = {

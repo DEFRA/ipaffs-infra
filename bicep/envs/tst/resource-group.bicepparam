@@ -1,4 +1,4 @@
-using '../../resource-group.bicep'
+using '../../10-resource-group.bicep'
 
 param name = 'TSTIMPINFRG1401'
 param location = 'uksouth'
