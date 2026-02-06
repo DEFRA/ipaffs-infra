@@ -37,11 +37,13 @@ param aksParams = {
     system: {
       minCount: 3
       maxCount: 5
+      maxPods: 120
       vmSize: 'Standard_E2as_v6'
     }
     user: {
       minCount: 3
       maxCount: 12
+      maxPods: 250
       vmSize: 'Standard_E16as_v6'
     }
   }

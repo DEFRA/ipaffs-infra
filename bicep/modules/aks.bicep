@@ -73,8 +73,9 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2025-10-01' = {
         name: 'system'
         enableAutoScaling: true
         enableNodePublicIP: false
-        maxCount: aksParams.nodePools.system.maxCount
         minCount: aksParams.nodePools.system.minCount
+        maxCount: aksParams.nodePools.system.maxCount
+        maxPods: aksParams.nodePools.system.maxPods
         mode: 'System'
         osType: 'Linux'
         type: 'VirtualMachineScaleSets'
@@ -90,8 +91,9 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2025-10-01' = {
         name: 'user'
         enableAutoScaling: true
         enableNodePublicIP: false
-        maxCount: aksParams.nodePools.user.maxCount
         minCount: aksParams.nodePools.user.minCount
+        maxCount: aksParams.nodePools.user.maxCount
+        maxPods: aksParams.nodePools.user.maxPods
         mode: 'User'
         osType: 'Linux'
         type: 'VirtualMachineScaleSets'
