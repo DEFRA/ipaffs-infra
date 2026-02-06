@@ -315,7 +315,7 @@ stages:
       - job: UpdateGroupVariables
         displayName: Update group variables
         steps:
-          - task: AzureCLI@2
+          - task: Bash@3
             name: StoreLibraryVars
             displayName: Store Library Variables
             condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
@@ -323,12 +323,10 @@ stages:
               ADO_ORG_URL: $(System.CollectionUri)
               ADO_PROJECT: $(System.TeamProject)
               ADO_GROUP_NAME: ${{ parameters.environmentName }}
+              AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
             inputs:
-              # TODO: fix this for all envs, or possibly just for dev service connection
-              azureSubscription: ADO-DefraGovUK-AZR-POC_IMP
-              scriptType: bash
-              scriptLocation: inlineScript
-              inlineScript: |
+              targetType: inline
+              script: |
                 set -x
                 scripts/pipeline/update-group-variable.sh teamAdminsGroupId '$(teamAdminsObjectId)'
                 scripts/pipeline/update-group-variable.sh teamAdminsGroupName '$(teamAdminsDisplayName)'

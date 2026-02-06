@@ -159,7 +159,7 @@ stages:
         steps:
           - checkout: self
 
-          - task: AzureCLI@2
+          - task: Bash@3
             name: DeploymentOutputs
             displayName: Deployment outputs
             condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
@@ -167,14 +167,12 @@ stages:
               ADO_ORG_URL: $(System.CollectionUri)
               ADO_PROJECT: $(System.TeamProject)
               ADO_GROUP_NAME: ${{ parameters.environmentName }}
+              AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
               DEPLOYMENT_NAME: Infrastructure-$(Build.BuildId)
               RESOURCE_GROUP: $(resourceGroupName)
             inputs:
-              # TODO: fix this for all envs
-              azureSubscription: ADO-DefraGovUK-AZR-POC_IMP
-              scriptType: bash
-              scriptLocation: inlineScript
-              inlineScript: |
+              targetType: inline
+              script: |
                 set -x
                 scripts/pipeline/update-group-variable-from-deployment.sh acrLoginServer acrLoginServer
                 scripts/pipeline/update-group-variable-from-deployment.sh acrName acrName
