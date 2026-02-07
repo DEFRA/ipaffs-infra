@@ -22,9 +22,9 @@ stages:
               targetType: inline
               script: |
                 set -ex
-                cat <<- 'EOF' >'$(Build.SourcesDirectory)/runtime.bicepparam'
-                using 'main.bicep'
-                extends 'envs/${{ lower(parameters.environmentName) }}/main.bicepparam'
+                cat <<- 'EOF' >'$(Build.SourcesDirectory)/30-infra-runtime.bicepparam'
+                using '30-infra.bicep'
+                extends 'envs/${{ lower(parameters.environmentName) }}/30-infra.bicepparam'
                 param entraGroups = {
                   searchContributors: {
                     id: '$(searchContributorsGroupId)'
@@ -40,13 +40,13 @@ stages:
                   }
                 }
                 EOF
-                cat '$(Build.SourcesDirectory)/runtime.bicepparam'
+                cat '$(Build.SourcesDirectory)/30-infra-runtime.bicepparam'
 
           - task: PublishPipelineArtifact@1
             displayName: Publish artifact
             inputs:
               artifactName: bicepparam
-              targetPath: $(Build.SourcesDirectory)/runtime.bicepparam
+              targetPath: $(Build.SourcesDirectory)/30-infra-runtime.bicepparam
 
   - stage: DeployInfrastructure
     displayName: Deploy infrastructure
@@ -83,8 +83,8 @@ stages:
                       az deployment sub what-if \
                         --name "ResourceGroup-$(Build.BuildId)" \
                         --location $(location) \
-                        --template-file bicep/resource-group.bicep \
-                        --parameters bicep/envs/${{ lower(parameters.environmentName) }}/resource-group.bicepparam
+                        --template-file bicep/10-resource-group.bicep \
+                        --parameters bicep/envs/${{ lower(parameters.environmentName) }}/10-resource-group.bicepparam
 
                 - task: AzureCLI@2
                   displayName: Deploy - ResourceGroup
@@ -98,11 +98,40 @@ stages:
                       az deployment sub create \
                         --name "ResourceGroup-$(Build.BuildId)" \
                         --location $(location) \
-                        --template-file bicep/resource-group.bicep \
-                        --parameters bicep/envs/${{ lower(parameters.environmentName) }}/resource-group.bicepparam
+                        --template-file bicep/10-resource-group.bicep \
+                        --parameters bicep/envs/${{ lower(parameters.environmentName) }}/10-resource-group.bicepparam
 
                 - task: AzureCLI@2
-                  displayName: WhatIf - Main
+                  displayName: WhatIf - Network
+                  inputs:
+                    azureSubscription: $(serviceConnection)
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      set -x
+                      az deployment group what-if \
+                        --name "Network-$(Build.BuildId)" \
+                        --resource-group $(resourceGroupName) \
+                        --template-file bicep/20-network.bicep \
+                        --parameters bicep/envs/${{ lower(parameters.environmentName) }}/20-network.bicepparam
+
+                - task: AzureCLI@2
+                  displayName: Deploy - Network
+                  condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+                  inputs:
+                    azureSubscription: $(serviceConnection)
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      set -x
+                      az deployment group create \
+                        --name "Network-$(Build.BuildId)" \
+                        --resource-group $(resourceGroupName) \
+                        --template-file bicep/20-network.bicep \
+                        --parameters bicep/envs/${{ lower(parameters.environmentName) }}/20-network.bicepparam
+
+                - task: AzureCLI@2
+                  displayName: WhatIf - Infrastructure
                   inputs:
                     azureSubscription: $(serviceConnection)
                     scriptType: bash
@@ -112,12 +141,12 @@ stages:
                       az deployment group what-if \
                         --name "Infrastructure-$(Build.BuildId)" \
                         --resource-group $(resourceGroupName) \
-                        --template-file bicep/main.bicep \
-                        --parameters bicep/runtime.bicepparam \
+                        --template-file bicep/30-infra.bicep \
+                        --parameters bicep/30-infra-runtime.bicepparam \
                         --parameters tenantId="$(tenantId)"
 
                 - task: AzureCLI@2
-                  displayName: Deploy - Main
+                  displayName: Deploy - Infrastructure
                   condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
                   inputs:
                     azureSubscription: $(serviceConnection)
@@ -128,8 +157,8 @@ stages:
                       az deployment group create \
                         --name "Infrastructure-$(Build.BuildId)" \
                         --resource-group $(resourceGroupName) \
-                        --template-file bicep/main.bicep \
-                        --parameters bicep/runtime.bicepparam \
+                        --template-file bicep/30-infra.bicep \
+                        --parameters bicep/30-infra-runtime.bicepparam \
                         --parameters tenantId="$(tenantId)"
 
                 - task: AzureCLI@2

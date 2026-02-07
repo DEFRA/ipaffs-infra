@@ -5,10 +5,8 @@ param location string
 param tags object
 param vnetParams object
 
-param deploymentDate string = utcNow('yyyyMMdd-HHmmss')
-
 module routeTable 'br/SharedDefraRegistry:network.route-table:0.4.2' = {
-  name: 'route-table-aks-${deploymentDate}'
+  name: 'route-table-aks-${deploymentId}'
   params: {
     name: '${vnetParams.routeTable.name}'
     location: location
@@ -29,7 +27,7 @@ module routeTable 'br/SharedDefraRegistry:network.route-table:0.4.2' = {
 }
 
 module virtualNetwork 'br/SharedDefraRegistry:network.virtual-network:0.4.2' = {
-  name: 'virtual-network-${deploymentDate}'
+  name: 'virtual-network-${deploymentId}'
   params: {
     name: vnetParams.name
     location: location

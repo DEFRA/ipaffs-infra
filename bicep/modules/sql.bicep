@@ -4,12 +4,12 @@ param deploymentId string
 param entraGroups object
 param location string
 param sqlParams object
-param subnetIds array
 param subnetNames object
+param subnets array
 param tags object
 param tenantId string
 
-var subnetId = first(filter(subnetIds, subnetId => contains(subnetId, subnetNames.privateEndpoints)))
+var subnet = first(filter(subnets, subnet => subnet.name == subnetNames.privateEndpoints))
 
 resource sqlServer 'Microsoft.Sql/servers@2023-08-01' = {
   name: sqlParams.serverName
@@ -60,13 +60,13 @@ resource elasticPool 'Microsoft.Sql/servers/elasticPools@2023-08-01' = {
 }
 
 resource sqlPrivateEndpoint 'Microsoft.Network/privateEndpoints@2024-10-01' = {
-  name: '${sqlParams.serverName}-${last(split(subnetId, '/'))}'
+  name: '${sqlParams.serverName}-${subnet.name}'
   location: location
   tags: tags
 
   properties: {
     subnet: {
-      id: subnetId
+      id: subnet.id
     }
 
     privateLinkServiceConnections: [

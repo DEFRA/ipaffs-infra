@@ -1,5 +1,6 @@
 ---
 variables:
+  legacyServiceConnection: ADO-DefraGovUK-AZR-IMP-TST1
   serviceConnection: ADO-DefraGovUK-AZR-IMP-TST1
   serviceConnectionPrincipalId: 7b097afb-e281-4bc4-8086-c1ff4f47964b
 

@@ -3,12 +3,12 @@ targetScope = 'resourceGroup'
 param deploymentId string
 param location string
 param keyVaultParams object
-param subnetIds array
 param subnetNames object
+param subnets array
 param tags object
 param tenantId string
 
-var subnetId = first(filter(subnetIds, subnetId => contains(subnetId, subnetNames.privateEndpoints)))
+var subnet = first(filter(subnets, subnet => subnet.name == subnetNames.privateEndpoints))
 
 resource keyVault 'Microsoft.KeyVault/vaults@2025-05-01' = {
   name: keyVaultParams.name
@@ -47,13 +47,13 @@ resource keyVault 'Microsoft.KeyVault/vaults@2025-05-01' = {
 }
 
 resource keyVaultPrivateEndpoints 'Microsoft.Network/privateEndpoints@2024-10-01' = {
-  name: '${keyVaultParams.name}-${last(split(subnetId, '/'))}'
+  name: '${keyVaultParams.name}-${subnet.name}'
   location: location
   tags: tags
 
   properties: {
     subnet: {
-      id: subnetId
+      id: subnet.id
     }
 
     privateLinkServiceConnections: [

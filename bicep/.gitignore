@@ -1,3 +1,0 @@
-# Exclude sensitive SSH keys
-aks_id_rsa
-aks_id_rsa.pub
