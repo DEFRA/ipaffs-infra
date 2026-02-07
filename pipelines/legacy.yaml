@@ -6,7 +6,7 @@ trigger:
   paths:
     include:
       - bicep/90-legacy.bicep
-      - bicep/**/90-90-90-90-legacy.bicepparam
+      - bicep/**/90-legacy.bicepparam
       - pipelines/legacy.yaml
 
 pr:
@@ -16,7 +16,7 @@ pr:
   paths:
     include:
       - bicep/90-legacy.bicep
-      - bicep/**/90-90-90-90-legacy.bicepparam
+      - bicep/**/90-legacy.bicepparam
       - pipelines/legacy.yaml
 
 pool:
@@ -55,7 +55,7 @@ stages:
                 - task: AzureCLI@2
                   displayName: WhatIf - Legacy
                   inputs:
-                    azureSubscription: $(serviceConnection)
+                    azureSubscription: $(legacyServiceConnection)
                     scriptType: bash
                     scriptLocation: inlineScript
                     inlineScript: |
@@ -63,13 +63,13 @@ stages:
                         --name "Legacy-$(Build.BuildId)" \
                         --resource-group $(resourceGroupName) \
                         --template-file bicep/90-legacy.bicep \
-                        --parameters bicep/envs/${{ lower(parameters.environmentName) }}/legacy.bicepparam
+                        --parameters bicep/envs/${{ lower(parameters.environmentName) }}/90-legacy.bicepparam
 
                 - task: AzureCLI@2
                   displayName: Deploy - Legacy
                   condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
                   inputs:
-                    azureSubscription: $(serviceConnection)
+                    azureSubscription: $(legacyServiceConnection)
                     scriptType: bash
                     scriptLocation: inlineScript
                     inlineScript: |
@@ -77,6 +77,6 @@ stages:
                         --name "Legacy-$(Build.BuildId)" \
                         --resource-group $(resourceGroupName) \
                         --template-file bicep/90-legacy.bicep \
-                        --parameters bicep/envs/${{ lower(parameters.environmentName) }}/legacy.bicepparam
+                        --parameters bicep/envs/${{ lower(parameters.environmentName) }}/90-legacy.bicepparam
 
 # vim: set ts=2 sts=2 sw=2 et:
