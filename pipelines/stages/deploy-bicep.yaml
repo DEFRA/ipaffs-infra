@@ -48,16 +48,15 @@ stages:
               artifactName: bicepparam
               targetPath: $(Build.SourcesDirectory)/30-infra-runtime.bicepparam
 
-  - stage: DeployInfrastructure
-    displayName: Deploy infrastructure
-    dependsOn: ConfigureDeployment
+  - stage: DeployResourceGroup
+    displayName: Deploy Resource Group
     variables:
       - group: "${{ parameters.environmentName }}"
       - template: "/pipelines/vars/common.yaml"
       - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
     jobs:
-      - deployment: DeployBicep
-        displayName: Deploy Bicep Templates
+      - deployment: RunBicep
+        displayName: Run Bicep
         environment:
           name: "${{ parameters.environmentName }}"
         strategy:
@@ -65,12 +64,6 @@ stages:
             deploy:
               steps:
                 - checkout: self
-
-                - task: DownloadPipelineArtifact@2
-                  displayName: Download artifact
-                  inputs:
-                    artifactName: bicepparam
-                    targetPath: $(Build.SourcesDirectory)/bicep
 
                 - task: AzureCLI@2
                   displayName: WhatIf - Resource Group
@@ -101,6 +94,25 @@ stages:
                         --template-file bicep/10-resource-group.bicep \
                         --parameters bicep/envs/${{ lower(parameters.environmentName) }}/10-resource-group.bicepparam
 
+
+  - stage: DeployNetwork
+    displayName: Deploy Network
+    dependsOn: DeployResourceGroup
+    variables:
+      - group: "${{ parameters.environmentName }}"
+      - template: "/pipelines/vars/common.yaml"
+      - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
+    jobs:
+      - deployment: RunBicep
+        displayName: Run Bicep
+        environment:
+          name: "${{ parameters.environmentName }}"
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+
                 - task: AzureCLI@2
                   displayName: WhatIf - Network
                   inputs:
@@ -129,6 +141,110 @@ stages:
                         --resource-group $(resourceGroupName) \
                         --template-file bicep/20-network.bicep \
                         --parameters bicep/envs/${{ lower(parameters.environmentName) }}/20-network.bicepparam
+
+                - task: AzureCLI@2
+                  displayName: Wait for Deployment - Network
+                  condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+                  inputs:
+                    azureSubscription: $(serviceConnection)
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      set -x
+                      az deployment group wait \
+                        --name "Network-$(Build.BuildId)" \
+                        --resource-group $(resourceGroupName) \
+                        --created
+
+
+  - stage: SaveNetworkDeploymentDetails
+    displayName: Save network deployment details
+    dependsOn: DeployNetwork
+    variables:
+      - group: "${{ parameters.environmentName }}"
+      - template: "/pipelines/vars/common.yaml"
+      - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
+    jobs:
+      - job: StoreLibraryVariables
+        displayName: Store library variables
+        steps:
+          - checkout: self
+
+          - task: AzureCLI@2
+            name: NetworkOutputs
+            displayName: Network outputs
+            condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+            env:
+              ADO_ORG_URL: $(System.CollectionUri)
+              ADO_PROJECT: $(System.TeamProject)
+              ADO_GROUP_NAME: ${{ parameters.environmentName }}
+              AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
+              DEPLOYMENT_NAME: Network-$(Build.BuildId)
+              RESOURCE_GROUP: $(resourceGroupName)
+            inputs:
+              azureSubscription: $(serviceConnection)
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                set -x
+                scripts/pipeline/update-group-variable-from-deployment.sh vnetName vnetName
+
+
+  - stage: EstablishPeering
+    displayName: Establish Peering
+    dependsOn: SaveNetworkDeploymentDetails
+    variables:
+      - group: "${{ parameters.environmentName }}"
+      - template: "/pipelines/vars/common.yaml"
+      - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
+    jobs:
+      - deployment: TriggerPeeringPipeline
+        environment:
+          name: "${{ parameters.environmentName }}"
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+
+                - task: Bash@3
+                  condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+                  env:
+                    ADO_ORG_URL: $(System.CollectionUri)
+                    ADO_PROJECT: $(System.TeamProject)
+                    AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
+                    SUBSCRIPTION_NAME: $(subscriptionName)
+                    TENANT_ID: $(tenantId)
+                    VNET_NAME: $(vnetName)
+                  inputs:
+                    filePath: scripts/pipeline/trigger-peering-pipeline.sh
+
+
+  - stage: DeployInfrastructure
+    displayName: Deploy Infrastructure
+    dependsOn:
+      - ConfigureDeployment
+      - EstablishPeering
+    variables:
+      - group: "${{ parameters.environmentName }}"
+      - template: "/pipelines/vars/common.yaml"
+      - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
+    jobs:
+      - deployment: RunBicep
+        displayName: Run Bicep
+        environment:
+          name: "${{ parameters.environmentName }}"
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+
+                - task: DownloadPipelineArtifact@2
+                  displayName: Download artifact
+                  inputs:
+                    artifactName: bicepparam
+                    targetPath: $(Build.SourcesDirectory)/bicep
 
                 - task: AzureCLI@2
                   displayName: WhatIf - Infrastructure
@@ -162,7 +278,7 @@ stages:
                         --parameters tenantId="$(tenantId)"
 
                 - task: AzureCLI@2
-                  displayName: Wait for Deployment - Main
+                  displayName: Wait for Deployment - Infrastructure
                   condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
                   inputs:
                     azureSubscription: $(serviceConnection)
@@ -175,8 +291,9 @@ stages:
                         --resource-group $(resourceGroupName) \
                         --created
 
-  - stage: SaveDeploymentDetails
-    displayName: Save deployment details
+
+  - stage: SaveInfrastructureDeploymentDetails
+    displayName: Save infrastructure deployment details
     dependsOn: DeployInfrastructure
     variables:
       - group: "${{ parameters.environmentName }}"
@@ -189,8 +306,8 @@ stages:
           - checkout: self
 
           - task: AzureCLI@2
-            name: DeploymentOutputs
-            displayName: Deployment outputs
+            name: InfrastructureOutputs
+            displayName: Infrastructure outputs
             condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
             env:
               ADO_ORG_URL: $(System.CollectionUri)
