@@ -41,4 +41,6 @@ module vnet './modules/virtual-network.bicep' = {
   ]
 }
 
+output vnetName string = vnet.outputs.vnetName
+
 // vim: set ts=2 sts=2 sw=2 et:

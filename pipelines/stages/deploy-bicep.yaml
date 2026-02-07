@@ -189,8 +189,27 @@ stages:
           - checkout: self
 
           - task: AzureCLI@2
-            name: DeploymentOutputs
-            displayName: Deployment outputs
+            name: NetworkOutputs
+            displayName: Network outputs
+            condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+            env:
+              ADO_ORG_URL: $(System.CollectionUri)
+              ADO_PROJECT: $(System.TeamProject)
+              ADO_GROUP_NAME: ${{ parameters.environmentName }}
+              AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
+              DEPLOYMENT_NAME: Network-$(Build.BuildId)
+              RESOURCE_GROUP: $(resourceGroupName)
+            inputs:
+              azureSubscription: $(serviceConnection)
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                set -x
+                scripts/pipeline/update-group-variable-from-deployment.sh vnetName vnetName
+
+          - task: AzureCLI@2
+            name: InfrastructureOutputs
+            displayName: Infrastructure outputs
             condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
             env:
               ADO_ORG_URL: $(System.CollectionUri)
