@@ -26,7 +26,8 @@ variables:
   - template: "vars/${{ lower(parameters.environmentName) }}.yaml"
 
 stages:
-  - stage: PeeringTest
+  - stage: EstabishHubPeering
+    displayName: Establish Hub Peering
     jobs:
       - deployment: TriggerPeeringPipeline
         environment:
@@ -38,15 +39,14 @@ stages:
                 - checkout: self
 
                 - task: Bash@3
+                  env:
+                    ADO_ORG_URL: $(System.CollectionUri)
+                    ADO_PROJECT: $(System.TeamProject)
+                    AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
+                    SUBSCRIPTION_NAME: $(subscriptionName)
+                    TENANT_ID: $(tenantId)
+                    VNET_NAME: $(vnetName)
                   inputs:
-                    targetType: inline
-                    script: |
-                      echo "$(System.AccessToken)" | az devops login --org https://dev.azure.com/defragovuk/
-                      az pipelines run \
-                        --org https://dev.azure.com/defragovuk/ \
-                        --project CCoE-Infrastructure \
-                        --id 1851 \
-                        --parameters VirtualNetworkName=DEVIMPNETVN1401 Subscription=AZR-IMP-DEV1 Tenant=770a2450-0227-4c62-90c7-4e38537f1102 PeerToSec=false
-
+                    filePath: scripts/pipelines/trigger-peering-pipeline.sh
 
 # vim: set ts=2 sts=2 sw=2 et:

@@ -3,5 +3,6 @@ variables:
   legacyServiceConnection: ADO-DefraGovUK-AZR-PRE_IMP
   serviceConnection: To-BE-DETERMINED
   serviceConnectionPrincipalId: TO-BE-DETERMINED
+  subscriptionName: AZR-IMP-PRE1
 
 # vim: set ts=2 sts=2 sw=2 et:
