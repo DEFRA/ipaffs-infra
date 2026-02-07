@@ -47,6 +47,6 @@ stages:
                     TENANT_ID: $(tenantId)
                     VNET_NAME: $(vnetName)
                   inputs:
-                    filePath: scripts/pipelines/trigger-peering-pipeline.sh
+                    filePath: scripts/pipeline/trigger-peering-pipeline.sh
 
 # vim: set ts=2 sts=2 sw=2 et:
