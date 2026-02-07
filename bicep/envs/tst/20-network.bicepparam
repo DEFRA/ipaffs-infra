@@ -1,5 +1,6 @@
 using '../../20-network.bicep'
-extends 'common.bicepparam'
+
+param environment = 'TST'
 
 param nsgParams = {
   networkSecurityGroups: [
