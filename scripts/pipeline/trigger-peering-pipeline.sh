@@ -9,7 +9,7 @@ runResult="$(az pipelines run \
   --org "${ADO_ORG_URL}" \
   --project "${adoProject}" \
   --id "${peeringPipelineId}" \
-  --parameters VirtualNetworkName=${VNET_NAME} Subscription=${SUBSCRIPTION_NAME} Tenant=$(TENANT_ID) PeerToSec=false)"
+  --parameters VirtualNetworkName=${VNET_NAME} Subscription=${SUBSCRIPTION_NAME} Tenant=${TENANT_ID} PeerToSec=false)"
 
 [[ $? -ne 0 ]] && exit 1
 
