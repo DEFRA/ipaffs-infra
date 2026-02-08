@@ -19,6 +19,7 @@ parameters:
     default: DEV
     values:
       - DEV
+      - TST
 
   - name: namespace
     displayName: Namespace

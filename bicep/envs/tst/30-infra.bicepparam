@@ -8,7 +8,7 @@ param builtInGroups = {
 param entraGroups = {}
 param environment = 'TST'
 param tenantId = ''
-param vnetName = 'DEVIMPNETVN1401'
+param vnetName = 'TSTIMPNETVN1401'
 
 param subnetNames = {
   aksApiServer: 'TSTIMPNETSU4401'
@@ -30,7 +30,7 @@ param aksParams = {
   dnsPrefix: 'tstimpinfak1401'
   nodeResourceGroup: 'TSTIMPINFRG1402'
   sku: 'Standard'
-  userAssignedIdentityName: 'DEVIMPINFAK1401'
+  userAssignedIdentityName: 'TSTIMPINFAK1401'
   version: '1.34'
 
   dnsServiceIp: '172.18.255.250'

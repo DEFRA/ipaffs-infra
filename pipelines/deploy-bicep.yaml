@@ -39,6 +39,7 @@ parameters:
     default: DEV
     values:
       - DEV
+      - TST
 
 variables:
   - group: "${{ parameters.environmentName }}"
