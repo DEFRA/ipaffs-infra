@@ -75,6 +75,7 @@ stages:
                       set -x
                       az deployment sub what-if \
                         --name "ResourceGroup-$(Build.BuildId)" \
+                        --subscription $(subscriptionId) \
                         --location $(location) \
                         --template-file bicep/10-resource-group.bicep \
                         --parameters bicep/envs/${{ lower(parameters.environmentName) }}/10-resource-group.bicepparam
@@ -90,6 +91,7 @@ stages:
                       set -x
                       az deployment sub create \
                         --name "ResourceGroup-$(Build.BuildId)" \
+                        --subscription $(subscriptionId) \
                         --location $(location) \
                         --template-file bicep/10-resource-group.bicep \
                         --parameters bicep/envs/${{ lower(parameters.environmentName) }}/10-resource-group.bicepparam
@@ -123,6 +125,7 @@ stages:
                       set -x
                       az deployment group what-if \
                         --name "Network-$(Build.BuildId)" \
+                        --subscription $(subscriptionId) \
                         --resource-group $(resourceGroupName) \
                         --template-file bicep/20-network.bicep \
                         --parameters bicep/envs/${{ lower(parameters.environmentName) }}/20-network.bicepparam
@@ -138,6 +141,7 @@ stages:
                       set -x
                       az deployment group create \
                         --name "Network-$(Build.BuildId)" \
+                        --subscription $(subscriptionId) \
                         --resource-group $(resourceGroupName) \
                         --template-file bicep/20-network.bicep \
                         --parameters bicep/envs/${{ lower(parameters.environmentName) }}/20-network.bicepparam
@@ -153,6 +157,7 @@ stages:
                       set -x
                       az deployment group wait \
                         --name "Network-$(Build.BuildId)" \
+                        --subscription $(subscriptionId) \
                         --resource-group $(resourceGroupName) \
                         --created
 
@@ -181,6 +186,7 @@ stages:
               AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
               DEPLOYMENT_NAME: Network-$(Build.BuildId)
               RESOURCE_GROUP: $(resourceGroupName)
+              SUBSCRIPTION_ID: $(subscriptionId)
             inputs:
               azureSubscription: $(serviceConnection)
               scriptType: bash
@@ -256,6 +262,7 @@ stages:
                       set -x
                       az deployment group what-if \
                         --name "Infrastructure-$(Build.BuildId)" \
+                        --subscription $(subscriptionId) \
                         --resource-group $(resourceGroupName) \
                         --template-file bicep/30-infra.bicep \
                         --parameters bicep/30-infra-runtime.bicepparam \
@@ -272,6 +279,7 @@ stages:
                       set -x
                       az deployment group create \
                         --name "Infrastructure-$(Build.BuildId)" \
+                        --subscription $(subscriptionId) \
                         --resource-group $(resourceGroupName) \
                         --template-file bicep/30-infra.bicep \
                         --parameters bicep/30-infra-runtime.bicepparam \
@@ -288,6 +296,7 @@ stages:
                       set -x
                       az deployment group wait \
                         --name "Infrastructure-$(Build.BuildId)" \
+                        --subscription $(subscriptionId) \
                         --resource-group $(resourceGroupName) \
                         --created
 
@@ -316,6 +325,7 @@ stages:
               AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
               DEPLOYMENT_NAME: Infrastructure-$(Build.BuildId)
               RESOURCE_GROUP: $(resourceGroupName)
+              SUBSCRIPTION_ID: $(subscriptionId)
             inputs:
               azureSubscription: $(serviceConnection)
               scriptType: bash

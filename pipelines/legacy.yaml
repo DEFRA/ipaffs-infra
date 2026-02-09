@@ -61,6 +61,7 @@ stages:
                     inlineScript: |
                       az deployment group what-if \
                         --name "Legacy-$(Build.BuildId)" \
+                        --subscription $(legacySubscriptionId) \
                         --resource-group $(resourceGroupName) \
                         --template-file bicep/90-legacy.bicep \
                         --parameters bicep/envs/${{ lower(parameters.environmentName) }}/90-legacy.bicepparam
@@ -75,6 +76,7 @@ stages:
                     inlineScript: |
                       az deployment group create \
                         --name "Legacy-$(Build.BuildId)" \
+                        --subscription $(legacySubscriptionId) \
                         --resource-group $(resourceGroupName) \
                         --template-file bicep/90-legacy.bicep \
                         --parameters bicep/envs/${{ lower(parameters.environmentName) }}/90-legacy.bicepparam

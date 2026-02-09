@@ -7,6 +7,7 @@ DIR="$(cd "$(dirname $0)" && pwd)"
 deploymentOutput() {
   az deployment group show \
     --name "${DEPLOYMENT_NAME}" \
+    --subscription "${SUBSCRIPTION_ID}" \
     --resource-group "${RESOURCE_GROUP}" \
     --query properties.outputs.${1}.value \
     -o tsv
