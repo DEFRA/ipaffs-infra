@@ -12,7 +12,7 @@ stages:
     jobs:
       - job: TeamGroups
         displayName: Team Groups
-        condition: and(${{ eq(parameters.environmentName, 'DEV') }}, eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+        condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
         steps:
           - checkout: self
 
@@ -30,6 +30,7 @@ stages:
 
           - task: AzureCLI@2
             name: GetAdminsMembers
+            condition: ${{ eq(parameters.environmentName, 'DEV') }}
             env:
               NAMES: $(adminsGroupMembers)
             inputs:
@@ -40,6 +41,7 @@ stages:
 
           - task: AzureCLI@2
             name: DetermineAdminsMemberChanges
+            condition: ${{ eq(parameters.environmentName, 'DEV') }}
             env:
               GROUP_ID: $(AdminsGroup.objectId)
               OBJECT_IDS: $(GetAdminsMembers.objectIds)
@@ -50,6 +52,7 @@ stages:
 
           - task: AzureCLI@2
             name: AddAdminsMembers
+            condition: ${{ eq(parameters.environmentName, 'DEV') }}
             env:
               GROUP_ID: $(AdminsGroup.objectId)
               GROUP_MEMBERS: $(DetermineAdminsMemberChanges.membersToAdd)
@@ -60,6 +63,7 @@ stages:
 
           - task: AzureCLI@2
             name: RemoveAdminsMembers
+            condition: ${{ eq(parameters.environmentName, 'DEV') }}
             env:
               GROUP_ID: $(AdminsGroup.objectId)
               GROUP_MEMBERS: $(DetermineAdminsMemberChanges.membersToRemove)
@@ -82,6 +86,7 @@ stages:
 
           - task: AzureCLI@2
             name: GetDevelopersMembers
+            condition: ${{ eq(parameters.environmentName, 'DEV') }}
             env:
               NAMES: $(developersGroupMembers)
             inputs:
@@ -92,6 +97,7 @@ stages:
 
           - task: AzureCLI@2
             name: DetermineDevelopersMemberChanges
+            condition: ${{ eq(parameters.environmentName, 'DEV') }}
             env:
               GROUP_ID: $(DevelopersGroup.objectId)
               OBJECT_IDS: $(GetDevelopersMembers.objectIds)
@@ -102,6 +108,7 @@ stages:
 
           - task: AzureCLI@2
             name: AddDevelopersMembers
+            condition: ${{ eq(parameters.environmentName, 'DEV') }}
             env:
               GROUP_ID: $(DevelopersGroup.objectId)
               GROUP_MEMBERS: $(DetermineDevelopersMemberChanges.membersToAdd)
@@ -112,6 +119,7 @@ stages:
 
           - task: AzureCLI@2
             name: RemoveDevelopersMembers
+            condition: ${{ eq(parameters.environmentName, 'DEV') }}
             env:
               GROUP_ID: $(DevelopersGroup.objectId)
               GROUP_MEMBERS: $(DetermineDevelopersMemberChanges.membersToRemove)
@@ -134,6 +142,7 @@ stages:
 
           - task: AzureCLI@2
             name: GetReadersMembers
+            condition: ${{ eq(parameters.environmentName, 'DEV') }}
             env:
               NAMES: $(readersGroupMembers)
             inputs:
@@ -144,6 +153,7 @@ stages:
 
           - task: AzureCLI@2
             name: DetermineReadersMemberChanges
+            condition: ${{ eq(parameters.environmentName, 'DEV') }}
             env:
               GROUP_ID: $(ReadersGroup.objectId)
               OBJECT_IDS: $(GetReadersMembers.objectIds)
@@ -154,6 +164,7 @@ stages:
 
           - task: AzureCLI@2
             name: AddReadersMembers
+            condition: ${{ eq(parameters.environmentName, 'DEV') }}
             env:
               GROUP_ID: $(ReadersGroup.objectId)
               GROUP_MEMBERS: $(DetermineReadersMemberChanges.membersToAdd)
@@ -164,6 +175,7 @@ stages:
 
           - task: AzureCLI@2
             name: RemoveReadersMembers
+            condition: ${{ eq(parameters.environmentName, 'DEV') }}
             env:
               GROUP_ID: $(ReadersGroup.objectId)
               GROUP_MEMBERS: $(DetermineReadersMemberChanges.membersToRemove)
