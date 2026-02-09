@@ -20,5 +20,7 @@ resource insights 'Microsoft.Insights/components@2020-02-02' = {
 }
 
 output insightsId string = insights.id
+output insightsInstrumentationKey string = insights.properties.InstrumentationKey
+output insightsConnectionString string = insights.properties.ConnectionString
 
 // vim: set ts=2 sts=2 sw=2 et:
