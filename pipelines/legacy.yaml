@@ -5,8 +5,8 @@ trigger:
       - main
   paths:
     include:
-      - bicep/legacy.bicep
-      - bicep/**/legacy.bicepparam
+      - bicep/90-legacy.bicep
+      - bicep/**/90-legacy.bicepparam
       - pipelines/legacy.yaml
 
 pr:
@@ -15,8 +15,8 @@ pr:
       - main
   paths:
     include:
-      - bicep/legacy.bicep
-      - bicep/**/legacy.bicepparam
+      - bicep/90-legacy.bicep
+      - bicep/**/90-legacy.bicepparam
       - pipelines/legacy.yaml
 
 pool:
@@ -55,28 +55,30 @@ stages:
                 - task: AzureCLI@2
                   displayName: WhatIf - Legacy
                   inputs:
-                    azureSubscription: $(serviceConnection)
+                    azureSubscription: $(legacyServiceConnection)
                     scriptType: bash
                     scriptLocation: inlineScript
                     inlineScript: |
                       az deployment group what-if \
                         --name "Legacy-$(Build.BuildId)" \
-                        --resource-group $(resourceGroupName) \
-                        --template-file bicep/legacy.bicep \
-                        --parameters bicep/envs/${{ lower(parameters.environmentName) }}/legacy.bicepparam
+                        --subscription $(legacySubscriptionId) \
+                        --resource-group $(legacyResourceGroupName) \
+                        --template-file bicep/90-legacy.bicep \
+                        --parameters bicep/envs/${{ lower(parameters.environmentName) }}/90-legacy.bicepparam
 
                 - task: AzureCLI@2
                   displayName: Deploy - Legacy
                   condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
                   inputs:
-                    azureSubscription: $(serviceConnection)
+                    azureSubscription: $(legacyServiceConnection)
                     scriptType: bash
                     scriptLocation: inlineScript
                     inlineScript: |
                       az deployment group create \
                         --name "Legacy-$(Build.BuildId)" \
-                        --resource-group $(resourceGroupName) \
-                        --template-file bicep/legacy.bicep \
-                        --parameters bicep/envs/${{ lower(parameters.environmentName) }}/legacy.bicepparam
+                        --subscription $(legacySubscriptionId) \
+                        --resource-group $(legacyResourceGroupName) \
+                        --template-file bicep/90-legacy.bicep \
+                        --parameters bicep/envs/${{ lower(parameters.environmentName) }}/90-legacy.bicepparam
 
 # vim: set ts=2 sts=2 sw=2 et:

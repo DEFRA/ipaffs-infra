@@ -1,4 +1,4 @@
-using '../../legacy.bicep'
+using '../../90-legacy.bicep'
 
 param environment = 'PRD'
 

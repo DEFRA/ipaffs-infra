@@ -3,11 +3,11 @@ targetScope = 'resourceGroup'
 param acrParams object
 param deploymentId string
 param location string
-param subnetIds array
 param subnetNames object
+param subnets array
 param tags object
 
-var subnetId = first(filter(subnetIds, subnetId => contains(subnetId, subnetNames.privateEndpoints)))
+var subnet = first(filter(subnets, subnet => subnet.name == subnetNames.privateEndpoints))
 
 resource acr 'Microsoft.ContainerRegistry/registries@2025-04-01' = {
   name: acrParams.name
@@ -24,13 +24,13 @@ resource acr 'Microsoft.ContainerRegistry/registries@2025-04-01' = {
 }
 
 resource acrPrivateEndpoint 'Microsoft.Network/privateEndpoints@2024-10-01' = {
-  name: '${acrParams.name}-${last(split(subnetId, '/'))}'
+  name: '${acrParams.name}-${subnet.name}'
   location: location
   tags: tags
 
   properties: {
     subnet: {
-      id: subnetId
+      id: subnet.id
     }
 
     privateLinkServiceConnections: [
