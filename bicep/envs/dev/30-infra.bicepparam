@@ -101,5 +101,8 @@ param storageParams = {
   name: 'devimpinfsto1401' // note: must be lowercase
 }
 
+param insightsParams = {
+  name: 'DEVIMPINFIN1401'
+}
 
 // vim: set ts=2 sts=2 sw=2 et:

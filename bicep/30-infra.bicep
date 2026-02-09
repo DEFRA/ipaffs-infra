@@ -28,6 +28,7 @@ param monitoringParams object
 param redisParams object
 param searchParams object
 param sqlParams object
+param insightsParams object
 param storageParams object
 
 resource vnet 'Microsoft.Network/virtualNetworks@2025-05-01' existing = {
@@ -161,19 +162,6 @@ module monitoring './modules/monitoring.bicep' = {
     monitoringParams: monitoringParams
   }
 }
-
-module storage './modules/storage.bicep' = {
-  name: 'storage-${deploymentId}'
-  scope: resourceGroup()
-  params: {
-    location: location
-    storageParams: storageParams
-    subnetNames: subnetNames
-    subnets: vnet.properties.subnets
-    tags: tags
-  }
-}
-
 
 output acrLoginServer string = acr.outputs.acrLoginServer
 output acrName string = acr.outputs.acrName
