@@ -270,7 +270,7 @@ stages:
 
                 - task: AzureCLI@2
                   displayName: Deploy - Infrastructure
-                  condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+                  # condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
                   inputs:
                     azureSubscription: $(serviceConnection)
                     scriptType: bash
