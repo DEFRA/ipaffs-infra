@@ -12,7 +12,7 @@ stages:
     jobs:
       - job: TeamGroups
         displayName: Team Groups
-        condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+        condition: and(${{ eq(parameters.environmentName, 'DEV') }}, eq(variables['Build.SourceBranch'], 'refs/heads/main'))
         steps:
           - checkout: self
 
