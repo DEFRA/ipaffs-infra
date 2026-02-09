@@ -13,6 +13,8 @@ resource insights 'Microsoft.Insights/components@2020-02-02' = {
   properties: {
     Application_Type: 'web'
     WorkspaceResourceId: logAnalyticsId
+    SamplingPercentage: 100
+    RetentionInDays: 90
   }
   tags: tags
 }
