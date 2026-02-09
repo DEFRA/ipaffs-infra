@@ -208,8 +208,8 @@ param vnetParams = {
         }
       ]
       serviceEndpoints: []
-      routeTableId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/TSTIMPINFRG1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-TSTIMPNETVN1401-01'
-      networkSecurityGroupId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/TSTIMPINFRG1401/providers/Microsoft.Network/networkSecurityGroups/TSTIMPNETNS1401-AKS'
+      routeTableId: '/subscriptions/0022ef8e-d44e-49c5-8cfd-5e8e9c6e913e/resourceGroups/TSTIMPINFRG1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-TSTIMPNETVN1401-01'
+      networkSecurityGroupId: '/subscriptions/0022ef8e-d44e-49c5-8cfd-5e8e9c6e913e/resourceGroups/TSTIMPINFRG1401/providers/Microsoft.Network/networkSecurityGroups/TSTIMPNETNS1401-AKS'
     }
     // AKS System Node Pool, 14 usable addresses
     {
@@ -217,8 +217,8 @@ param vnetParams = {
       addressPrefix: '10.179.132.16/28'
       delegations: []
       serviceEndpoints: []
-      routeTableId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/TSTIMPINFRG1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-TSTIMPNETVN1401-01'
-      networkSecurityGroupId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/TSTIMPINFRG1401/providers/Microsoft.Network/networkSecurityGroups/TSTIMPNETNS1401-AKS'
+      routeTableId: '/subscriptions/0022ef8e-d44e-49c5-8cfd-5e8e9c6e913e/resourceGroups/TSTIMPINFRG1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-TSTIMPNETVN1401-01'
+      networkSecurityGroupId: '/subscriptions/0022ef8e-d44e-49c5-8cfd-5e8e9c6e913e/resourceGroups/TSTIMPINFRG1401/providers/Microsoft.Network/networkSecurityGroups/TSTIMPNETNS1401-AKS'
     }
     // PrivateLink, 30 usable addresses
     {
@@ -226,8 +226,8 @@ param vnetParams = {
       addressPrefix: '10.179.132.32/27'
       delegations: []
       serviceEndpoints: []
-      routeTableId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/TSTIMPINFRG1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-TSTIMPNETVN1401-01'
-      networkSecurityGroupId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/TSTIMPINFRG1401/providers/Microsoft.Network/networkSecurityGroups/TSTIMPNETNS1401-PrivateLink'
+      routeTableId: '/subscriptions/0022ef8e-d44e-49c5-8cfd-5e8e9c6e913e/resourceGroups/TSTIMPINFRG1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-TSTIMPNETVN1401-01'
+      networkSecurityGroupId: '/subscriptions/0022ef8e-d44e-49c5-8cfd-5e8e9c6e913e/resourceGroups/TSTIMPINFRG1401/providers/Microsoft.Network/networkSecurityGroups/TSTIMPNETNS1401-PrivateLink'
     }
     // Private Endpoints, 62 usable addresses
     {
@@ -235,8 +235,8 @@ param vnetParams = {
       addressPrefix: '10.179.132.64/26'
       delegations: []
       serviceEndpoints: []
-      routeTableId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/TSTIMPINFRG1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-TSTIMPNETVN1401-01'
-      networkSecurityGroupId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/TSTIMPINFRG1401/providers/Microsoft.Network/networkSecurityGroups/TSTIMPNETNS1401-PrivateEndpoint'
+      routeTableId: '/subscriptions/0022ef8e-d44e-49c5-8cfd-5e8e9c6e913e/resourceGroups/TSTIMPINFRG1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-TSTIMPNETVN1401-01'
+      networkSecurityGroupId: '/subscriptions/0022ef8e-d44e-49c5-8cfd-5e8e9c6e913e/resourceGroups/TSTIMPINFRG1401/providers/Microsoft.Network/networkSecurityGroups/TSTIMPNETNS1401-PrivateEndpoint'
     }
     // App Gateway for Containers, see https://learn.microsoft.com/en-us/azure/application-gateway/for-containers/container-networking
     {
@@ -244,8 +244,8 @@ param vnetParams = {
       addressPrefix: '10.179.133.0/24'
       delegations: []
       serviceEndpoints: []
-      routeTableId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/TSTIMPINFRG1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-TSTIMPNETVN1401-01'
-      networkSecurityGroupId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/TSTIMPINFRG1401/providers/Microsoft.Network/networkSecurityGroups/TSTIMPNETNS1401-AKS'
+      routeTableId: '/subscriptions/0022ef8e-d44e-49c5-8cfd-5e8e9c6e913e/resourceGroups/TSTIMPINFRG1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-TSTIMPNETVN1401-01'
+      networkSecurityGroupId: '/subscriptions/0022ef8e-d44e-49c5-8cfd-5e8e9c6e913e/resourceGroups/TSTIMPINFRG1401/providers/Microsoft.Network/networkSecurityGroups/TSTIMPNETNS1401-AKS'
     }
     // AKS User Node Pool, 253 usable addresses
     {
@@ -253,8 +253,8 @@ param vnetParams = {
       addressPrefix: '10.179.134.0/24'
       delegations: []
       serviceEndpoints: []
-      routeTableId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/TSTIMPINFRG1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-TSTIMPNETVN1401-01'
-      networkSecurityGroupId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/TSTIMPINFRG1401/providers/Microsoft.Network/networkSecurityGroups/TSTIMPNETNS1401-AKS'
+      routeTableId: '/subscriptions/0022ef8e-d44e-49c5-8cfd-5e8e9c6e913e/resourceGroups/TSTIMPINFRG1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-TSTIMPNETVN1401-01'
+      networkSecurityGroupId: '/subscriptions/0022ef8e-d44e-49c5-8cfd-5e8e9c6e913e/resourceGroups/TSTIMPINFRG1401/providers/Microsoft.Network/networkSecurityGroups/TSTIMPNETNS1401-AKS'
     }
     // Reserved, 126 usable addresses
     {
@@ -262,8 +262,8 @@ param vnetParams = {
       addressPrefix: '10.179.135.0/25'
       delegations: []
       serviceEndpoints: []
-      routeTableId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/TSTIMPINFRG1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-TSTIMPNETVN1401-01'
-      networkSecurityGroupId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/TSTIMPINFRG1401/providers/Microsoft.Network/networkSecurityGroups/TSTIMPNETNS1401-Reserved'
+      routeTableId: '/subscriptions/0022ef8e-d44e-49c5-8cfd-5e8e9c6e913e/resourceGroups/TSTIMPINFRG1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-TSTIMPNETVN1401-01'
+      networkSecurityGroupId: '/subscriptions/0022ef8e-d44e-49c5-8cfd-5e8e9c6e913e/resourceGroups/TSTIMPINFRG1401/providers/Microsoft.Network/networkSecurityGroups/TSTIMPNETNS1401-Reserved'
     }
     // Reserved, 126 usable addresses
     {
@@ -271,8 +271,8 @@ param vnetParams = {
       addressPrefix: '10.179.135.128/25'
       delegations: []
       serviceEndpoints: []
-      routeTableId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/TSTIMPINFRG1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-TSTIMPNETVN1401-01'
-      networkSecurityGroupId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/TSTIMPINFRG1401/providers/Microsoft.Network/networkSecurityGroups/TSTIMPNETNS1401-Reserved'
+      routeTableId: '/subscriptions/0022ef8e-d44e-49c5-8cfd-5e8e9c6e913e/resourceGroups/TSTIMPINFRG1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-TSTIMPNETVN1401-01'
+      networkSecurityGroupId: '/subscriptions/0022ef8e-d44e-49c5-8cfd-5e8e9c6e913e/resourceGroups/TSTIMPINFRG1401/providers/Microsoft.Network/networkSecurityGroups/TSTIMPNETNS1401-Reserved'
     }
   ]
 }
