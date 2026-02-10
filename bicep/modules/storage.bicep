@@ -9,7 +9,7 @@ param tags object
 var subnet = first(filter(subnets, subnet => subnet.name == subnetNames.privateEndpoints))
 
 resource storageAccount 'Microsoft.Storage/storageAccounts@2025-01-01' = {
-  name: storageParams.serverName
+  name: storageParams.name
   location: location
   tags: tags
 
@@ -54,7 +54,7 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2025-01-01' = {
 }
 
 resource storagePrivateEndpoint 'Microsoft.Network/privateEndpoints@2024-10-01' = {
-  name: '${storageParams.serverName}-${subnet.name}'
+  name: '${storageParams.name}-${subnet.name}'
   location: location
   tags: tags
 
