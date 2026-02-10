@@ -26,7 +26,7 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2025-01-01' = {
 
   properties: {
     publicNetworkAccess: 'Disabled'
-    minimalTlsVersion: '1.2'
+    minimalTlsVersion: 'TLS1_2'
     allowBlobPublicAccess: true
     networkAcls: {
       resourceAccessRules: []
