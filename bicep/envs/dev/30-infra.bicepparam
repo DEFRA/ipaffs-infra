@@ -97,4 +97,32 @@ param monitoringParams = {
   principalObjectId: builtInGroups.contributors
 }
 
+param trafficManagerParams = {
+  name: 'DEVIMPINFATM1401'
+  relativeName: 'ipaffs'
+  ttl: 60
+  monitor: {
+    protocol: 'HTTP'
+    port: 80
+    path: '/admin/health-check'
+    intervalInSeconds: 30
+    timeoutInSeconds: 10
+    toleratedNumberOfFailures: 3
+  }
+  endpoints: [
+    {
+      name: 'new-platform-frontend'
+      target: 'placeholder-new-platform.azurefd.net'
+      weight: 0
+      enabled: true
+    }
+    {
+      name: 'old-platform-app-gateway'
+      target: 'placeholder-old-platform.appgw.example.com'
+      weight: 100
+      enabled: true
+    }
+  ]
+}
+
 // vim: set ts=2 sts=2 sw=2 et:
