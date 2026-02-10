@@ -97,4 +97,9 @@ param monitoringParams = {
   principalObjectId: builtInGroups.contributors
 }
 
+param storageParams = {
+  name: 'DEVIMPINFSTO1401'
+}
+
+
 // vim: set ts=2 sts=2 sw=2 et:
