@@ -98,7 +98,7 @@ param monitoringParams = {
 }
 
 param storageParams = {
-  name: 'DEVIMPINFSTO1401'
+  name: 'devimpinfsto1401' // note: must be lowercase
 }
 
 
