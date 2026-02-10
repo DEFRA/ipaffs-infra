@@ -20,7 +20,7 @@ pr:
       - pipelines/stages/install-helm-charts.yaml
 
 pool:
-  name: DEFRA-COMMON-ubuntu2204-SSV5
+  name: DEFRA-COMMON-UBUNTU-SSV5
 
 parameters:
   - name: environmentName
