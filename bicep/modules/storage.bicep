@@ -69,7 +69,7 @@ resource storagePrivateEndpoint 'Microsoft.Network/privateEndpoints@2024-10-01' 
         properties: {
           privateLinkServiceId: storageAccount.id
           groupIds: [
-            'blob', 'blob_secondary'
+            'blob'
           ]
         }
       }
