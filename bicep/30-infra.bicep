@@ -28,6 +28,7 @@ param monitoringParams object
 param redisParams object
 param searchParams object
 param sqlParams object
+param trafficManagerParams object = null
 
 resource vnet 'Microsoft.Network/virtualNetworks@2025-05-01' existing = {
   name: vnetName
@@ -161,6 +162,15 @@ module monitoring './modules/monitoring.bicep' = {
   }
 }
 
+module trafficManager './modules/traffic-manager.bicep' = if (trafficManagerParams != null) {
+  name: 'trafficManager-${deploymentId}'
+  scope: resourceGroup()
+  params: {
+    trafficManagerParams: trafficManagerParams
+    tags: tags
+  }
+}
+
 output acrLoginServer string = acr.outputs.acrLoginServer
 output acrName string = acr.outputs.acrName
 output aksClusterName string = aks.outputs.aksClusterName
@@ -173,5 +183,6 @@ output redisName string = redis.outputs.redisName
 output searchServiceName string = search.outputs.searchServiceName
 output sqlServerName string = sql.outputs.sqlServerName
 output sqlServerManagedIdentityObjectId string = sql.outputs.sqlServerManagedIdentityObjectId
+output trafficManagerFqdn string = trafficManagerParams != null ? trafficManager.outputs.trafficManagerFqdn : ''
 
 // vim: set ts=2 sts=2 sw=2 et:

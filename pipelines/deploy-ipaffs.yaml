@@ -131,6 +131,14 @@ parameters:
         migrations: true
         pipeline: permissions-service
 
+      - name: imports-proxy-cache
+        migrations: false
+        pipeline: imports-proxy-cache
+
+      - name: referencedataloader-service
+        migrations: true
+        pipeline: referencedataloader-service
+
       - name: risk-interface-service
         migrations: false
         pipeline: risk-interface-service
@@ -301,6 +309,18 @@ resources:
       type: github
       endpoint: DEFRA
       name: DEFRA/ipaffs-permissions
+      ref: refs/heads/master
+
+    - repository: imports-proxy-cache
+      type: github
+      endpoint: DEFRA
+      name: DEFRA/ipaffs-imports-proxy-cache
+      ref: refs/heads/master
+
+    - repository: referencedataloader-service
+      type: github
+      endpoint: DEFRA
+      name: DEFRA/ipaffs-referencedataloader-microservice
       ref: refs/heads/master
 
     - repository: risk-interface-service
