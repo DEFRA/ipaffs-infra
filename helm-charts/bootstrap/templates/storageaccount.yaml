@@ -1,6 +1,18 @@
 {{- $root := . }}
 {{- $blobService := default (dict "containers" (list)) $root.Values.storageAccount.blobService }}
 
+apiVersion: storage.azure.com/v1api20230101
+kind: StorageAccount
+metadata:
+  name: {{ template "ipaffs-common.azure.storageAccount" $root }}
+  labels:
+      {{- include "ipaffs-common.labels" $root | nindent 4 }}
+spec:
+  owner:
+    name: {{ template "ipaffs-common.azure.resourceGroup" $root }}
+  azureName: {{ template "ipaffs-common.azure.storageAccount" $root }}
+  location: {{ $root.Values.azure.location }}
+
 {{- range $blobService.containers }}
 ---
 apiVersion: storage.azure.com/v1api20230101
