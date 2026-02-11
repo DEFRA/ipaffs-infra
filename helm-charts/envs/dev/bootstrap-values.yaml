@@ -18,6 +18,15 @@ serviceBus:
   topics:
     - notification-topic
 
+storageAccount:
+  blobService:
+    containers:
+      - bip
+      - commoditycode
+      - economicoperator
+      - notificationdocuments
+      - tmp-download
+
 ipaffsConfig:
   data:
     JWT_AUDIENCE: "a2617985-5645-47ec-8912-7a943b3895ba"

@@ -1,0 +1,19 @@
+{{- $root := . }}
+{{- $blobService := default (dict "containers" (list)) $root.Values.storageAccount.blobService }}
+
+{{- range $blobService.containers }}
+
+apiVersion: azure.microsoft.com/v1alpha1
+kind: BlobContainer
+metadata:
+  name: {{ . }}
+  labels:
+    {{- include "ipaffs-common.labels" $root | nindent 4 }}
+  annotations:
+    serviceoperator.azure.com/reconcile-policy: manage
+spec:
+  accountName: {{ template "ipaffs-common.azure.storageAccount" $root }}
+  containerName: {{ . }}
+  publicAccess: None
+
+{{- end }}
