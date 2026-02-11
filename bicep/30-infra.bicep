@@ -28,6 +28,7 @@ param monitoringParams object
 param redisParams object
 param searchParams object
 param sqlParams object
+param insightsParams object
 param storageParams object
 
 resource vnet 'Microsoft.Network/virtualNetworks@2025-05-01' existing = {
@@ -162,19 +163,6 @@ module monitoring './modules/monitoring.bicep' = {
   }
 }
 
-module storage './modules/storage.bicep' = {
-  name: 'storage-${deploymentId}'
-  scope: resourceGroup()
-  params: {
-    location: location
-    storageParams: storageParams
-    subnetNames: subnetNames
-    subnets: vnet.properties.subnets
-    tags: tags
-  }
-}
-
-
 output acrLoginServer string = acr.outputs.acrLoginServer
 output acrName string = acr.outputs.acrName
 output aksClusterName string = aks.outputs.aksClusterName
@@ -187,5 +175,7 @@ output redisName string = redis.outputs.redisName
 output searchServiceName string = search.outputs.searchServiceName
 output sqlServerName string = sql.outputs.sqlServerName
 output sqlServerManagedIdentityObjectId string = sql.outputs.sqlServerManagedIdentityObjectId
+output insightsInstrumentationKey string = insights.outputs.insightsInstrumentationKey
+output insightsConnectionString string = insights.outputs.insightsConnectionString
 
 // vim: set ts=2 sts=2 sw=2 et:
