@@ -3,8 +3,8 @@
 
 {{- range $blobService.containers }}
 
-apiVersion: azure.microsoft.com/v1alpha1
-kind: BlobContainer
+apiVersion: storage.azure.com/v1api20230101
+kind: StorageAccountsBlobServicesContainer
 metadata:
   name: {{ . }}
   labels:
@@ -12,8 +12,8 @@ metadata:
   annotations:
     serviceoperator.azure.com/reconcile-policy: manage
 spec:
-  accountName: {{ template "ipaffs-common.azure.storageAccount" $root }}
-  containerName: {{ . }}
+  owner:
+    name: {{ template "ipaffs-common.azure.storageAccount" $root }}
   publicAccess: None
 
 {{- end }}
