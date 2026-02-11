@@ -23,6 +23,20 @@ param nsgParams = {
           }
         }
         {
+          name: 'AllowInboundAzureDevOps'
+          properties: {
+            protocol: '*'
+            sourcePortRange: '*'
+            destinationPortRange: '*'
+            sourceAddressPrefix: 'AzureDevOps'
+            destinationAddressPrefix: 'VirtualNetwork'
+            access: 'Allow'
+            priority: 1050
+            direction: 'Inbound'
+            description: 'Allow all inbound traffic from Azure DevOps'
+          }
+        }
+        {
           name: 'AllowInboundPlatformVPN'
           properties: {
             protocol: '*'

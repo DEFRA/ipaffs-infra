@@ -30,7 +30,7 @@ pr:
       - pipelines/stages/deploy-bicep.yaml
 
 pool:
-  name: DEFRA-COMMON-ubuntu2204-SSV5
+  name: DEFRA-COMMON-UBUNTU-SSV5
 
 parameters:
   - name: environmentName
