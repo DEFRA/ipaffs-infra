@@ -19,24 +19,144 @@ pr:
 pool:
   name: 'DEFRA-COMMON-UBUNTU-SSV5'
 
-parameters:
-  - name: environmentName
-    displayName: Environment
-    type: string
-    default: DEV
-    values:
-      - DEV
-      - TST
-
 variables:
-  - group: "${{ parameters.environmentName }}"
+  - group: "DEV"
   - template: "vars/common.yaml"
-  - template: "vars/${{ lower(parameters.environmentName) }}.yaml"
+  - template: "vars/dev.yaml"
+  - name: helmChartName
+    value: webapp
+  - name: helmChartPath
+    value: helm-charts/webapp
+
+parameters:
+  - name: nonDevEnvironments
+    type: object
+    default:
+      - TST
+      - PRE
+      - PRD
 
 stages:
-  - template: stages/package-helm-chart.yaml
-    parameters:
-      helmChartName: webapp
-      helmChartPath: helm-charts/webapp
+  - stage: ExtractVersion
+    displayName: Extract Chart Version
+    jobs:
+      - job: ExtractVersionFromChart
+        displayName: Extract Chart Version
+        steps:
+          - task: Bash@3
+            name: ComputeVersion
+            displayName: Get current chart version
+            inputs:
+              targetType: inline
+              workingDirectory: $(helmChartPath)
+              script: |
+                version="$(yq '.version' Chart.yaml)"
+                echo "##vso[task.setvariable variable=helmChartVersion;isOutput=true]$version"
+
+  - stage: Package_DEV
+    displayName: Package Webapp Chart (DEV)
+    dependsOn: ExtractVersion
+    variables:
+      - group: "DEV"
+      - template: "vars/common.yaml"
+      - template: "vars/dev.yaml"
+      - name: helmChartVersion
+        value: $[ stageDependencies.ExtractVersion.ExtractVersionFromChart.outputs['ComputeVersion.helmChartVersion'] ]
+      - name: gitUserName
+        value: 'IPAFFS CI Bot'
+      - name: gitUserEmail
+        value: 'ipaffs-ci-bot@defra.gov.uk'
+    jobs:
+      - job: PackageFeatureBranch
+        displayName: Package from feature branch (DEV)
+        condition: ne(variables['Build.SourceBranch'], 'refs/heads/main')
+        steps:
+          - task: AzureCLI@2
+            name: pushChartToRegistry
+            displayName: Package and push chart to registry
+            env:
+              CHART_NAME: $(helmChartName)
+              CHART_PATH: $(helmChartPath)
+              CHART_VERSION: $(helmChartVersion)-build.$(Build.BuildNumber)
+              REGISTRY_NAME: $(acrName)
+              REGISTRY_HOST: $(acrLoginServer)
+            inputs:
+              azureSubscription: $(serviceConnection)
+              scriptType: bash
+              scriptPath: scripts/pipeline/package-and-push-chart.sh
+
+      - job: PackageMainBranch
+        displayName: Bump chart version and package from main branch (DEV)
+        condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+        steps:
+          - checkout: self
+            persistCredentials: true
+            clean: true
+
+          - task: Bash@3
+            name: bumpVersion
+            displayName: Bump chart version
+            env:
+              CURRENT_VERSION: $(helmChartVersion)
+            inputs:
+              filePath: scripts/pipeline/bump-semver.sh
+
+          - task: AzureCLI@2
+            name: updateVersion
+            displayName: Update chart version and push
+            env:
+              CHART_NAME: $(helmChartName)
+              CHART_PATH: $(helmChartPath)
+              CURRENT_VERSION: $(helmChartVersion)
+              NEW_VERSION: $(bumpVersion.newVersion)
+              GIT_USER: $(gitUserName)
+              GIT_EMAIL: $(gitUserEmail)
+            inputs:
+              azureSubscription: $(serviceConnection)
+              scriptType: bash
+              scriptPath: scripts/pipeline/update-chart-version.sh
+
+          - task: AzureCLI@2
+            name: pushChartToRegistry
+            displayName: Package and push chart to registry
+            env:
+              CHART_NAME: $(helmChartName)
+              CHART_PATH: $(helmChartPath)
+              CHART_VERSION: $(bumpVersion.newVersion)
+              REGISTRY_NAME: $(acrName)
+              REGISTRY_HOST: $(acrLoginServer)
+            inputs:
+              azureSubscription: $(serviceConnection)
+              scriptType: bash
+              scriptPath: scripts/pipeline/package-and-push-chart.sh
+
+  - ${{ each env in parameters.nonDevEnvironments }}:
+    - stage: Package_${{ env }}
+      displayName: Package Webapp Chart (${{ env }})
+      dependsOn: Package_DEV
+      condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+      variables:
+        - group: "${{ env }}"
+        - template: "vars/common.yaml"
+        - template: "vars/${{ lower(env) }}.yaml"
+        - name: chartVersion
+          value: $[ stageDependencies.Package_DEV.PackageMainBranch.outputs['bumpVersion.newVersion'] ]
+      jobs:
+        - job: PackageChart
+          displayName: Package and push chart to registry
+          steps:
+            - task: AzureCLI@2
+              name: pushChartToRegistry
+              displayName: Package and push chart to registry
+              env:
+                CHART_NAME: $(helmChartName)
+                CHART_PATH: $(helmChartPath)
+                CHART_VERSION: $(chartVersion)
+                REGISTRY_NAME: $(acrName)
+                REGISTRY_HOST: $(acrLoginServer)
+              inputs:
+                azureSubscription: $(serviceConnection)
+                scriptType: bash
+                scriptPath: scripts/pipeline/package-and-push-chart.sh
 
 # vim: set ts=2 sts=2 sw=2 et:
