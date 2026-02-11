@@ -20,6 +20,9 @@ pool:
   name: 'DEFRA-COMMON-UBUNTU-SSV5'
 
 variables:
+  - group: "DEV"
+  - template: "vars/common.yaml"
+  - template: "vars/dev.yaml"
   - name: helmChartName
     value: backoffice
   - name: helmChartPath
