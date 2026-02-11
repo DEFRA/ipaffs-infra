@@ -163,6 +163,18 @@ module monitoring './modules/monitoring.bicep' = {
   }
 }
 
+module insights './modules/insights.bicep' = {
+  name: 'insights-${deploymentId}'
+  scope: resourceGroup()
+  params: {
+    insightsParams: insightsParams
+    deploymentId: deploymentId
+    logAnalyticsId: monitoring.outputs.logAnalyticsId
+    location: location
+    tags: tags
+  }
+}
+
 module storage './modules/storage.bicep' = {
   name: 'storage-${deploymentId}'
   scope: resourceGroup()
@@ -187,7 +199,7 @@ output redisName string = redis.outputs.redisName
 output searchServiceName string = search.outputs.searchServiceName
 output sqlServerName string = sql.outputs.sqlServerName
 output sqlServerManagedIdentityObjectId string = sql.outputs.sqlServerManagedIdentityObjectId
-//output insightsInstrumentationKey string = insights.outputs.insightsInstrumentationKey
-//output insightsConnectionString string = insights.outputs.insightsConnectionString
+output insightsInstrumentationKey string = insights.outputs.insightsInstrumentationKey
+output insightsConnectionString string = insights.outputs.insightsConnectionString
 
 // vim: set ts=2 sts=2 sw=2 et:
