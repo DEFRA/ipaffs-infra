@@ -344,7 +344,5 @@ stages:
                 scripts/pipeline/update-group-variable-from-deployment.sh searchServiceName searchServiceName
                 scripts/pipeline/update-group-variable-from-deployment.sh sqlServerName sqlServerName
                 scripts/pipeline/update-group-variable-from-deployment.sh sqlServerManagedIdentityObjectId sqlServerManagedIdentityObjectId
-                scripts/pipeline/update-group-variable-from-deployment.sh insightsInstrumentationKey insightsInstrumentationKey
-                scripts/pipeline/update-group-variable-from-deployment.sh insightsConnectionString insightsConnectionString
 
 # vim: set ts=2 sts=2 sw=2 et:
