@@ -163,6 +163,18 @@ module monitoring './modules/monitoring.bicep' = {
   }
 }
 
+module storage './modules/storage.bicep' = {
+  name: 'storage-${deploymentId}'
+  scope: resourceGroup()
+  params: {
+    location: location
+    storageParams: storageParams
+    subnetNames: subnetNames
+    subnets: vnet.properties.subnets
+    tags: tags
+  }
+}
+
 output acrLoginServer string = acr.outputs.acrLoginServer
 output acrName string = acr.outputs.acrName
 output aksClusterName string = aks.outputs.aksClusterName

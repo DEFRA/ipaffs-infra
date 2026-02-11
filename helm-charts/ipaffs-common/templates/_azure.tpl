@@ -29,4 +29,9 @@ Azure Resource Names
 {{- printf "%simpdbssq1401.database.windows.net" .Values.environment }}
 {{- end }}
 
+{{- define "ipaffs-common.azure.storageAccount" -}}
+{{- printf "%simpinfsto1401" .Values.environment }}
+{{- end }}
+
+
 {{/* vim: set ts=2 sts=2 sw=2 et: */}}
