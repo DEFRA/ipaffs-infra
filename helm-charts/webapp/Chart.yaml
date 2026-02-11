@@ -1,6 +1,6 @@
 apiVersion: v2
 name: webapp
-version: 0.32.0
+version: 0.33.0
 dependencies:
   - name: ipaffs-common
     version: 0.9.0
