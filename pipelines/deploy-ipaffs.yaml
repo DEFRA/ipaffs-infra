@@ -379,6 +379,7 @@ stages:
                 FOLDER: Services
                 PIPELINE: ${{ service.pipeline }}
                 BRANCH: $(trunkBranch)
+                AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
               inputs:
                 azureSubscription: $(serviceConnection)
                 scriptType: bash
