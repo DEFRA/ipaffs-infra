@@ -14,7 +14,7 @@ Azure Resource Names
 {{- end }}
 
 {{- define "ipaffs-common.azure.resourceGroup" -}}
-{{- printf "%simpnetns1401" .Values.environment }}
+{{- printf "%simpinfrg1401" .Values.environment }}
 {{- end }}
 
 {{- define "ipaffs-common.azure.serviceBusNamespace" -}}
