@@ -12,6 +12,10 @@ spec:
     name: {{ template "ipaffs-common.azure.resourceGroup" $root }}
   azureName: {{ template "ipaffs-common.azure.storageAccount" $root }}
   location: {{ $root.Values.azure.location }}
+  kind: StorageV2
+  sku:
+    name: Standard_GRS
+
 
 {{- range $blobService.containers }}
 ---
