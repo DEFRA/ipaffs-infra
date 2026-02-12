@@ -10,11 +10,21 @@ metadata:
 spec:
   owner:
     name: {{ template "ipaffs-common.azure.resourceGroup" $root }}
-  azureName: {{ template "ipaffs-common.azure.storageAccount" $root }}
   location: {{ $root.Values.azure.location }}
   kind: StorageV2
   sku:
     name: Standard_GRS
+
+---
+apiVersion: storage.azure.com/v1api20230101
+kind: StorageAccountsBlobService
+metadata:
+  name: default
+  labels:
+    {{- include "ipaffs-common.labels" $root | nindent 4 }}
+spec:
+  owner:
+    name: {{ template "ipaffs-common.azure.storageAccount" $root }}
 
 
 {{- range $blobService.containers }}
@@ -29,7 +39,7 @@ metadata:
     serviceoperator.azure.com/reconcile-policy: manage
 spec:
   owner:
-    name: {{ template "ipaffs-common.azure.storageAccount" $root }}
+    name: default
   publicAccess: None
 
 {{- end }}
