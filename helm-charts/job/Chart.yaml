@@ -3,6 +3,6 @@ name: job
 version: 0.10.0
 dependencies:
   - name: ipaffs-common
-    version: 0.15.0
+    version: 0.16.0
     repository: "oci://devimpinfac1401.azurecr.io/helm/v1/repo"
 # vim: set ts=2 sts=2 sw=2 et:
