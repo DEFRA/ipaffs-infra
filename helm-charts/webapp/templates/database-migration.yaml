@@ -49,6 +49,7 @@ spec:
             {{- if .Values.externalSecret.enabled }}
             - secretRef:
                 name: {{ printf "%s-secrets" .Values.service }}
+                optional: true
             {{- end }}
             {{- if .Values.redis.enabled }}
             - secretRef:
