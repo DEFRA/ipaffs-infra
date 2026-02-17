@@ -92,6 +92,25 @@ module searchReader './search-role-assignment.bicep' = {
   }
 }
 
+resource privateEndpoint 'Microsoft.Network/privateEndpoints@2021-05-01' = {
+  name: '${searchParams.name}-${subnet.name}'
+  location: location
+  properties: {
+    subnet: {
+      id: subnet.id
+    }
+    privateLinkServiceConnections: [
+      {
+        name: 'search-connection'
+        properties: {
+          privateLinkServiceId: searchService.id
+          groupIds: ['searchService']
+        }
+      }
+    ]
+  }
+}
+
 output searchServiceName string = searchService.name
 output searchServiceId string = searchService.id
 output searchServiceEndpoint string = searchService.properties.endpoint
