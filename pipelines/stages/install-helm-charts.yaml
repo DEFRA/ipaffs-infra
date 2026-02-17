@@ -16,6 +16,7 @@ stages:
               steps:
                 - checkout: self
 
+                # See https://learn.microsoft.com/en-us/azure/aks/app-routing-nginx-configuration?pivots=nginx-ingress-controller
                 - task: HelmDeploy@0
                   displayName: Helm Install - app-routing-controller
                   inputs:
@@ -23,7 +24,7 @@ stages:
                     azureSubscription: $(serviceConnection)
                     azureResourceGroup: $(resourceGroupName)
                     kubernetesCluster: $(kubernetesCluster)
-                    namespace: ${{ parameters.namespace }}
+                    namespace: app-routing-namespace
                     command: upgrade
                     chartName: helm-charts/app-routing-controller
                     releaseName: app-routing-controller
