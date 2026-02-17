@@ -33,7 +33,7 @@ steps:
         --dependency-update
         --create-namespace
         -f helm-charts/envs/${{ lower(parameters.environmentName) }}/bootstrap-values.yaml
-        --set ipaffsConfig.data.insightsConnectionString=$(insightsConnectionString)
-        --set ipaffsConfig.data.insightsInstrumentationKey=$(insightsInstrumentationKey)
+        --set ipaffsConfig.data.APPLICATIONINSIGHTS_CONNECTION_STRING=$(insightsConnectionString)
+        --set ipaffsConfig.data.APPLICATIONINSIGHTS_INSTRUMENTATION_STRING=$(insightsInstrumentationKey)
 
 # vim: set ts=2 sts=2 sw=2 et:
