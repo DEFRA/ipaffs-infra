@@ -1,7 +1,6 @@
 using '../../40-privatelink.bicep'
 
 param environment = 'DEV'
-param tenantId = ''
 param vnetName = 'DEVIMPNETVN1401'
 
 param subnetNames = {

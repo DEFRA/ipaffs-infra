@@ -4,7 +4,6 @@ targetScope = 'resourceGroup'
 param environment string
 
 param subnetNames object
-param tenantId string
 param vnetName string
 
 param createdDate string = utcNow('yyyy-MM-dd')

@@ -1,7 +1,6 @@
 using '../../40-privatelink.bicep'
 
 param environment = 'TST'
-param tenantId = ''
 param vnetName = 'TSTIMPNETVN1401'
 
 param subnetNames = {
