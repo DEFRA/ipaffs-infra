@@ -129,6 +129,15 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2025-10-01' = {
       }
     }
 
+    ingressProfile: {
+      webAppRouting: {
+        enabled: true
+        nginx: {
+          defaultIngressControllerType: 'None'
+        }
+      }
+    }
+
     networkProfile: {
       dnsServiceIP: aksParams.dnsServiceIp
       ipFamilies: ['IPv4']

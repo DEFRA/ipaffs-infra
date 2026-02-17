@@ -1,0 +1,7 @@
+name: nginx-internal
+ingressClassName: nginx
+
+loadBalancerAnnotations:
+  service.beta.kubernetes.io/azure-load-balancer-internal: "true"
+
+# vim: set ts=2 sts=2 sw=2 et:

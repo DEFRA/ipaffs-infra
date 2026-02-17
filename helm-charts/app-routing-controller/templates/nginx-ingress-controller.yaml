@@ -1,0 +1,13 @@
+apiVersion: approuting.kubernetes.azure.com/v1alpha1
+kind: NginxIngressController
+metadata:
+  name: {{ .Values.name }}
+spec:
+  ingressClassName: {{ .Values.ingressClassName }}
+  controllerNamePrefix: {{ .Values.name }}
+  {{- with .Values.loadBalancerAnnotations }}
+  loadBalancerAnnotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+
+# vim: set ts=2 sts=2 sw=2 et:

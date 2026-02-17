@@ -1,0 +1,5 @@
+apiVersion: v2
+name: app-routing-controller
+version: 0.1.0
+
+# vim: set ts=2 sts=2 sw=2 et:

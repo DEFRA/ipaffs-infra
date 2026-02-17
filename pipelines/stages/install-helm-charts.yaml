@@ -17,25 +17,21 @@ stages:
                 - checkout: self
 
                 - task: HelmDeploy@0
-                  displayName: Helm Install - nginx-ingress
+                  displayName: Helm Install - app-routing-controller
                   inputs:
                     connectionType: Azure Resource Manager
                     azureSubscription: $(serviceConnection)
                     azureResourceGroup: $(resourceGroupName)
                     kubernetesCluster: $(kubernetesCluster)
-                    namespace: ingress-nginx
+                    namespace: ${{ parameters.namespace }}
                     command: upgrade
-                    chartName: ingress-nginx
-                    chartVersion: 4.13.3
-                    releaseName: ingress-nginx
+                    chartName: helm-charts/app-routing-controller
+                    releaseName: app-routing-controller
                     install: true
                     useClusterAdmin: true
                     arguments: >-
-                      --repo https://kubernetes.github.io/ingress-nginx
-                      -f helm-charts/ingress-nginx-values.yaml
+                      --dependency-update
                       --create-namespace
-                      --set global.image.registry=$(acrLoginServer)
-                      $(helmDryRun)
 
                 - task: HelmDeploy@0
                   displayName: Helm Install - cert-manager
