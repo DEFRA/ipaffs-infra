@@ -2,17 +2,13 @@ targetScope = 'resourceGroup'
 
 param deploymentId string
 param location string
+param loadBalancerFrontendIpConfigurations array
 param privateLinkParams object
 param subnetNames object
 param subnets array
 param tags object
 
 var subnet = first(filter(subnets, subnet => subnet.name == subnetNames.privateLink))
-
-resource loadBalancer 'Microsoft.Network/loadBalancers@2025-05-01' existing = {
-  name: privateLinkParams.loadBalancer.name
-  scope: resourceGroup(privateLinkParams.loadBalancer.resourceGroup)
-}
 
 resource privateLink 'Microsoft.Network/privateLinkServices@2025-05-01' = {
   name: privateLinkParams.name
@@ -34,7 +30,7 @@ resource privateLink 'Microsoft.Network/privateLinkServices@2025-05-01' = {
         }
       }
     ]
-    loadBalancerFrontendIpConfigurations: [for config in loadBalancer.properties.frontendIPConfigurations: {
+    loadBalancerFrontendIpConfigurations: [for config in loadBalancerFrontendIpConfigurations: {
       id: config.id
     }]
   }

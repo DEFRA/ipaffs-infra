@@ -18,6 +18,11 @@ var tags = union(loadJsonContent('default-tags.json'), {
 
 param privateLinkParams object
 
+resource loadBalancer 'Microsoft.Network/loadBalancers@2025-05-01' existing = {
+  name: privateLinkParams.loadBalancer.name
+  scope: resourceGroup(privateLinkParams.loadBalancer.resourceGroup)
+}
+
 resource vnet 'Microsoft.Network/virtualNetworks@2025-05-01' existing = {
   name: vnetName
 }
@@ -27,6 +32,7 @@ module privateLink './modules/privatelink.bicep' = {
   scope: resourceGroup()
   params: {
     deploymentId: deploymentId
+    loadBalancerFrontendIpConfigurations: loadBalancer.properties.frontendIPConfigurations
     location: location
     privateLinkParams: privateLinkParams
     subnetNames: subnetNames
