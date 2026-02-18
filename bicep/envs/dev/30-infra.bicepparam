@@ -16,7 +16,6 @@ param subnetNames = {
   aksUserNodes: 'DEVIMPNETSU4406'
   appGatewayForContainers: 'DEVIMPNETSU4405'
   privateEndpoints: 'DEVIMPNETSU4404'
-  privateLink: 'DEVIMPNETSU4403'
 }
 
 param acrParams = {

@@ -16,7 +16,6 @@ param subnetNames = {
   aksUserNodes: 'TSTIMPNETSU4406'
   appGatewayForContainers: 'TSTIMPNETSU4405'
   privateEndpoints: 'TSTIMPNETSU4404'
-  privateLink: 'TSTIMPNETSU4403'
 }
 
 param acrParams = {
