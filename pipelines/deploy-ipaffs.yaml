@@ -35,7 +35,7 @@ parameters:
     displayName: Services
     type: object
     default:
-      - name: approved-establishment-service
+      - name: approved-establishment
         migrations: true
         pipeline: approved-establishment-service
 
@@ -59,15 +59,31 @@ parameters:
         migrations: false
         pipeline: bordernotification-frontend
 
+      - name: bordernotification
+        migrations: true
+        pipeline: bordernotification-service
+
+      - name: bordernotificationrefdata
+        migrations: true
+        pipeline: bordernotificationrefdata-service
+
+      - name: bulkupload
+        migrations: false
+        pipeline: bulkupload-service
+
+      - name: certificate
+        migrations: false
+        pipeline: certificate-service
+
       - name: checks-frontend
         migrations: false
         pipeline: checks-frontend
 
-      - name: checks-service
+      - name: checks
         migrations: true
         pipeline: checks-service
 
-      - name: commodity-code-service
+      - name: commodity-code
         migrations: true
         pipeline: commodity-code-service
 
@@ -75,71 +91,91 @@ parameters:
         migrations: false
         pipeline: control-frontend
 
-      - name: countries-service
+      - name: countries
         migrations: true
         pipeline: countries-service
+
+      - name: customer
+        migrations: false
+        pipeline: customer-service
 
       - name: decision-frontend
         migrations: false
         pipeline: decision-frontend
 
-      - name: decision-service
+      - name: decision
         migrations: true
         pipeline: decision-service
 
-      - name: dmp-integration-service
+      - name: dmp-integration
         migrations: false
         pipeline: dmp-integration-service
 
-      - name: economic-operator-service
+      - name: economic-operator
         migrations: true
         pipeline: economic-operator-service
 
-      - name: enotification-event-listener-service
+      - name: enotification-event-listener
         migrations: false
         pipeline: enotification-event-listener-service
 
-      - name: enotification-processing-service
+      - name: enotification-processing
         migrations: false
         pipeline: enotification-processing-service
 
-      - name: enotification-submission-service
+      - name: enotification-submission
         migrations: false
         pipeline: enotification-submission-service
 
-      - name: enotification-event-service
+      - name: enotification-event
         migrations: true
         pipeline: enotification-event-service
 
-      - name: in-service-messaging-service
+      - name: enotification-event
+        migrations: true
+        pipeline: enotification-event-service
+
+      - name: fieldconfig
+        migrations: true
+        pipeline: fieldconfig-service
+
+      - name: filecompression
+        migrations: false
+        pipeline: filecompression-service
+
+      - name: in-service-messaging
         migrations: true
         pipeline: in-service-messaging-service
-
-      - name: openid-token-service
-        migrations: false
-        pipeline: openid-token-service
 
       - name: notification-frontend
         migrations: false
         pipeline: notification-frontend
 
-      - name: notify-service
+      - name: notify
         migrations: false
         pipeline: notify-service
 
-      - name: permissions-service
+      - name: permissions
         migrations: true
         pipeline: permissions-service
 
-      - name: risk-interface-service
+      - name: riskassessment
+        migrations: false
+        pipeline: riskassessment-service
+
+      - name: risk-interface
         migrations: false
         pipeline: risk-interface-service
 
-      - name: risk-locking-service
+      - name: risk-locking
         migrations: false
         pipeline: risk-locking-service
 
-      - name: traces-data-processor-service
+      - name: soaprequest
+        migrations: true
+        pipeline: soaprequest-service
+
+      - name: traces-data-processor
         migrations: true
         pipeline: traces-data-processor-service
 
