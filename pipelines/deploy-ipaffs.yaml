@@ -201,13 +201,13 @@ resources:
       name: DEFRA/ipaffs-approvedestablishment-microservice
       ref: refs/heads/master
 
-    - repository: archive-notifications
+    - repository: archive-notifications-service
       type: github
       endpoint: DEFRA
       name: DEFRA/ipaffs-archive-notifications-microservice
       ref: refs/heads/feature/IMTA-19940-ado-pipeline
 
-    - repository: auto-clearance=service
+    - repository: auto-clearance-service
       type: github
       endpoint: DEFRA
       name: DEFRA/ipaffs-auto-clearance-microservice
