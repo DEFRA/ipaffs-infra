@@ -35,15 +35,15 @@ parameters:
     displayName: Services
     type: object
     default:
-      - name: approved-establishment
+      - name: approved-establishment-service
         migrations: true
         pipeline: approved-establishment-service
 
-      - name: archive-notifications
+      - name: archive-notifications-service
         migrations: false
         pipeline: archive-notifications-service
 
-      - name: auto-clearance
+      - name: auto-clearance-service
         migrations: false
         pipeline: auto-clearance-service
 
@@ -59,19 +59,19 @@ parameters:
         migrations: false
         pipeline: bordernotification-frontend
 
-      - name: bordernotification
+      - name: bordernotification-service
         migrations: true
         pipeline: bordernotification-service
 
-      - name: bordernotificationrefdata
+      - name: bordernotificationrefdata-service
         migrations: true
         pipeline: bordernotificationrefdata-service
 
-      - name: bulkupload
+      - name: bulkupload-service
         migrations: false
         pipeline: bulkupload-service
 
-      - name: certificate
+      - name: certificate-service
         migrations: false
         pipeline: certificate-service
 
@@ -79,11 +79,11 @@ parameters:
         migrations: false
         pipeline: checks-frontend
 
-      - name: checks
+      - name: checks-service
         migrations: true
         pipeline: checks-service
 
-      - name: commodity-code
+      - name: commodity-code-service
         migrations: true
         pipeline: commodity-code-service
 
@@ -91,11 +91,11 @@ parameters:
         migrations: false
         pipeline: control-frontend
 
-      - name: countries
+      - name: countries-service
         migrations: true
         pipeline: countries-service
 
-      - name: customer
+      - name: customer-service
         migrations: false
         pipeline: customer-service
 
@@ -103,43 +103,43 @@ parameters:
         migrations: false
         pipeline: decision-frontend
 
-      - name: decision
+      - name: decision-service
         migrations: true
         pipeline: decision-service
 
-      - name: dmp-integration
+      - name: dmp-integration-service
         migrations: false
         pipeline: dmp-integration-service
 
-      - name: economic-operator
+      - name: economic-operator-service
         migrations: true
         pipeline: economic-operator-service
 
-      - name: enotification-event-listener
+      - name: enotification-event-listener-service
         migrations: false
         pipeline: enotification-event-listener-service
 
-      - name: enotification-processing
+      - name: enotification-processing-service
         migrations: false
         pipeline: enotification-processing-service
 
-      - name: enotification-submission
+      - name: enotification-submission-service
         migrations: false
         pipeline: enotification-submission-service
 
-      - name: enotification-event
+      - name: enotification-event-service
         migrations: true
         pipeline: enotification-event-service
 
-      - name: fieldconfig
+      - name: fieldconfig-service
         migrations: true
         pipeline: fieldconfig-service
 
-      - name: filecompression
+      - name: filecompression-service
         migrations: false
         pipeline: filecompression-service
 
-      - name: in-service-messaging
+      - name: in-service-messaging-service
         migrations: true
         pipeline: in-service-messaging-service
 
@@ -147,31 +147,35 @@ parameters:
         migrations: false
         pipeline: notification-frontend
 
-      - name: notify
+      - name: notify-service
         migrations: false
         pipeline: notify-service
 
-      - name: permissions
+      - name: openid-token-service
+        migrations: false
+        pipeline: openid-token-service
+
+      - name: permissions-service
         migrations: true
         pipeline: permissions-service
 
-      - name: riskassessment
+      - name: riskassessment-service
         migrations: false
         pipeline: riskassessment-service
 
-      - name: risk-interface
+      - name: risk-interface-service
         migrations: false
         pipeline: risk-interface-service
 
-      - name: risk-locking
+      - name: risk-locking-service
         migrations: false
         pipeline: risk-locking-service
 
-      - name: soaprequest
+      - name: soaprequest-service
         migrations: true
         pipeline: soaprequest-service
 
-      - name: traces-data-processor
+      - name: traces-data-processor-service
         migrations: true
         pipeline: traces-data-processor-service
 
@@ -203,7 +207,7 @@ resources:
       name: DEFRA/ipaffs-archive-notifications-microservice
       ref: refs/heads/feature/IMTA-19940-ado-pipeline
 
-    - repository: auto-clearance
+    - repository: auto-clearance=service
       type: github
       endpoint: DEFRA
       name: DEFRA/ipaffs-auto-clearance-microservice
@@ -225,6 +229,30 @@ resources:
       type: github
       endpoint: DEFRA
       name: DEFRA/ipaffs-frontend-bordernotification
+      ref: refs/heads/master
+
+    - repository: bordernotification-service
+      type: github
+      endpoint: DEFRA
+      name: DEFRA/ipaffs-bordernotification-microservice
+      ref: refs/heads/master
+
+    - repository: bordernotificationrefdata-service
+      type: github
+      endpoint: DEFRA
+      name: DEFRA/ipaffs-bordernotification-refdata-microservice
+      ref: refs/heads/master
+
+    - repository: bulkupload-service
+      type: github
+      endpoint: DEFRA
+      name: DEFRA/ipaffs-bulk-upload-microservice
+      ref: refs/heads/master
+
+    - repository: certificate-service
+      type: github
+      endpoint: DEFRA
+      name: DEFRA/ipaffs-certificate-microservice
       ref: refs/heads/master
 
     - repository: checks-frontend
@@ -305,16 +333,22 @@ resources:
       name: DEFRA/ipaffs-enotification-event-microservice
       ref: refs/heads/master
 
+    - repository: fieldconfig-service
+      type: github
+      endpoint: DEFRA
+      name: DEFRA/ipaffs-fieldconfig-microservice
+      ref: refs/heads/master
+
+    - repository: filecompression-service
+      type: github
+      endpoint: DEFRA
+      name: DEFRA/ipaffs-file-compression-microservice
+      ref: refs/heads/master
+
     - repository: in-service-messaging-service
       type: github
       endpoint: DEFRA
       name: DEFRA/ipaffs-in-service-messaging-microservice
-      ref: refs/heads/master
-
-    - repository: openid-token-service
-      type: github
-      endpoint: DEFRA
-      name: DEFRA/ipaffs-openid-token-microservice
       ref: refs/heads/master
 
     - repository: notification-frontend
@@ -329,22 +363,40 @@ resources:
       name: DEFRA/ipaffs-notify-microservice
       ref: refs/heads/master
 
+    - repository: openid-token-service
+      type: github
+      endpoint: DEFRA
+      name: DEFRA/ipaffs-openid-token-microservice
+      ref: refs/heads/master
+
     - repository: permissions-service
       type: github
       endpoint: DEFRA
       name: DEFRA/ipaffs-permissions
       ref: refs/heads/master
 
-    - repository: risk-interface-service
+    - repository: riskassessment-service
       type: github
       endpoint: DEFRA
       name: DEFRA/ipaffs-risk-interface-microservice
+      ref: refs/heads/master
+
+    - repository: risk-interface-service
+      type: github
+      endpoint: DEFRA
+      name: DEFRA/ipaffs-risk-assessment-microservice
       ref: refs/heads/master
 
     - repository: risk-locking-service
       type: github
       endpoint: DEFRA
       name: DEFRA/ipaffs-risk-locking-microservice
+      ref: refs/heads/master
+
+    - repository: soaprequest-service
+      type: github
+      endpoint: DEFRA
+      name: DEFRA/ipaffs-soaprequest-microservice
       ref: refs/heads/master
 
     - repository: traces-data-processor-service
