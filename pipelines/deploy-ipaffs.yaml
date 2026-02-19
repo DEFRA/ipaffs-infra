@@ -285,6 +285,12 @@ resources:
       name: DEFRA/ipaffs-countries-microservice
       ref: refs/heads/master
 
+    - repository: customer-service
+      type: github
+      endpoint: DEFRA
+      name: DEFRA/ipaffs-customer-microservice
+      ref: refs/heads/master
+
     - repository: decision-frontend
       type: github
       endpoint: DEFRA
