@@ -131,10 +131,6 @@ parameters:
         migrations: true
         pipeline: enotification-event-service
 
-      - name: enotification-event
-        migrations: true
-        pipeline: enotification-event-service
-
       - name: fieldconfig
         migrations: true
         pipeline: fieldconfig-service
