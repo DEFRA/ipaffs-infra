@@ -175,6 +175,10 @@ parameters:
         migrations: true
         pipeline: soaprequest-service
 
+      - name: soapsearch-service
+        migrations: true
+        pipeline: soapsearch-service
+
       - name: traces-data-processor-service
         migrations: true
         pipeline: traces-data-processor-service
@@ -403,6 +407,12 @@ resources:
       type: github
       endpoint: DEFRA
       name: DEFRA/ipaffs-soaprequest-microservice
+      ref: refs/heads/master
+
+    - repository: soapsearch-service
+      type: github
+      endpoint: DEFRA
+      name: DEFRA/ipaffs-soapsearch-microservice
       ref: refs/heads/master
 
     - repository: traces-data-processor-service
