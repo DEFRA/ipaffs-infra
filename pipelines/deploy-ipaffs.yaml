@@ -435,7 +435,7 @@ resources:
       type: github
       endpoint: DEFRA
       name: DEFRA/ipaffs-proxy-login-muxer
-      ref: refs/heads/master
+      ref: refs/heads/main
 
     - repository: upload-frontend
       type: github
