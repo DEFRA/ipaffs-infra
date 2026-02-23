@@ -64,6 +64,10 @@ param externalSecretsParams = {
   managedIdentityName: 'TSTIMPINFMI1401-ExternalSecrets'
 }
 
+param insightsParams = {
+  name: 'TSTIMPINFIN1401'
+}
+
 param keyVaultParams = {
   name: 'TSTIMPINFKV1401'
   principalObjectIds: [
