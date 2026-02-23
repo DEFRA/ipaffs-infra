@@ -209,7 +209,7 @@ resources:
       type: github
       endpoint: DEFRA
       name: DEFRA/ipaffs-archive-notifications-microservice
-      ref: refs/heads/feature/IMTA-19940-ado-pipeline
+      ref: refs/heads/master
 
     - repository: auto-clearance-service
       type: github
