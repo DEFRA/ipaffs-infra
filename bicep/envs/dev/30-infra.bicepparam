@@ -64,12 +64,23 @@ param externalSecretsParams = {
   managedIdentityName: 'DEVIMPINFMI1401-ExternalSecrets'
 }
 
+param insightsParams = {
+  name: 'DEVIMPINFIN1401'
+}
+
 param keyVaultParams = {
   name: 'DEVIMPINFKV1401'
   principalObjectIds: [
     builtInGroups.contributors
     builtInGroups.owners
   ]
+}
+
+param monitoringParams = {
+  logAnalyticsName: 'DEVIMPINFLA1401'
+  prometheusName: 'DEVIMPINFPR1401'
+  grafanaName: 'DEVIMPINFGA1401'
+  principalObjectId: builtInGroups.contributors
 }
 
 param redisParams = {
@@ -89,19 +100,8 @@ param sqlParams = {
   vCores: 2
 }
 
-param monitoringParams = {
-  logAnalyticsName: 'DEVIMPINFLA1401'
-  prometheusName: 'DEVIMPINFPR1401'
-  grafanaName: 'DEVIMPINFGA1401'
-  principalObjectId: builtInGroups.contributors
-}
-
 param storageParams = {
   name: 'devimpinfsto1401' // note: must be lowercase
-}
-
-param insightsParams = {
-  name: 'DEVIMPINFIN1401'
 }
 
 // vim: set ts=2 sts=2 sw=2 et:
