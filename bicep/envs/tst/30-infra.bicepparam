@@ -72,6 +72,13 @@ param keyVaultParams = {
   ]
 }
 
+param monitoringParams = {
+  logAnalyticsName: 'TSTIMPINFLA1401'
+  prometheusName: 'TSTIMPINFPR1401'
+  grafanaName: 'TSTIMPINFGA1401'
+  principalObjectId: builtInGroups.contributors
+}
+
 param redisParams = {
   name: 'tstimpinfrd1401' // note: must be lowercase
 }
@@ -89,11 +96,8 @@ param sqlParams = {
   vCores: 2
 }
 
-param monitoringParams = {
-  logAnalyticsName: 'TSTIMPINFLA1401'
-  prometheusName: 'TSTIMPINFPR1401'
-  grafanaName: 'TSTIMPINFGA1401'
-  principalObjectId: builtInGroups.contributors
+param storageParams = {
+  name: 'tstimpinfsto1401' // note: must be lowercase
 }
 
 // vim: set ts=2 sts=2 sw=2 et:
