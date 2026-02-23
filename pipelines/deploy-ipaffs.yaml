@@ -187,10 +187,6 @@ parameters:
         migrations: false
         pipeline: imports-proxy
 
-      - name: proxy-login-muxer
-        migrations: false
-        pipeline: proxy-login-muxer
-
       - name: upload-frontend
         migrations: false
         pipeline: upload-frontend
@@ -430,12 +426,6 @@ resources:
       endpoint: DEFRA
       name: DEFRA/ipaffs-imports-proxy
       ref: refs/heads/feature/login-muxer
-
-    - repository: proxy-login-muxer
-      type: github
-      endpoint: DEFRA
-      name: DEFRA/ipaffs-proxy-login-muxer
-      ref: refs/heads/main
 
     - repository: upload-frontend
       type: github
