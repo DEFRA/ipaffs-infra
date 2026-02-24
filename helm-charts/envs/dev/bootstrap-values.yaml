@@ -15,8 +15,8 @@ serviceBus:
     - dev-dmp-gto-queue-1
     - enotification-event-queue
     - risk-feedback-queue
-    - enotification_submission_queue
-    - enotification_processing_status_queue
+    - enotification-submission-queue
+    - enotification-processing-status-queue
   topics:
     - notification-topic
 
