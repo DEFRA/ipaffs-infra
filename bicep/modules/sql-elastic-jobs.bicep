@@ -157,6 +157,7 @@ resource alertExecutionsFailed 'Microsoft.Insights/metricAlerts@2018-03-01' = {
     description: 'Notify DBAs when Elastic Jobs executions fail'
     enabled: true
     evaluationFrequency: 'PT1H'
+    severity: 1
     targetResourceType: 'Microsoft.Sql/servers/jobAgents'
     targetResourceRegion: location
     windowSize: 'PT1H'
