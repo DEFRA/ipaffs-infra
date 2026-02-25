@@ -1,5 +1,6 @@
 targetScope = 'resourceGroup'
 
+param alertsActionGroups object
 param deploymentId string
 param location string
 param sejParams object
@@ -143,6 +144,45 @@ resource jobMaintStatsDailyStep 'Microsoft.Sql/servers/jobAgents/jobs/steps@2023
       maximumRetryIntervalSeconds: 120
       retryIntervalBackoffMultiplier: json('2')
     }
+  }
+}
+
+resource alertExecutionsFailed 'Microsoft.Insights/metricAlerts@2018-03-01' = {
+  name: format('SqlElasticJobsFailed-{0}', sejParams.jobAgentName)
+  location: 'global'
+  tags: tags
+
+  properties: {
+    autoMitigate: true
+    description: 'Notify DBAs when Elastic Jobs executions fail'
+    enabled: true
+    evaluationFrequency: 'PT1H'
+    targetResourceType: 'Microsoft.Sql/servers/jobAgents'
+    targetResourceRegion: location
+    windowSize: 'PT1H'
+
+    actions: [
+      {
+        actionGroupId: alertsActionGroups.notifyDba
+      }
+    ]
+
+    criteria: {
+      allOf: [
+        {
+          criterionType: 'StaticThresholdCriterion'
+          metricName: 'elastic_jobs_failed'
+          metricNamespace: 'Microsoft.Sql/servers/jobAgents'
+          name: 'ElasticJobsFailed'
+          operator: 'GreaterThan'
+          threshold: 0
+          timeAggregation: 'Total'
+        }
+      ]
+      'odata.type': 'Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria'
+    }
+
+    scopes: [jobAgent.id]
   }
 }
 

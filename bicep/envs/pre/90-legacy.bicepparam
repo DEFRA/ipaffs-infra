@@ -2,6 +2,26 @@ using '../../90-legacy.bicep'
 
 param environment = 'PRE'
 
+param alertsParams = {
+  actionGroups: {
+    notifyDba: {
+      name: 'IMP-DBA-Team'
+      appRecipients: [
+        {
+          name: 'Paul Maguire (Admin)'
+          upn: 'a-paul.maguire@defra.onmicrosoftc.com'
+        }
+      ]
+      emailRecipients: [
+        {
+          name: 'Paul Maguire'
+          email: 'paul.maguire@esynergy.co.uk'
+        }
+      ]
+    }
+  }
+}
+
 param dbwParams = {
   name: 'PREIMPDBSDBW001'
   adminEntraGroup: 'AAG-Users-IPAFFS-Support-Admin'

@@ -1,3 +1,4 @@
+param alertsParams object
 param dbwParams object
 param sejParams object
 
@@ -45,6 +46,17 @@ var tags = union(loadJsonContent('default-tags.json'), {
   Location: location
 })
 
+module alerts './modules/alerts.bicep' = {
+  name: 'alerts-${deploymentId}'
+  scope: resourceGroup()
+  params: {
+    alertsParams: alertsParams
+    deploymentId: deploymentId
+    location: location
+    tags: tags
+  }
+}
+
 module dbw './modules/database-watcher.bicep' = {
   name: 'dbw-${deploymentId}'
   scope: resourceGroup()
@@ -61,6 +73,7 @@ module sej './modules/sql-elastic-jobs.bicep' = {
   name: 'sej-${deploymentId}'
   scope: resourceGroup()
   params: {
+    alertsActionGroups: alerts.outputs.actionGroups
     deploymentId: deploymentId
     location: location
     sejParams: sejParams

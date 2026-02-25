@@ -56,6 +56,26 @@ param aksParams = {
   ]
 }
 
+param alertsParams = {
+  actionGroups: {
+    notifyDba: {
+      name: 'IMP-DBA-Team'
+      appRecipients: [
+        {
+          name: 'Paul Maguire'
+          upn: 'paul.maguire@defra.onmicrosoftc.com'
+        }
+      ]
+      emailRecipients: [
+        {
+          name: 'Paul Maguire'
+          email: 'paul.maguire@esynergy.co.uk'
+        }
+      ]
+    }
+  }
+}
+
 param asoParams = {
   managedIdentityName: 'DEVIMPINFMI1401-AzureServiceOperator'
 }

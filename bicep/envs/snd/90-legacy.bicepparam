@@ -1,6 +1,26 @@
 using '../../90-legacy.bicep'
 
-param environment = 'TST'
+param environment = 'SND'
+
+param alertsParams = {
+  actionGroups: {
+    notifyDba: {
+      name: 'IMP-DBA-Team'
+      appRecipients: [
+        {
+          name: 'Paul Maguire'
+          upn: 'paul.maguire@defra.onmicrosoftc.com'
+        }
+      ]
+      emailRecipients: [
+        {
+          name: 'Paul Maguire'
+          email: 'paul.maguire@esynergy.co.uk'
+        }
+      ]
+    }
+  }
+}
 
 param dbwParams = {
   name: 'SNDIMPDBSDBW001'
@@ -20,10 +40,12 @@ param sejParams = {
   databaseNames: ['notification-microservice']
   databaseMaxSizeGiB: 10
   jobAgentName: 'SNDIMPDBSJBA001'
+
   jobAgentSku: {
     name: 'JA100'
     capacity: 100
   }
+
   sqlServerName: 'SNDIMPDBSSQA004'
   userAssignedIdentityName: 'snd-imp-elasticjobs-sql'
 }
