@@ -59,7 +59,7 @@ param aksParams = {
 param alertsParams = {
   actionGroups: {
     notifyDba: {
-      name: 'IMP-DBA-Team'
+      name: 'DEV-IMP-DBA-Team'
       appRecipients: [
         {
           name: 'AppPush: Paul Maguire'

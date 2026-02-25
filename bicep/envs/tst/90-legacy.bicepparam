@@ -2,6 +2,26 @@ using '../../90-legacy.bicep'
 
 param environment = 'TST'
 
+param alertsParams = {
+  actionGroups: {
+    notifyDba: {
+      name: 'TST-IMP-DBA-Team'
+      appRecipients: [
+        {
+          name: 'AppPush: Paul Maguire'
+          upn: 'paul.maguire@defra.onmicrosoftc.com'
+        }
+      ]
+      emailRecipients: [
+        {
+          name: 'Email: Paul Maguire'
+          email: 'paul.maguire@esynergy.co.uk'
+        }
+      ]
+    }
+  }
+}
+
 param dbwParams = {
   name: 'TSTIMPDBSDBW001'
   adminEntraGroup: 'AG-Azure-EUX-IPAFFS-Kainos-DevUsers'

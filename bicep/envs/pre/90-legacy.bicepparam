@@ -5,7 +5,7 @@ param environment = 'PRE'
 param alertsParams = {
   actionGroups: {
     notifyDba: {
-      name: 'IMP-DBA-Team'
+      name: 'PRE-IMP-DBA-Team'
       appRecipients: [
         {
           name: 'AppPush: Paul Maguire (Admin)'

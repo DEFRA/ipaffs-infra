@@ -5,7 +5,7 @@ param environment = 'SND'
 param alertsParams = {
   actionGroups: {
     notifyDba: {
-      name: 'IMP-DBA-Team'
+      name: 'SND-IMP-DBA-Team'
       appRecipients: [
         {
           name: 'AppPush: Paul Maguire'
@@ -40,12 +40,10 @@ param sejParams = {
   databaseNames: ['notification-microservice']
   databaseMaxSizeGiB: 10
   jobAgentName: 'SNDIMPDBSJBA001'
-
   jobAgentSku: {
     name: 'JA100'
     capacity: 100
   }
-
   sqlServerName: 'SNDIMPDBSSQA004'
   userAssignedIdentityName: 'snd-imp-elasticjobs-sql'
 }
