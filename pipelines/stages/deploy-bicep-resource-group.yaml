@@ -1,0 +1,54 @@
+parameters:
+  - name: environmentName
+    type: string
+
+stages:
+  - stage: DeployResourceGroup
+    displayName: Deploy Resource Group
+    variables:
+      - group: "${{ parameters.environmentName }}"
+      - template: "/pipelines/vars/common.yaml"
+      - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
+    jobs:
+      - deployment: RunBicep
+        displayName: Run Bicep
+        environment:
+          name: "${{ parameters.environmentName }}"
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+
+                - task: AzureCLI@2
+                  displayName: WhatIf - Resource Group
+                  inputs:
+                    azureSubscription: $(serviceConnection)
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      set -x
+                      az deployment sub what-if \
+                        --name "ResourceGroup-$(Build.BuildId)" \
+                        --subscription $(subscriptionId) \
+                        --location $(location) \
+                        --template-file bicep/10-resource-group.bicep \
+                        --parameters bicep/envs/${{ lower(parameters.environmentName) }}/10-resource-group.bicepparam
+
+                - task: AzureCLI@2
+                  displayName: Deploy - ResourceGroup
+                  condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+                  inputs:
+                    azureSubscription: $(serviceConnection)
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      set -x
+                      az deployment sub create \
+                        --name "ResourceGroup-$(Build.BuildId)" \
+                        --subscription $(subscriptionId) \
+                        --location $(location) \
+                        --template-file bicep/10-resource-group.bicep \
+                        --parameters bicep/envs/${{ lower(parameters.environmentName) }}/10-resource-group.bicepparam
+
+# vim: set ts=2 sts=2 sw=2 et:

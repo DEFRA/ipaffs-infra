@@ -47,7 +47,19 @@ variables:
   - template: "vars/${{ lower(parameters.environmentName) }}.yaml"
 
 stages:
-  - template: stages/deploy-bicep.yaml
+  - template: stages/deploy-bicep-resource-group.yaml
+    parameters:
+      environmentName: ${{ parameters.environmentName }}
+
+  - template: stages/deploy-bicep-network.yaml
+    parameters:
+      environmentName: ${{ parameters.environmentName }}
+
+  - template: stages/deploy-bicep-infrastructure.yaml
+    parameters:
+      environmentName: ${{ parameters.environmentName }}
+
+  - template: stages/deploy-bicep-privatelink.yaml
     parameters:
       environmentName: ${{ parameters.environmentName }}
 
