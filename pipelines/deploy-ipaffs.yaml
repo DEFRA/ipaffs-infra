@@ -199,7 +199,7 @@ resources:
       name: DEFRA/ipaffs-infra
       ref: refs/heads/main
 
-    - repository: approved-establishment-service
+    - repository: approvedestablishment-service
       type: github
       endpoint: DEFRA
       name: DEFRA/ipaffs-approvedestablishment-microservice
