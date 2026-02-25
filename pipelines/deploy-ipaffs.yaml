@@ -317,7 +317,7 @@ resources:
       type: github
       endpoint: DEFRA
       name: DEFRA/ipaffs-economicoperator-microservice
-      ref: refs/heads/feature/economicoperator-aks
+      ref: refs/heads/master
 
     - repository: enotification-event-listener-service
       type: github
