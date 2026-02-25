@@ -62,13 +62,13 @@ param alertsParams = {
       name: 'IMP-DBA-Team'
       appRecipients: [
         {
-          name: 'Paul Maguire'
+          name: 'AppPush: Paul Maguire'
           upn: 'paul.maguire@defra.onmicrosoftc.com'
         }
       ]
       emailRecipients: [
         {
-          name: 'Paul Maguire'
+          name: 'Email: Paul Maguire'
           email: 'paul.maguire@esynergy.co.uk'
         }
       ]
