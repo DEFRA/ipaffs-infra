@@ -35,9 +35,9 @@ parameters:
     displayName: Services
     type: object
     default:
-      - name: approved-establishment-service
+      - name: approvedestablishment-service
         migrations: true
-        pipeline: approved-establishment-service
+        pipeline: approvedestablishment-service
 
       - name: archive-notifications-service
         migrations: false
@@ -83,9 +83,9 @@ parameters:
         migrations: true
         pipeline: checks-service
 
-      - name: commodity-code-service
+      - name: commoditycode-service
         migrations: true
-        pipeline: commodity-code-service
+        pipeline: commoditycode-service
 
       - name: control-frontend
         migrations: false
@@ -313,7 +313,7 @@ resources:
       name: DEFRA/ipaffs-dmp-integration-microservice
       ref: refs/heads/master
 
-    - repository: economic-operator-service
+    - repository: economicoperator-service
       type: github
       endpoint: DEFRA
       name: DEFRA/ipaffs-economicoperator-microservice
