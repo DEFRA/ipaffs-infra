@@ -41,13 +41,13 @@ param aksParams = {
       minCount: 3
       maxCount: 5
       maxPods: 250
-      vmSize: 'Standard_E2as_v6'
+      vmSize: 'Standard_E2as_v7'
     }
     user: {
       minCount: 3
       maxCount: 12
       maxPods: 250
-      vmSize: 'Standard_E16as_v6'
+      vmSize: 'Standard_E16as_v7'
     }
   }
   adminGroupObjectIDs: [
