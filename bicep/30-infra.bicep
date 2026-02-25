@@ -21,6 +21,7 @@ var tags = union(loadJsonContent('default-tags.json'), {
 
 param acrParams object
 param aksParams object
+param alertsParams object
 param asoParams object
 param externalSecretsParams object
 param keyVaultParams object
@@ -61,6 +62,17 @@ module aks './modules/aks.bicep' = {
     subnets: vnet.properties.subnets
     tags: tags
     vnetName: vnetName
+  }
+}
+
+module alerts './modules/alerts.bicep' = {
+  name: 'alerts-${deploymentId}'
+  scope: resourceGroup()
+  params: {
+    alertsParams: alertsParams
+    deploymentId: deploymentId
+    location: location
+    tags: tags
   }
 }
 
