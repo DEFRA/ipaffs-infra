@@ -5,7 +5,7 @@ set -ux
 TOKEN="$(az account get-access-token --scope https://graph.microsoft.com/.default --query accessToken -o tsv)"
 [[ $? -ne 0 ]] && exit 1
 
-max_attempts=10
+max_attempts=30
 successful=0
 attempt=0
 wait=2
