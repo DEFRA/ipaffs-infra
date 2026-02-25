@@ -111,9 +111,9 @@ parameters:
         migrations: false
         pipeline: dmp-integration-service
 
-      - name: economic-operator-service
+      - name: economicoperator-service
         migrations: true
-        pipeline: economic-operator-service
+        pipeline: economicoperator-service
 
       - name: enotification-event-listener-service
         migrations: false
