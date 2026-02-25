@@ -35,61 +35,78 @@ parameters:
     displayName: Services
     type: object
     default:
+#      - name: bcpadmin-frontend
+#        migrations: false
+#        pipeline: bcpadmin-frontend
+
+#      - name: bordernotification-frontend
+#        migrations: false
+#        pipeline: bordernotification-frontend
+
+#      - name: checks-frontend
+#        migrations: false
+#        pipeline: checks-frontend
+
+#      - name: control-frontend
+#        migrations: false
+#        pipeline: control-frontend
+
+#      - name: decision-frontend
+#        migrations: false
+#        pipeline: decision-frontend
+
+      - name: notification-frontend
+        migrations: false
+        pipeline: notification-frontend
+
+#      - name: upload-frontend
+#        migrations: false
+#        pipeline: upload-frontend
+
+
       - name: approvedestablishment-service
         migrations: true
         pipeline: approvedestablishment-service
 
-      - name: archive-notifications-service
-        migrations: false
-        pipeline: archive-notifications-service
+#      - name: archive-notifications-service
+#        migrations: false
+#        pipeline: archive-notifications-service
 
-      - name: auto-clearance-service
-        migrations: false
-        pipeline: auto-clearance-service
-
-      - name: bcpadmin
-        migrations: false
-        pipeline: bcpadmin-frontend
+#      - name: auto-clearance-service
+#        migrations: false
+#        pipeline: auto-clearance-service
 
       - name: bip-service
         migrations: true
         pipeline: bip-service
 
-      - name: bordernotification-frontend
-        migrations: false
-        pipeline: bordernotification-frontend
+#      - name: bordernotification-service
+#        migrations: true
+#        pipeline: bordernotification-service
 
-      - name: bordernotification-service
-        migrations: true
-        pipeline: bordernotification-service
+#      - name: bordernotificationrefdata-service
+#        migrations: true
+#        pipeline: bordernotificationrefdata-service
 
-      - name: bordernotificationrefdata-service
-        migrations: true
-        pipeline: bordernotificationrefdata-service
-
-      - name: bulkupload-service
-        migrations: false
-        pipeline: bulkupload-service
+#      - name: bulkupload-service
+#        migrations: false
+#        pipeline: bulkupload-service
 
       - name: certificate-service
         migrations: false
         pipeline: certificate-service
 
-      - name: checks-frontend
-        migrations: false
-        pipeline: checks-frontend
+#      - name: checks-service
+#        migrations: true
+#        pipeline: checks-service
 
-      - name: checks-service
-        migrations: true
-        pipeline: checks-service
+      - name: cloning-service
+        migrations: false
+        pipeline: cloning-service
 
       - name: commoditycode-service
         migrations: true
         pipeline: commoditycode-service
-
-      - name: control-frontend
-        migrations: false
-        pipeline: control-frontend
 
       - name: countries-service
         migrations: true
@@ -99,105 +116,142 @@ parameters:
         migrations: false
         pipeline: customer-service
 
-      - name: decision-frontend
-        migrations: false
-        pipeline: decision-frontend
-
       - name: decision-service
         migrations: true
         pipeline: decision-service
 
-      - name: dmp-integration-service
-        migrations: false
-        pipeline: dmp-integration-service
+#      - name: dmp-integration-service
+#        migrations: false
+#        pipeline: dmp-integration-service
 
       - name: economicoperator-service
         migrations: true
         pipeline: economicoperator-service
 
-      - name: enotification-event-listener-service
-        migrations: false
-        pipeline: enotification-event-listener-service
+#      - name: enotification-event-service
+#        migrations: true
+#        pipeline: enotification-event-service
 
-      - name: enotification-processing-service
-        migrations: false
-        pipeline: enotification-processing-service
+#      - name: enotification-event-listener-service
+#        migrations: false
+#        pipeline: enotification-event-listener-service
 
-      - name: enotification-submission-service
-        migrations: false
-        pipeline: enotification-submission-service
+#      - name: enotification-processing-service
+#        migrations: false
+#        pipeline: enotification-processing-service
 
-      - name: enotification-event-service
-        migrations: true
-        pipeline: enotification-event-service
+#      - name: enotification-submission-service
+#        migrations: false
+#        pipeline: enotification-submission-service
 
       - name: fieldconfig-service
         migrations: true
         pipeline: fieldconfig-service
 
-      - name: filecompression-service
-        migrations: false
-        pipeline: filecompression-service
+#      - name: filecompression-service
+#        migrations: false
+#        pipeline: filecompression-service
 
       - name: in-service-messaging-service
         migrations: true
         pipeline: in-service-messaging-service
 
-      - name: notification-frontend
-        migrations: false
-        pipeline: notification-frontend
+      - name: notification-service
+        migrations: true
+        pipeline: notification-service
 
-      - name: notify-service
-        migrations: false
-        pipeline: notify-service
+#      - name: notify-service
+#        migrations: false
+#        pipeline: notify-service
 
-      - name: openid-token-service
-        migrations: false
-        pipeline: openid-token-service
+#      - name: openid-token-service
+#        migrations: false
+#        pipeline: openid-token-service
 
       - name: permissions-service
         migrations: true
         pipeline: permissions-service
 
-      - name: riskassessment-service
-        migrations: false
-        pipeline: riskassessment-service
+#      - name: riskassessment-service
+#        migrations: false
+#        pipeline: riskassessment-service
 
-      - name: risk-interface-service
-        migrations: false
-        pipeline: risk-interface-service
+#      - name: risk-interface-service
+#        migrations: false
+#        pipeline: risk-interface-service
 
-      - name: risk-locking-service
-        migrations: false
-        pipeline: risk-locking-service
+#      - name: risk-locking-service
+#        migrations: false
+#        pipeline: risk-locking-service
 
-      - name: soaprequest-service
-        migrations: true
-        pipeline: soaprequest-service
+#      - name: soaprequest-service
+#        migrations: true
+#        pipeline: soaprequest-service
 
-      - name: soapsearch-service
-        migrations: true
-        pipeline: soapsearch-service
+#      - name: soapsearch-service
+#        migrations: true
+#        pipeline: soapsearch-service
 
-      - name: traces-data-processor-service
-        migrations: true
-        pipeline: traces-data-processor-service
+#      - name: traces-data-processor-service
+#        migrations: true
+#        pipeline: traces-data-processor-service
 
       - name: proxy
         migrations: false
         pipeline: imports-proxy
 
-      - name: upload-frontend
-        migrations: false
-        pipeline: upload-frontend
 
 resources:
   repositories:
+
     - repository: ipaffs-infra
       type: github
       endpoint: DEFRA
       name: DEFRA/ipaffs-infra
       ref: refs/heads/main
+
+    - repository: bcpadmin-frontend
+      type: github
+      endpoint: DEFRA
+      name: DEFRA/ipaffs-frontend-bcpadmin
+      ref: refs/heads/master
+
+    - repository: bordernotification-frontend
+      type: github
+      endpoint: DEFRA
+      name: DEFRA/ipaffs-frontend-bordernotification
+      ref: refs/heads/master
+
+    - repository: checks-frontend
+      type: github
+      endpoint: DEFRA
+      name: DEFRA/ipaffs-frontend-checks
+      ref: refs/heads/master
+
+    - repository: control-frontend
+      type: github
+      endpoint: DEFRA
+      name: DEFRA/ipaffs-frontend-control
+      ref: refs/heads/master
+
+    - repository: decision-frontend
+      type: github
+      endpoint: DEFRA
+      name: DEFRA/ipaffs-frontend-decision
+      ref: refs/heads/master
+
+    - repository: notification-frontend
+      type: github
+      endpoint: DEFRA
+      name: DEFRA/ipaffs-frontend-notification
+      ref: refs/heads/master
+
+    - repository: upload-frontend
+      type: github
+      endpoint: DEFRA
+      name: DEFRA/ipaffs-frontend-upload
+      ref: refs/heads/master
+
 
     - repository: approvedestablishment-service
       type: github
@@ -217,22 +271,10 @@ resources:
       name: DEFRA/ipaffs-auto-clearance-microservice
       ref: refs/heads/master
 
-    - repository: bcpadmin
-      type: github
-      endpoint: DEFRA
-      name: DEFRA/ipaffs-frontend-bcpadmin
-      ref: refs/heads/master
-
     - repository: bip-service
       type: github
       endpoint: DEFRA
       name: DEFRA/ipaffs-bip-microservice
-      ref: refs/heads/master
-
-    - repository: bordernotification-frontend
-      type: github
-      endpoint: DEFRA
-      name: DEFRA/ipaffs-frontend-bordernotification
       ref: refs/heads/master
 
     - repository: bordernotification-service
@@ -259,28 +301,22 @@ resources:
       name: DEFRA/ipaffs-certificate-microservice
       ref: refs/heads/master
 
-    - repository: checks-frontend
-      type: github
-      endpoint: DEFRA
-      name: DEFRA/ipaffs-frontend-checks
-      ref: refs/heads/master
-
     - repository: checks-service
       type: github
       endpoint: DEFRA
       name: DEFRA/ipaffs-checks-microservice
       ref: refs/heads/master
 
+    - repository: cloning-service
+      type: github
+      endpoint: DEFRA
+      name: DEFRA/ipaffs-cloning-microservice
+      ref: refs/heads/master
+
     - repository: commoditycode-service
       type: github
       endpoint: DEFRA
       name: DEFRA/ipaffs-commoditycode-microservice
-      ref: refs/heads/master
-
-    - repository: control-frontend
-      type: github
-      endpoint: DEFRA
-      name: DEFRA/ipaffs-frontend-control
       ref: refs/heads/master
 
     - repository: countries-service
@@ -293,12 +329,6 @@ resources:
       type: github
       endpoint: DEFRA
       name: DEFRA/ipaffs-customer-microservice
-      ref: refs/heads/master
-
-    - repository: decision-frontend
-      type: github
-      endpoint: DEFRA
-      name: DEFRA/ipaffs-frontend-decision
       ref: refs/heads/master
 
     - repository: decision-service
@@ -319,6 +349,12 @@ resources:
       name: DEFRA/ipaffs-economicoperator-microservice
       ref: refs/heads/master
 
+    - repository: enotification-event-service
+      type: github
+      endpoint: DEFRA
+      name: DEFRA/ipaffs-enotification-event-microservice
+      ref: refs/heads/master
+
     - repository: enotification-event-listener-service
       type: github
       endpoint: DEFRA
@@ -335,12 +371,6 @@ resources:
       type: github
       endpoint: DEFRA
       name: DEFRA/ipaffs-enotification-submission-microservice
-      ref: refs/heads/master
-
-    - repository: enotification-event-service
-      type: github
-      endpoint: DEFRA
-      name: DEFRA/ipaffs-enotification-event-microservice
       ref: refs/heads/master
 
     - repository: fieldconfig-service
@@ -361,10 +391,10 @@ resources:
       name: DEFRA/ipaffs-in-service-messaging-microservice
       ref: refs/heads/master
 
-    - repository: notification-frontend
+    - repository: notification-service
       type: github
       endpoint: DEFRA
-      name: DEFRA/ipaffs-frontend-notification
+      name: DEFRA/ipaffs-notification-microservice
       ref: refs/heads/master
 
     - repository: notify-service
@@ -427,11 +457,6 @@ resources:
       name: DEFRA/ipaffs-imports-proxy
       ref: refs/heads/feature/login-muxer
 
-    - repository: upload-frontend
-      type: github
-      endpoint: DEFRA
-      name: DEFRA/ipaffs-frontend-upload
-      ref: refs/heads/master
 
 variables:
   - group: "${{ parameters.environmentName }}"
