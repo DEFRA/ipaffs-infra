@@ -5,14 +5,20 @@ trigger:
       - main
   paths:
     include:
+      - bicep/envs/*/10-resource-group.bicepparam
+      - bicep/envs/*/20-network.bicepparam
+      - bicep/envs/*/30-infra.bicepparam
+      - bicep/envs/*/40-privatelink.bicepparam
+      - bicep/modules/*.bicep
       - bicep/10-resource-group.bicep
       - bicep/20-network.bicep
       - bicep/30-infra.bicep
-      - bicep/modules/*.bicep
-      - bicep/**/30-infra.bicepparam
-      - bicep/**/10-10-resource-group.bicepparam
+      - bicep/40-privatelink.bicep
       - pipelines/deploy-bicep.yaml
-      - pipelines/stages/deploy-bicep.yaml
+      - pipelines/stages/deploy-bicep-resource-group.yaml
+      - pipelines/stages/deploy-bicep-network.yaml
+      - pipelines/stages/deploy-bicep-infra.yaml
+      - pipelines/stages/deploy-bicep-privatelink.yaml
 
 pr:
   branches:
@@ -20,14 +26,20 @@ pr:
       - main
   paths:
     include:
+      - bicep/envs/*/10-resource-group.bicepparam
+      - bicep/envs/*/20-network.bicepparam
+      - bicep/envs/*/30-infra.bicepparam
+      - bicep/envs/*/40-privatelink.bicepparam
+      - bicep/modules/*.bicep
       - bicep/10-resource-group.bicep
       - bicep/20-network.bicep
       - bicep/30-infra.bicep
-      - bicep/modules/*.bicep
-      - bicep/**/30-infra.bicepparam
-      - bicep/**/10-10-resource-group.bicepparam
+      - bicep/40-privatelink.bicep
       - pipelines/deploy-bicep.yaml
-      - pipelines/stages/deploy-bicep.yaml
+      - pipelines/stages/deploy-bicep-resource-group.yaml
+      - pipelines/stages/deploy-bicep-network.yaml
+      - pipelines/stages/deploy-bicep-infra.yaml
+      - pipelines/stages/deploy-bicep-privatelink.yaml
 
 pool:
   name: DEFRA-COMMON-UBUNTU-SSV5
@@ -47,7 +59,19 @@ variables:
   - template: "vars/${{ lower(parameters.environmentName) }}.yaml"
 
 stages:
-  - template: stages/deploy-bicep.yaml
+  - template: stages/deploy-bicep-resource-group.yaml
+    parameters:
+      environmentName: ${{ parameters.environmentName }}
+
+  - template: stages/deploy-bicep-network.yaml
+    parameters:
+      environmentName: ${{ parameters.environmentName }}
+
+  - template: stages/deploy-bicep-infra.yaml
+    parameters:
+      environmentName: ${{ parameters.environmentName }}
+
+  - template: stages/deploy-bicep-privatelink.yaml
     parameters:
       environmentName: ${{ parameters.environmentName }}
 

@@ -43,15 +43,19 @@ stages:
     parameters:
       environmentName: ${{ parameters.environmentName }}
 
-  - template: stages/deploy-bicep.yaml
+  - template: stages/deploy-bicep-resource-group.yaml
+    parameters:
+      environmentName: ${{ parameters.environmentName }}
+
+  - template: stages/deploy-bicep-network.yaml
+    parameters:
+      environmentName: ${{ parameters.environmentName }}
+
+  - template: stages/deploy-bicep-infra.yaml
     parameters:
       environmentName: ${{ parameters.environmentName }}
 
   - template: stages/infra-permissions.yaml
-    parameters:
-      environmentName: ${{ parameters.environmentName }}
-
-  - template: stages/privatelink-dns-records.yaml
     parameters:
       environmentName: ${{ parameters.environmentName }}
 
@@ -60,6 +64,14 @@ stages:
       environmentName: ${{ parameters.environmentName }}
 
   - template: stages/install-helm-charts.yaml
+    parameters:
+      environmentName: ${{ parameters.environmentName }}
+
+  - template: stages/deploy-bicep-privatelink.yaml
+    parameters:
+      environmentName: ${{ parameters.environmentName }}
+
+  - template: stages/private-endpoint-dns-records.yaml
     parameters:
       environmentName: ${{ parameters.environmentName }}
 

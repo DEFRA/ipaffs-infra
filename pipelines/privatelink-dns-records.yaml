@@ -5,8 +5,8 @@ trigger:
       - main
   paths:
     include:
-      - pipelines/privatelink-dns-records.yaml
-      - pipelines/stages/privatelink-dns-records.yaml
+      - pipelines/private-endpoint-dns-records.yaml
+      - pipelines/stages/private-endpoint-dns-records.yaml
 
 pr:
   branches:
@@ -14,8 +14,8 @@ pr:
       - main
   paths:
     include:
-      - pipelines/privatelink-dns-records.yaml
-      - pipelines/stages/privatelink-dns-records.yaml
+      - pipelines/private-endpoint-dns-records.yaml
+      - pipelines/stages/private-endpoint-dns-records.yaml
 
 pool:
   name: DEFRA-COMMON-UBUNTU-SSV5
@@ -42,7 +42,7 @@ resources:
       ref: refs/tags/Release-v6-latest
 
 stages:
-  - template: stages/privatelink-dns-records.yaml
+  - template: stages/private-endpoint-dns-records.yaml
     parameters:
       environmentName: ${{ parameters.environmentName }}
 
