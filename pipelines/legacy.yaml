@@ -5,8 +5,8 @@ trigger:
       - main
   paths:
     include:
+      - bicep/envs/*/90-legacy.bicepparam
       - bicep/90-legacy.bicep
-      - bicep/**/90-legacy.bicepparam
       - pipelines/legacy.yaml
 
 pr:
@@ -15,8 +15,8 @@ pr:
       - main
   paths:
     include:
+      - bicep/envs/*/90-legacy.bicepparam
       - bicep/90-legacy.bicep
-      - bicep/**/90-legacy.bicepparam
       - pipelines/legacy.yaml
 
 pool:
