@@ -271,7 +271,7 @@ resources:
       name: DEFRA/ipaffs-checks-microservice
       ref: refs/heads/master
 
-    - repository: commodity-code-service
+    - repository: commoditycode-service
       type: github
       endpoint: DEFRA
       name: DEFRA/ipaffs-commoditycode-microservice
