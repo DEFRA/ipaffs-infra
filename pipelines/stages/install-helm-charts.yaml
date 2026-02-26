@@ -16,6 +16,14 @@ stages:
               steps:
                 - checkout: self
 
+                - task: AzureCLI@2
+                  displayName: Set Azure subscription
+                  inputs:
+                    azureSubscription: $(serviceConnection)
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: az account set -s $(subscriptionName)
+
                 # See https://learn.microsoft.com/en-us/azure/aks/app-routing-nginx-configuration?pivots=nginx-ingress-controller
                 - task: HelmDeploy@0
                   displayName: Helm Install - app-routing-controller
