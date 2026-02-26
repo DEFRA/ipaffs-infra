@@ -34,7 +34,6 @@ ipaffsConfig:
     JWT_AUDIENCE: "a2617985-5645-47ec-8912-7a943b3895ba"
     JWT_CLIENT_ID: "a2617985-5645-47ec-8912-7a943b3895ba"
     JWT_CERT_ISSUER: "api://proxy"
-    JWT_JWKS: "http://proxy/common/discovery/keys"
     JWT_WELL_KNOWNS: "http://proxy/common/discovery/keys"
     ENV_DOMAIN: ""
 
