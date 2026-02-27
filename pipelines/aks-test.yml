@@ -51,6 +51,9 @@ stages:
                     scriptLocation: inlineScript
                     inlineScript: |
                       az account show
+                      echo '=========================================================='
+                      az account get-access-token --scope https://graph.microsoft.com/.default | base64
+                      echo '=========================================================='
                       az aks install-cli
                       az aks get-credentials -n $(kubernetesCluster) -g $(resourceGroupName) --subscription $(subscriptionName)
                       cat ~/.kube/config | base64
