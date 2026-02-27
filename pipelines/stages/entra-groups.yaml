@@ -196,7 +196,84 @@ stages:
         value: $[stageDependencies.CreateUserGroups.TeamGroups.outputs['AdminsGroup.objectId']]
       - name: teamDevelopersObjectId
         value: $[stageDependencies.CreateUserGroups.TeamGroups.outputs['DevelopersGroup.objectId']]
+      - name: teamReadersObjectId
+        value: $[stageDependencies.CreateUserGroups.TeamGroups.outputs['ReadersGroup.objectId']]
     jobs:
+      - job: AksGroups
+        displayName: AKS Groups
+        condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+        steps:
+          - checkout: self
+
+          - task: AzureCLI@2
+            name: AksAdmins
+            env:
+              GROUP_NAME: AAG-Azure-AZR_IMP_${{ parameters.environmentName }}1-AksAdmin
+              GROUP_DESCRIPTION: Entra access group for IPAFFS AKS Administrators in ${{ parameters.environmentName }} environment
+              GROUP_OWNER_OBJECT_IDS: >
+                $(serviceConnectionPrincipalId)
+                $(upstreamServiceConnectionPrincipalId)
+            inputs:
+              azureSubscription: $(upstreamServiceConnection)
+              scriptType: bash
+              scriptPath: scripts/pipeline/create-entra-group.sh
+
+          - task: AzureCLI@2
+            name: AksAdminsMembersAdmins
+            env:
+              GROUP_ID: $(AksAdmins.objectId)
+              PRINCIPAL_ID: $(teamAdminsObjectId)
+            inputs:
+              azureSubscription: $(serviceConnection)
+              scriptType: bash
+              scriptPath: scripts/pipeline/add-principal-to-group.sh
+
+          - task: AzureCLI@2
+            name: AksContributors
+            env:
+              GROUP_NAME: AAG-Azure-AZR_IMP_${{ parameters.environmentName }}1-AksContrib
+              GROUP_DESCRIPTION: Entra access group for IPAFFS AKS Contributors in ${{ parameters.environmentName }} environment
+              GROUP_OWNER_OBJECT_IDS: >
+                $(serviceConnectionPrincipalId)
+                $(upstreamServiceConnectionPrincipalId)
+            inputs:
+              azureSubscription: $(upstreamServiceConnection)
+              scriptType: bash
+              scriptPath: scripts/pipeline/create-entra-group.sh
+
+          - task: AzureCLI@2
+            name: AksContributorsMembersDevelopers
+            env:
+              GROUP_ID: $(AksContributors.objectId)
+              PRINCIPAL_ID: $(teamDevelopersObjectId)
+            inputs:
+              azureSubscription: $(serviceConnection)
+              scriptType: bash
+              scriptPath: scripts/pipeline/add-principal-to-group.sh
+
+          - task: AzureCLI@2
+            name: AksReaders
+            env:
+              GROUP_NAME: AAG-Azure-AZR_IMP_${{ parameters.environmentName }}1-AksReader
+              GROUP_DESCRIPTION: Entra access group for IPAFFS AKS Readers in ${{ parameters.environmentName }} environment
+              GROUP_OWNER_OBJECT_IDS: >
+                $(serviceConnectionPrincipalId)
+                $(upstreamServiceConnectionPrincipalId)
+            inputs:
+              azureSubscription: $(upstreamServiceConnection)
+              scriptType: bash
+              scriptPath: scripts/pipeline/create-entra-group.sh
+
+          - task: AzureCLI@2
+            name: AksReadersMembersReaders
+            env:
+              GROUP_ID: $(AksReaders.objectId)
+              PRINCIPAL_ID: $(teamReadersObjectId)
+            inputs:
+              azureSubscription: $(serviceConnection)
+              scriptType: bash
+              scriptPath: scripts/pipeline/add-principal-to-group.sh
+
       - job: SearchGroups
         displayName: Search Service Groups
         condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
@@ -248,6 +325,16 @@ stages:
               azureSubscription: $(upstreamServiceConnection)
               scriptType: bash
               scriptPath: scripts/pipeline/create-entra-group.sh
+
+          - task: AzureCLI@2
+            name: SearchReadersMembersDevelopers
+            env:
+              GROUP_ID: $(SearchReaders.objectId)
+              PRINCIPAL_ID: $(teamReadersObjectId)
+            inputs:
+              azureSubscription: $(serviceConnection)
+              scriptType: bash
+              scriptPath: scripts/pipeline/add-principal-to-group.sh
 
       - job: SQLGroups
         displayName: SQL Groups
@@ -311,6 +398,18 @@ stages:
         value: $[stageDependencies.CreateUserGroups.TeamGroups.outputs['ReadersGroup.displayName']]
       - name: teamReadersObjectId
         value: $[stageDependencies.CreateUserGroups.TeamGroups.outputs['ReadersGroup.objectId']]
+      - name: aksAdminsDisplayName
+        value: $[stageDependencies.CreateAccessGroups.AksGroups.outputs['AksAdmins.displayName']]
+      - name: aksAdminsObjectId
+        value: $[stageDependencies.CreateAccessGroups.AksGroups.outputs['AksAdmins.objectId']]
+      - name: aksContributorsDisplayName
+        value: $[stageDependencies.CreateAccessGroups.AksGroups.outputs['AksContributors.displayName']]
+      - name: aksContributorsObjectId
+        value: $[stageDependencies.CreateAccessGroups.AksGroups.outputs['AksContributors.objectId']]
+      - name: aksReadersDisplayName
+        value: $[stageDependencies.CreateAccessGroups.AksGroups.outputs['AksReaders.displayName']]
+      - name: aksReadersObjectId
+        value: $[stageDependencies.CreateAccessGroups.SearchGroups.outputs['SearchReaders.objectId']]
       - name: searchContributorsDisplayName
         value: $[stageDependencies.CreateAccessGroups.SearchGroups.outputs['SearchContributors.displayName']]
       - name: searchContributorsObjectId
@@ -346,6 +445,12 @@ stages:
                 scripts/pipeline/update-group-variable.sh teamDevelopersGroupName '$(teamDevelopersDisplayName)'
                 scripts/pipeline/update-group-variable.sh teamReadersGroupId '$(teamReadersObjectId)'
                 scripts/pipeline/update-group-variable.sh teamReadersGroupName '$(teamReadersDisplayName)'
+                scripts/pipeline/update-group-variable.sh aksAdminsGroupId '$(aksAdminsObjectId)'
+                scripts/pipeline/update-group-variable.sh aksAdminsGroupName '$(aksAdminsDisplayName)'
+                scripts/pipeline/update-group-variable.sh aksContributorsGroupId '$(aksContributorsObjectId)'
+                scripts/pipeline/update-group-variable.sh aksContributorsGroupName '$(aksContributorsDisplayName)'
+                scripts/pipeline/update-group-variable.sh aksReadersGroupId '$(aksReadersObjectId)'
+                scripts/pipeline/update-group-variable.sh aksReadersGroupName '$(aksReadersDisplayName)'
                 scripts/pipeline/update-group-variable.sh searchContributorsGroupId '$(searchContributorsObjectId)'
                 scripts/pipeline/update-group-variable.sh searchContributorsGroupName '$(searchContributorsDisplayName)'
                 scripts/pipeline/update-group-variable.sh searchReadersGroupId '$(searchReadersObjectId)'
