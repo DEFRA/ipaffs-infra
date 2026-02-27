@@ -1,0 +1,65 @@
+---
+trigger:
+  branches:
+    exclude:
+      - '*'
+
+pr:
+  branches:
+    exclude:
+      - '*'
+
+pool:
+  name: DEFRA-COMMON-UBUNTU-SSV5
+
+parameters:
+  - name: environmentName
+    displayName: Environment
+    type: string
+    default: DEV
+    values:
+      - DEV
+      - TST
+
+variables:
+  - group: "${{ parameters.environmentName }}"
+  - template: "vars/common.yaml"
+  - template: "vars/${{ lower(parameters.environmentName) }}.yaml"
+  - name: helmDryRun
+    ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/main') }}:
+      value: ''
+    ${{ else }}:
+      value: '--dry-run'
+
+stages:
+  - stage: AksTest
+    jobs:
+      - deployment: DeployTest
+        environment:
+          name: "${{ parameters.environmentName }}"
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+
+                - task: AzureCLI@2
+                  displayName: Set Azure subscription
+                  inputs:
+                    azureSubscription: $(serviceConnection)
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: az aks get-credentials -n $(kubernetesCluster) -g $(resourceGroupName) --subscription $(subscriptionName)
+
+                # See https://learn.microsoft.com/en-us/azure/aks/app-routing-nginx-configuration?pivots=nginx-ingress-controller
+                - task: Bash@3
+                  targetType: inline
+                  script: |
+                    kubectl get all --all-namespaces
+                    echo '----------------------------------------------------------'
+                    find . | grep 'kube/config'
+                    echo '----------------------------------------------------------'
+                    tree
+
+
+# vim: set ts=2 sts=2 sw=2 et:
