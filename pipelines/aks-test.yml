@@ -51,6 +51,7 @@ stages:
                     scriptLocation: inlineScript
                     inlineScript: |
                       az account show
+                      az aks install-cli
                       az aks get-credentials -n $(kubernetesCluster) -g $(resourceGroupName) --subscription $(subscriptionName)
                       kubectl get all --all-namespaces
                       echo '----------------------------------------------------------'
