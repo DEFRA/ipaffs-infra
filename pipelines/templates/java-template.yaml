@@ -16,6 +16,9 @@ parameters:
     type: boolean
     default: false
 
+  - name: mvnGoals
+    type: string
+    default: verify jacoco:report package
 
 stages:
   - stage: BuildService
