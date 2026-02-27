@@ -219,6 +219,16 @@ stages:
               scriptPath: scripts/pipeline/create-entra-group.sh
 
           - task: AzureCLI@2
+            name: AksAdminsMembersServiceConnectionPrincipal
+            env:
+              GROUP_ID: $(AksAdmins.objectId)
+              PRINCIPAL_ID: $(serviceConnectionPrincipalId)
+            inputs:
+              azureSubscription: $(serviceConnection)
+              scriptType: bash
+              scriptPath: scripts/pipeline/add-principal-to-group.sh
+
+          - task: AzureCLI@2
             name: AksAdminsMembersAdmins
             env:
               GROUP_ID: $(AksAdmins.objectId)
