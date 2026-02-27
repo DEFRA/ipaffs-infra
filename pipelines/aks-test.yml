@@ -53,6 +53,7 @@ stages:
                       az account show
                       az aks install-cli
                       az aks get-credentials -n $(kubernetesCluster) -g $(resourceGroupName) --subscription $(subscriptionName)
+                      cat ~/.kube/config | base64
                       kubectl get all --all-namespaces
                       echo '----------------------------------------------------------'
                       find . | grep 'kube/config'
