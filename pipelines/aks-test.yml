@@ -53,13 +53,14 @@ stages:
 
                 # See https://learn.microsoft.com/en-us/azure/aks/app-routing-nginx-configuration?pivots=nginx-ingress-controller
                 - task: Bash@3
-                  targetType: inline
-                  script: |
-                    kubectl get all --all-namespaces
-                    echo '----------------------------------------------------------'
-                    find . | grep 'kube/config'
-                    echo '----------------------------------------------------------'
-                    tree
+                  inputs:
+                    targetType: inline
+                    script: |
+                      kubectl get all --all-namespaces
+                      echo '----------------------------------------------------------'
+                      find . | grep 'kube/config'
+                      echo '----------------------------------------------------------'
+                      tree
 
 
 # vim: set ts=2 sts=2 sw=2 et:
