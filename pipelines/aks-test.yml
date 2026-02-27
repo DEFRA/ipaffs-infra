@@ -49,14 +49,9 @@ stages:
                     azureSubscription: $(serviceConnection)
                     scriptType: bash
                     scriptLocation: inlineScript
-                    inlineScript: az aks get-credentials -n $(kubernetesCluster) -g $(resourceGroupName) --subscription $(subscriptionName)
-
-                # See https://learn.microsoft.com/en-us/azure/aks/app-routing-nginx-configuration?pivots=nginx-ingress-controller
-                - task: Bash@3
-                  inputs:
-                    targetType: inline
-                    script: |
+                    inlineScript: |
                       az account show
+                      az aks get-credentials -n $(kubernetesCluster) -g $(resourceGroupName) --subscription $(subscriptionName)
                       kubectl get all --all-namespaces
                       echo '----------------------------------------------------------'
                       find . | grep 'kube/config'
