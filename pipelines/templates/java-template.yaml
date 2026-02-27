@@ -16,12 +16,17 @@ parameters:
     type: boolean
     default: false
 
+  - name: mvnGoals
+    type: string
+    default: verify jacoco:report package
 
 stages:
   - stage: BuildService
     displayName: Build Service
     jobs:
       - template: /pipelines/jobs/build-java-project.yaml@ipaffs-infra
+        parameters:
+          mvnGoals:  "${{ parameters.mvnGoals }}"
 
   - stage: PackageService
     displayName: Package Service Image
