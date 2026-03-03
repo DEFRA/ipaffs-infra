@@ -172,9 +172,9 @@ parameters:
         migrations: true
         pipeline: permissions-service
 
-#      - name: riskassessment-service
-#        migrations: false
-#        pipeline: riskassessment-service
+      - name: riskassessment-service
+        migrations: false
+        pipeline: riskassessment-service
 
 #      - name: risk-interface-service
 #        migrations: false
@@ -195,6 +195,10 @@ parameters:
 #      - name: traces-data-processor-service
 #        migrations: true
 #        pipeline: traces-data-processor-service
+
+      - name: upload-service
+        migrations: false
+        pipeline: upload-service
 
       - name: proxy
         migrations: false
@@ -244,7 +248,7 @@ resources:
       type: github
       endpoint: DEFRA
       name: DEFRA/ipaffs-frontend-notification
-      ref: refs/heads/feature/jwt-aks
+      ref: refs/heads/master
 
     - repository: upload-frontend
       type: github
@@ -418,13 +422,14 @@ resources:
     - repository: riskassessment-service
       type: github
       endpoint: DEFRA
-      name: DEFRA/ipaffs-risk-interface-microservice
+      name: DEFRA/ipaffs-risk-assessment-microservice
+
       ref: refs/heads/master
 
     - repository: risk-interface-service
       type: github
       endpoint: DEFRA
-      name: DEFRA/ipaffs-risk-assessment-microservice
+      name: DEFRA/ipaffs-risk-interface-microservice
       ref: refs/heads/master
 
     - repository: risk-locking-service
@@ -449,6 +454,12 @@ resources:
       type: github
       endpoint: DEFRA
       name: DEFRA/ipaffs-traces-data-processor-microservice
+      ref: refs/heads/master
+
+    - repository: upload-service
+      type: github
+      endpoint: DEFRA
+      name: DEFRA/ipaffs-file-upload-microservice
       ref: refs/heads/master
 
     - repository: proxy
