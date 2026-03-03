@@ -95,18 +95,12 @@ module externalSecrets './modules/external-secrets-identity.bicep' = {
   params: {
     deploymentId: deploymentId
     externalSecretsParams: externalSecretsParams
-    keyVaultName: keyVault.keyVaultName
+    keyVaultName: keyVault.outputs.keyVaultName
     location: location
     oidcIssuerUrl: aks.outputs.oidcIssuerUrl
     tags: tags
   }
 }
-
-var keyVaultParamsWithManagedIdentities = union(keyVaultParams, {
-  principalObjectIds: union(keyVaultParams.principalObjectIds, [
-    externalSecrets.outputs.principalObjectId
-  ])
-})
 
 module keyVault './modules/keyvault.bicep' = {
   name: 'keyVault-${deploymentId}'
@@ -114,7 +108,7 @@ module keyVault './modules/keyvault.bicep' = {
   params: {
     deploymentId: deploymentId
     entraGroups: entraGroups
-    keyVaultParams: keyVaultParamsWithManagedIdentities
+    keyVaultParams: keyVaultParams
     location: location
     subnetNames: subnetNames
     subnets: vnet.properties.subnets

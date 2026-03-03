@@ -3,6 +3,7 @@ targetScope = 'resourceGroup'
 param keyVaultName string
 param deploymentId string
 param principalObjectId string
+param principalType string
 param roleDefinitionId string
 
 resource keyVault 'Microsoft.KeyVault/vaults@2025-05-01' = {
@@ -14,7 +15,7 @@ resource roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   scope: keyVault
   properties: {
     principalId: principalObjectId
-    principalType: 'ServicePrincipal'
+    principalType: principalType
     roleDefinitionId: roleDefinitionId
   }
 }
