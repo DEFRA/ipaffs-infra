@@ -284,6 +284,58 @@ stages:
               scriptType: bash
               scriptPath: scripts/pipeline/add-principal-to-group.sh
 
+      - job: KeyVaultGroups
+        displayName: KeyVault Groups
+        condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+        steps:
+          - checkout: self
+
+          - task: AzureCLI@2
+            name: KeyVaultAdmins
+            env:
+              GROUP_NAME: AAG-Azure-AZR_IMP_${{ parameters.environmentName }}1-KeyVaultAdmin
+              GROUP_DESCRIPTION: Entra access group for IPAFFS KeyVault Administrators in ${{ parameters.environmentName }} environment
+              GROUP_OWNER_OBJECT_IDS: >
+                $(serviceConnectionPrincipalId)
+                $(upstreamServiceConnectionPrincipalId)
+            inputs:
+              azureSubscription: $(upstreamServiceConnection)
+              scriptType: bash
+              scriptPath: scripts/pipeline/create-entra-group.sh
+
+          - task: AzureCLI@2
+            name: KeyVaultAdminsMembersAdmins
+            env:
+              GROUP_ID: $(KeyVaultAdmins.objectId)
+              PRINCIPAL_ID: $(teamAdminsObjectId)
+            inputs:
+              azureSubscription: $(serviceConnection)
+              scriptType: bash
+              scriptPath: scripts/pipeline/add-principal-to-group.sh
+
+          - task: AzureCLI@2
+            name: KeyVaultSecretsReader
+            env:
+              GROUP_NAME: AAG-Azure-AZR_IMP_${{ parameters.environmentName }}1-KeyVaultSecretsReader
+              GROUP_DESCRIPTION: Entra access group for IPAFFS KeyVault Secrets Readers in ${{ parameters.environmentName }} environment
+              GROUP_OWNER_OBJECT_IDS: >
+                $(serviceConnectionPrincipalId)
+                $(upstreamServiceConnectionPrincipalId)
+            inputs:
+              azureSubscription: $(upstreamServiceConnection)
+              scriptType: bash
+              scriptPath: scripts/pipeline/create-entra-group.sh
+
+          - task: AzureCLI@2
+            name: KeyVaultSecretsReaderMembersDevelopers
+            env:
+              GROUP_ID: $(KeyVaultSecretsReader.objectId)
+              PRINCIPAL_ID: $(teamDevelopersObjectId)
+            inputs:
+              azureSubscription: $(serviceConnection)
+              scriptType: bash
+              scriptPath: scripts/pipeline/add-principal-to-group.sh
+
       - job: SearchGroups
         displayName: Search Service Groups
         condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
@@ -420,6 +472,14 @@ stages:
         value: $[stageDependencies.CreateAccessGroups.AksGroups.outputs['AksReaders.displayName']]
       - name: aksReadersObjectId
         value: $[stageDependencies.CreateAccessGroups.AksGroups.outputs['AksReaders.objectId']]
+      - name: keyVaultAdminsDisplayName
+        value: $[stageDependencies.CreateAccessGroups.KeyVaultGroups.outputs['KeyVaultAdmins.displayName']]
+      - name: keyVaultAdminsObjectId
+        value: $[stageDependencies.CreateAccessGroups.KeyVaultGroups.outputs['KeyVaultAdmins.objectId']]
+      - name: keyVaultSecretsReaderDisplayName
+        value: $[stageDependencies.CreateAccessGroups.KeyVaultGroups.outputs['KeyVaultSecretsReader.displayName']]
+      - name: keyVaultSecretsReaderObjectId
+        value: $[stageDependencies.CreateAccessGroups.KeyVaultGroups.outputs['KeyVaultSecretsReader.objectId']]
       - name: searchContributorsDisplayName
         value: $[stageDependencies.CreateAccessGroups.SearchGroups.outputs['SearchContributors.displayName']]
       - name: searchContributorsObjectId
@@ -461,6 +521,10 @@ stages:
                 scripts/pipeline/update-group-variable.sh aksContributorsGroupName '$(aksContributorsDisplayName)'
                 scripts/pipeline/update-group-variable.sh aksReadersGroupId '$(aksReadersObjectId)'
                 scripts/pipeline/update-group-variable.sh aksReadersGroupName '$(aksReadersDisplayName)'
+                scripts/pipeline/update-group-variable.sh keyVaultAdminsGroupId '$(keyVaultAdminsObjectId)'
+                scripts/pipeline/update-group-variable.sh keyVaultAdminsGroupName '$(keyVaultAdminsDisplayName)'
+                scripts/pipeline/update-group-variable.sh keyVaultSecretsReaderGroupId '$(keyVaultSecretsReaderObjectId)'
+                scripts/pipeline/update-group-variable.sh keyVaultSecretsReaderGroupName '$(keyVaultSecretsReaderDisplayName)'
                 scripts/pipeline/update-group-variable.sh searchContributorsGroupId '$(searchContributorsObjectId)'
                 scripts/pipeline/update-group-variable.sh searchContributorsGroupName '$(searchContributorsDisplayName)'
                 scripts/pipeline/update-group-variable.sh searchReadersGroupId '$(searchReadersObjectId)'
