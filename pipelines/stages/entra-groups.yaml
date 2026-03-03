@@ -419,7 +419,7 @@ stages:
       - name: aksReadersDisplayName
         value: $[stageDependencies.CreateAccessGroups.AksGroups.outputs['AksReaders.displayName']]
       - name: aksReadersObjectId
-        value: $[stageDependencies.CreateAccessGroups.SearchGroups.outputs['AksReaders.objectId']]
+        value: $[stageDependencies.CreateAccessGroups.AksGroups.outputs['AksReaders.objectId']]
       - name: searchContributorsDisplayName
         value: $[stageDependencies.CreateAccessGroups.SearchGroups.outputs['SearchContributors.displayName']]
       - name: searchContributorsObjectId
