@@ -56,6 +56,7 @@ module aks './modules/aks.bicep' = {
     acrName: acr.outputs.acrName
     aksParams: aksParams
     deploymentId: deploymentId
+    entraGroups: entraGroups
     location: location
     logAnalyticsId: monitoring.outputs.logAnalyticsId
     subnetNames: subnetNames

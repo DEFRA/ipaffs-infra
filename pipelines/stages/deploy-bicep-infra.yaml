@@ -26,6 +26,18 @@ stages:
                 using '30-infra.bicep'
                 extends 'envs/${{ lower(parameters.environmentName) }}/30-infra.bicepparam'
                 param entraGroups = {
+                  aksAdmins: {
+                    id: '$(aksAdminsGroupId)'
+                    name: '$(aksAdminsGroupName)'
+                  }
+                  aksContributors: {
+                    id: '$(aksContributorsGroupId)'
+                    name: '$(aksContributorsGroupName)'
+                  }
+                  aksReaders: {
+                    id: '$(aksReadersGroupId)'
+                    name: '$(aksReadersGroupName)'
+                  }
                   searchContributors: {
                     id: '$(searchContributorsGroupId)'
                     name: '$(searchContributorsGroupName)'
