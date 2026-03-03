@@ -95,6 +95,7 @@ module externalSecrets './modules/external-secrets-identity.bicep' = {
   params: {
     deploymentId: deploymentId
     externalSecretsParams: externalSecretsParams
+    keyVaultName: keyVault.keyVaultName
     location: location
     oidcIssuerUrl: aks.outputs.oidcIssuerUrl
     tags: tags
