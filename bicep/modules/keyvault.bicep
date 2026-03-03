@@ -1,6 +1,7 @@
 targetScope = 'resourceGroup'
 
 param deploymentId string
+param entraGroups object
 param location string
 param keyVaultParams object
 param subnetNames object
@@ -16,6 +17,7 @@ resource keyVault 'Microsoft.KeyVault/vaults@2025-05-01' = {
   tags: tags
 
   properties: {
+    enableRbacAuthorization: true
     publicNetworkAccess: 'Disabled'
     tenantId: tenantId
 
@@ -23,19 +25,6 @@ resource keyVault 'Microsoft.KeyVault/vaults@2025-05-01' = {
       name: 'standard'
       family: 'A'
     }
-
-    accessPolicies: [for objectId in keyVaultParams.principalObjectIds: {
-      tenantId: tenantId
-      objectId: objectId
-      permissions: {
-        secrets: [
-          'get'
-          'list'
-          'set'
-          'delete'
-        ]
-      }
-    }]
 
     networkAcls: {
       defaultAction: 'Deny'
@@ -65,6 +54,33 @@ resource keyVaultPrivateEndpoints 'Microsoft.Network/privateEndpoints@2024-10-01
         }
       }
     ]
+  }
+}
+
+var keyVaultAdministratorRoleId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '00482a5a-887f-4fb3-b363-3b7fe8e74483')
+var keyVaultSecretsUserRoleId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '4633458b-17de-408a-b874-0445c86b69e6')
+
+module keyVaultAdministrator './keyvault-role-assignment.bicep' = {
+  name: 'keyVaultAdministrator-${deploymentId}'
+  scope: resourceGroup()
+  params: {
+    keyVaultName: keyVaultParams.name
+    deploymentId: deploymentId
+    principalObjectId: entraGroups.keyVaultAdmins.id
+    principalType: 'Group'
+    roleDefinitionId: keyVaultAdministratorRoleId
+  }
+}
+
+module keyVaultSecretsReader './keyvault-role-assignment.bicep' = {
+  name: 'keyVaultSecretsReader-${deploymentId}'
+  scope: resourceGroup()
+  params: {
+    keyVaultName: keyVaultParams.name
+    deploymentId: deploymentId
+    principalObjectId: entraGroups.keyVaultSecretsReaders.id
+    principalType: 'Group'
+    roleDefinitionId: keyVaultSecretsUserRoleId
   }
 }
 

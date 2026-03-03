@@ -38,6 +38,14 @@ stages:
                     id: '$(aksReadersGroupId)'
                     name: '$(aksReadersGroupName)'
                   }
+                  keyVaultAdmins: {
+                    id: '$(keyVaultAdminsGroupId)'
+                    name: '$(keyVaultAdminsGroupName)'
+                  }
+                  keyVaultSecretsReaders: {
+                    id: '$(keyVaultSecretsReadersGroupId)'
+                    name: '$(keyVaultSecretsReadersGroupName)'
+                  }
                   searchContributors: {
                     id: '$(searchContributorsGroupId)'
                     name: '$(searchContributorsGroupName)'

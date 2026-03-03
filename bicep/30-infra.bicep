@@ -112,6 +112,7 @@ module keyVault './modules/keyvault.bicep' = {
   scope: resourceGroup()
   params: {
     deploymentId: deploymentId
+    entraGroups: entraGroups
     keyVaultParams: keyVaultParamsWithManagedIdentities
     location: location
     subnetNames: subnetNames
