@@ -7,7 +7,7 @@ metadata:
   annotations:
     azure.workload.identity/client-id: {{ .Values.database.migrations.clientId }}
     helm.sh/hook: pre-install,pre-upgrade
-    helm.sh/hook-delete-policy: before-hook-creation
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
     helm.sh/hook-weight: "10"
   name: "{{ .Values.service }}-migrations"
 
@@ -20,7 +20,7 @@ metadata:
     {{- include "ipaffs-common.labels" . | nindent 4 }}
   annotations:
     helm.sh/hook: pre-install,pre-upgrade
-    helm.sh/hook-delete-policy: before-hook-creation
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
     helm.sh/hook-weight: "11"
 spec:
   template:
