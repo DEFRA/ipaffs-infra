@@ -64,6 +64,9 @@ spec:
                 name: {{ printf "%s-servicebus" .Values.service }}
             {{- end }}
           env:
+          {{- with .Values.env }}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           {{- range $databaseName := .Values.database.databaseNames }}
           {{- $db := dict "databaseName" $databaseName "Values" $.Values "Release" $.Release }}
             - name: DATABASE_DB_CONNECTION_STRING_{{ upper (snakecase $databaseName) }}
