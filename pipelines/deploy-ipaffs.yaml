@@ -35,9 +35,9 @@ parameters:
     displayName: Services
     type: object
     default:
-#      - name: bcpadmin-frontend
-#        migrations: false
-#        pipeline: bcpadmin-frontend
+      - name: bcpadmin-frontend
+        migrations: false
+        pipeline: bcpadmin-frontend
 
 #      - name: bordernotification-frontend
 #        migrations: false
