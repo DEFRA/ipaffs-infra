@@ -10,9 +10,6 @@ param subnets array
 param tags object
 param vnetName string
 
-var acrPullRoleId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '7f951dda-4ed3-4680-a7ca-43fe172d538d')
-var networkContributorRoleId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '4d97b98b-1d4f-4787-a291-c67834d212e7')
-
 var apiServerSubnet = first(filter(subnets, subnet => subnet.name == subnetNames.aksApiServer))
 var systemNodePoolSubnet = first(filter(subnets, subnet => subnet.name == subnetNames.aksSystemNodes))
 var userNodePoolSubnet = first(filter(subnets, subnet => subnet.name == subnetNames.aksUserNodes))
@@ -22,6 +19,8 @@ resource userAssignedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@
   location: location
   tags: tags
 }
+
+var networkContributorRoleId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '4d97b98b-1d4f-4787-a291-c67834d212e7')
 
 module vnetNetworkContributor './vnet-role-assignment.bicep' = {
   name: 'vnetNetworkContributor-${deploymentId}'
@@ -167,6 +166,48 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2025-10-01' = {
     tier: aksParams.sku
   }
 }
+
+var aksRbacClusterAdminRoleId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b1ff04bb-8a4e-4dc4-8eb5-8693973ce19b')
+var aksRbacWriterRoleId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'a7ffa36f-339b-4b5c-8bdf-e2c188b2c0eb')
+var aksRbacReaderRoleId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '7f6c6a51-bcf8-42ba-9220-52d62157d7db')
+
+module aksAdmin './aks-role-assignment.bicep' = {
+  name: 'aksAdmin-${deploymentId}'
+  scope: resourceGroup()
+  params: {
+    aksName: aksParams.name
+    deploymentId: deploymentId
+    principalObjectId: entraGroups.aksAdmins.id
+    principalType: 'Group'
+    roleDefinitionId: aksRbacClusterAdminRoleId
+  }
+}
+
+module aksWriter './aks-role-assignment.bicep' = {
+  name: 'aksWriter-${deploymentId}'
+  scope: resourceGroup()
+  params: {
+    aksName: aksParams.name
+    deploymentId: deploymentId
+    principalObjectId: entraGroups.aksContributors.id
+    principalType: 'Group'
+    roleDefinitionId: aksRbacWriterRoleId
+  }
+}
+
+module aksReader './aks-role-assignment.bicep' = {
+  name: 'aksReader-${deploymentId}'
+  scope: resourceGroup()
+  params: {
+    aksName: aksParams.name
+    deploymentId: deploymentId
+    principalObjectId: entraGroups.aksReaders.id
+    principalType: 'Group'
+    roleDefinitionId: aksRbacReaderRoleId
+  }
+}
+
+var acrPullRoleId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '7f951dda-4ed3-4680-a7ca-43fe172d538d')
 
 module acrPull './acr-role-assignment.bicep' = {
   name: 'acrPull-${deploymentId}'
