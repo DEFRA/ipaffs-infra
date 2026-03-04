@@ -51,9 +51,9 @@ parameters:
 #        migrations: false
 #        pipeline: control-frontend
 
-#      - name: decision-frontend
-#        migrations: false
-#        pipeline: decision-frontend
+      - name: decision-frontend
+        migrations: false
+        pipeline: decision-frontend
 
       - name: notification-frontend
         migrations: false
