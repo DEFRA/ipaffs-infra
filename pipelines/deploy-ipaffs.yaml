@@ -152,9 +152,9 @@ parameters:
 #        migrations: false
 #        pipeline: filecompression-service
 
-      - name: in-service-messaging-service
+      - name: inservicemessaging-service
         migrations: true
-        pipeline: in-service-messaging-service
+        pipeline: inservicemessaging-service
 
       - name: notification-service
         migrations: true
@@ -389,7 +389,7 @@ resources:
       name: DEFRA/ipaffs-file-compression-microservice
       ref: refs/heads/master
 
-    - repository: in-service-messaging-service
+    - repository: inservicemessaging-service
       type: github
       endpoint: DEFRA
       name: DEFRA/ipaffs-in-service-messaging-microservice
