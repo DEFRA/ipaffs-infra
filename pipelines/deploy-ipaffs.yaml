@@ -47,9 +47,9 @@ parameters:
 #        migrations: false
 #        pipeline: checks-frontend
 
-#      - name: control-frontend
-#        migrations: false
-#        pipeline: control-frontend
+      - name: control-frontend
+        migrations: false
+        pipeline: control-frontend
 
       - name: decision-frontend
         migrations: false
