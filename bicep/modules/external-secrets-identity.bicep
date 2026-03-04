@@ -34,6 +34,7 @@ module keyVaultSecretsReader './keyvault-role-assignment.bicep' = {
   params: {
     keyVaultName: keyVaultName
     deploymentId: deploymentId
+    location: location
     principalObjectId: managedIdentity.properties.principalId
     principalType: 'Group'
     roleDefinitionId: keyVaultSecretsUserRoleId

@@ -2,12 +2,14 @@ targetScope = 'resourceGroup'
 
 param keyVaultName string
 param deploymentId string
+param location string
 param principalObjectId string
 param principalType string
 param roleDefinitionId string
 
 resource keyVault 'Microsoft.KeyVault/vaults@2025-05-01' = {
   name: keyVaultName
+  location: location
 }
 
 resource roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {

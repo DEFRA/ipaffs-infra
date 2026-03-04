@@ -66,6 +66,7 @@ module keyVaultAdministrator './keyvault-role-assignment.bicep' = {
   params: {
     keyVaultName: keyVaultParams.name
     deploymentId: deploymentId
+    location: location
     principalObjectId: entraGroups.keyVaultAdmins.id
     principalType: 'Group'
     roleDefinitionId: keyVaultAdministratorRoleId
@@ -78,6 +79,7 @@ module keyVaultSecretsReader './keyvault-role-assignment.bicep' = {
   params: {
     keyVaultName: keyVaultParams.name
     deploymentId: deploymentId
+    location: location
     principalObjectId: entraGroups.keyVaultSecretsReaders.id
     principalType: 'Group'
     roleDefinitionId: keyVaultSecretsUserRoleId
