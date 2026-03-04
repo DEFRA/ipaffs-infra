@@ -2,6 +2,7 @@ targetScope = 'resourceGroup'
 
 param externalSecretsParams object
 param deploymentId string
+param keyVaultName string
 param location string
 param oidcIssuerUrl string
 param tags object
@@ -22,6 +23,20 @@ resource credential 'Microsoft.ManagedIdentity/userAssignedIdentities/federatedI
     audiences: ['api://AzureADTokenExchange']
     issuer: oidcIssuerUrl
     subject: 'system:serviceaccount:${namespace}:${serviceAccount}'
+  }
+}
+
+var keyVaultSecretsUserRoleId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '4633458b-17de-408a-b874-0445c86b69e6')
+
+module keyVaultSecretsReader './keyvault-role-assignment.bicep' = {
+  name: 'keyVaultSecretsReader-${deploymentId}'
+  scope: resourceGroup()
+  params: {
+    keyVaultName: keyVaultName
+    deploymentId: deploymentId
+    principalObjectId: managedIdentity.properties.principalId
+    principalType: 'Group'
+    roleDefinitionId: keyVaultSecretsUserRoleId
   }
 }
 

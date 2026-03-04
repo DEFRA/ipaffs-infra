@@ -90,10 +90,6 @@ param insightsParams = {
 
 param keyVaultParams = {
   name: 'DEVIMPINFKV1401'
-  principalObjectIds: [
-    builtInGroups.contributors
-    builtInGroups.owners
-  ]
 }
 
 param monitoringParams = {
