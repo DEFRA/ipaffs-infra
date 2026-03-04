@@ -81,7 +81,7 @@ module keyVaultSecretsReader './keyvault-role-assignment.bicep' = {
     deploymentId: deploymentId
     location: location
     principalObjectId: entraGroups.keyVaultSecretsReaders.id
-    principalType: 'ServicePrincipal'
+    principalType: 'Group'
     roleDefinitionId: keyVaultSecretsUserRoleId
   }
 }
