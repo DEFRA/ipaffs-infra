@@ -65,8 +65,21 @@ resource searchServicePrivateEndpoints 'Microsoft.Network/privateEndpoints@2024-
   }
 }
 
+var searchServiceContributorRoleId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '7ca78c08-252a-4471-8644-bb5ff32d4ba0')
 var searchIndexDataContributorRoleId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '8ebe5a00-799e-43f5-93ac-243d3dce84a7')
 var searchIndexDataReaderRoleId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '1407120a-92aa-4202-b7e9-c0e197c71c8f')
+
+module searchServiceContributor './search-role-assignment.bicep' = {
+  name: 'searchServiceContributor-${deploymentId}'
+  scope: resourceGroup()
+  params: {
+    searchServiceName: searchParams.name
+    deploymentId: deploymentId
+    principalObjectId: entraGroups.searchContributors.id
+    principalType: 'Group'
+    roleDefinitionId: searchServiceContributorRoleId
+  }
+}
 
 module searchContributor './search-role-assignment.bicep' = {
   name: 'searchContributor-${deploymentId}'
