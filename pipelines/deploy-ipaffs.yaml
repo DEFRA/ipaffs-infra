@@ -39,9 +39,9 @@ parameters:
         migrations: false
         pipeline: bcpadmin-frontend
 
-#      - name: bordernotification-frontend
-#        migrations: false
-#        pipeline: bordernotification-frontend
+      - name: bordernotification-frontend
+        migrations: false
+        pipeline: bordernotification-frontend
 
 #      - name: checks-frontend
 #        migrations: false
@@ -80,13 +80,13 @@ parameters:
         migrations: true
         pipeline: bip-service
 
-#      - name: bordernotification-service
-#        migrations: true
-#        pipeline: bordernotification-service
+      - name: bordernotification-service
+        migrations: true
+        pipeline: bordernotification-service
 
-#      - name: bordernotificationrefdata-service
-#        migrations: true
-#        pipeline: bordernotificationrefdata-service
+      - name: bordernotificationrefdata-service
+        migrations: true
+        pipeline: bordernotificationrefdata-service
 
 #      - name: bulkupload-service
 #        migrations: false
