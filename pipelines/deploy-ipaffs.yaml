@@ -43,9 +43,9 @@ parameters:
         migrations: false
         pipeline: bordernotification-frontend
 
-#      - name: checks-frontend
-#        migrations: false
-#        pipeline: checks-frontend
+      - name: checks-frontend
+        migrations: false
+        pipeline: checks-frontend
 
       - name: control-frontend
         migrations: false
@@ -96,9 +96,9 @@ parameters:
         migrations: false
         pipeline: certificate-service
 
-#      - name: checks-service
-#        migrations: true
-#        pipeline: checks-service
+      - name: checks-service
+        migrations: true
+        pipeline: checks-service
 
       - name: cloning-service
         migrations: false
