@@ -43,6 +43,17 @@ jobs:
           scriptPath: scripts/pipeline/create-identity.sh
 
       - task: AzureCLI@2
+        name: AddToSearchContributorsGroup
+        displayName: Add Managed Identity to Search Contributors Group
+        env:
+          GROUP_ID: $(searchContributorsGroupId)
+          PRINCIPAL_ID: $(principalId)
+        inputs:
+          azureSubscription: $(serviceConnection)
+          scriptType: bash
+          scriptPath: scripts/pipeline/add-principal-to-group.sh
+
+      - task: AzureCLI@2
         name: AddToSQLAdminsGroup
         displayName: Add Managed Identity to SQL Admin Group
         env:
