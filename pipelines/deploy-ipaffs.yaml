@@ -59,9 +59,9 @@ parameters:
         migrations: false
         pipeline: notification-frontend
 
-#      - name: upload-frontend
-#        migrations: false
-#        pipeline: upload-frontend
+      - name: upload-frontend
+        migrations: false
+        pipeline: upload-frontend
 
 
       - name: approvedestablishment-service
@@ -128,9 +128,9 @@ parameters:
         migrations: true
         pipeline: economicoperator-service
 
-#      - name: enotification-event-service
-#        migrations: true
-#        pipeline: enotification-event-service
+      - name: enotificationevent-service
+        migrations: true
+        pipeline: enotificationevent-service
 
 #      - name: enotification-event-listener-service
 #        migrations: false
@@ -353,7 +353,7 @@ resources:
       name: DEFRA/ipaffs-economicoperator-microservice
       ref: refs/heads/master
 
-    - repository: enotification-event-service
+    - repository: enotificationevent-service
       type: github
       endpoint: DEFRA
       name: DEFRA/ipaffs-enotification-event-microservice
