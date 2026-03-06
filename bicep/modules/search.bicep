@@ -28,7 +28,7 @@ module sqlServerContributor './sql-server-role-assignment.bicep' = {
     principalObjectId: userAssignedIdentity.properties.principalId
     principalType: 'ServicePrincipal'
     roleDefinitionId: sqlServerContributorId
-    sqlServerName: searchParams.name
+    sqlServerName: sqlServerName
   }
 }
 
