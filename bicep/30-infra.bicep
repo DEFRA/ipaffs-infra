@@ -139,6 +139,7 @@ module search './modules/search.bicep' = {
     entraGroups: entraGroups
     searchParams: searchParams
     location: location
+    sqlServerName: sql.outputs.sqlServerName
     subnetNames: subnetNames
     subnets: vnet.properties.subnets
     tags: tags
@@ -206,6 +207,7 @@ output keyVaultName string = keyVault.outputs.keyVaultName
 output keyVaultUri string = keyVault.outputs.keyVaultUri
 output redisName string = redis.outputs.redisName
 output searchServiceName string = search.outputs.searchServiceName
+output serviceServiceManagedIdentityPrincipalId string = search.outputs.serviceServiceManagedIdentityPrincipalId
 output sqlServerName string = sql.outputs.sqlServerName
 output sqlServerManagedIdentityObjectId string = sql.outputs.sqlServerManagedIdentityObjectId
 output insightsInstrumentationKey string = insights.outputs.insightsInstrumentationKey

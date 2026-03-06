@@ -22,7 +22,7 @@ stages:
                 - checkout: self
 
                 - task: AzureCLI@2
-                  name: AddToDirectoryReadersGroup
+                  name: SQLServerDirectoryReaders
                   displayName: Add SQL Server Managed Identity to Directory Readers Group
                   env:
                     GROUP_ID: $(directoryReadersGroupObjectId)
@@ -30,6 +30,16 @@ stages:
                   inputs:
                     # TODO: Get other SPs added as group owners
                     azureSubscription: ADO-DefraGovUK-AZR-POC_IMP
+                    scriptType: bash
+                    scriptPath: scripts/pipeline/add-principal-to-group.sh
+
+                - task: AzureCLI@2
+                  name: SearchServiceSQLAdmins
+                  env:
+                    GROUP_ID: $(sqlAdminGroupId)
+                    PRINCIPAL_ID: $(serviceServiceManagedIdentityPrincipalId)
+                  inputs:
+                    azureSubscription: $(serviceConnection)
                     scriptType: bash
                     scriptPath: scripts/pipeline/add-principal-to-group.sh
 

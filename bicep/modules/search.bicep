@@ -4,6 +4,7 @@ param deploymentId string
 param entraGroups object
 param location string
 param searchParams object
+param sqlServerName string
 param subnetNames object
 param subnets array
 param tags object
@@ -11,13 +12,36 @@ param tenantId string
 
 var subnet = first(filter(subnets, subnet => subnet.name == subnetNames.privateEndpoints))
 
+resource userAssignedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2024-11-30' = {
+  name: searchParams.userAssignedIdentityName
+  location: location
+  tags: tags
+}
+
+var sqlServerContributorId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '6d8ee4ec-f05a-4a1d-8b00-a9b17e38b437')
+
+module sqlServerContributor './sql-server-role-assignment.bicep' = {
+  name: 'sqlServerContributor-${deploymentId}'
+  scope: resourceGroup()
+  params: {
+    deploymentId: deploymentId
+    principalObjectId: userAssignedIdentity.properties.principalId
+    principalType: 'ServicePrincipal'
+    roleDefinitionId: sqlServerContributorId
+    sqlServerName: searchParams.name
+  }
+}
+
 resource searchService 'Microsoft.Search/searchServices@2025-05-01' = {
   name: searchParams.name
   location: location
   tags: tags
 
   identity: {
-    type: 'SystemAssigned'
+    type: 'UserAssigned'
+    userAssignedIdentities: {
+      '${userAssignedIdentity.id}': {}
+    }
   }
 
   sku: {
@@ -108,3 +132,4 @@ module searchReader './search-role-assignment.bicep' = {
 output searchServiceName string = searchService.name
 output searchServiceId string = searchService.id
 output searchServiceEndpoint string = searchService.properties.endpoint
+output serviceServiceManagedIdentityPrincipalId string = userAssignedIdentity.properties.principalId
