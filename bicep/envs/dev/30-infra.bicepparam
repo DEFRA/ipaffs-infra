@@ -107,6 +107,7 @@ param searchParams = {
   name: 'devimpinfas1401' // note: must be lowercase
   partitionCount: 1
   replicaCount: 2
+  userAssignedIdentityName: 'DEVIMPINFAS1401'
 }
 
 param sqlParams = {
