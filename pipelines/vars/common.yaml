@@ -16,6 +16,8 @@ variables:
   upstreamServiceConnectionPrincipalId: 09b875f4-3dea-4c69-bf36-e6915741d4c4
 
   adminsGroupMembers: >
+    sunil.kumar@defra.gov.uk
+    sunil.kumar@defra.onmicrosoft.com
     Andy.Hardy@defra.gov.uk
     andrew.hardy@defra.onmicrosoft.com
     Jon.Shaw@defra.gov.uk
@@ -31,6 +33,8 @@ variables:
     a-tom.bamford@Defra.onmicrosoft.com
 
   developersGroupMembers: >
+    sunil.kumar@defra.gov.uk
+    sunil.kumar@defra.onmicrosoft.com
     Andy.Hardy@defra.gov.uk
     andrew.hardy@defra.onmicrosoft.com
     Jon.Shaw@defra.gov.uk
