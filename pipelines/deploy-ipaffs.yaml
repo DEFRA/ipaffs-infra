@@ -148,6 +148,10 @@ parameters:
         migrations: true
         pipeline: fieldconfig-service
 
+#      - name: gvms-service
+#        migrations: false
+#        pipeline: gvms-service
+
 #      - name: filecompression-service
 #        migrations: false
 #        pipeline: filecompression-service
@@ -382,6 +386,12 @@ resources:
       endpoint: DEFRA
       name: DEFRA/ipaffs-fieldconfig-microservice
       ref: refs/heads/master
+
+#    - repository: gvms-service
+#      type: github
+#      endpoint: DEFRA
+#      name: DEFRA/ipaffs-gvms-microservice
+#      ref: refs/heads/master
 
     - repository: filecompression-service
       type: github
