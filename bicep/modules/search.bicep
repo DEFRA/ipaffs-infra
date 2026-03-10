@@ -132,4 +132,5 @@ module searchReader './search-role-assignment.bicep' = {
 output searchServiceName string = searchService.name
 output searchServiceId string = searchService.id
 output searchServiceEndpoint string = searchService.properties.endpoint
+output serviceServiceManagedIdentityPrincipalName string = userAssignedIdentity.name
 output serviceServiceManagedIdentityPrincipalId string = userAssignedIdentity.properties.principalId
