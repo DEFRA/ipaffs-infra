@@ -207,6 +207,7 @@ output keyVaultName string = keyVault.outputs.keyVaultName
 output keyVaultUri string = keyVault.outputs.keyVaultUri
 output redisName string = redis.outputs.redisName
 output searchServiceName string = search.outputs.searchServiceName
+output serviceServiceManagedIdentityPrincipalName string = search.outputs.serviceServiceManagedIdentityPrincipalName
 output serviceServiceManagedIdentityPrincipalId string = search.outputs.serviceServiceManagedIdentityPrincipalId
 output sqlServerName string = sql.outputs.sqlServerName
 output sqlServerManagedIdentityObjectId string = sql.outputs.sqlServerManagedIdentityObjectId
