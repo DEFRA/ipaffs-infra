@@ -64,14 +64,14 @@ jobs:
           AZURE_LOCATION: $(location)
           AZURE_CONTAINER_REGISTRY_HOST: $(acrLoginServer)
           AZURE_TENANT_ID: $(tenantId)
-          AZURE_SUBSCRIPTION_ID: $(subscriptionId)
-          AZURE_RESOURCE_GROUP_NAME: $(resourceGroupName)
           AZURE_MANAGED_IDENTITY_CLIENT_ID: ${{ parameters.serviceClientId }}
           AZURE_MANAGED_IDENTITY_PRINCIPAL_NAME: ${{ parameters.servicePrincipalName }}
           AZURE_MANAGED_IDENTITY_MIGRATIONS_CLIENT_ID: ${{ parameters.migrationsClientId }}
           AZURE_MANAGED_IDENTITY_EXTERNAL_SECRETS_CLIENT_ID: $(externalSecretsClientId)
+          AZURE_SEARCH_SUBSCRIPTION_ID: $(searchServiceSubscriptionId)
+          AZURE_SEARCH_RESOURCE_GROUP_NAME: $(searchServiceResourceGroupName)
           AZURE_SEARCH_SERVICE_NAME: $(searchServiceName)
-          AZURE_SEARCH_MANAGED_IDENTITY_PRINCIPAL_NAME: $(serviceServiceManagedIdentityPrincipalName)
+          AZURE_SEARCH_MANAGED_IDENTITY_PRINCIPAL_NAME: $(searchServiceManagedIdentityPrincipalName)
           CONTAINER_IMAGE: "ipaffs/${{ parameters.serviceName }}:${{ parameters.serviceVersion }}"
           MIGRATIONS_IMAGE: "ipaffs/${{ parameters.serviceName }}-configuration:${{ parameters.serviceVersion }}"
           NAMESPACE: ${{ parameters.namespace }}

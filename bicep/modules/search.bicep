@@ -129,8 +129,10 @@ module searchReader './search-role-assignment.bicep' = {
   }
 }
 
+output searchServiceSubscriptionId string = subscription().subscriptionId
+output searchServiceResourceGroupName string = resourceGroup().name
 output searchServiceName string = searchService.name
 output searchServiceId string = searchService.id
 output searchServiceEndpoint string = searchService.properties.endpoint
-output serviceServiceManagedIdentityPrincipalName string = userAssignedIdentity.name
-output serviceServiceManagedIdentityPrincipalId string = userAssignedIdentity.properties.principalId
+output searchServiceManagedIdentityPrincipalName string = userAssignedIdentity.name
+output searchServiceManagedIdentityPrincipalId string = userAssignedIdentity.properties.principalId
