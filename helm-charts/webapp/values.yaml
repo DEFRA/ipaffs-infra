@@ -47,7 +47,7 @@ search:
   enabled: false
   serviceName: ""
   principalName: ""
-  subscription: ""
+  subscriptionId: ""
   resourceGroup: ""
 
 env: {}
