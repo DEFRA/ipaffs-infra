@@ -78,6 +78,9 @@ spec:
             - name: http
               containerPort: 8000
               protocol: TCP
+            - name: debug
+              containerPort: 5005
+              protocol: TCP
           {{- with .Values.resources }}
           resources:
             {{- toYaml . | nindent 12 }}
