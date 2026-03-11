@@ -14,15 +14,6 @@ data:
 {{- $db := dict "databaseName" $databaseName "Values" $.Values "Release" $.Release }}
   DATABASE_DB_CONNECTION_STRING_{{ upper (snakecase $databaseName) }}: "jdbc:sqlserver://{{ template "ipaffs-common.azure.sqlServerHostname" $db }}:1433;databaseName={{ template "ipaffs-common.azure.databaseName" $db }};encrypt=true;socketTimeout=1800000;loginTimeout=15;authentication=ActiveDirectoryManagedIdentity;msiClientId={{ $.Values.azure.clientId }}"
 {{- end }}
-  AZURE_SEARCH_DB_CONNECTION_STRING="Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;Database=${DATABASE_DB_NAME};ResourceId=/subscriptions/${AZURE_SUBSCRIPTION_ID}/resourceGroups/${AZURE_RESOURCE_GROUP_NAME}/providers/Microsoft.Sql/servers/${DATABASE_DB_NAME};"
-
-
-
-
-
-  export AZURE_SEARCH_DB_CONNECTION_STRING="Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;Database=${DATABASE_DB_NAME};ResourceId=/subscriptions/${AZURE_SUBSCRIPTION_ID}/resourceGroups/${AZURE_RESOURCE_GROUP_NAME}/providers/Microsoft.Sql/servers/${DATABASE_DB_NAME};"
-  export AZURE_SEARCH_USER_ASSIGNED_IDENTITY="/subscriptions/${AZURE_SUBSCRIPTION_ID}/resourcegroups/${AZURE_RESOURCE_GROUP_NAME}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/${AZURE_SEARCH_MANAGED_IDENTITY_PRINCIPAL_NAME}"
-
 {{- range $key, $val := .Values.config }}
   {{ $key }}: "{{ $val }}"
 {{- end }}
