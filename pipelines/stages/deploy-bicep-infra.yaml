@@ -182,9 +182,11 @@ stages:
                 scripts/pipeline/update-group-variable-from-deployment.sh keyVaultUrl keyVaultUri
                 scripts/pipeline/update-group-variable-from-deployment.sh kubernetesCluster aksClusterName
                 scripts/pipeline/update-group-variable-from-deployment.sh redisName redisName
+                scripts/pipeline/update-group-variable-from-deployment.sh searchServiceSubscriptionId searchServiceSubscriptionId
+                scripts/pipeline/update-group-variable-from-deployment.sh searchServiceResourceGroupName searchServiceResourceGroupName
                 scripts/pipeline/update-group-variable-from-deployment.sh searchServiceName searchServiceName
-                scripts/pipeline/update-group-variable-from-deployment.sh serviceServiceManagedIdentityPrincipalName serviceServiceManagedIdentityPrincipalName
-                scripts/pipeline/update-group-variable-from-deployment.sh serviceServiceManagedIdentityPrincipalId serviceServiceManagedIdentityPrincipalId
+                scripts/pipeline/update-group-variable-from-deployment.sh searchServiceManagedIdentityPrincipalId searchServiceManagedIdentityPrincipalId
+                scripts/pipeline/update-group-variable-from-deployment.sh searchServiceManagedIdentityPrincipalName searchServiceManagedIdentityPrincipalName
                 scripts/pipeline/update-group-variable-from-deployment.sh sqlServerName sqlServerName
                 scripts/pipeline/update-group-variable-from-deployment.sh sqlServerManagedIdentityObjectId sqlServerManagedIdentityObjectId
                 scripts/pipeline/update-group-variable-from-deployment.sh insightsConnectionString insightsConnectionString
