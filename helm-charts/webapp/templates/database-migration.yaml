@@ -72,6 +72,16 @@ spec:
             - name: DATABASE_DB_CONNECTION_STRING_{{ upper (snakecase $databaseName) }}
               value: "jdbc:sqlserver://{{ template "ipaffs-common.azure.sqlServerHostname" $db }}:1433;databaseName={{ template "ipaffs-common.azure.databaseName" $db }};encrypt=true;socketTimeout=1800000;loginTimeout=15;authentication=ActiveDirectoryManagedIdentity;msiClientId={{ $db.Values.database.migrations.clientId }}"
           {{- end }}
+          {{- if .Values.search.enabled }}
+            - name: AZURE_SEARCH_SUBSCRIPTION_ID
+              value: {{ .Values.search.subscriptionId | quote }}
+            - name: AZURE_SEARCH_RESOURCE_GROUP
+              value: {{ .Values.search.resourceGroup | quote }}
+            - name: AZURE_SEARCH_SERVICE_NAME
+              value: {{ .Values.search.serviceName | quote }}
+            - name: AZURE_SEARCH_PRINCIPAL_NAME
+              value: {{ .Values.search.principalName | quote }}
+          {{- end }}
             - name: BASE_SERVICE_DB_USER_AD
               value: "{{ .Values.database.principalName }}"
             - name: MANAGED_IDENTITY_USER

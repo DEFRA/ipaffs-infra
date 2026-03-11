@@ -64,16 +64,6 @@ spec:
           {{- with .Values.env }}
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- if .Values.search.enabled }}
-            - name: AZURE_SEARCH_SUBSCRIPTION_ID
-              value: {{ .Values.search.subscriptionId | quote }}
-            - name: AZURE_SEARCH_RESOURCE_GROUP
-              value: {{ .Values.search.resourceGroup | quote }}
-            - name: AZURE_SEARCH_SERVICE_NAME
-              value: {{ .Values.search.serviceName | quote }}
-            - name: AZURE_SEARCH_PRINCIPAL_NAME
-              value: {{ .Values.search.principalName | quote }}
-          {{- end }}
           ports:
             - name: http
               containerPort: 8000
