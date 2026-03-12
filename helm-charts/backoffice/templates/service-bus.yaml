@@ -16,6 +16,7 @@ spec:
     - Send
     - Listen
     - EntityRead
+    - Manage
   operatorSpec:
     secrets:
       primaryConnectionString:
