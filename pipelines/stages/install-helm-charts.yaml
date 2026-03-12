@@ -157,4 +157,23 @@ stages:
                       --set azure.serviceAccountRef.namespace=external-secrets
                       $(helmDryRun)
 
+                - task: HelmDeploy@0
+                  displayName: Helm Install - keda
+                  inputs:
+                    connectionType: Azure Resource Manager
+                    azureSubscription: $(serviceConnection)
+                    azureResourceGroup: $(resourceGroupName)
+                    kubernetesCluster: $(kubernetesCluster)
+                    namespace: keda
+                    command: upgrade
+                    chartName: "keda"
+                    releaseName: keda
+                    install: true
+                    useClusterAdmin: true
+                    arguments: >-
+                      --repo https://kedacore.github.io/charts
+                      -f helm-charts/keda-values.yaml
+                      --create-namespace
+                      $(helmDryRun)
+
 # vim: set ts=2 sts=2 sw=2 et:

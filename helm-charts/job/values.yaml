@@ -14,6 +14,15 @@ successfulJobsHistoryLimit: 3
 failedJobsHistoryLimit: 1
 suspend: false
 
+keda:
+  enabled: false
+  pollingInterval: 30
+  cooldownPeriod: 300
+  maxReplicaCount: 10
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+  triggers: []
+
 container:
   image: ""
   imagePullPolicy: Always
