@@ -4,7 +4,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{ .Values.service }}
+  name: origin
   labels:
     {{- include "ipaffs-common.labels" . | nindent 4 }}
   {{- with .Values.originIngress.annotations }}
