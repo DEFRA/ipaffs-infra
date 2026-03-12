@@ -1,5 +1,5 @@
 {{/*
-Ingress hosts
+Ingress hosts for direct services
 */}}
 {{- define "ipaffs-common.ingressHosts" -}}
   {{- if gt (len .Values.ingress.hosts) 0 -}}
@@ -13,6 +13,15 @@ Ingress hosts
     {{- end -}}
     {{- $hosts | join "\n" -}}
   {{- end -}}
+{{- end }}
+
+{{/*
+Ingress hosts for Azure Front Door origins
+*/}}
+{{- define "ipaffs-common.ingressOriginHosts" -}}
+  {{- $suffix := eq $.Release.Namespace $.Values.environment | ternary "" (printf "-%s" $.Release.Namespace) -}}
+  {{- printf "importnotification-%s%s.azure.defra.cloud" $.Values.environment $suffix }}
+  {{- printf "importnotification-%s%s-new.azure.defra.cloud" $.Values.environment $suffix }}
 {{- end }}
 
 {{/* vim: set ts=2 sts=2 sw=2 et: */}}
