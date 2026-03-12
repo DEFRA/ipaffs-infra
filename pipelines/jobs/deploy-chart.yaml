@@ -68,6 +68,7 @@ jobs:
           AZURE_MANAGED_IDENTITY_PRINCIPAL_NAME: ${{ parameters.servicePrincipalName }}
           AZURE_MANAGED_IDENTITY_MIGRATIONS_CLIENT_ID: ${{ parameters.migrationsClientId }}
           AZURE_MANAGED_IDENTITY_EXTERNAL_SECRETS_CLIENT_ID: $(externalSecretsClientId)
+          AZURE_SQL_SERVER_NAME: $(sqlServerName)
           AZURE_SEARCH_SUBSCRIPTION_ID: $(searchServiceSubscriptionId)
           AZURE_SEARCH_RESOURCE_GROUP_NAME: $(searchServiceResourceGroupName)
           AZURE_SEARCH_SERVICE_NAME: $(searchServiceName)
