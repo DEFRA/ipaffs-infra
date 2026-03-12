@@ -7,7 +7,7 @@ metadata:
   name: {{ .Values.service }}
   labels:
     {{- include "ipaffs-common.labels" . | nindent 4 }}
-  {{- with .Values.ingress.annotations }}
+  {{- with .Values.originIngress.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}

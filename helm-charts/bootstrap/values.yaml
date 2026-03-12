@@ -12,4 +12,11 @@ serviceBus:
 ipaffsConfig:
   data: {}
 
+originIngress:
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    #ingress.kubernetes.io/proxy-headers: X-Original-Host
+    #ingress.kubernetes.io/custom-request-headers: X-Original-Host:proxy.imp.dev.azure.defra.cloud
+    #traefik.ingress.kubernetes.io/router.middlewares: kube-system/original-host
+
 # vim: set ts=2 sts=2 sw=2 et:
