@@ -1,0 +1,69 @@
+{{- if (default false .Values.keda.enabled) }}
+apiVersion: keda.sh/v1alpha1
+kind: ScaledJob
+metadata:
+  name: {{ .Values.service }}
+  labels:
+    {{- include "ipaffs-common.labels" . | nindent 4 }}
+spec:
+  pollingInterval: {{ default 30 .Values.keda.pollingInterval }}
+  cooldownPeriod: {{ default 300 .Values.keda.cooldownPeriod }}
+  maxReplicaCount: {{ default 10 .Values.keda.maxReplicaCount }}
+  successfulJobsHistoryLimit: {{ default 3 .Values.keda.successfulJobsHistoryLimit }}
+  failedJobsHistoryLimit: {{ default 1 .Values.keda.failedJobsHistoryLimit }}
+  jobTargetRef:
+    backoffLimit: 2 # max pod retries for each run
+    template:
+      metadata:
+        labels:
+          {{- include "ipaffs-common.labels" . | nindent 10 }}
+        annotations:
+          azure.workload.identity/use: "true"
+      spec:
+        restartPolicy: OnFailure
+        containers:
+          - name: {{ .Chart.Name }}
+            image: "{{ .Values.container.image }}"
+            {{ if .Values.container.command }}
+            command: ["{{ .Values.container.command }}"]
+            {{ end }}
+            {{ if .Values.container.args }}
+            args:
+              {{ range .Values.container.args }}
+              - "{{ . }}"
+              {{ end }}
+            {{ end }}
+            imagePullPolicy: {{ .Values.container.imagePullPolicy }}
+            envFrom:
+              - configMapRef:
+                  name: ipaffs-config
+              - configMapRef:
+                  name: {{ .Values.service }}
+{{- if .Values.externalSecret.enabled }}
+              - secretRef:
+                  name: {{ printf "%s-secrets" .Values.service }}
+                  optional: true
+{{- end }}
+{{- if .Values.serviceBus.enabled }}
+              - secretRef:
+                  name: {{ printf "%s-servicebus" .Values.service }}
+{{- end }}
+            {{ with .Values.env }}
+            env:
+              {{- toYaml . | nindent 14 }}
+            {{ end }}
+            {{- with .Values.resources }}
+            resources:
+              {{- toYaml . | nindent 14 }}
+            {{- end }}
+{{- if .Values.initContainer.enabled }}
+        initContainers:
+          - name: {{ .Chart.Name }}-init
+            image: "{{ .Values.initContainer.image }}"
+            command: {{ .Values.initContainer.command }}
+{{- end }}
+  triggers:
+    {{- required "keda.triggers must contain at least one trigger when keda.enabled is true" .Values.keda.triggers | toYaml | nindent 4 }}
+{{- end }}
+
+# vim: set ts=2 sts=2 sw=2 et:

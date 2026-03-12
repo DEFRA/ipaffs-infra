@@ -56,6 +56,58 @@
     "suspend": {
       "type": "boolean"
     },
+    "keda": {
+      "type": "object",
+      "required": [
+        "enabled"
+      ],
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "pollingInterval": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "cooldownPeriod": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "maxReplicaCount": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "successfulJobsHistoryLimit": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "failedJobsHistoryLimit": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "triggers": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string"
+              },
+              "metadata": {
+                "type": "object"
+              },
+              "authenticationRef": {
+                "type": "object"
+              }
+            },
+            "required": [
+              "type",
+              "metadata"
+            ]
+          }
+        }
+      }
+    },
     "container": {
       "type": "object",
       "properties": {
@@ -121,7 +173,43 @@
     }
   },
   "required": [
-    "environment",
-    "schedule"
+    "environment"
+  ],
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "keda": {
+            "properties": {
+              "enabled": {
+                "const": true
+              }
+            },
+            "required": [
+              "enabled"
+            ]
+          }
+        },
+        "required": [
+          "keda"
+        ]
+      },
+      "then": {
+        "properties": {
+          "keda": {
+            "properties": {
+              "triggers": {
+                "minItems": 1
+              }
+            }
+          }
+        }
+      },
+      "else": {
+        "required": [
+          "schedule"
+        ]
+      }
+    }
   ]
 }
