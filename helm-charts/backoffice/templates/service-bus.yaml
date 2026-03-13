@@ -15,6 +15,7 @@ spec:
   rights:
     - Send
     - Listen
+    - Manage
   operatorSpec:
     secrets:
       primaryConnectionString:
