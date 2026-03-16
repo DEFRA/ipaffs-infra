@@ -409,7 +409,7 @@ resources:
       type: github
       endpoint: DEFRA
       name: DEFRA/ipaffs-notification-microservice
-      ref: refs/heads/master
+      ref: refs/heads/IMTA-20929-aisearch
 
     - repository: notify-service
       type: github
