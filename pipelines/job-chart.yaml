@@ -4,6 +4,7 @@ trigger:
       - "*"
   paths:
     include:
+      - helm-charts/ipaffs-common/**
       - helm-charts/job/**
       - pipelines/job-chart.yaml
 

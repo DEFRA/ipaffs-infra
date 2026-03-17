@@ -15,6 +15,13 @@ parameters:
     type: string
     default: Dockerfile
 
+  - name: updateManifest
+    type: boolean
+    default: true
+
+  - name: manifestBranch
+    type: string
+    default: master
 
 stages:
   - stage: BuildService
@@ -32,6 +39,69 @@ stages:
         parameters:
           serviceName:  "${{ parameters.serviceName }}"
           dockerFile: "${{ parameters.dockerFile }}"
+
+  - ${{ if eq(parameters.updateManifest, true) }}:
+    - stage: UpdateManifest
+      displayName: Update ipaffs-manifest
+      dependsOn: PackageService
+      condition: eq(dependencies.PackageService.result, 'Succeeded')
+      jobs:
+        - job: UpdateManifest
+          displayName: Update service values in ipaffs-manifest
+          steps:
+            - checkout: self
+              path: s/self
+
+            - checkout: ipaffs-manifest
+              persistCredentials: true
+              path: s/ipaffs-manifest
+
+            - checkout: ipaffs-infra
+              path: s/ipaffs-infra
+
+            - task: Bash@3
+              displayName: Update service values files
+              env:
+                SERVICE_NAME: "${{ parameters.serviceName }}"
+                BUILD_NUMBER: $(Build.BuildNumber)
+                ACR_LOGIN_SERVER: $(acrLoginServer)
+                MANIFEST_ROOT: "$(Pipeline.Workspace)/s/ipaffs-manifest"
+                SERVICE_ROOT: "$(Pipeline.Workspace)/s/self"
+              inputs:
+                targetType: filePath
+                filePath: $(Pipeline.Workspace)/s/ipaffs-infra/scripts/pipeline/update-manifest-service-values.sh
+                workingDirectory: $(Pipeline.Workspace)/s/ipaffs-infra
+
+            - task: Bash@3
+              displayName: Commit and push manifest changes
+              env:
+                SERVICE_NAME: "${{ parameters.serviceName }}"
+                BUILD_NUMBER: $(Build.BuildNumber)
+                MANIFEST_BRANCH: "${{ parameters.manifestBranch }}"
+              inputs:
+                targetType: inline
+                workingDirectory: $(Pipeline.Workspace)/s/ipaffs-manifest
+                script: |
+                  set -euo pipefail
+
+                  git config user.name "IPAFFS CI Bot"
+                  git config user.email "ipaffs-ci-bot@defra.gov.uk"
+
+                  git add \
+                    "services/${SERVICE_NAME}/base.yaml" \
+                    "environments/dev/${SERVICE_NAME}.yaml" \
+                    "environments/tst/${SERVICE_NAME}.yaml" \
+                    "environments/pre/${SERVICE_NAME}.yaml" \
+                    "environments/prd/${SERVICE_NAME}.yaml"
+
+                  if git diff --cached --quiet; then
+                    echo "No manifest changes for ${SERVICE_NAME}"
+                    exit 0
+                  fi
+
+                  git commit -m "Update ${SERVICE_NAME} values for build ${BUILD_NUMBER}"
+                  git pull --rebase origin "${MANIFEST_BRANCH}"
+                  git push origin "HEAD:${MANIFEST_BRANCH}"
 
   - stage: ConfigureDeployment
     displayName: Configure Deployment

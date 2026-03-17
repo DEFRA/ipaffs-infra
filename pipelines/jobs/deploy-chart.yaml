@@ -4,15 +4,18 @@ parameters:
 
   - name: migrationsClientId
     type: string
+    default: ""
 
   - name: namespace
     type: string
 
   - name: serviceClientId
     type: string
+    default: ""
 
   - name: servicePrincipalName
     type: string
+    default: ""
 
   - name: serviceName
     type: string
@@ -27,6 +30,10 @@ parameters:
   - name: helmfileAction
     type: string
     default: apply
+
+  - name: helmfileSelector
+    type: string
+    default: ""
 
 jobs:
   - job: DeployChart
@@ -74,15 +81,24 @@ jobs:
           CONTAINER_IMAGE: "ipaffs/${{ parameters.serviceName }}:${{ parameters.serviceVersion }}"
           MIGRATIONS_IMAGE: "ipaffs/${{ parameters.serviceName }}-configuration:${{ parameters.serviceVersion }}"
           NAMESPACE: ${{ parameters.namespace }}
+          HELMFILE_SELECTOR: "${{ parameters.helmfileSelector }}"
         inputs:
           azureSubscription: $(serviceConnection)
           scriptType: bash
           scriptLocation: inlineScript
           inlineScript: |
-            printenv && \
-            curl -L https://github.com/helmfile/helmfile/releases/download/v1.1.9/helmfile_1.1.9_linux_amd64.tar.gz | tar -xz && \
-            chmod +x ./helmfile && \
-            ./helmfile init --force && \
-            ./helmfile ${{ parameters.helmfileAction }} --debug
+            set -euo pipefail
+            printenv
+
+            curl -L https://github.com/helmfile/helmfile/releases/download/v1.1.9/helmfile_1.1.9_linux_amd64.tar.gz | tar -xz
+            chmod +x ./helmfile
+            ./helmfile init --force
+
+            selector_args=()
+            if [[ -n "${HELMFILE_SELECTOR}" ]]; then
+              selector_args=(--selector "${HELMFILE_SELECTOR}")
+            fi
+
+            ./helmfile ${{ parameters.helmfileAction }} --debug "${selector_args[@]}"
 
 ## vim: set ts=2 sts=2 sw=2 et:
