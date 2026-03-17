@@ -17,7 +17,8 @@ stages:
                 - checkout: self
 
                 - task: AzureCLI@2
-                  displayName: Set Azure subscription
+                  name: AuthenticateAzure
+                  displayName: Authenticate with Azure
                   inputs:
                     azureSubscription: $(serviceConnection)
                     scriptType: bash
@@ -25,7 +26,8 @@ stages:
                     inlineScript: |
                       set -x
                       az aks install-cli
-                      az aks get-credentials -n $(kubernetesCluster) -g $(resourceGroupName) --subscription $(subscriptionName)
+                      az aks get-credentials -n "$(kubernetesCluster)" -g "$(resourceGroupName)" --subscription "$(subscriptionName)"
+                      az acr login --name "$(acrName)"
 
                 # See https://learn.microsoft.com/en-us/azure/aks/app-routing-nginx-configuration?pivots=nginx-ingress-controller
                 - task: AzureCLI@2
@@ -134,7 +136,7 @@ stages:
                         --set azure.vaultUrl="$(keyVaultUrl)" \
                         --set azure.tenantId="$(tenantId)" \
                         --set azure.identityId="$(externalSecretsClientId)" \
-                        --set serviceAccount.annotations.azure\.workload\.identity/client-id="$(externalSecretsClientId)" \
+                        --set serviceAccount.annotations.azure\\.workload\\.identity/client-id="$(externalSecretsClientId)" \
                         --set image.repository="$(acrLoginServer)/external-secrets/external-secrets" \
                         --set webhook.image.repository="$(acrLoginServer)/external-secrets/external-secrets" \
                         --set certController.image.repository="$(acrLoginServer)/external-secrets/external-secrets" \
