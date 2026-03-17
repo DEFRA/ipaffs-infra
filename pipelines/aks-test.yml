@@ -62,7 +62,7 @@ stages:
                       find . | grep 'kube/config'
                       echo '----------------------------------------------------------'
                       which helm
-                      helm --version
+                      helm --help
                       #tree
 
 
