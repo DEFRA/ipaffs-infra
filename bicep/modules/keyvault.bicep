@@ -11,13 +11,14 @@ param tenantId string
 
 var subnet = first(filter(subnets, subnet => subnet.name == subnetNames.privateEndpoints))
 
-resource keyVault 'Microsoft.KeyVault/vaults@2025-05-01' = {
+resource keyVault 'Microsoft.KeyVault/vaults@2026-02-01' = {
   name: keyVaultParams.name
   location: location
   tags: tags
 
   properties: {
     enableRbacAuthorization: true
+    enableSoftDelete: true
     publicNetworkAccess: 'Disabled'
     tenantId: tenantId
 
