@@ -59,7 +59,7 @@ param aksParams = {
 param alertsParams = {
   actionGroups: {
     notifyDba: {
-      name: 'IMP-DBA-Team'
+      name: 'TST-IMP-DBA-Team'
       appRecipients: [
         {
           name: 'AppPush: Paul Maguire'
@@ -107,6 +107,7 @@ param searchParams = {
   name: 'tstimpinfas1401' // note: must be lowercase
   partitionCount: 1
   replicaCount: 2
+  userAssignedIdentityName: 'TSTIMPINFAS1401'
 }
 
 param sqlParams = {
