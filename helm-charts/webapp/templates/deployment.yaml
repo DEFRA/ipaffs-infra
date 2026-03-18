@@ -4,7 +4,7 @@ metadata:
   labels:
     {{- include "ipaffs-common.labels" . | nindent 4 }}
   annotations:
-    azure.workload.identity/client-id: {{ .Values.azure.clientId }}
+    azure.workload.identity/client-id: {{ include "webapp.azure.serviceClientId" . | quote }}
   name: {{ .Values.service }}-service
 
 ---
@@ -60,7 +60,7 @@ spec:
             {{- end }}
           env:
             - name: MANAGED_IDENTITY_USER
-              value: "{{ .Values.database.principalName }}"
+              value: {{ include "webapp.azure.servicePrincipalName" . | quote }}
           {{- with .Values.env }}
             {{- toYaml . | nindent 12 }}
           {{- end }}

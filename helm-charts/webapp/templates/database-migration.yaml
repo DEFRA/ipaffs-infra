@@ -5,7 +5,7 @@ metadata:
   labels:
     {{- include "ipaffs-common.labels" . | nindent 4 }}
   annotations:
-    azure.workload.identity/client-id: {{ .Values.database.migrations.clientId }}
+    azure.workload.identity/client-id: {{ include "webapp.azure.migrationsClientId" . | quote }}
     helm.sh/hook: pre-install,pre-upgrade
     helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
     helm.sh/hook-weight: "10"
@@ -70,7 +70,7 @@ spec:
           {{- range $databaseName := .Values.database.databaseNames }}
           {{- $db := dict "databaseName" $databaseName "Values" $.Values "Release" $.Release }}
             - name: DATABASE_DB_CONNECTION_STRING_{{ upper (snakecase $databaseName) }}
-              value: "jdbc:sqlserver://{{ template "ipaffs-common.azure.sqlServerHostname" $db }}:1433;databaseName={{ template "ipaffs-common.azure.databaseName" $db }};encrypt=true;socketTimeout=1800000;loginTimeout=15;authentication=ActiveDirectoryManagedIdentity;msiClientId={{ $db.Values.database.migrations.clientId }}"
+              value: "jdbc:sqlserver://{{ template "ipaffs-common.azure.sqlServerHostname" $db }}:1433;databaseName={{ template "ipaffs-common.azure.databaseName" $db }};encrypt=true;socketTimeout=1800000;loginTimeout=15;authentication=ActiveDirectoryManagedIdentity;msiClientId={{ include "webapp.azure.migrationsClientId" $ }}"
           {{- end }}
             - name: AZURE_SQL_SERVER_NAME
               value: {{ .Values.database.sqlServerName | quote }}
@@ -85,9 +85,9 @@ spec:
               value: {{ .Values.search.principalName | quote }}
           {{- end }}
             - name: BASE_SERVICE_DB_USER_AD
-              value: "{{ .Values.database.principalName }}"
+              value: {{ include "webapp.azure.servicePrincipalName" . | quote }}
             - name: MANAGED_IDENTITY_USER
-              value: "{{ .Values.database.principalName }}"
+              value: {{ include "webapp.azure.servicePrincipalName" . | quote }}
       {{- if .Values.azure.adalBridge }}
       initContainers:
         - name: workload-identity-adal-bridge
