@@ -37,24 +37,17 @@ jobs:
         workspaceRepo: true
 
       - task: AzureCLI@2
-        name: LoginToContainerRegistry
-        displayName: Login to Azure Container Registry
+        name: AuthenticateAzure
+        displayName: Authenticate with Azure
         inputs:
           azureSubscription: $(serviceConnection)
           scriptType: bash
           scriptLocation: inlineScript
-          inlineScript: az acr login --name $(acrName)
-
-      - task: Kubernetes@1
-        name: KubectlLogin
-        displayName: Configure Kubernetes client and authenticate
-        inputs:
-          connectionType: Azure Resource Manager
-          azureSubscriptionEndpoint: $(serviceConnection)
-          azureResourceGroup: $(resourceGroupName)
-          kubernetesCluster: $(kubernetesCluster)
-          useClusterAdmin: true
-          command: login
+          inlineScript: |
+            set -x
+            az aks install-cli
+            az aks get-credentials -n "$(kubernetesCluster)" -g "$(resourceGroupName)" --subscription "$(subscriptionName)"
+            az acr login --name "$(acrName)"
 
       - task: AzureCLI@2
         name: DeployHelmCharts
