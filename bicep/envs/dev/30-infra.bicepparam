@@ -118,7 +118,7 @@ param sqlParams = {
 }
 
 param storageParams = {
-  name: 'devimpinfsto1401' // note: must be lowercase
+  name: 'devimpinfst1401' // note: must be lowercase
 }
 
 // vim: set ts=2 sts=2 sw=2 et:
