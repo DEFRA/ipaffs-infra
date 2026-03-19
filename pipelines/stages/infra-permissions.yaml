@@ -37,7 +37,7 @@ stages:
                   name: SearchServiceSQLAdmins
                   env:
                     GROUP_ID: $(sqlAdminGroupId)
-                    PRINCIPAL_ID: $(serviceServiceManagedIdentityPrincipalId)
+                    PRINCIPAL_ID: $(searchServiceManagedIdentityPrincipalId)
                   inputs:
                     azureSubscription: $(serviceConnection)
                     scriptType: bash
