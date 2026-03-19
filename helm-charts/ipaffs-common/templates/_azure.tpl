@@ -30,7 +30,7 @@ Azure Resource Names
 {{- end }}
 
 {{- define "ipaffs-common.azure.storageAccount" -}}
-{{- printf "%simpinfsto1401" .Values.environment }}
+{{- printf "%simpinfst1401" .Values.environment }}
 {{- end }}
 
 
