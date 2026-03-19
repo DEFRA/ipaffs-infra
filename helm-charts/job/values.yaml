@@ -8,6 +8,10 @@ externalSecret:
 serviceBus:
   enabled: false
 
+azure:
+  clientId: ""
+  managedIdentityName: ""
+
 schedule: ""
 concurrencyPolicy: Forbid
 successfulJobsHistoryLimit: 3
