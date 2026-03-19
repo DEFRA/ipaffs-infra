@@ -107,3 +107,5 @@ resource blobService 'Microsoft.Storage/storageAccounts/blobServices@2025-01-01'
     isVersioningEnabled: true
   }
 }
+
+output storageAccountName string = storageAccount.name

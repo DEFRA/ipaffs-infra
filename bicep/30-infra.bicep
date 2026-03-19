@@ -213,6 +213,7 @@ output searchServiceManagedIdentityPrincipalName string = search.outputs.searchS
 output searchServiceManagedIdentityPrincipalId string = search.outputs.searchServiceManagedIdentityPrincipalId
 output sqlServerName string = sql.outputs.sqlServerName
 output sqlServerManagedIdentityObjectId string = sql.outputs.sqlServerManagedIdentityObjectId
+output storageAccountName string = storage.outputs.storageAccountName
 output insightsInstrumentationKey string = insights.outputs.insightsInstrumentationKey
 output insightsConnectionString string = insights.outputs.insightsConnectionString
 

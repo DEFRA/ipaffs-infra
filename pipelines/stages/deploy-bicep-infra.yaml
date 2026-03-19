@@ -189,6 +189,7 @@ stages:
                 scripts/pipeline/update-group-variable-from-deployment.sh searchServiceManagedIdentityPrincipalName searchServiceManagedIdentityPrincipalName
                 scripts/pipeline/update-group-variable-from-deployment.sh sqlServerName sqlServerName
                 scripts/pipeline/update-group-variable-from-deployment.sh sqlServerManagedIdentityObjectId sqlServerManagedIdentityObjectId
+                scripts/pipeline/update-group-variable-from-deployment.sh storageAccountName storageAccountName
                 scripts/pipeline/update-group-variable-from-deployment.sh insightsConnectionString insightsConnectionString
                 scripts/pipeline/update-group-variable-from-deployment.sh insightsInstrumentationKey insightsInstrumentationKey
 
