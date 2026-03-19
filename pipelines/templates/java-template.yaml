@@ -20,6 +20,10 @@ parameters:
     type: string
     default: verify jacoco:report package
 
+  - name: helmfileAction
+    type: string
+    default: apply
+
 stages:
   - stage: BuildService
     displayName: Build Service
@@ -98,5 +102,6 @@ stages:
           migrationsClientId: $(migrationsClientId)
           serviceClientId: $(serviceClientId)
           servicePrincipalName: $(servicePrincipalName)
+          helmfileAction: "${{ parameters.helmfileAction }}"
 
 # vim: set ts=2 sts=2 sw=2 et:

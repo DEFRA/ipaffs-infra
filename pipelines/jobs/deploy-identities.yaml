@@ -75,6 +75,22 @@ jobs:
           scriptType: bash
           scriptPath: scripts/pipeline/wait-for-group-membership.sh
 
+      - task: AzureCLI@2
+        name: EnsureAsoManagedIdentity
+        displayName: Ensure ASO Managed Identity Resource
+        env:
+          AKS_NAME: $(kubernetesCluster)
+          AKS_RESOURCE_GROUP_NAME: $(resourceGroupName)
+          AKS_SUBSCRIPTION_NAME: $(subscriptionName)
+          LOCATION: $(location)
+          MANAGED_IDENTITY_NAME: $(lowerResourceGroupName)-${{ parameters.namespace }}-${{ parameters.serviceName }}-migrations
+          NAMESPACE: ${{ parameters.namespace }}
+          OWNER_RESOURCE_GROUP_NAME: $(lowerResourceGroupName)
+        inputs:
+          azureSubscription: $(serviceConnection)
+          scriptType: bash
+          scriptPath: scripts/pipeline/ensure-aso-managed-identity.sh
+
   - job: ServiceIdentity
     displayName: Set up Service Identity
     variables:
@@ -123,5 +139,21 @@ jobs:
           azureSubscription: $(serviceConnection)
           scriptType: bash
           scriptPath: scripts/pipeline/wait-for-group-membership.sh
+
+      - task: AzureCLI@2
+        name: EnsureAsoManagedIdentity
+        displayName: Ensure ASO Managed Identity Resource
+        env:
+          AKS_NAME: $(kubernetesCluster)
+          AKS_RESOURCE_GROUP_NAME: $(resourceGroupName)
+          AKS_SUBSCRIPTION_NAME: $(subscriptionName)
+          LOCATION: $(location)
+          MANAGED_IDENTITY_NAME: $(lowerResourceGroupName)-${{ parameters.namespace }}-${{ parameters.serviceName }}-service
+          NAMESPACE: ${{ parameters.namespace }}
+          OWNER_RESOURCE_GROUP_NAME: $(lowerResourceGroupName)
+        inputs:
+          azureSubscription: $(serviceConnection)
+          scriptType: bash
+          scriptPath: scripts/pipeline/ensure-aso-managed-identity.sh
 
 # vim: set ts=2 sts=2 sw=2 et:

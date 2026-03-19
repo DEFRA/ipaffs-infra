@@ -12,7 +12,7 @@ data:
   ENVIRONMENT: "{{ .Values.environment }}"
 {{- range $databaseName := .Values.database.databaseNames }}
 {{- $db := dict "databaseName" $databaseName "Values" $.Values "Release" $.Release }}
-  DATABASE_DB_CONNECTION_STRING_{{ upper (snakecase $databaseName) }}: "jdbc:sqlserver://{{ template "ipaffs-common.azure.sqlServerHostname" $db }}:1433;databaseName={{ template "ipaffs-common.azure.databaseName" $db }};encrypt=true;socketTimeout=1800000;loginTimeout=15;authentication=ActiveDirectoryManagedIdentity;msiClientId={{ $.Values.azure.clientId }}"
+  DATABASE_DB_CONNECTION_STRING_{{ upper (snakecase $databaseName) }}: "jdbc:sqlserver://{{ template "ipaffs-common.azure.sqlServerHostname" $db }}:1433;databaseName={{ template "ipaffs-common.azure.databaseName" $db }};encrypt=true;socketTimeout=1800000;loginTimeout=15;authentication=ActiveDirectoryManagedIdentity;msiClientId={{ include "webapp.azure.serviceClientId" $ }}"
 {{- end }}
 {{- range $key, $val := .Values.config }}
   {{ $key }}: "{{ $val }}"
