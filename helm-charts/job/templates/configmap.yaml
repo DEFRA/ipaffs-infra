@@ -8,8 +8,7 @@ data:
   ENVIRONMENT: "{{ .Values.environment }}"
 {{- $database := default (dict) .Values.database }}
 {{- $databaseNames := get $database "databaseNames" | default (list) }}
-{{- $azure := default (dict) .Values.azure }}
-{{- $clientId := get $azure "clientId" | default "" }}
+{{- $clientId := include "job.azure.serviceClientId" . | trim }}
 {{- range $databaseName := $databaseNames }}
 {{- $db := dict "databaseName" $databaseName "Values" $.Values "Release" $.Release }}
   DATABASE_DB_CONNECTION_STRING_{{ upper (snakecase $databaseName) }}: "jdbc:sqlserver://{{ template "ipaffs-common.azure.sqlServerHostname" $db }}:1433;databaseName={{ template "ipaffs-common.azure.databaseName" $db }};encrypt=true;socketTimeout=1800000;loginTimeout=15;authentication=ActiveDirectoryManagedIdentity;msiClientId={{ $clientId }}"
