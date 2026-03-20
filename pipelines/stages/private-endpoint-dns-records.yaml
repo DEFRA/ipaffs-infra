@@ -4,7 +4,7 @@ parameters:
 
 stages:
   - stage: PrivateLinkDNSRecords
-    displayName: Set PrivateLink DNS Records
+    displayName: Set Private Endpoint DNS Records
     variables:
       - group: "${{ parameters.environmentName }}"
       - template: "/pipelines/vars/common.yaml"
@@ -26,7 +26,7 @@ stages:
                     variables:
                       projectServiceConnection: $(serviceConnection)
                     scriptsList:
-                      - displayName: Resolve Private Endpoint IPs for Container Registry
+                      - displayName: "ACR: Resolve Private Endpoint IPs"
                         serviceConnectionVariableName: projectServiceConnection
                         scriptPath: 'Get-ResourcePrivateEndPointsDnsRecordsAsJson.ps1@PipelineCommon'
                         scriptArguments: >
@@ -34,7 +34,7 @@ stages:
                           -ResourceName '$(acrName)'
                           -Subscription '$(subscriptionName)'
 
-                      - displayName: Set DNS record for Container Registry
+                      - displayName: "ACR: Set DNS records"
                         condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
                         scriptPath: 'Set-PrivateDnsRecordSet.ps1@PipelineCommon'
                         scriptArguments: >
@@ -46,7 +46,7 @@ stages:
                     variables:
                       projectServiceConnection: $(serviceConnection)
                     scriptsList:
-                      - displayName: Resolve Private Endpoint IPs for KeyVault
+                      - displayName: "KeyVault: Resolve Private Endpoint IPs"
                         serviceConnectionVariableName: projectServiceConnection
                         scriptPath: 'Get-ResourcePrivateEndPointsDnsRecordsAsJson.ps1@PipelineCommon'
                         scriptArguments: >
@@ -54,7 +54,7 @@ stages:
                           -ResourceName '$(keyVaultName)'
                           -Subscription '$(subscriptionName)'
 
-                      - displayName: Set DNS record for KeyVault
+                      - displayName: "KeyVault: Set DNS records"
                         condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
                         scriptPath: 'Set-PrivateDnsRecordSet.ps1@PipelineCommon'
                         scriptArguments: >
@@ -66,7 +66,7 @@ stages:
                     variables:
                       projectServiceConnection: $(serviceConnection)
                     scriptsList:
-                      - displayName: Resolve Private Endpoint IPs for Redis
+                      - displayName: "Redis: Resolve Private Endpoint IPs"
                         serviceConnectionVariableName: projectServiceConnection
                         scriptPath: 'Get-ResourcePrivateEndPointsDnsRecordsAsJson.ps1@PipelineCommon'
                         scriptArguments: >
@@ -74,7 +74,7 @@ stages:
                           -ResourceName '$(redisName)'
                           -Subscription '$(subscriptionName)'
 
-                      - displayName: Set DNS record for Redis
+                      - displayName: "Redis: Set DNS records"
                         condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
                         scriptPath: 'Set-PrivateDnsRecordSet.ps1@PipelineCommon'
                         scriptArguments: >
@@ -86,7 +86,7 @@ stages:
                     variables:
                       projectServiceConnection: $(serviceConnection)
                     scriptsList:
-                      - displayName: Resolve Private Endpoint IPs for Search
+                      - displayName: "Search: Resolve Private Endpoint IPs"
                         serviceConnectionVariableName: projectServiceConnection
                         scriptPath: 'Get-ResourcePrivateEndPointsDnsRecordsAsJson.ps1@PipelineCommon'
                         scriptArguments: >
@@ -94,7 +94,7 @@ stages:
                           -ResourceName '$(searchServiceName)'
                           -Subscription '$(subscriptionName)'
 
-                      - displayName: Set DNS record for Search
+                      - displayName: "Search: Set DNS records"
                         condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
                         scriptPath: 'Set-PrivateDnsRecordSet.ps1@PipelineCommon'
                         scriptArguments: >
@@ -106,7 +106,7 @@ stages:
                     variables:
                       projectServiceConnection: $(serviceConnection)
                     scriptsList:
-                      - displayName: Resolve Private Endpoint IPs for Storage Account
+                      - displayName: "Storage: Resolve Private Endpoint IPs"
                         serviceConnectionVariableName: projectServiceConnection
                         scriptPath: 'Get-ResourcePrivateEndPointsDnsRecordsAsJson.ps1@PipelineCommon'
                         scriptArguments: >
@@ -114,7 +114,7 @@ stages:
                           -ResourceName '$(storageAccountName)'
                           -Subscription '$(subscriptionName)'
 
-                      - displayName: Set DNS record for Storage Account
+                      - displayName: "Storage: Set DNS records"
                         condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
                         scriptPath: 'Set-PrivateDnsRecordSet.ps1@PipelineCommon'
                         scriptArguments: >
@@ -126,7 +126,7 @@ stages:
                     variables:
                       projectServiceConnection: $(serviceConnection)
                     scriptsList:
-                      - displayName: Resolve Private Endpoint IPs for SQL Server
+                      - displayName: "SQL: Resolve Private Endpoint IPs"
                         serviceConnectionVariableName: projectServiceConnection
                         scriptPath: 'Get-ResourcePrivateEndPointsDnsRecordsAsJson.ps1@PipelineCommon'
                         scriptArguments: >
@@ -134,7 +134,7 @@ stages:
                           -ResourceName '$(sqlServerName)'
                           -Subscription '$(subscriptionName)'
 
-                      - displayName: Set DNS record for SQL Server
+                      - displayName: "SQL: Set DNS records"
                         condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
                         scriptPath: 'Set-PrivateDnsRecordSet.ps1@PipelineCommon'
                         scriptArguments: >
