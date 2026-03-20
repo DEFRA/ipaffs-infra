@@ -519,9 +519,9 @@ stages:
       - name: searchReadersObjectId
         value: $[stageDependencies.CreateAccessGroups.SearchGroups.outputs['SearchReaders.objectId']]
       - name: blobStorageReadersDisplayName
-        value: $[stageDependencies.CreateAccessGroups.SearchGroups.outputs['BlobStorageReaders.displayName']]
+        value: $[stageDependencies.CreateAccessGroups.StorageGroups.outputs['BlobStorageReaders.displayName']]
       - name: blobStorageReadersObjectId
-        value: $[stageDependencies.CreateAccessGroups.SearchGroups.outputs['BlobStorageReaders.objectId']]
+        value: $[stageDependencies.CreateAccessGroups.StorageGroups.outputs['BlobStorageReaders.objectId']]
       - name: sqlAdminsDisplayName
         value: $[stageDependencies.CreateAccessGroups.SQLGroups.outputs['SQLAdmins.displayName']]
       - name: sqlAdminsObjectId
