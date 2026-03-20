@@ -68,6 +68,10 @@ spec:
             - name: AZURE_SEARCH_SERVICE_NAME
               value: {{ .Values.search.serviceName | quote }}
           {{- end }}
+          {{- if .Values.storage.enabled }}
+            - name: AZURE_STORAGE_ACCOUNT_NAME
+              value: {{ .Values.storage.accountName | quote }}
+          {{- end }}
           ports:
             - name: http
               containerPort: 8000

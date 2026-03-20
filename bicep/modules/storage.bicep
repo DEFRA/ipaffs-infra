@@ -1,5 +1,7 @@
 targetScope = 'resourceGroup'
 
+param deploymentId string
+param entraGroups object
 param location string
 param storageParams object
 param subnetNames object
@@ -107,5 +109,20 @@ resource blobService 'Microsoft.Storage/storageAccounts/blobServices@2025-01-01'
     isVersioningEnabled: true
   }
 }
+
+var storageBlobDataReaderRoleId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '2a2b9908-6ea1-4ae2-8e65-a410df84e7d1')
+
+module blobStorageReader './storage-role-assignment.bicep' = {
+  name: 'blobStorageReader-${deploymentId}'
+  scope: resourceGroup()
+  params: {
+    storageAccountName: storageParams.name
+    deploymentId: deploymentId
+    principalObjectId: entraGroups.blobStorageReaders.id
+    principalType: 'Group'
+    roleDefinitionId: storageBlobDataReaderRoleId
+  }
+}
+
 
 output storageAccountName string = storageAccount.name

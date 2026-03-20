@@ -69,6 +69,7 @@ jobs:
           AZURE_SEARCH_SUBSCRIPTION_ID: $(searchServiceSubscriptionId)
           AZURE_SEARCH_RESOURCE_GROUP_NAME: $(searchServiceResourceGroupName)
           AZURE_SEARCH_SERVICE_NAME: $(searchServiceName)
+          AZURE_STORAGE_ACCOUNT_NAME: $(storageAccountName)
           AZURE_SEARCH_MANAGED_IDENTITY_PRINCIPAL_NAME: $(searchServiceManagedIdentityPrincipalName)
           CONTAINER_IMAGE: "ipaffs/${{ parameters.serviceName }}:${{ parameters.serviceVersion }}"
           MIGRATIONS_IMAGE: "ipaffs/${{ parameters.serviceName }}-configuration:${{ parameters.serviceVersion }}"
