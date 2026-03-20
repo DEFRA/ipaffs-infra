@@ -27,7 +27,7 @@ stages:
                       set -x
                       az aks install-cli
                       az aks get-credentials -n "$(kubernetesCluster)" -g "$(resourceGroupName)" --subscription "$(subscriptionName)"
-                      az acr login --name "$(acrName)"
+                      az acr login --name "$(acrName)" --subscription "$(subscriptionName)"
 
                 # See https://learn.microsoft.com/en-us/azure/aks/app-routing-nginx-configuration?pivots=nginx-ingress-controller
                 - task: AzureCLI@2
