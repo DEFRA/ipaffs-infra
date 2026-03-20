@@ -59,6 +59,10 @@ stages:
     parameters:
       environmentName: ${{ parameters.environmentName }}
 
+  - template: stages/private-endpoint-dns-records.yaml
+    parameters:
+      environmentName: ${{ parameters.environmentName }}
+
   - template: stages/import-acr-artifacts.yaml
     parameters:
       environmentName: ${{ parameters.environmentName }}
@@ -68,10 +72,6 @@ stages:
       environmentName: ${{ parameters.environmentName }}
 
   - template: stages/deploy-bicep-privatelink.yaml
-    parameters:
-      environmentName: ${{ parameters.environmentName }}
-
-  - template: stages/private-endpoint-dns-records.yaml
     parameters:
       environmentName: ${{ parameters.environmentName }}
 
