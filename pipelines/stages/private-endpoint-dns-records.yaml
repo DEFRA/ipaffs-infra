@@ -109,7 +109,7 @@ stages:
                           -ResourceGroupName '$(resourceGroupName)'
                           -ResourceName '$(storageAccountName)'
 
-                      - displayName: Set DNS record for Container Registry
+                      - displayName: Set DNS record for Storage Account
                         condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
                         scriptPath: 'Set-PrivateDnsRecordSet.ps1@PipelineCommon'
                         scriptArguments: >
