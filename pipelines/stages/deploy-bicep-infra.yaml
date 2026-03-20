@@ -54,6 +54,10 @@ stages:
                     id: '$(searchReadersGroupId)'
                     name: '$(searchReadersGroupName)'
                   }
+                  blobStorageReaders: {
+                    id: '$(blobStorageReadersGroupId)'
+                    name: '$(blobStorageReadersGroupName)'
+                  }
                   sqlAdmins: {
                     id: '$(sqlAdminGroupId)'
                     name: '$(sqlAdminGroupName)'

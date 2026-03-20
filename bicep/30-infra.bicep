@@ -189,6 +189,8 @@ module storage './modules/storage.bicep' = {
   name: 'storage-${deploymentId}'
   scope: resourceGroup()
   params: {
+    deploymentId: deploymentId
+    entraGroups: entraGroups
     location: location
     storageParams: storageParams
     subnetNames: subnetNames
