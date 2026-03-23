@@ -405,6 +405,39 @@ stages:
           - checkout: self
 
           - task: AzureCLI@2
+            name: BlobStorageContributors
+            env:
+              GROUP_NAME: AAG-Azure-AZR_IMP_${{ parameters.environmentName }}1-BlobStorageContrib
+              GROUP_DESCRIPTION: Entra access group for IPAFFS Blob Storage Contributors in ${{ parameters.environmentName }} environment
+              GROUP_OWNER_OBJECT_IDS: >
+                $(serviceConnectionPrincipalId)
+                $(upstreamServiceConnectionPrincipalId)
+            inputs:
+              azureSubscription: $(upstreamServiceConnection)
+              scriptType: bash
+              scriptPath: scripts/pipeline/create-entra-group.sh
+
+          - task: AzureCLI@2
+            name: BlobStorageContributorsMembersAdmins
+            env:
+              GROUP_ID: $(BlobStorageContributors.objectId)
+              PRINCIPAL_ID: $(teamAdminsObjectId)
+            inputs:
+              azureSubscription: $(serviceConnection)
+              scriptType: bash
+              scriptPath: scripts/pipeline/add-principal-to-group.sh
+
+          - task: AzureCLI@2
+            name: BlobStorageContributorsMembersDevelopers
+            env:
+              GROUP_ID: $(BlobStorageContributors.objectId)
+              PRINCIPAL_ID: $(teamDevelopersObjectId)
+            inputs:
+              azureSubscription: $(serviceConnection)
+              scriptType: bash
+              scriptPath: scripts/pipeline/add-principal-to-group.sh
+
+          - task: AzureCLI@2
             name: BlobStorageReaders
             env:
               GROUP_NAME: AAG-Azure-AZR_IMP_${{ parameters.environmentName }}1-BlobStorageReader
@@ -518,6 +551,10 @@ stages:
         value: $[stageDependencies.CreateAccessGroups.SearchGroups.outputs['SearchReaders.displayName']]
       - name: searchReadersObjectId
         value: $[stageDependencies.CreateAccessGroups.SearchGroups.outputs['SearchReaders.objectId']]
+      - name: blobStorageContributorsDisplayName
+        value: $[stageDependencies.CreateAccessGroups.StorageGroups.outputs['BlobStorageContributors.displayName']]
+      - name: blobStorageContributorsObjectId
+        value: $[stageDependencies.CreateAccessGroups.StorageGroups.outputs['BlobStorageContributors.objectId']]
       - name: blobStorageReadersDisplayName
         value: $[stageDependencies.CreateAccessGroups.StorageGroups.outputs['BlobStorageReaders.displayName']]
       - name: blobStorageReadersObjectId
@@ -563,6 +600,8 @@ stages:
                 scripts/pipeline/update-group-variable.sh searchContributorsGroupName '$(searchContributorsDisplayName)'
                 scripts/pipeline/update-group-variable.sh searchReadersGroupId '$(searchReadersObjectId)'
                 scripts/pipeline/update-group-variable.sh searchReadersGroupName '$(searchReadersDisplayName)'
+                scripts/pipeline/update-group-variable.sh blobStorageContributorsGroupId '$(blobStorageContributorsObjectId)'
+                scripts/pipeline/update-group-variable.sh blobStorageContributorsGroupName '$(blobStorageContributorsDisplayName)'
                 scripts/pipeline/update-group-variable.sh blobStorageReadersGroupId '$(blobStorageReadersObjectId)'
                 scripts/pipeline/update-group-variable.sh blobStorageReadersGroupName '$(blobStorageReadersDisplayName)'
                 scripts/pipeline/update-group-variable.sh sqlAdminGroupId '$(sqlAdminsObjectId)'
