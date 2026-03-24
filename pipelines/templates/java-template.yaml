@@ -66,23 +66,21 @@ stages:
             - task: Bash@3
               name: DetermineManifestUpdate
               displayName: Determine if manifest update should run
-              env:
-                SOURCE_BRANCH_REF: $(Build.SourceBranch)
-                DEFAULT_BRANCH_REF: $(Build.Repository.DefaultBranch)
               inputs:
                 targetType: inline
                 script: |
                   set -euo pipefail
 
                   repo_root="$(Pipeline.Workspace)/s/self"
-                  source_branch="$(echo "${SOURCE_BRANCH_REF}" | sed 's#^refs/heads/##')"
+                  source_branch="$(echo "${BUILD_SOURCEBRANCH:-}" | sed 's#^refs/heads/##')"
+                  default_branch_from_var="$(echo "${BUILD_REPOSITORY_DEFAULTBRANCH:-}" | sed 's#^refs/heads/##')"
 
                   git -C "${repo_root}" remote set-head origin -a >/dev/null 2>&1 || true
 
                   default_branch_ref="$(git -C "${repo_root}" symbolic-ref refs/remotes/origin/HEAD 2>/dev/null || true)"
                   default_branch="${default_branch_ref#refs/remotes/origin/}"
                   if [[ -z "${default_branch}" ]]; then
-                    default_branch="$(echo "${DEFAULT_BRANCH_REF}" | sed 's#^refs/heads/##')"
+                    default_branch="${default_branch_from_var}"
                   fi
 
                   echo "Source branch: ${source_branch}"
