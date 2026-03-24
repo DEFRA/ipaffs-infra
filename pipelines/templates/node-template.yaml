@@ -44,56 +44,29 @@ stages:
     - stage: UpdateManifest
       displayName: Update ipaffs-manifest
       dependsOn: PackageService
-      condition: eq(dependencies.PackageService.result, 'Succeeded')
+      condition: and(
+        eq(dependencies.PackageService.result, 'Succeeded'),
+        or(
+          eq(variables['Build.SourceBranchName'], 'master'),
+          eq(variables['Build.SourceBranchName'], 'main')
+          )
+        )
       jobs:
         - job: UpdateManifest
           displayName: Update service values in ipaffs-manifest
           steps:
             - checkout: self
-              persistCredentials: true
               path: s/self
 
-            - task: Bash@3
-              name: DetermineManifestUpdate
-              displayName: Determine if manifest update should run
-              inputs:
-                targetType: inline
-                script: |
-                  set -euo pipefail
-
-                  repo_root="$(Pipeline.Workspace)/s/self"
-                  source_branch="$(echo "${BUILD_SOURCEBRANCH:-}" | sed 's#^refs/heads/##')"
-                  default_branch_from_var="$(echo "${BUILD_REPOSITORY_DEFAULTBRANCH:-}" | sed 's#^refs/heads/##')"
-
-                  git -C "${repo_root}" remote set-head origin -a >/dev/null 2>&1 || true
-
-                  default_branch_ref="$(git -C "${repo_root}" symbolic-ref refs/remotes/origin/HEAD 2>/dev/null || true)"
-                  default_branch="${default_branch_ref#refs/remotes/origin/}"
-                  if [[ -z "${default_branch}" ]]; then
-                    default_branch="${default_branch_from_var}"
-                  fi
-
-                  echo "Source branch: ${source_branch}"
-                  echo "Default branch: ${default_branch:-<unknown>}"
-
-                  if [[ -n "${default_branch}" && "${source_branch}" == "${default_branch}" ]]; then
-                    echo "##vso[task.setvariable variable=runManifestUpdate]true"
-                  else
-                    echo "##vso[task.setvariable variable=runManifestUpdate]false"
-                  fi
-
             - checkout: ipaffs-manifest
-              condition: eq(variables['runManifestUpdate'], 'true')
               persistCredentials: true
               path: s/ipaffs-manifest
 
             - checkout: ipaffs-infra
-              condition: eq(variables['runManifestUpdate'], 'true')
               path: s/ipaffs-infra
 
             - task: Bash@3
               displayName: Update service values files
-              condition: eq(variables['runManifestUpdate'], 'true')
               env:
                 SERVICE_NAME: "${{ parameters.serviceName }}"
                 BUILD_NUMBER: $(Build.BuildNumber)
@@ -107,7 +80,6 @@ stages:
 
             - task: Bash@3
               displayName: Commit and push manifest changes
-              condition: eq(variables['runManifestUpdate'], 'true')
               env:
                 SERVICE_NAME: "${{ parameters.serviceName }}"
                 BUILD_NUMBER: $(Build.BuildNumber)
