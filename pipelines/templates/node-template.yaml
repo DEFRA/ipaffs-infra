@@ -50,13 +50,14 @@ stages:
           displayName: Update service values in ipaffs-manifest
           steps:
             - checkout: self
+              persistCredentials: true
               path: s/self
 
             - task: Bash@3
               name: DetermineManifestUpdate
               displayName: Determine if manifest update should run
               env:
-                SOURCE_BRANCH_NAME: $(Build.SourceBranchName)
+                SOURCE_BRANCH_REF: $(Build.SourceBranch)
                 DEFAULT_BRANCH_REF: $(Build.Repository.DefaultBranch)
               inputs:
                 targetType: inline
@@ -64,16 +65,20 @@ stages:
                   set -euo pipefail
 
                   repo_root="$(Pipeline.Workspace)/s/self"
+                  source_branch="$(echo "${SOURCE_BRANCH_REF}" | sed 's#^refs/heads/##')"
+
+                  git -C "${repo_root}" remote set-head origin -a >/dev/null 2>&1 || true
+
                   default_branch_ref="$(git -C "${repo_root}" symbolic-ref refs/remotes/origin/HEAD 2>/dev/null || true)"
                   default_branch="${default_branch_ref#refs/remotes/origin/}"
                   if [[ -z "${default_branch}" ]]; then
                     default_branch="$(echo "${DEFAULT_BRANCH_REF}" | sed 's#^refs/heads/##')"
                   fi
 
-                  echo "Source branch: ${SOURCE_BRANCH_NAME}"
+                  echo "Source branch: ${source_branch}"
                   echo "Default branch: ${default_branch:-<unknown>}"
 
-                  if [[ -n "${default_branch}" && "${SOURCE_BRANCH_NAME}" == "${default_branch}" ]]; then
+                  if [[ -n "${default_branch}" && "${source_branch}" == "${default_branch}" ]]; then
                     echo "##vso[task.setvariable variable=runManifestUpdate]true"
                   else
                     echo "##vso[task.setvariable variable=runManifestUpdate]false"
