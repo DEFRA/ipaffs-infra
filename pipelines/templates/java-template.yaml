@@ -54,7 +54,10 @@ stages:
     - stage: UpdateManifest
       displayName: Update ipaffs-manifest
       dependsOn: PackageService
-      condition: eq(dependencies.PackageService.result, 'Succeeded')
+      condition: and(
+        eq(dependencies.PackageService.result, 'Succeeded'),
+        eq(variables['Build.SourceBranch'], variables['Build.Repository.DefaultBranch'])
+        )
       jobs:
         - job: UpdateManifest
           displayName: Update service values in ipaffs-manifest
