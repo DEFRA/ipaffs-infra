@@ -4,6 +4,7 @@ trigger:
       - "*"
   paths:
     include:
+      - helm-charts/ipaffs-common/**
       - helm-charts/backoffice/**
       - pipelines/backoffice-chart.yaml
 
