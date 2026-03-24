@@ -56,7 +56,10 @@ stages:
       dependsOn: PackageService
       condition: and(
         eq(dependencies.PackageService.result, 'Succeeded'),
-        eq(variables['Build.SourceBranch'], variables['Build.Repository.DefaultBranch'])
+        eq(
+          replace(variables['Build.SourceBranch'], 'refs/heads/', ''),
+          replace(variables['Build.Repository.DefaultBranch'], 'refs/heads/', '')
+          )
         )
       jobs:
         - job: UpdateManifest
