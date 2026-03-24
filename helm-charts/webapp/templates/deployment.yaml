@@ -59,6 +59,8 @@ spec:
                 name: {{ printf "%s-servicebus" .Values.service }}
             {{- end }}
           env:
+            - name: NAMESPACE
+              value: {{ .Release.Namespace }}
             - name: MANAGED_IDENTITY_USER
               value: {{ include "webapp.azure.servicePrincipalName" . | quote }}
           {{- with .Values.env }}
