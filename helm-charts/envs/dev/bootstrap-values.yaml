@@ -24,6 +24,7 @@ serviceBus:
 storageAccount:
   blobService:
     containers:
+      - approvedestablishment
       - bip
       - commoditycode
       - economicoperator
