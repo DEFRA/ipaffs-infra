@@ -20,6 +20,7 @@ serviceBus:
     - gvms-queue
   topics:
     - notification-topic
+    - messaging_topic
 
 storageAccount:
   blobService:
