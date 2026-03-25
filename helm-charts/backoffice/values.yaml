@@ -8,6 +8,8 @@ azure:
 database:
   enabled: false
   databaseNames: []
+  migrations:
+    enabled: false
 
 redis:
   enabled: false
