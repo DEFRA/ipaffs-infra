@@ -44,5 +44,6 @@ ipaffsConfig:
     TRADE_PLATFORM_SCOPE: "api://snd-futuretrade-int/.default"
     B2B_CUSTOMER_USER_ID: "79f6dc68-2144-e911-a96a-000d3a29ba60"
     REMOTE_DEBUG: "true"
+    PROTOCOL: "http"
 
 # vim: set ts=2 sts=2 sw=2 et:
