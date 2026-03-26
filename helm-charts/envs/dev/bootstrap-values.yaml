@@ -19,8 +19,10 @@ serviceBus:
     - enotification-processing-status-queue
     - gvms-queue
   topics:
-    - notification-topic
-    - messaging-topic
+    - name: notification-topic
+    - name: messaging-topic
+      subscriptions:
+        - commodity_file_upload
 
 storageAccount:
   blobService:

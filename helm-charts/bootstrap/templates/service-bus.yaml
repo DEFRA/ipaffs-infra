@@ -34,12 +34,18 @@ spec:
 
 {{- end }}
 
-{{- range $serviceBus.topics }}
+{{- range $topic := $serviceBus.topics }}
+{{- $topicName := $topic }}
+{{- $topicSubscriptions := list }}
+{{- if kindIs "map" $topic }}
+{{- $topicName = required "serviceBus.topics[].name is required when topic is an object" $topic.name }}
+{{- $topicSubscriptions = default (list) $topic.subscriptions }}
+{{- end }}
 ---
 apiVersion: servicebus.azure.com/v1api20240101
 kind: NamespacesTopic
 metadata:
-  name: {{ . }}
+  name: {{ $topicName }}
   labels:
     {{- include "ipaffs-common.labels" $root | nindent 4 }}
   annotations:
@@ -48,6 +54,21 @@ spec:
   owner:
     name: {{ template "ipaffs-common.azure.serviceBusNamespace" $root }}
 
+{{- range $topicSubscriptions }}
+---
+apiVersion: servicebus.azure.com/v1api20240101
+kind: NamespacesTopicsSubscription
+metadata:
+  name: {{ . }}
+  labels:
+    {{- include "ipaffs-common.labels" $root | nindent 4 }}
+  annotations:
+    serviceoperator.azure.com/reconcile-policy: manage
+spec:
+  owner:
+    name: {{ $topicName }}
+
+{{- end }}
 {{- end }}
 
 # vim: set ts=2 sts=2 sw=2 et:
