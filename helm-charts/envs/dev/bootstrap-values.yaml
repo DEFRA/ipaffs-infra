@@ -43,6 +43,7 @@ ipaffsConfig:
     JWT_JWKS: "http://proxy/common/discovery/keys"
     JWT_WELL_KNOWNS: "http://proxy/.well-known/openid-configuration"
     ENV_DOMAIN: ""
+    MDM_SERVICE_URL: "https://snd-internal-gateway.trade.azure.defra.cloud"
     TRADE_PLATFORM_AUTH_URL: "https://login.microsoftonline.com/c9d74090-b4e6-4b04-981d-e6757a160812/oauth2/v2.0/token"
     TRADE_PLATFORM_CLIENT_ID: "b23b073e-1f9c-4b93-9ac2-a99e55cdc2b4"
     TRADE_PLATFORM_SCOPE: "api://snd-futuretrade-int/.default"
