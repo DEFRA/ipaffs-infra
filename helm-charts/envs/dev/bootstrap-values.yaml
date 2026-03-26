@@ -22,7 +22,7 @@ serviceBus:
     - name: notification-topic
     - name: messaging-topic
       subscriptions:
-        - commodity_file_upload
+        - commodity-file-upload
 
 storageAccount:
   blobService:
