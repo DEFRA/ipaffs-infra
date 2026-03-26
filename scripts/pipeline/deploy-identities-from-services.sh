@@ -8,6 +8,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 : "${RESOURCE_GROUP_NAME:?RESOURCE_GROUP_NAME is required}"
 : "${AKS_ISSUER:?AKS_ISSUER is required}"
 : "${SEARCH_CONTRIBUTORS_GROUP_ID:?SEARCH_CONTRIBUTORS_GROUP_ID is required}"
+: "${BLOB_STORAGE_CONTRIBUTORS_GROUP_ID:?BLOB_STORAGE_CONTRIBUTORS_GROUP_ID is required}"
 : "${SQL_ADMIN_GROUP_ID:?SQL_ADMIN_GROUP_ID is required}"
 : "${SERVICES_ROOT:?SERVICES_ROOT is required}"
 
@@ -77,6 +78,10 @@ ensure_identity() {
   export PRINCIPAL_ID="${principal_id}"
   "${SCRIPT_DIR}/add-principal-to-group.sh"
   queue_group_membership_wait "${SEARCH_CONTRIBUTORS_GROUP_ID}" "${principal_id}" "${managed_identity_name} in search contributors"
+
+  export GROUP_ID="${BLOB_STORAGE_CONTRIBUTORS_GROUP_ID}"
+  "${SCRIPT_DIR}/add-principal-to-group.sh"
+  queue_group_membership_wait "${BLOB_STORAGE_CONTRIBUTORS_GROUP_ID}" "${principal_id}" "${managed_identity_name} in blob storage contributors"
 
   if [[ "${add_sql_group}" == "true" ]]; then
     export GROUP_ID="${SQL_ADMIN_GROUP_ID}"
