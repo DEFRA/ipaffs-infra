@@ -20,6 +20,7 @@ serviceBus:
     - gvms-queue
   topics:
     - name: notification-topic
+    - name: alvs-topic
     - name: messaging-topic
       subscriptions:
         - commodity-file-upload
