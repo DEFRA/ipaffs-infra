@@ -39,7 +39,8 @@ resources:
     - repository: PipelineCommon
       name: DEFRA-DEVOPS-COMMON/Defra.Pipeline.Common
       type: git
-      ref: feature/optional-subscription-for-private-endpoint-records
+      ref: feature/v6-optional-subscription-for-private-endpoint-records
+
 
 stages:
   - template: stages/private-endpoint-dns-records.yaml
