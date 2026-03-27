@@ -32,6 +32,9 @@ variables:
     tom.bamford@defra.onmicrosoft.com
     a-tom.bamford@Defra.onmicrosoft.com
     Daniel.Johansson@Defra.onmicrosoft.com
+    ranjan.majumdar@defra.onmicrosoft.com
+    a-ranjan.majumdar@defra.onmicrosoft.com
+    Ranjan.Majumdar@defra.gov.uk
 
   developersGroupMembers: >
     sunil.kumar@defra.gov.uk
@@ -46,6 +49,9 @@ variables:
     Tom.Bamford@defra.gov.uk
     tom.bamford@defra.onmicrosoft.com
     a-tom.bamford@Defra.onmicrosoft.com
+    ranjan.majumdar@defra.onmicrosoft.com
+    a-ranjan.majumdar@defra.onmicrosoft.com
+    Ranjan.Majumdar@defra.gov.uk
 
   readersGroupMembers: >
     Tom.Bamford@defra.gov.uk
