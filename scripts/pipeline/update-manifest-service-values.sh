@@ -60,8 +60,7 @@ service_image="${ACR_LOGIN_SERVER}/ipaffs/${SERVICE_NAME}:${BUILD_NUMBER}"
 migrations_image="${ACR_LOGIN_SERVER}/ipaffs/${SERVICE_NAME}-configuration:${BUILD_NUMBER}"
 migrations_enabled_in_base="$(yq e '.database.migrations.enabled // false' "${base_file}" | tr '[:upper:]' '[:lower:]')"
 
-SERVICE_NAME="${SERVICE_NAME}" SERVICE_IMAGE="${service_image}" yq -i '
-  .service = strenv(SERVICE_NAME) |
+SERVICE_IMAGE="${service_image}" yq -i '
   .container.image = strenv(SERVICE_IMAGE)
 ' "${base_file}"
 
