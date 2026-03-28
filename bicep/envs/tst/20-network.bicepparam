@@ -79,20 +79,6 @@ param nsgParams = {
           }
         }
         {
-          name: 'AllowOutboundPeeredVnet'
-          properties: {
-            protocol: '*'
-            sourcePortRange: '*'
-            destinationPortRange: '*'
-            sourceAddressPrefix: 'VirtualNetwork'
-            destinationAddressPrefix: '10.176.0.0/23'
-            access: 'Allow'
-            priority: 1000
-            direction: 'Outbound'
-            description: 'Allow all outbound traffic to peered Hub VNet'
-          }
-        }
-        {
           name: 'AllowVnetToAksServiceCidr'
           properties: {
             protocol: '*'
@@ -101,7 +87,7 @@ param nsgParams = {
             sourceAddressPrefix: 'VirtualNetwork'
             destinationAddressPrefix: '172.18.0.0/16'
             access: 'Allow'
-            priority: 1100
+            priority: 2000
             direction: 'Outbound'
             description: 'Allow VNet to AKS Service CIDR'
           }
@@ -115,7 +101,7 @@ param nsgParams = {
             sourceAddressPrefix: 'VirtualNetwork'
             destinationAddressPrefix: '172.16.0.0/16'
             access: 'Allow'
-            priority: 1110
+            priority: 2010
             direction: 'Outbound'
             description: 'Allow VNet to AKS Pod CIDR'
           }
@@ -129,7 +115,7 @@ param nsgParams = {
             sourceAddressPrefix: '172.16.0.0/16'
             destinationAddressPrefix: '172.16.0.0/16'
             access: 'Allow'
-            priority: 1120
+            priority: 2020
             direction: 'Outbound'
             description: 'Allow AKS Pod CIDR to AKS Pod CIDR'
           }
@@ -143,7 +129,7 @@ param nsgParams = {
             sourceAddressPrefix: 'VirtualNetwork'
             destinationAddressPrefix: 'AzureActiveDirectory'
             access: 'Allow'
-            priority: 2000
+            priority: 3000
             direction: 'Outbound'
             description: 'Allow AAD Auth Outbound to AzureActiveDirectory'
           }
@@ -157,7 +143,7 @@ param nsgParams = {
             sourceAddressPrefix: 'VirtualNetwork'
             destinationAddressPrefix: 'AzureMonitor'
             access: 'Allow'
-            priority: 2010
+            priority: 3010
             direction: 'Outbound'
             description: 'Allow AzMonitor Outbound ports(443,1886) from VirtualNetwork to AzureMonitor'
           }
@@ -224,7 +210,7 @@ param nsgParams = {
             sourceAddressPrefix: '172.16.0.0/16'
             destinationAddressPrefix: 'VirtualNetwork'
             access: 'Allow'
-            priority: 1100
+            priority: 2000
             direction: 'Inbound'
             description: 'Allow AKS Pod CIDR to Private Endpoints'
           }
