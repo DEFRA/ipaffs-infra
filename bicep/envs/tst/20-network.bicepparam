@@ -23,6 +23,20 @@ param nsgParams = {
           }
         }
         {
+          name: 'AllowInboundAzureDevOps'
+          properties: {
+            protocol: '*'
+            sourcePortRange: '*'
+            destinationPortRange: '*'
+            sourceAddressPrefix: 'AzureDevOps'
+            destinationAddressPrefix: 'VirtualNetwork'
+            access: 'Allow'
+            priority: 1050
+            direction: 'Inbound'
+            description: 'Allow all inbound traffic from Azure DevOps'
+          }
+        }
+        {
           name: 'AllowInboundPlatformVPN'
           properties: {
             protocol: '*'
@@ -160,13 +174,55 @@ param nsgParams = {
       purpose: 'Private Endpoints'
       securityRules: [
         {
+          name: 'AllowInboundPlatformVPN'
+          properties: {
+            protocol: '*'
+            sourcePortRange: '*'
+            destinationPortRange: '*'
+            sourceAddressPrefix: '172.27.240.0/25'
+            destinationAddressPrefix: 'VirtualNetwork'
+            access: 'Allow'
+            priority: 1100
+            direction: 'Inbound'
+            description: 'Allow all inbound traffic from platform VPN'
+          }
+        }
+        {
+          name: 'AllowInboundTradeVPN'
+          properties: {
+            protocol: '*'
+            sourcePortRange: '*'
+            destinationPortRange: '*'
+            sourceAddressPrefix: '172.27.244.0/26'
+            destinationAddressPrefix: 'VirtualNetwork'
+            access: 'Allow'
+            priority: 1110
+            direction: 'Inbound'
+            description: 'Allow all inbound traffic from trade VPN'
+          }
+        }
+        {
+          name: 'AllowInboundAVD'
+          properties: {
+            protocol: '*'
+            sourcePortRange: '*'
+            destinationPortRange: '*'
+            sourceAddressPrefix: '10.180.7.0/27'
+            destinationAddressPrefix: 'VirtualNetwork'
+            access: 'Allow'
+            priority: 1120
+            direction: 'Inbound'
+            description: 'Allow all inbound traffic from AD3 AVD'
+          }
+        }
+        {
           name: 'AllowAksPodCidrToPrivateEndpoints'
           properties: {
             protocol: '*'
             sourcePortRange: '*'
             destinationPortRange: '*'
             sourceAddressPrefix: '172.16.0.0/16'
-            destinationAddressPrefix: '10.179.144.64/26'
+            destinationAddressPrefix: 'VirtualNetwork'
             access: 'Allow'
             priority: 1100
             direction: 'Inbound'
@@ -226,6 +282,8 @@ param vnetParams = {
       addressPrefix: '10.179.132.32/27'
       delegations: []
       serviceEndpoints: []
+      privateEndpointNetworkPolicies: 'Disabled'
+      privateLinkServiceNetworkPolicies: 'Disabled'
       routeTableId: '/subscriptions/0022ef8e-d44e-49c5-8cfd-5e8e9c6e913e/resourceGroups/TSTIMPINFRG1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-TSTIMPNETVN1401-01'
       networkSecurityGroupId: '/subscriptions/0022ef8e-d44e-49c5-8cfd-5e8e9c6e913e/resourceGroups/TSTIMPINFRG1401/providers/Microsoft.Network/networkSecurityGroups/TSTIMPNETNS1401-PrivateLink'
     }
@@ -242,7 +300,6 @@ param vnetParams = {
     {
       name: 'TSTIMPNETSU4405'
       addressPrefix: '10.179.133.0/24'
-      delegations: []
       serviceEndpoints: []
       routeTableId: '/subscriptions/0022ef8e-d44e-49c5-8cfd-5e8e9c6e913e/resourceGroups/TSTIMPINFRG1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-TSTIMPNETVN1401-01'
       networkSecurityGroupId: '/subscriptions/0022ef8e-d44e-49c5-8cfd-5e8e9c6e913e/resourceGroups/TSTIMPINFRG1401/providers/Microsoft.Network/networkSecurityGroups/TSTIMPNETNS1401-AKS'
