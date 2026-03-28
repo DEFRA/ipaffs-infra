@@ -134,8 +134,8 @@ stages:
                       az acr import \
                         --name $(acrName) \
                         --subscription $(subscriptionName) \
-                        --source docker.io/manicminer/workload-identity-adal-bridge:v0.4.1 \
-                        --image manicminer/workload-identity-adal-bridge:v0.4.1 \
+                        --source docker.io/manicminer/workload-identity-adal-bridge:v0.4.2 \
+                        --image manicminer/workload-identity-adal-bridge:v0.4.2 \
                         --username $(dockerHubUser) \
                         --password $(dockerHubToken) \
                         --force \
