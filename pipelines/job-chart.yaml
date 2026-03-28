@@ -18,7 +18,7 @@ pr:
       - pipelines/job-chart.yaml
 
 pool:
-  name: 'DEFRA-COMMON-UBUNTU-SSV5'
+  name: 'DEFRA-COMMON-ubuntu2204-SSV5'
 
 variables:
   - group: "DEV"
