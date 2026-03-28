@@ -205,6 +205,7 @@ stages:
                         --dependency-update \
                         --timeout 2m \
                         $(helmDryRun) \
+                        --set environment="${{ lower(parameters.environmentName) }}" \
                         --set container.image="$(acrLoginServer)/manicminer/ms-identity-redirect-handler:v0.1.1" \
                         ms-identity-redirect-handler ms-identity-redirect-handler
 
