@@ -20,12 +20,6 @@ stages:
               steps:
                 - checkout: self
 
-                - task: DownloadPipelineArtifact@2
-                  displayName: Download artifact
-                  inputs:
-                    artifactName: bicepparam
-                    targetPath: $(Build.SourcesDirectory)/bicep
-
                 - task: AzureCLI@2
                   displayName: WhatIf - PrivateLink
                   inputs:
