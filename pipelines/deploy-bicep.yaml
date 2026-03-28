@@ -54,6 +54,7 @@ parameters:
       - TST
 
 variables:
+  - group: Common
   - group: "${{ parameters.environmentName }}"
   - template: "vars/common.yaml"
   - template: "vars/${{ lower(parameters.environmentName) }}.yaml"

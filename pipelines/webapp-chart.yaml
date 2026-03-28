@@ -21,6 +21,7 @@ pool:
   name: 'DEFRA-COMMON-ubuntu2204-SSV5'
 
 variables:
+  - group: Common
   - group: "DEV"
   - template: "vars/common.yaml"
   - template: "vars/dev.yaml"
@@ -58,6 +59,7 @@ stages:
     displayName: Package Webapp Chart (DEV)
     dependsOn: ExtractVersion
     variables:
+      - group: Common
       - group: "DEV"
       - template: "vars/common.yaml"
       - template: "vars/dev.yaml"
@@ -137,6 +139,7 @@ stages:
       dependsOn: Package_DEV
       condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
       variables:
+        - group: Common
         - group: "${{ env }}"
         - template: "vars/common.yaml"
         - template: "vars/${{ lower(env) }}.yaml"

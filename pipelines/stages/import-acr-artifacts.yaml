@@ -107,4 +107,38 @@ stages:
                         --force \
                         --verbose
 
+                - task: AzureCLI@2
+                  displayName: Import manicminer/ms-identity-redirect-handler
+                  inputs:
+                    azureSubscription: $(serviceConnection)
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      az acr import \
+                        --name $(acrName) \
+                        --subscription $(subscriptionName) \
+                        --source docker.io/manicminer/ms-identity-redirect-handler:v0.1.1 \
+                        --image manicminer/ms-identity-redirect-handler:v0.1.1 \
+                        --username $(dockerHubUser) \
+                        --password $(dockerHubToken) \
+                        --force \
+                        --verbose
+
+                - task: AzureCLI@2
+                  displayName: Import manicminer/workload-identity-adal-bridge
+                  inputs:
+                    azureSubscription: $(serviceConnection)
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      az acr import \
+                        --name $(acrName) \
+                        --subscription $(subscriptionName) \
+                        --source docker.io/manicminer/workload-identity-adal-bridge:v0.4.1 \
+                        --image manicminer/workload-identity-adal-bridge:v0.4.1 \
+                        --username $(dockerHubUser) \
+                        --password $(dockerHubToken) \
+                        --force \
+                        --verbose
+
 # vim: set ts=2 sts=2 sw=2 et:

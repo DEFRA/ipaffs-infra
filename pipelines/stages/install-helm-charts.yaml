@@ -189,4 +189,23 @@ stages:
                         keda keda \
                         --repo "https://kedacore.github.io/charts"
 
+                - task: AzureCLI@2
+                  displayName: Helm Install - ms-identity-redirect-handler
+                  inputs:
+                    azureSubscription: $(serviceConnection)
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      set -x
+                      helm upgrade \
+                        --install \
+                        --debug \
+                        --namespace ms-identity-redirect-handler \
+                        --create-namespace \
+                        --dependency-update \
+                        --timeout 2m \
+                        $(helmDryRun) \
+                        --set container.image="$(acrLoginServer)/manicminer/ms-identity-redirect-handler:v0.1.1" \
+                        ms-identity-redirect-handler ms-identity-redirect-handler
+
 # vim: set ts=2 sts=2 sw=2 et:
