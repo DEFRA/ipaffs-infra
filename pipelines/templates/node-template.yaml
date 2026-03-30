@@ -21,6 +21,10 @@ parameters:
 
   - name: manifestBranch
     type: string
+    default: auto
+
+  - name: manifestTrunkBranch
+    type: string
     default: master
 
 stages:
@@ -46,10 +50,7 @@ stages:
       dependsOn: PackageService
       condition: and(
         eq(dependencies.PackageService.result, 'Succeeded'),
-        or(
-          eq(variables['Build.SourceBranchName'], 'master'),
-          eq(variables['Build.SourceBranchName'], 'main')
-          )
+        startsWith(variables['Build.SourceBranch'], 'refs/heads/')
         )
       jobs:
         - job: UpdateManifest
@@ -66,7 +67,54 @@ stages:
               path: s/ipaffs-infra
 
             - task: Bash@3
+              displayName: Resolve and checkout manifest branch
+              env:
+                MANIFEST_BRANCH: "${{ parameters.manifestBranch }}"
+                MANIFEST_TRUNK_BRANCH: "${{ parameters.manifestTrunkBranch }}"
+                SOURCE_BRANCH: $(Build.SourceBranch)
+              inputs:
+                targetType: inline
+                workingDirectory: $(Pipeline.Workspace)/s/ipaffs-manifest
+                script: |
+                  set -euo pipefail
+
+                  source_branch="${SOURCE_BRANCH#refs/heads/}"
+                  target_branch="${MANIFEST_BRANCH}"
+
+                  if [[ "${target_branch}" == "auto" ]]; then
+                    if [[ "${source_branch}" == "main" ]] || [[ "${source_branch}" == "master" ]]; then
+                      target_branch="${MANIFEST_TRUNK_BRANCH}"
+                    else
+                      target_branch="${source_branch}"
+                    fi
+                  fi
+
+                  if [[ -z "${target_branch}" ]]; then
+                    echo "Target manifest branch cannot be empty" >&2
+                    exit 1
+                  fi
+
+                  git fetch origin
+
+                  if ! git ls-remote --exit-code --heads origin "${target_branch}" >/dev/null; then
+                    if [[ "${target_branch}" == "${MANIFEST_TRUNK_BRANCH}" ]]; then
+                      echo "Target manifest trunk branch '${target_branch}' does not exist" >&2
+                      exit 1
+                    fi
+
+                    echo "Manifest branch '${target_branch}' does not exist. Skipping manifest update."
+                    echo "##vso[task.setvariable variable=skipManifestUpdate]true"
+                    exit 0
+                  fi
+
+                  git checkout -B "${target_branch}" "origin/${target_branch}"
+                  echo "Using manifest branch: ${target_branch}"
+                  echo "##vso[task.setvariable variable=targetManifestBranch]${target_branch}"
+                  echo "##vso[task.setvariable variable=skipManifestUpdate]false"
+
+            - task: Bash@3
               displayName: Update service values files
+              condition: ne(variables['skipManifestUpdate'], 'true')
               env:
                 SERVICE_NAME: "${{ parameters.serviceName }}"
                 BUILD_NUMBER: $(Build.BuildNumber)
@@ -80,10 +128,11 @@ stages:
 
             - task: Bash@3
               displayName: Commit and push manifest changes
+              condition: ne(variables['skipManifestUpdate'], 'true')
               env:
                 SERVICE_NAME: "${{ parameters.serviceName }}"
                 BUILD_NUMBER: $(Build.BuildNumber)
-                MANIFEST_BRANCH: "${{ parameters.manifestBranch }}"
+                MANIFEST_BRANCH: "$(targetManifestBranch)"
               inputs:
                 targetType: inline
                 workingDirectory: $(Pipeline.Workspace)/s/ipaffs-manifest
@@ -106,6 +155,12 @@ stages:
                   fi
 
                   git commit -m "Update ${SERVICE_NAME} values for build ${BUILD_NUMBER}"
+
+                  if ! git ls-remote --exit-code --heads origin "${MANIFEST_BRANCH}" >/dev/null; then
+                    echo "Manifest branch '${MANIFEST_BRANCH}' no longer exists. Skipping push."
+                    exit 0
+                  fi
+
                   git pull --rebase origin "${MANIFEST_BRANCH}"
                   git push origin "HEAD:${MANIFEST_BRANCH}"
 
