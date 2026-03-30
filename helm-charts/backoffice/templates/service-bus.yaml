@@ -3,13 +3,13 @@
 apiVersion: servicebus.azure.com/v1api20240101
 kind: NamespacesAuthorizationRule
 metadata:
-  name: {{ printf "%s-servicebus-policy" .Values.service }}
+  name: {{ printf "%s-sb-policy" .Values.service }}
   labels:
     {{- include "ipaffs-common.labels" . | nindent 4 }}
   annotations:
     serviceoperator.azure.com/reconcile-policy: manage
 spec:
-  azureName: {{ printf "%s-servicebus-policy" .Values.service }}
+  azureName: {{ printf "%s-sb-policy" .Values.service }}
   owner:
     name: {{ template "ipaffs-common.azure.serviceBusNamespace" . }}
   rights:
