@@ -14,7 +14,7 @@ steps:
       azureSubscription: $(serviceConnection)
       scriptType: bash
       scriptLocation: inlineScript
-      inlineScript: az acr login --name $(acrName)
+      inlineScript: az acr login --name "$(acrName)" --subscription "$(subscriptionName)"
 
   - task: HelmDeploy@0
     displayName: Helm Install - bootstrap
