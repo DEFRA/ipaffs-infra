@@ -3,7 +3,7 @@
 set -eux
 
 echo Logging in to ACR..
-az acr login --name "${REGISTRY_NAME}"
+az acr login --name "${REGISTRY_NAME}" --subscription "${REGISTRY_SUBSCRIPTION}"
 
 echo Updating chart dependencies...
 [[ -d "${CHART_PATH}/charts" ]] && rm -r "${CHART_PATH}/charts"

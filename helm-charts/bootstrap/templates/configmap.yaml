@@ -7,6 +7,8 @@ metadata:
   labels:
     {{- include "ipaffs-common.labels" . | nindent 4 }}
 data:
+  IPAFFS_URL_B2B: {{ include "ipaffs-common.ipaffsUrlB2b" . | quote }}
+  IPAFFS_URL_B2C: {{ include "ipaffs-common.ipaffsUrlB2c" . | quote }}
   NAMESPACE: {{ .Release.Namespace | quote }}
 {{- if $configData }}
 {{- range $key, $value := $configData }}

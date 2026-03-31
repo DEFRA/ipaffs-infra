@@ -16,6 +16,7 @@ az aks get-credentials \
   --resource-group "${AKS_RESOURCE_GROUP_NAME}" \
   --subscription "${AKS_SUBSCRIPTION_NAME}" \
   --overwrite-existing
+kubelogin convert-kubeconfig -l azurecli
 
 cat <<EOF | kubectl apply --namespace "${NAMESPACE}" --filename -
 apiVersion: managedidentity.azure.com/v1api20230131

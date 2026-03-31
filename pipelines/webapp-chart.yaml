@@ -83,6 +83,7 @@ stages:
               CHART_VERSION: $(helmChartVersion)-build.$(Build.BuildNumber)
               REGISTRY_NAME: $(acrName)
               REGISTRY_HOST: $(acrLoginServer)
+              REGISTRY_SUBSCRIPTION: $(subscriptionName)
             inputs:
               azureSubscription: $(serviceConnection)
               scriptType: bash
@@ -128,6 +129,7 @@ stages:
               CHART_VERSION: $(bumpVersion.newVersion)
               REGISTRY_NAME: $(acrName)
               REGISTRY_HOST: $(acrLoginServer)
+              REGISTRY_SUBSCRIPTION: $(subscriptionName)
             inputs:
               azureSubscription: $(serviceConnection)
               scriptType: bash
@@ -158,6 +160,7 @@ stages:
                 CHART_VERSION: $(chartVersion)
                 REGISTRY_NAME: $(acrName)
                 REGISTRY_HOST: $(acrLoginServer)
+                REGISTRY_SUBSCRIPTION: $(subscriptionName)
               inputs:
                 azureSubscription: $(serviceConnection)
                 scriptType: bash

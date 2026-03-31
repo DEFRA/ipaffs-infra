@@ -18,7 +18,7 @@ steps:
       azureSubscription: $(serviceConnection)
       scriptType: bash
       scriptLocation: inlineScript
-      inlineScript: az acr login --name $(acrName)
+      inlineScript: az acr login --name "$(acrName)" --subscription "$(subscriptionName)"
 
   - task: Kubernetes@1
     name: KubectlLogin
