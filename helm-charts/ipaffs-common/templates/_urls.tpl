@@ -12,7 +12,7 @@ Canonical base URL to use for B2B clients, for use when the host cannot be infer
 {{/*
 Canonical base URL to use for B2C clients, for use when the host cannot be inferred from HTTP headers
 */}}
-{{- define "ipaffs-common.ipaffsUrlB2b" -}}
+{{- define "ipaffs-common.ipaffsUrlB2c" -}}
   {{- if eq $.Release.Namespace $.Values.environment -}}
     {{- if eq $.Values.Environment "prd" -}}
       {{- printf "https://import-products-animals-food-feed.service.gov.uk" -}}
