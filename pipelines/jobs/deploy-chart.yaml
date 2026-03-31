@@ -58,6 +58,7 @@ jobs:
             set -x
             az aks install-cli
             az aks get-credentials -n "$(kubernetesCluster)" -g "$(resourceGroupName)" --subscription "$(subscriptionName)"
+            kubelogin convert-kubeconfig -l azurecli
             az acr login --name "$(acrName)" --subscription "$(subscriptionName)"
 
       - task: AzureCLI@2
