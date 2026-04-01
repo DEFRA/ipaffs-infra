@@ -60,7 +60,5 @@ ipaffsConfig:
     B2B_CUSTOMER_USER_ID: "79f6dc68-2144-e911-a96a-000d3a29ba60"
     REMOTE_DEBUG: "true"
     PROTOCOL: "http"
-    APPLICATIONINSIGHTS_CONNECTION_STRING: "InstrumentationKey=db85164b-86a0-445b-9915-f575bfbce44e;IngestionEndpoint=https://uksouth-1.in.applicationinsights.azure.com/;LiveEndpoint=https://uksouth.livediagnostics.monitor.azure.com/;ApplicationId=6f402405-7c4b-4ad0-af54-31b332e0cb63"
-    APPLICATIONINSIGHTS_INSTRUMENTATION_STRING: "db85164b-86a0-445b-9915-f575bfbce44e"
 
 # vim: set ts=2 sts=2 sw=2 et:
