@@ -8,6 +8,7 @@ trigger:
       - helm-charts/bootstrap/**
       - pipelines/bootstrap-chart.yaml
       - scripts/pipeline/update-manifest-bootstrap-values.sh
+      - scripts/pipeline/update-manifest-chart-version.sh
 
 pr:
   branches:
@@ -18,6 +19,7 @@ pr:
       - helm-charts/bootstrap/**
       - pipelines/bootstrap-chart.yaml
       - scripts/pipeline/update-manifest-bootstrap-values.sh
+      - scripts/pipeline/update-manifest-chart-version.sh
 
 pool:
   name: 'DEFRA-COMMON-ubuntu2204-SSV5'

@@ -7,6 +7,7 @@ trigger:
       - helm-charts/ipaffs-common/**
       - helm-charts/backoffice/**
       - pipelines/backoffice-chart.yaml
+      - scripts/pipeline/update-manifest-chart-version.sh
 
 pr:
   branches:
@@ -16,9 +17,18 @@ pr:
     include:
       - helm-charts/backoffice/**
       - pipelines/backoffice-chart.yaml
+      - scripts/pipeline/update-manifest-chart-version.sh
 
 pool:
   name: 'DEFRA-COMMON-ubuntu2204-SSV5'
+
+resources:
+  repositories:
+    - repository: ipaffs-manifest
+      type: github
+      endpoint: DEFRA
+      name: DEFRA/ipaffs-manifest
+      ref: refs/heads/master
 
 variables:
   - group: Common
@@ -37,6 +47,18 @@ parameters:
       - TST
       - PRE
       - PRD
+
+  - name: updateManifest
+    type: boolean
+    default: true
+
+  - name: manifestBranch
+    type: string
+    default: auto
+
+  - name: manifestTrunkBranch
+    type: string
+    default: master
 
 stages:
   - stage: ExtractVersion
@@ -89,6 +111,15 @@ stages:
               scriptType: bash
               scriptPath: scripts/pipeline/package-and-push-chart.sh
 
+          - task: Bash@3
+            name: SetFeatureChartVersion
+            displayName: Record feature branch chart version
+            inputs:
+              targetType: inline
+              script: |
+                set -euo pipefail
+                echo "##vso[task.setvariable variable=chartVersion;isOutput=true]$(helmChartVersion)-build.$(Build.BuildNumber)"
+
       - job: PackageMainBranch
         displayName: Bump chart version and package from main branch (DEV)
         condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
@@ -134,6 +165,155 @@ stages:
               azureSubscription: $(serviceConnection)
               scriptType: bash
               scriptPath: scripts/pipeline/package-and-push-chart.sh
+
+          - task: Bash@3
+            name: SetMainChartVersion
+            displayName: Record main branch chart version
+            inputs:
+              targetType: inline
+              script: |
+                set -euo pipefail
+                echo "##vso[task.setvariable variable=chartVersion;isOutput=true]$(bumpVersion.newVersion)"
+
+  - ${{ if eq(parameters.updateManifest, true) }}:
+    - stage: UpdateManifest
+      displayName: Update ipaffs-manifest backoffice chart version
+      dependsOn: Package_DEV
+      condition: and(
+        eq(dependencies.Package_DEV.result, 'Succeeded'),
+        startsWith(variables['Build.SourceBranch'], 'refs/heads/')
+        )
+      variables:
+        - name: featureChartVersion
+          value: $[ stageDependencies.Package_DEV.PackageFeatureBranch.outputs['SetFeatureChartVersion.chartVersion'] ]
+        - name: mainChartVersion
+          value: $[ stageDependencies.Package_DEV.PackageMainBranch.outputs['SetMainChartVersion.chartVersion'] ]
+      jobs:
+        - job: UpdateManifest
+          displayName: Update backoffice chart version in ipaffs-manifest
+          steps:
+            - checkout: self
+              path: s/ipaffs-infra
+
+            - checkout: ipaffs-manifest
+              persistCredentials: true
+              path: s/ipaffs-manifest
+
+            - task: Bash@3
+              displayName: Resolve and checkout manifest branch
+              env:
+                MANIFEST_BRANCH: "${{ parameters.manifestBranch }}"
+                MANIFEST_TRUNK_BRANCH: "${{ parameters.manifestTrunkBranch }}"
+                SOURCE_BRANCH: $(Build.SourceBranch)
+              inputs:
+                targetType: inline
+                workingDirectory: $(Pipeline.Workspace)/s/ipaffs-manifest
+                script: |
+                  set -euo pipefail
+
+                  source_branch="${SOURCE_BRANCH#refs/heads/}"
+                  target_branch="${MANIFEST_BRANCH}"
+
+                  if [[ "${target_branch}" == "auto" ]]; then
+                    if [[ "${source_branch}" == "main" ]] || [[ "${source_branch}" == "master" ]]; then
+                      target_branch="${MANIFEST_TRUNK_BRANCH}"
+                    else
+                      target_branch="${source_branch}"
+                    fi
+                  fi
+
+                  if [[ -z "${target_branch}" ]]; then
+                    echo "Target manifest branch cannot be empty" >&2
+                    exit 1
+                  fi
+
+                  git fetch origin
+
+                  if ! git ls-remote --exit-code --heads origin "${target_branch}" >/dev/null; then
+                    if [[ "${target_branch}" == "${MANIFEST_TRUNK_BRANCH}" ]]; then
+                      echo "Target manifest trunk branch '${target_branch}' does not exist" >&2
+                      exit 1
+                    fi
+
+                    echo "Manifest branch '${target_branch}' does not exist. Skipping manifest update."
+                    echo "##vso[task.setvariable variable=skipManifestUpdate]true"
+                    exit 0
+                  fi
+
+                  git checkout -B "${target_branch}" "origin/${target_branch}"
+                  echo "Using manifest branch: ${target_branch}"
+                  echo "##vso[task.setvariable variable=targetManifestBranch]${target_branch}"
+                  echo "##vso[task.setvariable variable=skipManifestUpdate]false"
+
+            - task: Bash@3
+              name: ResolveChartVersion
+              displayName: Resolve chart version
+              condition: ne(variables['skipManifestUpdate'], 'true')
+              env:
+                FEATURE_CHART_VERSION: "$(featureChartVersion)"
+                MAIN_CHART_VERSION: "$(mainChartVersion)"
+              inputs:
+                targetType: inline
+                script: |
+                  set -euo pipefail
+
+                  chart_version="${MAIN_CHART_VERSION:-}"
+                  if [[ -z "${chart_version}" ]]; then
+                    chart_version="${FEATURE_CHART_VERSION:-}"
+                  fi
+
+                  if [[ -z "${chart_version}" ]]; then
+                    echo "Unable to resolve chart version for manifest update" >&2
+                    exit 1
+                  fi
+
+                  echo "Using chart version: ${chart_version}"
+                  echo "##vso[task.setvariable variable=chartVersion]${chart_version}"
+
+            - task: Bash@3
+              displayName: Update chart version in manifest helmfile
+              condition: ne(variables['skipManifestUpdate'], 'true')
+              env:
+                CHART_NAME: $(helmChartName)
+                CHART_VERSION: "$(chartVersion)"
+                MANIFEST_ROOT: "$(Pipeline.Workspace)/s/ipaffs-manifest"
+              inputs:
+                targetType: filePath
+                filePath: $(Pipeline.Workspace)/s/ipaffs-infra/scripts/pipeline/update-manifest-chart-version.sh
+                workingDirectory: $(Pipeline.Workspace)/s/ipaffs-infra
+
+            - task: Bash@3
+              displayName: Commit and push manifest changes
+              condition: ne(variables['skipManifestUpdate'], 'true')
+              env:
+                CHART_NAME: $(helmChartName)
+                CHART_VERSION: "$(chartVersion)"
+                MANIFEST_BRANCH: "$(targetManifestBranch)"
+              inputs:
+                targetType: inline
+                workingDirectory: $(Pipeline.Workspace)/s/ipaffs-manifest
+                script: |
+                  set -euo pipefail
+
+                  git config user.name "IPAFFS CI Bot"
+                  git config user.email "ipaffs-ci-bot@defra.gov.uk"
+
+                  git add helmfile.yaml.gotmpl
+
+                  if git diff --cached --quiet; then
+                    echo "No manifest helmfile changes for ${CHART_NAME}"
+                    exit 0
+                  fi
+
+                  git commit -m "Update ${CHART_NAME} chart version to ${CHART_VERSION}"
+
+                  if ! git ls-remote --exit-code --heads origin "${MANIFEST_BRANCH}" >/dev/null; then
+                    echo "Manifest branch '${MANIFEST_BRANCH}' no longer exists. Skipping push."
+                    exit 0
+                  fi
+
+                  git pull --rebase origin "${MANIFEST_BRANCH}"
+                  git push origin "HEAD:${MANIFEST_BRANCH}"
 
   - ${{ each env in parameters.nonDevEnvironments }}:
     - stage: Package_${{ env }}
