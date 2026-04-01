@@ -111,6 +111,15 @@ stages:
               scriptType: bash
               scriptPath: scripts/pipeline/package-and-push-chart.sh
 
+          - task: Bash@3
+            name: SetFeatureChartVersion
+            displayName: Record feature branch chart version
+            inputs:
+              targetType: inline
+              script: |
+                set -euo pipefail
+                echo "##vso[task.setvariable variable=chartVersion;isOutput=true]$(helmChartVersion)-build.$(Build.BuildNumber)"
+
       - job: PackageMainBranch
         displayName: Bump chart version and package from main branch (DEV)
         condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
@@ -157,6 +166,15 @@ stages:
               scriptType: bash
               scriptPath: scripts/pipeline/package-and-push-chart.sh
 
+          - task: Bash@3
+            name: SetMainChartVersion
+            displayName: Record main branch chart version
+            inputs:
+              targetType: inline
+              script: |
+                set -euo pipefail
+                echo "##vso[task.setvariable variable=chartVersion;isOutput=true]$(bumpVersion.newVersion)"
+
   - ${{ if eq(parameters.updateManifest, true) }}:
     - stage: UpdateManifest
       displayName: Update ipaffs-manifest bootstrap values
@@ -165,6 +183,11 @@ stages:
         eq(dependencies.Package_DEV.result, 'Succeeded'),
         startsWith(variables['Build.SourceBranch'], 'refs/heads/')
         )
+      variables:
+        - name: featureChartVersion
+          value: $[ stageDependencies.Package_DEV.PackageFeatureBranch.outputs['SetFeatureChartVersion.chartVersion'] ]
+        - name: mainChartVersion
+          value: $[ stageDependencies.Package_DEV.PackageMainBranch.outputs['SetMainChartVersion.chartVersion'] ]
       jobs:
         - job: UpdateManifest
           displayName: Update bootstrap values in ipaffs-manifest
@@ -223,9 +246,35 @@ stages:
                   echo "##vso[task.setvariable variable=skipManifestUpdate]false"
 
             - task: Bash@3
+              name: ResolveBootstrapChartVersion
+              displayName: Resolve bootstrap chart version
+              condition: ne(variables['skipManifestUpdate'], 'true')
+              env:
+                FEATURE_CHART_VERSION: "$(featureChartVersion)"
+                MAIN_CHART_VERSION: "$(mainChartVersion)"
+              inputs:
+                targetType: inline
+                script: |
+                  set -euo pipefail
+
+                  chart_version="${MAIN_CHART_VERSION:-}"
+                  if [[ -z "${chart_version}" ]]; then
+                    chart_version="${FEATURE_CHART_VERSION:-}"
+                  fi
+
+                  if [[ -z "${chart_version}" ]]; then
+                    echo "Unable to resolve bootstrap chart version for manifest update" >&2
+                    exit 1
+                  fi
+
+                  echo "Using bootstrap chart version: ${chart_version}"
+                  echo "##vso[task.setvariable variable=bootstrapChartVersion]${chart_version}"
+
+            - task: Bash@3
               displayName: Update bootstrap values files
               condition: ne(variables['skipManifestUpdate'], 'true')
               env:
+                CHART_VERSION: "$(bootstrapChartVersion)"
                 MANIFEST_ROOT: "$(Pipeline.Workspace)/s/ipaffs-manifest"
                 INFRA_ROOT: "$(Pipeline.Workspace)/s/ipaffs-infra"
               inputs:
@@ -248,7 +297,7 @@ stages:
                   git config user.name "IPAFFS CI Bot"
                   git config user.email "ipaffs-ci-bot@defra.gov.uk"
 
-                  git add -A bootstrap
+                  git add -A bootstrap helmfile.yaml.gotmpl
 
                   if git diff --cached --quiet; then
                     echo "No manifest bootstrap changes"
