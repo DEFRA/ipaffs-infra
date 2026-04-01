@@ -6,6 +6,7 @@ trigger:
     include:
       - helm-charts/ipaffs-common/**
       - helm-charts/bootstrap/**
+      - helm-charts/envs/**/bootstrap-values.yaml
       - pipelines/bootstrap-chart.yaml
       - scripts/pipeline/update-manifest-bootstrap-values.sh
       - scripts/pipeline/update-manifest-chart-version.sh
@@ -17,6 +18,7 @@ pr:
   paths:
     include:
       - helm-charts/bootstrap/**
+      - helm-charts/envs/**/bootstrap-values.yaml
       - pipelines/bootstrap-chart.yaml
       - scripts/pipeline/update-manifest-bootstrap-values.sh
       - scripts/pipeline/update-manifest-chart-version.sh
