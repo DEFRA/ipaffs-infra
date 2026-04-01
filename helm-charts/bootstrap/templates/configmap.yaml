@@ -9,6 +9,7 @@ metadata:
 data:
   IPAFFS_URL_B2B: {{ include "ipaffs-common.ipaffsUrlB2b" . | quote }}
   IPAFFS_URL_B2C: {{ include "ipaffs-common.ipaffsUrlB2c" . | quote }}
+  IPAFFS_DOMAIN_B2C: {{ urlParse (include "ipaffs-common.ipaffsUrlB2c" .).hostname | quote }}
   NAMESPACE: {{ .Release.Namespace | quote }}
 {{- if $configData }}
 {{- range $key, $value := $configData }}
