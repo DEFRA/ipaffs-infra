@@ -2,9 +2,12 @@
 Azure Resource Names
 */}}
 {{- define "ipaffs-common.azure.databaseName" -}}
-{{- printf "%s-%s" .databaseName .Release.Namespace }}
+{{- if eq .Release.Namespace "dev" -}}
+{{- printf "%s" .databaseName -}}
+{{- else -}}
+{{- printf "%s-%s" .databaseName .Release.Namespace -}}
+{{- end -}}
 {{- end }}
-
 {{- define "ipaffs-common.azure.managedIdentityBaseName" -}}
 {{- printf "%simpinfrg1401-%s-%s" .Values.environment .Release.Namespace .Values.service }}
 {{- end }}
