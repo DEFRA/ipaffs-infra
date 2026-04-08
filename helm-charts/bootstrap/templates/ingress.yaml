@@ -1,3 +1,4 @@
+{{- if eq .Values.environment "dev" }}
 {{- $hosts := trim (include "ipaffs-common.ingressOriginHosts" .) }}
 {{- if not (empty $hosts) }}
 {{- $hostsList := splitList "\n" $hosts }}

@@ -5,35 +5,17 @@ environment: tst
 
 azure:
   location: uksouth
+  sqlServer: tstimpdbssqa001
+  sqlServerHostname: tstimpdbssqa001.database.windows.net
+  serviceBusNamespace: tstimpinfsbs002
 
 serviceBus:
-  queues:
-    - defra.trade.eds.decisionoutput
-    - defra.trade.dmp.gto.ipaffsoutput
-    - notify-queue
-    - dev-decision-notification-queue-1
-    - dev-dmp-gto-queue-1
-    - enotification-event-queue
-    - risk-feedback-queue
-    - enotification-submission-queue
-    - enotification-processing-status-queue
-    - gvms-queue
-  topics:
-    - name: notification-topic
-    - name: alvs-topic
-    - name: messaging-topic
-      subscriptions:
-        - commodity-file-upload
+  queues: []
+  topics: []
 
 storageAccount:
   blobService:
-    containers:
-      - approvedestablishment
-      - bip
-      - commoditycode
-      - economicoperator
-      - notificationdocuments
-      - tmp-download
+    containers: []
 
 ipaffsConfig:
   data:

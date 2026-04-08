@@ -1,3 +1,4 @@
+{{- if eq .Values.environment "dev" }}
 apiVersion: resources.azure.com/v1api20200601
 kind: ResourceGroup
 metadata:

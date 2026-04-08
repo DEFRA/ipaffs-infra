@@ -1,3 +1,4 @@
+{{- if eq .Values.environment "dev" }}
 apiVersion: sql.azure.com/v1api20211101
 kind: Server
 metadata:
