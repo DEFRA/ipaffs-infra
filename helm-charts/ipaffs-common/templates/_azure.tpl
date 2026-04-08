@@ -26,7 +26,7 @@ Azure Resource Names
 {{ if .Values.azure.serviceBusNamespace}}
 {{- printf "%s" .Values.azure.serviceBusNamespace }}
 {{- else -}}
-{{- printf "%simpinfsb1401-%s" .Values.environment }}
+{{- printf "%simpinfsb1401-%s" .Values.environment .Release.Namespace }}
 {{- end }}
 {{- end }}
 
