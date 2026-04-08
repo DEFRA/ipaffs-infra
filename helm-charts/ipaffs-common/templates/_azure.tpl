@@ -14,10 +14,6 @@ Azure Resource Names
 {{- printf "%simpinfrg1401-%s-%s" .Values.environment .Release.Namespace .Values.service }}
 {{- end }}
 
-{{- define "ipaffs-common.azure.managedIdentityBaseName" -}}
-{{- printf "%simpinfrg1401-%s-%s" .Values.environment .Release.Namespace .Values.service }}
-{{- end }}
-
 {{- define "ipaffs-common.azure.redisName" -}}
 {{- printf "%simpinfrd1401-%s-%s" .Values.environment .Values.service .Release.Namespace }}
 {{- end }}
