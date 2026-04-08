@@ -2,7 +2,16 @@
 Azure Resource Names
 */}}
 {{- define "ipaffs-common.azure.databaseName" -}}
-{{- printf "%s-%s" .databaseName .Release.Namespace }}
+{{- $namespaces := list "dev" "tst" "pre" "prd" -}}
+{{- if has .Release.Namespace $namespaces -}}
+{{- printf "%s" .databaseName -}}
+{{- else -}}
+{{- printf "%s-%s" .databaseName .Release.Namespace -}}
+{{- end -}}
+{{- end }}
+
+{{- define "ipaffs-common.azure.managedIdentityBaseName" -}}
+{{- printf "%simpinfrg1401-%s-%s" .Values.environment .Release.Namespace .Values.service }}
 {{- end }}
 
 {{- define "ipaffs-common.azure.managedIdentityBaseName" -}}
@@ -18,15 +27,27 @@ Azure Resource Names
 {{- end }}
 
 {{- define "ipaffs-common.azure.serviceBusNamespace" -}}
-{{- printf "%simpinfsb1401-%s" .Values.environment .Release.Namespace }}
+{{ if .Values.azure.serviceBusNamespace}}
+{{- printf "%s" .Values.azure.serviceBusNamespace }}
+{{- else -}}
+{{- printf "%simpinfsb1401-%s" .Values.environment }}
+{{- end }}
 {{- end }}
 
 {{- define "ipaffs-common.azure.sqlServer" -}}
+{{ if .Values.azure.sqlServer}}
+{{- printf "%s" .Values.azure.sqlServer }}
+{{- else -}}
 {{- printf "%simpdbssq1401" .Values.environment }}
+{{- end }}
 {{- end }}
 
 {{- define "ipaffs-common.azure.sqlServerHostname" -}}
+{{ if .Values.azure.sqlServerHostname}}
+{{- printf "%s" .Values.azure.sqlServerHostname }}
+{{- else -}}
 {{- printf "%simpdbssq1401.database.windows.net" .Values.environment }}
+{{- end }}
 {{- end }}
 
 {{- define "ipaffs-common.azure.storageAccount" -}}
