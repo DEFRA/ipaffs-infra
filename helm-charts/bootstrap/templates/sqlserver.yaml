@@ -1,4 +1,5 @@
 {{- if eq .Values.environment "dev" }}
+
 apiVersion: sql.azure.com/v1api20211101
 kind: Server
 metadata:
@@ -10,4 +11,5 @@ spec:
     name: {{ template "ipaffs-common.azure.resourceGroup" . }}
   location: {{ .Values.azure.location }}
 
+{{- end }}
 # vim: set ts=2 sts=2 sw=2 et:

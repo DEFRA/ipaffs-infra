@@ -1,4 +1,5 @@
 {{- if eq .Values.environment "dev" }}
+
 {{- $root := . }}
 {{- $blobService := default (dict "containers" (list)) $root.Values.storageAccount.blobService }}
 
@@ -42,5 +43,7 @@ spec:
   owner:
     name: default
   publicAccess: None
+
+{{- end }}
 
 {{- end }}

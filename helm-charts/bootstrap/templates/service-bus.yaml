@@ -1,4 +1,5 @@
 {{- if eq .Values.environment "dev" }}
+
 {{- $root := . }}
 {{- $serviceBus := default (dict "queues" (list) "topics" (list)) $root.Values.serviceBus }}
 
@@ -72,4 +73,5 @@ spec:
 {{- end }}
 {{- end }}
 
+{{- end }}
 # vim: set ts=2 sts=2 sw=2 et:
