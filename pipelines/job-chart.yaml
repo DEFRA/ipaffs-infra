@@ -41,13 +41,6 @@ variables:
     value: helm-charts/job
 
 parameters:
-  - name: nonDevEnvironments
-    type: object
-    default:
-      - TST
-      - PRE
-      - PRD
-
   - name: updateManifest
     type: boolean
     default: true
@@ -314,36 +307,5 @@ stages:
 
                   git pull --rebase origin "${MANIFEST_BRANCH}"
                   git push origin "HEAD:${MANIFEST_BRANCH}"
-
-  - ${{ each env in parameters.nonDevEnvironments }}:
-    - stage: Package_${{ env }}
-      displayName: Package Job Chart (${{ env }})
-      dependsOn: Package_DEV
-      condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
-      variables:
-        - group: Common
-        - group: "${{ env }}"
-        - template: "vars/common.yaml"
-        - template: "vars/${{ lower(env) }}.yaml"
-        - name: chartVersion
-          value: $[ stageDependencies.Package_DEV.PackageMainBranch.outputs['bumpVersion.newVersion'] ]
-      jobs:
-        - job: PackageChart
-          displayName: Package and push chart to registry
-          steps:
-            - task: AzureCLI@2
-              name: pushChartToRegistry
-              displayName: Package and push chart to registry
-              env:
-                CHART_NAME: $(helmChartName)
-                CHART_PATH: $(helmChartPath)
-                CHART_VERSION: $(chartVersion)
-                REGISTRY_NAME: $(acrName)
-                REGISTRY_HOST: $(acrLoginServer)
-                REGISTRY_SUBSCRIPTION: $(subscriptionName)
-              inputs:
-                azureSubscription: $(serviceConnection)
-                scriptType: bash
-                scriptPath: scripts/pipeline/package-and-push-chart.sh
 
 # vim: set ts=2 sts=2 sw=2 et:
