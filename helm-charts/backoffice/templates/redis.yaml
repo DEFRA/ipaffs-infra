@@ -1,3 +1,5 @@
+{{- if eq .Values.environment "dev" }}
+
 {{ if .Values.redis.enabled }}
 
 apiVersion: cache.azure.com/v1api20241101
@@ -36,4 +38,5 @@ spec:
 
 {{ end }}
 
+{{- end }}
 # vim: set ts=2 sts=2 sw=2 et:

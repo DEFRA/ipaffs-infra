@@ -23,27 +23,15 @@ Azure Resource Names
 {{- end }}
 
 {{- define "ipaffs-common.azure.serviceBusNamespace" -}}
-{{ if .Values.azure.serviceBusNamespace}}
-{{- printf "%s" .Values.azure.serviceBusNamespace }}
-{{- else -}}
 {{- printf "%simpinfsb1401-%s" .Values.environment .Release.Namespace }}
-{{- end }}
 {{- end }}
 
 {{- define "ipaffs-common.azure.sqlServer" -}}
-{{ if .Values.azure.sqlServer}}
-{{- printf "%s" .Values.azure.sqlServer }}
-{{- else -}}
 {{- printf "%simpdbssq1401" .Values.environment }}
-{{- end }}
 {{- end }}
 
 {{- define "ipaffs-common.azure.sqlServerHostname" -}}
-{{ if .Values.azure.sqlServerHostname}}
-{{- printf "%s" .Values.azure.sqlServerHostname }}
-{{- else -}}
 {{- printf "%simpdbssq1401.database.windows.net" .Values.environment }}
-{{- end }}
 {{- end }}
 
 {{- define "ipaffs-common.azure.storageAccount" -}}
