@@ -1,4 +1,4 @@
-using '../../90-classic.bicep'
+using '../../30-classic.bicep'
 
 param environment = 'PRD'
 

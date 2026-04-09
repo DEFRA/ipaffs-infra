@@ -197,7 +197,7 @@ stages:
           - task: AzureCLI@2
             name: AksAdmins
             env:
-              GROUP_NAME: AAG-Azure-AZR_IMP_${{ parameters.environmentName }}1-AksAdmin
+              GROUP_NAME: $(entraAccessGroupBaseName)-AksAdmin
               GROUP_DESCRIPTION: Entra access group for IPAFFS AKS Administrators in ${{ parameters.environmentName }} environment
               GROUP_OWNER_OBJECT_IDS: >
                 $(serviceConnectionPrincipalId)
@@ -230,7 +230,7 @@ stages:
           - task: AzureCLI@2
             name: AksContributors
             env:
-              GROUP_NAME: AAG-Azure-AZR_IMP_${{ parameters.environmentName }}1-AksContrib
+              GROUP_NAME: $(entraAccessGroupBaseName)-AksContrib
               GROUP_DESCRIPTION: Entra access group for IPAFFS AKS Contributors in ${{ parameters.environmentName }} environment
               GROUP_OWNER_OBJECT_IDS: >
                 $(serviceConnectionPrincipalId)
@@ -253,7 +253,7 @@ stages:
           - task: AzureCLI@2
             name: AksReaders
             env:
-              GROUP_NAME: AAG-Azure-AZR_IMP_${{ parameters.environmentName }}1-AksReader
+              GROUP_NAME: $(entraAccessGroupBaseName)-AksReader
               GROUP_DESCRIPTION: Entra access group for IPAFFS AKS Readers in ${{ parameters.environmentName }} environment
               GROUP_OWNER_OBJECT_IDS: >
                 $(serviceConnectionPrincipalId)
@@ -282,7 +282,7 @@ stages:
           - task: AzureCLI@2
             name: KeyVaultAdmins
             env:
-              GROUP_NAME: AAG-Azure-AZR_IMP_${{ parameters.environmentName }}1-KeyVaultAdmin
+              GROUP_NAME: $(entraAccessGroupBaseName)-KeyVaultAdmin
               GROUP_DESCRIPTION: Entra access group for IPAFFS KeyVault Administrators in ${{ parameters.environmentName }} environment
               GROUP_OWNER_OBJECT_IDS: >
                 $(serviceConnectionPrincipalId)
@@ -305,7 +305,7 @@ stages:
           - task: AzureCLI@2
             name: KeyVaultSecretsReader
             env:
-              GROUP_NAME: AAG-Azure-AZR_IMP_${{ parameters.environmentName }}1-KeyVaultSecretsReader
+              GROUP_NAME: $(entraAccessGroupBaseName)-KeyVaultSecretsReader
               GROUP_DESCRIPTION: Entra access group for IPAFFS KeyVault Secrets Readers in ${{ parameters.environmentName }} environment
               GROUP_OWNER_OBJECT_IDS: >
                 $(serviceConnectionPrincipalId)
@@ -334,7 +334,7 @@ stages:
           - task: AzureCLI@2
             name: SearchContributors
             env:
-              GROUP_NAME: AAG-Azure-AZR_IMP_${{ parameters.environmentName }}1-SearchContrib
+              GROUP_NAME: $(entraAccessGroupBaseName)-SearchContrib
               GROUP_DESCRIPTION: Entra access group for IPAFFS Search Services Contributors in ${{ parameters.environmentName }} environment
               GROUP_OWNER_OBJECT_IDS: >
                 $(serviceConnectionPrincipalId)
@@ -367,7 +367,7 @@ stages:
           - task: AzureCLI@2
             name: SearchReaders
             env:
-              GROUP_NAME: AAG-Azure-AZR_IMP_${{ parameters.environmentName }}1-SearchReader
+              GROUP_NAME: $(entraAccessGroupBaseName)-SearchReader
               GROUP_DESCRIPTION: Entra access group for IPAFFS Search Services Readers in ${{ parameters.environmentName }} environment
               GROUP_OWNER_OBJECT_IDS: >
                 $(serviceConnectionPrincipalId)
@@ -396,7 +396,7 @@ stages:
           - task: AzureCLI@2
             name: BlobStorageContributors
             env:
-              GROUP_NAME: AAG-Azure-AZR_IMP_${{ parameters.environmentName }}1-BlobStorageContrib
+              GROUP_NAME: $(entraAccessGroupBaseName)-BlobStorageContrib
               GROUP_DESCRIPTION: Entra access group for IPAFFS Blob Storage Contributors in ${{ parameters.environmentName }} environment
               GROUP_OWNER_OBJECT_IDS: >
                 $(serviceConnectionPrincipalId)
@@ -429,7 +429,7 @@ stages:
           - task: AzureCLI@2
             name: BlobStorageReaders
             env:
-              GROUP_NAME: AAG-Azure-AZR_IMP_${{ parameters.environmentName }}1-BlobStorageReader
+              GROUP_NAME: $(entraAccessGroupBaseName)-BlobStorageReader
               GROUP_DESCRIPTION: Entra access group for IPAFFS Blob Storage Readers in ${{ parameters.environmentName }} environment
               GROUP_OWNER_OBJECT_IDS: >
                 $(serviceConnectionPrincipalId)
@@ -440,7 +440,7 @@ stages:
               scriptPath: scripts/pipeline/create-entra-group.sh
 
           - task: AzureCLI@2
-            name: BlobStorageMembersDevelopers
+            name: BlobStorageReadersMembersDevelopers
             env:
               GROUP_ID: $(BlobStorageReaders.objectId)
               PRINCIPAL_ID: $(teamReadersObjectId)
@@ -459,7 +459,7 @@ stages:
           - task: AzureCLI@2
             name: SQLAdmins
             env:
-              GROUP_NAME: AAG-Azure-AZR_IMP_${{ parameters.environmentName }}1-SQLAdmins
+              GROUP_NAME: $(entraAccessGroupBaseName)-SQLAdmins
               GROUP_DESCRIPTION: Entra access group for IPAFFS SQL Admins
               GROUP_OWNER_OBJECT_IDS: >
                 $(serviceConnectionPrincipalId)
@@ -484,6 +484,17 @@ stages:
             env:
               GROUP_ID: $(SQLAdmins.objectId)
               PRINCIPAL_ID: $(teamDevelopersObjectId)
+            inputs:
+              azureSubscription: $(serviceConnection)
+              scriptType: bash
+              scriptPath: scripts/pipeline/add-principal-to-group.sh
+
+          - task: AzureCLI@2
+            name: SQLAdminsMemberClassicAdminUser
+            condition: ne(variables['classicSqlAdminUserPrincipalObjectId'], '')
+            env:
+              GROUP_ID: $(SQLAdmins.objectId)
+              PRINCIPAL_ID: $(classicSqlAdminUserPrincipalObjectId)
             inputs:
               azureSubscription: $(serviceConnection)
               scriptType: bash

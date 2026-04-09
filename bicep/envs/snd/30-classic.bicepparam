@@ -1,4 +1,4 @@
-using '../../90-classic.bicep'
+using '../../30-classic.bicep'
 
 param environment = 'SND'
 
@@ -46,6 +46,10 @@ param sejParams = {
   }
   sqlServerName: 'SNDIMPDBSSQA004'
   userAssignedIdentityName: 'snd-imp-elasticjobs-sql'
+}
+
+param sqlParams = {
+  sqlServerName = 'sndimpdbssqa004'
 }
 
 // vim: set ts=2 sts=2 sw=2 et:

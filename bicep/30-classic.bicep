@@ -1,9 +1,10 @@
-param alertsParams object
-param dbwParams object
-param sejParams object
+targetScope = 'resourceGroup'
 
 @allowed(['SND', 'TST', 'PRE', 'PRD'])
 param environment string
+
+param privateEndpointsSubnet object
+param sqlAdminsEntraGroup object
 
 param createdDate string = utcNow('yyyy-MM-dd')
 param deploymentId string = uniqueString(utcNow())
@@ -46,6 +47,11 @@ var tags = union(loadJsonContent('default-tags.json'), {
   Location: location
 })
 
+param alertsParams object
+param dbwParams object
+param sejParams object
+
+// TODO: move this to infra module and lift to new subscription
 module alerts './modules/alerts.bicep' = {
   name: 'alerts-${deploymentId}'
   scope: resourceGroup()
@@ -57,6 +63,7 @@ module alerts './modules/alerts.bicep' = {
   }
 }
 
+// TODO: move this to infra module and lift to new subscription
 module dbw './modules/database-watcher.bicep' = {
   name: 'dbw-${deploymentId}'
   scope: resourceGroup()
@@ -69,6 +76,7 @@ module dbw './modules/database-watcher.bicep' = {
   }
 }
 
+// TODO: move this to infra module and lift to new subscription
 module sej './modules/sql-elastic-jobs.bicep' = {
   name: 'sej-${deploymentId}'
   scope: resourceGroup()
@@ -78,6 +86,20 @@ module sej './modules/sql-elastic-jobs.bicep' = {
     location: location
     sejParams: sejParams
     tags: tags
+  }
+}
+
+module sql './modules/sql-classic.bicep' = {
+  name: 'sql-${deploymentId}'
+  scope: resourceGroup()
+  params: {
+    deploymentId: deploymentId
+    location: location
+    privateEndpointsSubnet: privateEndpointsSubnet
+    sqlAdminsEntraGroup: sqlAdminsEntraGroup
+    sqlParams: sqlParams
+    tags: tags
+    tenantId: tenantId
   }
 }
 

@@ -1,4 +1,4 @@
-using '../../40-privatelink.bicep'
+using '../../50-privatelink.bicep'
 
 param environment = 'TST'
 param vnetName = 'TSTIMPNETVN1401'

@@ -32,8 +32,8 @@ stages:
                         --name "PrivateLink-$(Build.BuildId)" \
                         --subscription $(subscriptionId) \
                         --resource-group $(resourceGroupName) \
-                        --template-file bicep/40-privatelink.bicep \
-                        --parameters bicep/envs/${{ lower(parameters.environmentName) }}/40-privatelink.bicepparam
+                        --template-file bicep/50-privatelink.bicep \
+                        --parameters bicep/envs/${{ lower(parameters.environmentName) }}/50-privatelink.bicepparam
 
                 - task: AzureCLI@2
                   displayName: Deploy - PrivateLink
@@ -48,8 +48,8 @@ stages:
                         --name "PrivateLink-$(Build.BuildId)" \
                         --subscription $(subscriptionId) \
                         --resource-group $(resourceGroupName) \
-                        --template-file bicep/40-privatelink.bicep \
-                        --parameters bicep/envs/${{ lower(parameters.environmentName) }}/40-privatelink.bicepparam
+                        --template-file bicep/50-privatelink.bicep \
+                        --parameters bicep/envs/${{ lower(parameters.environmentName) }}/50-privatelink.bicepparam
 
                 - task: AzureCLI@2
                   displayName: Wait for Deployment - PrivateLink

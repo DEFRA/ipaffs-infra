@@ -1,4 +1,4 @@
-using '../../90-classic.bicep'
+using '../../30-classic.bicep'
 
 param environment = 'TST'
 
@@ -46,6 +46,10 @@ param sejParams = {
   }
   sqlServerName: 'TSTIMPDBSSQA001'
   userAssignedIdentityName: 'tst-imp-elasticjobs-sql'
+}
+
+param sqlParams = {
+  sqlServerName = 'tstimpdbssqa001'
 }
 
 // vim: set ts=2 sts=2 sw=2 et:

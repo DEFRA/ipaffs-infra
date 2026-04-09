@@ -3,6 +3,8 @@ targetScope = 'resourceGroup'
 @allowed(['DEV', 'TST'])
 param environment string
 
+param subnetNames object
+
 param createdDate string = utcNow('yyyy-MM-dd')
 param deploymentId string = uniqueString(utcNow())
 param location string = resourceGroup().location
@@ -41,6 +43,12 @@ module vnet './modules/virtual-network.bicep' = {
   ]
 }
 
+resource vnet 'Microsoft.Network/virtualNetworks@2025-05-01' existing = {
+  name: vnet.outputs.vnetName
+}
+
+output privateEndpointsSubnetId string = first(filter(vnet.properties.subnets, subnet => subnet.name == subnetNames.privateEndpoints)).id
+output privateEndpointsSubnetName string = first(filter(vnet.properties.subnets, subnet => subnet.name == subnetNames.privateEndpoints)).name
 output vnetName string = vnet.outputs.vnetName
 
 // vim: set ts=2 sts=2 sw=2 et:

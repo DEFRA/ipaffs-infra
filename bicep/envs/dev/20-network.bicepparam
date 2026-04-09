@@ -2,6 +2,14 @@ using '../../20-network.bicep'
 
 param environment = 'DEV'
 
+param subnetNames = {
+  aksApiServer: 'DEVIMPNETSU4401'
+  aksSystemNodes: 'DEVIMPNETSU4402'
+  aksUserNodes: 'DEVIMPNETSU4406'
+  appGatewayForContainers: 'DEVIMPNETSU4405'
+  privateEndpoints: 'DEVIMPNETSU4404'
+}
+
 param nsgParams = {
   networkSecurityGroups: [
     {

@@ -98,6 +98,8 @@ stages:
               scriptLocation: inlineScript
               inlineScript: |
                 set -x
+                scripts/pipeline/update-group-variable-from-deployment.sh privateEndpointsSubnetId privateEndpointsSubnetId
+                scripts/pipeline/update-group-variable-from-deployment.sh privateEndpointsSubnetName privateEndpointsSubnetName
                 scripts/pipeline/update-group-variable-from-deployment.sh vnetName vnetName
 
 

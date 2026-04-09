@@ -22,9 +22,9 @@ stages:
               targetType: inline
               script: |
                 set -ex
-                cat <<- 'EOF' >'$(Build.SourcesDirectory)/30-infra-runtime.bicepparam'
-                using '30-infra.bicep'
-                extends 'envs/${{ lower(parameters.environmentName) }}/30-infra.bicepparam'
+                cat <<- 'EOF' >'$(Build.SourcesDirectory)/40-infra-runtime.bicepparam'
+                using '40-infra.bicep'
+                extends 'envs/${{ lower(parameters.environmentName) }}/40-infra.bicepparam'
                 param entraGroups = {
                   aksAdmins: {
                     id: '$(aksAdminsGroupId)'
@@ -68,13 +68,13 @@ stages:
                   }
                 }
                 EOF
-                cat '$(Build.SourcesDirectory)/30-infra-runtime.bicepparam'
+                cat '$(Build.SourcesDirectory)/40-infra-runtime.bicepparam'
 
           - task: PublishPipelineArtifact@1
             displayName: Publish artifact
             inputs:
               artifactName: bicepparam
-              targetPath: $(Build.SourcesDirectory)/30-infra-runtime.bicepparam
+              targetPath: $(Build.SourcesDirectory)/40-infra-runtime.bicepparam
 
 
   - stage: DeployInfrastructure
@@ -113,8 +113,8 @@ stages:
                         --name "Infrastructure-$(Build.BuildId)" \
                         --subscription $(subscriptionId) \
                         --resource-group $(resourceGroupName) \
-                        --template-file bicep/30-infra.bicep \
-                        --parameters bicep/30-infra-runtime.bicepparam \
+                        --template-file bicep/40-infra.bicep \
+                        --parameters bicep/40-infra-runtime.bicepparam \
                         --parameters tenantId="$(tenantId)"
 
                 - task: AzureCLI@2
@@ -130,8 +130,8 @@ stages:
                         --name "Infrastructure-$(Build.BuildId)" \
                         --subscription $(subscriptionId) \
                         --resource-group $(resourceGroupName) \
-                        --template-file bicep/30-infra.bicep \
-                        --parameters bicep/30-infra-runtime.bicepparam \
+                        --template-file bicep/40-infra.bicep \
+                        --parameters bicep/40-infra-runtime.bicepparam \
                         --parameters tenantId="$(tenantId)"
 
                 - task: AzureCLI@2

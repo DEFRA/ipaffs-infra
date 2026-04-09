@@ -7,13 +7,13 @@ trigger:
     include:
       - bicep/envs/*/10-resource-group.bicepparam
       - bicep/envs/*/20-network.bicepparam
-      - bicep/envs/*/30-infra.bicepparam
-      - bicep/envs/*/40-privatelink.bicepparam
+      - bicep/envs/*/40-infra.bicepparam
+      - bicep/envs/*/50-privatelink.bicepparam
       - bicep/modules/*.bicep
       - bicep/10-resource-group.bicep
       - bicep/20-network.bicep
-      - bicep/30-infra.bicep
-      - bicep/40-privatelink.bicep
+      - bicep/40-infra.bicep
+      - bicep/50-privatelink.bicep
       - pipelines/deploy-bicep.yaml
       - pipelines/stages/deploy-bicep-resource-group.yaml
       - pipelines/stages/deploy-bicep-network.yaml
@@ -28,13 +28,13 @@ pr:
     include:
       - bicep/envs/*/10-resource-group.bicepparam
       - bicep/envs/*/20-network.bicepparam
-      - bicep/envs/*/30-infra.bicepparam
-      - bicep/envs/*/40-privatelink.bicepparam
+      - bicep/envs/*/40-infra.bicepparam
+      - bicep/envs/*/50-privatelink.bicepparam
       - bicep/modules/*.bicep
       - bicep/10-resource-group.bicep
       - bicep/20-network.bicep
-      - bicep/30-infra.bicep
-      - bicep/40-privatelink.bicep
+      - bicep/40-infra.bicep
+      - bicep/50-privatelink.bicep
       - pipelines/deploy-bicep.yaml
       - pipelines/stages/deploy-bicep-resource-group.yaml
       - pipelines/stages/deploy-bicep-network.yaml
@@ -65,6 +65,10 @@ stages:
       environmentName: ${{ parameters.environmentName }}
 
   - template: stages/deploy-bicep-network.yaml
+    parameters:
+      environmentName: ${{ parameters.environmentName }}
+
+  - template: stages/deploy-bicep-classic.yaml
     parameters:
       environmentName: ${{ parameters.environmentName }}
 
