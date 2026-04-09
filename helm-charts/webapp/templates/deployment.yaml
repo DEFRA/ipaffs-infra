@@ -45,11 +45,6 @@ spec:
                 name: ipaffs-config
             - configMapRef:
                 name: {{ .Values.service }}
-            {{- if .Values.externalSecret.enabled }}
-            - secretRef:
-                name: {{ printf "%s-secrets" .Values.service }}
-                optional: true
-            {{- end }}
             {{- if .Values.redis.enabled }}
             - secretRef:
                 name: {{ printf "%s-redis" .Values.service }}
@@ -57,6 +52,11 @@ spec:
             {{- if .Values.serviceBus.enabled }}
             - secretRef:
                 name: {{ printf "%s-servicebus" .Values.service }}
+            {{- end }}
+            {{- if .Values.externalSecret.enabled }}
+            - secretRef:
+                name: {{ printf "%s-secrets" .Values.service }}
+                optional: true
             {{- end }}
           env:
             - name: MANAGED_IDENTITY_USER
