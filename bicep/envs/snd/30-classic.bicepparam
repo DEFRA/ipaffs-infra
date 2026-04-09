@@ -48,6 +48,10 @@ param sejParams = {
   userAssignedIdentityName: 'snd-imp-elasticjobs-sql'
 }
 
+param serviceBusParams = {
+  namespaceName = 'SNDIMPINFSBS002'
+}
+
 param sqlParams = {
   sqlServerName = 'sndimpdbssqa004'
 }

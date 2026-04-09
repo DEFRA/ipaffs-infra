@@ -48,6 +48,10 @@ param sejParams = {
   userAssignedIdentityName: 'tst-imp-elasticjobs-sql'
 }
 
+param serviceBusParams = {
+  namespaceName = 'TSTIMPINFSBS002'
+}
+
 param sqlParams = {
   sqlServerName = 'tstimpdbssqa001'
 }

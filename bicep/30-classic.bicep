@@ -89,6 +89,18 @@ module sej './modules/sql-elastic-jobs.bicep' = {
   }
 }
 
+module serviceBus './modules/servicebus-classic.bicep' = {
+  name: 'serviceBus-${deploymentId}'
+  scope: resourceGroup()
+  params: {
+    deploymentId: deploymentId
+    location: location
+    privateEndpointsSubnet: privateEndpointsSubnet
+    serviceBusParams: serviceBusParams
+    tags: tags
+  }
+}
+
 module sql './modules/sql-classic.bicep' = {
   name: 'sql-${deploymentId}'
   scope: resourceGroup()
