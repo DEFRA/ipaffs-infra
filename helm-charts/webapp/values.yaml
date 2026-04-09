@@ -20,7 +20,6 @@ azure:
   clientId: ""
   managedIdentityName: ""
   location: uksouth
-  adalBridge: false
 
 externalSecret:
   enabled: false

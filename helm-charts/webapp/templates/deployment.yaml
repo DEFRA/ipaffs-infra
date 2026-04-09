@@ -83,7 +83,7 @@ spec:
           resources:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-      {{- if .Values.azure.adalBridge }}
+      {{- if .Values.database.databaseNames }}
       initContainers:
         - name: workload-identity-adal-bridge
           image: "manicminer/workload-identity-adal-bridge:0.4.1"

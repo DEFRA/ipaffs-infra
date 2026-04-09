@@ -92,7 +92,7 @@ spec:
               value: {{ include "webapp.azure.servicePrincipalName" . | quote }}
             - name: MANAGED_IDENTITY_USER
               value: {{ include "webapp.azure.servicePrincipalName" . | quote }}
-      {{- if .Values.azure.adalBridge }}
+      {{- if .Values.database.databaseNames }}
       initContainers:
         - name: workload-identity-adal-bridge
           image: "manicminer/workload-identity-adal-bridge:0.4.1"
