@@ -2,6 +2,14 @@ parameters:
   - name: environmentName
     type: string
 
+# Note: For hybrid deployments to classic SND environment, we will also need variables from the DEV library
+# group - these should be passed in from the parent pipeline definition, with the environmentName parameter
+# for this stage template overridden to SND. This will achieve the necessary variable precedence.
+# See https://learn.microsoft.com/en-us/azure/devops/pipelines/process/variables?view=azure-devops&tabs=yaml%2Cbatch#expansion-of-variables
+variables:
+  - group: "${{ parameters.environmentName }}"
+  - template: "vars/${{ lower(parameters.environmentName) }}.yaml"
+
 stages:
   - stage: ConfigureDeployment
     displayName: Configure deployment
