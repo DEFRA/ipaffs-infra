@@ -1,11 +1,11 @@
-using '../../90-legacy.bicep'
+using '../../90-classic.bicep'
 
-param environment = 'PRE'
+param environment = 'PRD'
 
 param alertsParams = {
   actionGroups: {
     notifyDba: {
-      name: 'PRE-IMP-DBA-Team'
+      name: 'PRD-IMP-DBA-Team'
       appRecipients: [
         {
           name: 'AppPush: Paul Maguire (Admin)'
@@ -23,29 +23,29 @@ param alertsParams = {
 }
 
 param dbwParams = {
-  name: 'PREIMPDBSDBW001'
+  name: 'PRDIMPDBSDBW001'
   adminEntraGroup: 'AAG-Users-IPAFFS-Support-Admin'
-  kustoName: 'PREIMPDBSKUS001'
+  kustoName: 'PRDIMPDBSKUS001'
   kustoSku: {
     name: 'Standard_E2ads_v5'
     tier: 'Standard'
     capacity: 2
   }
-  sqlServerElasticPoolName: 'PREIMPEDPSQA001'
-  sqlServerResourceId: '/subscriptions/81ca326e-6270-418a-b764-e02a4ca60457/resourceGroups/PREIMPINFRGP001/providers/Microsoft.Sql/servers/PREIMPDBSSQA001'
+  sqlServerElasticPoolName: 'PRDIMPEDPSQA001'
+  sqlServerResourceId: '/subscriptions/79ee8c9c-33d7-4074-9f4c-a13f07c62a33/resourceGroups/PRDIMPINFRGP001/providers/Microsoft.Sql/servers/PRDIMPDBSSQA001'
 }
 
 param sejParams = {
   databaseName: 'elasticjobs'
   databaseNames: ['notification-microservice']
   databaseMaxSizeGiB: 10
-  jobAgentName: 'PREIMPDBSJBA001'
+  jobAgentName: 'PRDIMPDBSJBA001'
   jobAgentSku: {
     name: 'JA100'
     capacity: 100
   }
-  sqlServerName: 'PREIMPDBSSQA001'
-  userAssignedIdentityName: 'pre-imp-elasticjobs-sql'
+  sqlServerName: 'PRDIMPDBSSQA001'
+  userAssignedIdentityName: 'prd-imp-elasticjobs-sql'
 }
 
 // vim: set ts=2 sts=2 sw=2 et:

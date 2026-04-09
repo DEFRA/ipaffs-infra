@@ -1,6 +1,6 @@
 ---
 variables:
-  legacyServiceConnection: ADO-DefraGovUK-AZR-PRD_IMP
+  classicServiceConnection: ADO-DefraGovUK-AZR-PRD_IMP
   serviceConnection: To-BE-DETERMINED
   serviceConnectionPrincipalId: TO-BE-DETERMINED
   subscriptionName: AZR-IMP-PRD1

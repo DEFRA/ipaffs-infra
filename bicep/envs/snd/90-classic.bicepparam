@@ -1,4 +1,4 @@
-using '../../90-legacy.bicep'
+using '../../90-classic.bicep'
 
 param environment = 'SND'
 
