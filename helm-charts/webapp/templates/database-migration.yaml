@@ -73,7 +73,7 @@ spec:
               value: "jdbc:sqlserver://{{ template "ipaffs-common.azure.sqlServerHostname" $db }}:1433;databaseName={{ template "ipaffs-common.azure.databaseName" $db }};encrypt=true;socketTimeout=1800000;loginTimeout=15;authentication=ActiveDirectoryManagedIdentity;msiClientId={{ include "webapp.azure.migrationsClientId" $ }}"
           {{- if $.Values.search.enabled }}
             - name: AZURE_SEARCH_DB_CONNECTION_STRING_{{ upper (snakecase $databaseName) }}
-              value: "Encrypt=True;Connection Timeout=30;Database={{ template "ipaffs-common.azure.databaseName" $db }};ResourceId=/subscriptions/{{ .Values.search.subscriptionId | quote }}/resourceGroups/{{ .Values.search.resourceGroupName | quote }}/providers/Microsoft.Sql/servers/{{ template "ipaffs-common.azure.sqlServer" . }};"
+              value: "Encrypt=True;Connection Timeout=30;Database={{ template "ipaffs-common.azure.databaseName" $db }};ResourceId=/subscriptions/{{ $.Values.search.subscriptionId | quote }}/resourceGroups/{{ .Values.search.resourceGroupName | quote }}/providers/Microsoft.Sql/servers/{{ template "ipaffs-common.azure.sqlServer" . }};"
           {{- end }}
           {{- end }}
             - name: AZURE_SQL_SERVER_NAME
