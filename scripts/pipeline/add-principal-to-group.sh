@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -ux
+set -u
 
 max_attempts=10
 attempt=0

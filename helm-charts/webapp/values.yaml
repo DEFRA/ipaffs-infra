@@ -32,7 +32,6 @@ serviceBus:
   enabled: false
 
 storage:
-  enabled: false
   accountName: ""
 
 config: {}
