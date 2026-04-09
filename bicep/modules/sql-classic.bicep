@@ -1,9 +1,9 @@
 targetScope = 'resourceGroup'
 
 param deploymentId string
+param entraGroups object
 param location string
 param privateEndpointsSubnet object
-param sqlAdminsEntraGroup object
 param sqlParams object
 param tags object
 param tenantId string
@@ -17,9 +17,9 @@ resource sqlServer 'Microsoft.Sql/servers@2023-05-01-preview' = {
     administrators: {
       administratorType: 'ActiveDirectory'
       azureADOnlyAuthentication: true
-      login: sqlAdminsEntraGroup.name
+      login: entraGroups.sqlAdmins.name
       principalType: 'Group'
-      sid: sqlAdminsEntraGroup.id
+      sid: entraGroups.sqlAdmins.id
       tenantId: tenantId
     }
   }
@@ -40,9 +40,7 @@ resource sqlPrivateEndpoint 'Microsoft.Network/privateEndpoints@2024-10-01' = {
         name: 'sql-connection'
         properties: {
           privateLinkServiceId: sqlServer.id
-          groupIds: [
-            'sqlServer'
-          ]
+          groupIds: ['sqlServer']
         }
       }
     ]

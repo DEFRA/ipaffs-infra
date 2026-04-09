@@ -24,12 +24,10 @@ resource sbPrivateEndpoint 'Microsoft.Network/privateEndpoints@2024-10-01' = {
 
     privateLinkServiceConnections: [
       {
-        name: 'sql-connection'
+        name: 'servicebus-connection'
         properties: {
           privateLinkServiceId: sbNamespace.id
-          groupIds: [
-            'namespace'
-          ]
+          groupIds: ['namespace']
         }
       }
     ]

@@ -25,13 +25,23 @@ stages:
                 cat <<- 'EOF' >'$(Build.SourcesDirectory)/30-classic-runtime.bicepparam'
                 using '30-classic.bicep'
                 extends 'envs/${{ lower(parameters.environmentName) }}/30-classic.bicepparam'
+                param entraGroups = {
+                  searchContributors: {
+                    id: '$(searchContributorsGroupId)'
+                    name: '$(searchContributorsGroupName)'
+                  }
+                  searchReaders: {
+                    id: '$(searchReadersGroupId)'
+                    name: '$(searchReadersGroupName)'
+                  }
+                  sqlAdmins: {
+                    id: '$(sqlAdminGroupId)'
+                    name: '$(sqlAdminGroupName)'
+                  }
+                }
                 param privateEndpointsSubnet = {
                   id: '$(privateEndpointsSubnetId)'
                   name: '$(privateEndpointsSubnetName)'
-                }
-                param sqlAdminsEntraGroup = {
-                  id: '$(sqlAdminGroupId)'
-                  name: '$(sqlAdminGroupName)'
                 }
                 EOF
                 cat '$(Build.SourcesDirectory)/30-classic-runtime.bicepparam'

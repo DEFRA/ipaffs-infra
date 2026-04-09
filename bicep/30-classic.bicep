@@ -76,6 +76,20 @@ module dbw './modules/database-watcher.bicep' = {
   }
 }
 
+module search './modules/search.bicep' = {
+  name: 'search-${deploymentId}'
+  scope: resourceGroup()
+  params: {
+    deploymentId: deploymentId
+    entraGroups: entraGroups
+    privateEndpointsSubnet: privateEndpointsSubnet
+    searchParams: searchParams
+    location: location
+    tags: tags
+    tenantId: tenantId
+  }
+}
+
 // TODO: move this to infra module and lift to new subscription
 module sej './modules/sql-elastic-jobs.bicep' = {
   name: 'sej-${deploymentId}'
@@ -106,9 +120,9 @@ module sql './modules/sql-classic.bicep' = {
   scope: resourceGroup()
   params: {
     deploymentId: deploymentId
+    entraGroups: entraGroups
     location: location
     privateEndpointsSubnet: privateEndpointsSubnet
-    sqlAdminsEntraGroup: sqlAdminsEntraGroup
     sqlParams: sqlParams
     tags: tags
     tenantId: tenantId
