@@ -54,6 +54,22 @@ Azure Resource Names
 {{- end }}
 {{- end }}
 
+{{- define "ipaffs-common.azure.searchServicePrincipalName" -}}
+{{ if .Values.search.principalName}}
+{{- printf "%s" .Values.search.principalName }}
+{{- else -}}
+{{- printf "%IMPINFAS1401" .Values.environment }}
+{{- end }}
+{{- end }}
+
+{{- define "ipaffs-common.azure.searchServiceResourceGroupName" -}}
+{{ if .Values.search.resourceGroupName}}
+{{- printf "%s" .Values.search.resourceGroupName }}
+{{- else -}}
+{{ template "ipaffs-common.azure.resourceGroup" . }}
+{{- end }}
+{{- end }}
+
 {{- define "ipaffs-common.azure.storageAccount" -}}
 {{- printf "%simpinfst1401" .Values.environment }}
 {{- end }}

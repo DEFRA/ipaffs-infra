@@ -82,11 +82,11 @@ spec:
             - name: AZURE_SEARCH_SUBSCRIPTION_ID
               value: {{ .Values.search.subscriptionId | quote }}
             - name: AZURE_SEARCH_RESOURCE_GROUP_NAME
-              value: {{ .Values.search.resourceGroupName | quote }}
+              value: {{ template "ipaffs-common.azure.searchServiceResourceGroupName" . }}
             - name: AZURE_SEARCH_SERVICE_NAME
               value: {{ template "ipaffs-common.azure.searchServiceName" . }}
             - name: AZURE_SEARCH_PRINCIPAL_NAME
-              value: {{ .Values.search.principalName | quote }}
+              value: {{ template "ipaffs-common.azure.searchServicePrincipalName" . }}
             - name: AZURE_SEARCH_USER_ASSIGNED_IDENTITY
               value: "/subscriptions/{{ .Values.search.subscriptionId }}/resourcegroups/{{ .Values.search.resourceGroupName }}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/{{ .Values.search.principalName }}"
           {{- end }}
