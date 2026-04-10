@@ -73,7 +73,7 @@ stages:
           - task: PublishPipelineArtifact@1
             displayName: Publish artifact
             inputs:
-              artifactName: bicepparam
+              artifactName: bicepparam-infra
               targetPath: $(Build.SourcesDirectory)/40-infra-runtime.bicepparam
 
 
@@ -98,7 +98,7 @@ stages:
                 - task: DownloadPipelineArtifact@2
                   displayName: Download artifact
                   inputs:
-                    artifactName: bicepparam
+                    artifactName: bicepparam-infra
                     targetPath: $(Build.SourcesDirectory)/bicep
 
                 - task: AzureCLI@2
