@@ -68,6 +68,11 @@ stages:
     parameters:
       environmentName: ${{ parameters.environmentName }}
 
+  - ${{ if eq(parameters.environmentName, 'DEV') }}:
+    - template: stages/deploy-bicep-acr.yaml
+      parameters:
+        environmentName: ${{ parameters.environmentName }}
+
   - template: stages/deploy-bicep-classic.yaml
     parameters:
     ${{ if eq(parameters.environmentName, 'DEV') }}:

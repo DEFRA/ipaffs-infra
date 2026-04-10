@@ -3,6 +3,7 @@ targetScope = 'resourceGroup'
 @allowed(['DEV', 'TST'])
 param environment string
 
+param acrName string
 param builtInGroups object
 param entraGroups object
 param subnetNames object
@@ -19,7 +20,6 @@ var tags = union(loadJsonContent('default-tags.json'), {
   Location: location
 })
 
-param acrParams object
 param aksParams object
 param alertsParams object
 param asoParams object
@@ -32,28 +32,19 @@ param sqlParams object
 param insightsParams object
 param storageParams object
 
-resource vnet 'Microsoft.Network/virtualNetworks@2025-05-01' existing = {
-  name: vnetName
+resource acr 'Microsoft.ContainerRegistry/registries@2025-04-01' existing = {
+  name: acrName
 }
 
-module acr './modules/acr.bicep' = {
-  name: 'acr-${deploymentId}'
-  scope: resourceGroup()
-  params: {
-    acrParams: acrParams
-    deploymentId: deploymentId
-    location: location
-    subnetNames: subnetNames
-    subnets: vnet.properties.subnets
-    tags: tags
-  }
+resource vnet 'Microsoft.Network/virtualNetworks@2025-05-01' existing = {
+  name: vnetName
 }
 
 module aks './modules/aks.bicep' = {
   name: 'aks-${deploymentId}'
   scope: resourceGroup()
   params: {
-    acrName: acr.outputs.acrName
+    acrName: acrName
     aksParams: aksParams
     deploymentId: deploymentId
     entraGroups: entraGroups
@@ -199,8 +190,8 @@ module storage './modules/storage.bicep' = {
   }
 }
 
-output acrLoginServer string = acr.outputs.acrLoginServer
-output acrName string = acr.outputs.acrName
+output acrName string = acr.name
+output acrLoginServer string = acr.properties.loginServer
 output aksClusterName string = aks.outputs.aksClusterName
 output aksOidcIssuer string = aks.outputs.oidcIssuerUrl
 output azureServiceOperatorClientId string = aso.outputs.clientId

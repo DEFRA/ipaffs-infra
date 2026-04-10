@@ -47,7 +47,4 @@ resource acrPrivateEndpoint 'Microsoft.Network/privateEndpoints@2024-10-01' = {
   }
 }
 
-output acrName string = acr.name
-output acrLoginServer string = acr.properties.loginServer
-
 // vim: set ts=2 sts=2 sw=2 et:

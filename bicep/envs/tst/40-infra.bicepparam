@@ -5,6 +5,7 @@ param builtInGroups = {
   owners: 'dbaf1ee8-c128-4f27-b159-791866210c2e' // AG-Azure-IMP_TST1-Owners
 }
 
+param acrName = 'DEVIMPINFAC1401' // common ACR for now
 param entraGroups = {}
 param environment = 'TST'
 param tenantId = ''

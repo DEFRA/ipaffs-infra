@@ -1,0 +1,70 @@
+parameters:
+  - name: environmentName
+    type: string
+
+stages:
+  - stage: DeployACR
+    displayName: Deploy ACR
+    dependsOn: ConfigureDeployment
+    variables:
+      - group: "${{ parameters.environmentName }}"
+      - template: "/pipelines/vars/common.yaml"
+      - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
+    jobs:
+      - deployment: RunBicep
+        displayName: Run Bicep
+        environment:
+          name: "${{ parameters.environmentName }}"
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+
+                - task: AzureCLI@2
+                  displayName: WhatIf - ACR
+                  inputs:
+                    azureSubscription: $(serviceConnection)
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      set -x
+                      az deployment group what-if \
+                        --name "ACR-$(Build.BuildId)" \
+                        --subscription $(subscriptionId) \
+                        --resource-group $(resourceGroupName) \
+                        --template-file bicep/25-acr.bicep \
+                        --parameters tenantId="$(tenantId)"
+
+                - task: AzureCLI@2
+                  displayName: Deploy - ACR
+                  condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+                  inputs:
+                    azureSubscription: $(serviceConnection)
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      set -x
+                      az deployment group create \
+                        --name "ACR-$(Build.BuildId)" \
+                        --subscription $(subscriptionId) \
+                        --resource-group $(resourceGroupName) \
+                        --template-file bicep/25-acr.bicep \
+                        --parameters tenantId="$(tenantId)"
+
+                - task: AzureCLI@2
+                  displayName: Wait for Deployment - ACR
+                  condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+                  inputs:
+                    azureSubscription: $(serviceConnection)
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      set -x
+                      az deployment group wait \
+                        --name "ACR-$(Build.BuildId)" \
+                        --subscription $(subscriptionId) \
+                        --resource-group $(resourceGroupName) \
+                        --created
+
+# vim: set ts=2 sts=2 sw=2 et:
