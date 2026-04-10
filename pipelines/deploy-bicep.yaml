@@ -5,20 +5,10 @@ trigger:
       - main
   paths:
     include:
-      - bicep/envs/*/10-resource-group.bicepparam
-      - bicep/envs/*/20-network.bicepparam
-      - bicep/envs/*/40-infra.bicepparam
-      - bicep/envs/*/50-privatelink.bicepparam
-      - bicep/modules/*.bicep
-      - bicep/10-resource-group.bicep
-      - bicep/20-network.bicep
-      - bicep/40-infra.bicep
-      - bicep/50-privatelink.bicep
+      - bicep/**/*.bicepparam
+      - bicep/**/*.bicep
       - pipelines/deploy-bicep.yaml
-      - pipelines/stages/deploy-bicep-resource-group.yaml
-      - pipelines/stages/deploy-bicep-network.yaml
-      - pipelines/stages/deploy-bicep-infra.yaml
-      - pipelines/stages/deploy-bicep-privatelink.yaml
+      - pipelines/stages/deploy-bicep-*.yaml
 
 pr:
   branches:
@@ -26,20 +16,10 @@ pr:
       - main
   paths:
     include:
-      - bicep/envs/*/10-resource-group.bicepparam
-      - bicep/envs/*/20-network.bicepparam
-      - bicep/envs/*/40-infra.bicepparam
-      - bicep/envs/*/50-privatelink.bicepparam
-      - bicep/modules/*.bicep
-      - bicep/10-resource-group.bicep
-      - bicep/20-network.bicep
-      - bicep/40-infra.bicep
-      - bicep/50-privatelink.bicep
+      - bicep/**/*.bicepparam
+      - bicep/**/*.bicep
       - pipelines/deploy-bicep.yaml
-      - pipelines/stages/deploy-bicep-resource-group.yaml
-      - pipelines/stages/deploy-bicep-network.yaml
-      - pipelines/stages/deploy-bicep-infra.yaml
-      - pipelines/stages/deploy-bicep-privatelink.yaml
+      - pipelines/stages/deploy-bicep-*.yaml
 
 pool:
   name: DEFRA-COMMON-ubuntu2204-SSV5
