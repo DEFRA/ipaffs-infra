@@ -66,7 +66,7 @@ spec:
           {{- end }}
           {{- if .Values.search.enabled }}
             - name: AZURE_SEARCH_SERVICE_NAME
-              value: {{ .Values.search.serviceName | quote }}
+              value: {{ template "ipaffs-common.azure.searchServiceName" . }}
           {{- end }}
           {{- if .Values.storage.accountName }}
             - name: AZURE_STORAGE_ACCOUNT_NAME

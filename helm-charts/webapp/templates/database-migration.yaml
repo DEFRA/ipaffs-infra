@@ -84,7 +84,7 @@ spec:
             - name: AZURE_SEARCH_RESOURCE_GROUP_NAME
               value: {{ .Values.search.resourceGroupName | quote }}
             - name: AZURE_SEARCH_SERVICE_NAME
-              value: {{ .Values.search.serviceName | quote }}
+              value: {{ template "ipaffs-common.azure.searchServiceName" . }}
             - name: AZURE_SEARCH_PRINCIPAL_NAME
               value: {{ .Values.search.principalName | quote }}
             - name: AZURE_SEARCH_USER_ASSIGNED_IDENTITY

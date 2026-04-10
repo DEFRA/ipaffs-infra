@@ -46,6 +46,14 @@ Azure Resource Names
 {{- end }}
 {{- end }}
 
+{{- define "ipaffs-common.azure.searchServiceName" -}}
+{{ if .Values.search.serviceName}}
+{{- printf "%s" .Values.search.serviceName }}
+{{- else -}}
+{{- printf "%impinfas1401" .Values.environment }}
+{{- end }}
+{{- end }}
+
 {{- define "ipaffs-common.azure.storageAccount" -}}
 {{- printf "%simpinfst1401" .Values.environment }}
 {{- end }}
