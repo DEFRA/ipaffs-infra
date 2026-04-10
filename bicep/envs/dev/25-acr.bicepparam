@@ -1,4 +1,6 @@
-using '../../40-infra.bicep'
+using '../../25-acr.bicep'
+
+param environment = 'DEV'
 
 param acrParams = {
   name: 'DEVIMPINFAC1401'
