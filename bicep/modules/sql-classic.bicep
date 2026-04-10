@@ -22,6 +22,7 @@ resource sqlServer 'Microsoft.Sql/servers@2023-05-01-preview' = {
       sid: entraGroups.sqlAdmins.id
       tenantId: tenantId
     }
+    minimalTlsVersion: '1.2'
   }
 }
 

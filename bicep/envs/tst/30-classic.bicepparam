@@ -1,6 +1,9 @@
 using '../../30-classic.bicep'
 
+param entraGroups = {}
 param environment = 'TST'
+param privateEndpointsSubnet = {}
+param tenantId = ''
 
 param alertsParams = {
   actionGroups: {
@@ -35,6 +38,10 @@ param dbwParams = {
   sqlServerResourceId: '/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Sql/servers/TSTIMPDBSSQA001'
 }
 
+param searchParams = {
+  name: 'tstimpinfass001'
+}
+
 param sejParams = {
   databaseName: 'elasticjobs'
   databaseNames: ['notification-microservice']
@@ -49,11 +56,11 @@ param sejParams = {
 }
 
 param serviceBusParams = {
-  namespaceName = 'TSTIMPINFSBS002'
+  namespaceName: 'TSTIMPINFSBS002'
 }
 
 param sqlParams = {
-  sqlServerName = 'tstimpdbssqa001'
+  serverName: 'tstimpdbssqa001'
 }
 
 // vim: set ts=2 sts=2 sw=2 et:

@@ -6,11 +6,9 @@ param location string
 param privateEndpointsSubnet object
 param searchParams object
 param tags object
-param tenantId string
 
 resource searchService 'Microsoft.Search/searchServices@2015-08-19' existing = {
   name: searchParams.name
-  location: location
 }
 
 resource searchServicePrivateEndpoint 'Microsoft.Network/privateEndpoints@2024-10-01' = {

@@ -3,12 +3,13 @@ targetScope = 'resourceGroup'
 @allowed(['SND', 'TST', 'PRE', 'PRD'])
 param environment string
 
+param entraGroups object
 param privateEndpointsSubnet object
-param sqlAdminsEntraGroup object
 
 param createdDate string = utcNow('yyyy-MM-dd')
 param deploymentId string = uniqueString(utcNow())
 param location string = resourceGroup().location
+param tenantId string
 
 var databaseNames = [
   'notification-microservice'
@@ -49,7 +50,10 @@ var tags = union(loadJsonContent('default-tags.json'), {
 
 param alertsParams object
 param dbwParams object
+param searchParams object
 param sejParams object
+param sqlParams object
+param serviceBusParams object
 
 // TODO: move this to infra module and lift to new subscription
 module alerts './modules/alerts.bicep' = {
@@ -76,7 +80,7 @@ module dbw './modules/database-watcher.bicep' = {
   }
 }
 
-module search './modules/search.bicep' = {
+module search './modules/search-classic.bicep' = {
   name: 'search-${deploymentId}'
   scope: resourceGroup()
   params: {
@@ -86,7 +90,6 @@ module search './modules/search.bicep' = {
     searchParams: searchParams
     location: location
     tags: tags
-    tenantId: tenantId
   }
 }
 
