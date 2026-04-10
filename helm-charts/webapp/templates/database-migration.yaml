@@ -87,6 +87,8 @@ spec:
               value: {{ .Values.search.serviceName | quote }}
             - name: AZURE_SEARCH_PRINCIPAL_NAME
               value: {{ .Values.search.principalName | quote }}
+            - name: AZURE_SEARCH_USER_ASSIGNED_IDENTITY
+              value: "/subscriptions/{{ .Values.search.subscriptionId }}/resourcegroups/{{ .Values.search.resourceGroupName }}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/{{ .Values.search.principalName }}"
           {{- end }}
           {{- if .Values.storage.accountName }}
             - name: AZURE_STORAGE_ACCOUNT_NAME
