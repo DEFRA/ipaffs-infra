@@ -1,5 +1,7 @@
 ---
 variables:
+  classicServiceConnection: ADO-DefraGovUK-AZR-IMP-SND1
+  classicSqlAdminUserPrincipalObjectId: aaf71566-6255-442e-a51d-1633b56a01c2
   serviceConnection: ADO-DefraGovUK-AZR-IMP-DEV1
   serviceConnectionPrincipalId: c5daee65-10cb-4d04-b721-d3da81357568
   subscriptionName: AZR-IMP-DEV1

@@ -1,19 +1,18 @@
-parameters:
-  - name: environmentName
-    type: string
-
 # Note: For hybrid deployments to classic SND environment, we will also need variables from the DEV library
-# group - these should be passed in from the parent pipeline definition, with the environmentName parameter
+# group - these should be passed in from the parent pipeline definition, with the classicEnvironmentName parameter
 # for this stage template overridden to SND. This will achieve the necessary variable precedence.
 # See https://learn.microsoft.com/en-us/azure/devops/pipelines/process/variables?view=azure-devops&tabs=yaml%2Cbatch#expansion-of-variables
+parameters:
+  - name: classicEnvironmentName
+    type: string
 
 stages:
   - stage: ConfigureClassicDeployment
     displayName: Configure deployment
     variables:
-      - group: "${{ parameters.environmentName }}"
+      - group: "${{ parameters.classicEnvironmentName }}"
       - template: "/pipelines/vars/common.yaml"
-      - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
+      - template: "/pipelines/vars/${{ lower(parameters.classicEnvironmentName) }}.yaml"
     jobs:
       - job: ConfigureBicep
         displayName: Configure Bicep
@@ -29,7 +28,7 @@ stages:
                 set -ex
                 cat <<- 'EOF' >'$(Build.SourcesDirectory)/30-classic-runtime.bicepparam'
                 using '30-classic.bicep'
-                extends 'envs/${{ lower(parameters.environmentName) }}/30-classic.bicepparam'
+                extends 'envs/${{ lower(parameters.classicEnvironmentName) }}/30-classic.bicepparam'
                 param entraGroups = {
                   searchContributors: {
                     id: '$(searchContributorsGroupId)'
@@ -62,14 +61,14 @@ stages:
     displayName: Deploy Classic
     dependsOn: ConfigureClassicDeployment
     variables:
-      - group: "${{ parameters.environmentName }}"
+      - group: "${{ parameters.classicEnvironmentName }}"
       - template: "/pipelines/vars/common.yaml"
-      - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
+      - template: "/pipelines/vars/${{ lower(parameters.classicEnvironmentName) }}.yaml"
     jobs:
       - deployment: RunBicep
         displayName: Run Bicep
         environment:
-          name: "${{ parameters.environmentName }}"
+          name: "${{ parameters.classicEnvironmentName }}"
         strategy:
           runOnce:
             deploy:
