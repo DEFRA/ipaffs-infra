@@ -19,12 +19,6 @@ param subnetNames = {
   privateEndpoints: 'TSTIMPNETSU4404'
 }
 
-param acrParams = {
-  name: 'TSTIMPINFAC1401'
-  sku: 'Premium'
-  adminEnabled: true
-}
-
 param aksParams = {
   name: 'TSTIMPINFAK1401'
   dnsPrefix: 'tstimpinfak1401'

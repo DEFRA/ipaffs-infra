@@ -19,12 +19,6 @@ param subnetNames = {
   privateEndpoints: 'DEVIMPNETSU4404'
 }
 
-param acrParams = {
-  name: 'DEVIMPINFAC1401'
-  sku: 'Premium'
-  adminEnabled: true
-}
-
 param aksParams = {
   name: 'DEVIMPINFAK1401'
   dnsPrefix: 'devimpinfak1401'
