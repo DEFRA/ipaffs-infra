@@ -40,6 +40,19 @@ resource vnet 'Microsoft.Network/virtualNetworks@2025-05-01' existing = {
   name: vnetName
 }
 
+module acrPrivateEndpoint './modules/acr-private-endpoint.bicep' = {
+  name: 'acr-${deploymentId}'
+  scope: resourceGroup()
+  params: {
+    acrName: acrName
+    deploymentId: deploymentId
+    location: location
+    subnetNames: subnetNames
+    subnets: vnet.properties.subnets
+    tags: tags
+  }
+}
+
 module aks './modules/aks.bicep' = {
   name: 'aks-${deploymentId}'
   scope: resourceGroup()
