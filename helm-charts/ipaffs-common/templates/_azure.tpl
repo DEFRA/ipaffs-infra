@@ -50,7 +50,7 @@ Azure Resource Names
 {{ if .Values.search.serviceName}}
 {{- printf "%s" .Values.search.serviceName }}
 {{- else -}}
-{{- printf "%impinfas1401" .Values.environment }}
+{{- printf "%simpinfas1401" .Values.environment }}
 {{- end }}
 {{- end }}
 
@@ -58,7 +58,7 @@ Azure Resource Names
 {{ if .Values.search.principalName}}
 {{- printf "%s" .Values.search.principalName }}
 {{- else -}}
-{{- printf "%IMPINFAS1401" .Values.environment }}
+{{- printf "%sIMPINFAS1401" .Values.environment }}
 {{- end }}
 {{- end }}
 
