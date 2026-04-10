@@ -15,7 +15,7 @@ metadata:
   labels:
     {{- include "ipaffs-common.labels" . | nindent 4 }}
 spec:
-  replicas: {{ .Values.replicas }}
+  replicas: {{ .Values.container.replicas }}
   selector:
     matchLabels:
       {{- include "ipaffs-common.selectorLabels" . | nindent 6 }}

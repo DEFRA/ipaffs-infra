@@ -1,0 +1,14 @@
+service: test-service
+project: ipaffs
+environment: dev
+
+azure:
+  clientId: 00000000-0000-0000-0000-000000000001
+
+container:
+  image: test/image:1.0.0
+  replicas: 1
+
+ingress:
+  hosts:
+    - test

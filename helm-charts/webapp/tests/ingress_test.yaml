@@ -1,0 +1,53 @@
+suite: ingress template
+templates:
+  - templates/ingress.yaml
+tests:
+  - it: does not render ingress when no hosts are configured
+    set:
+      service: test-service
+      ingress.hosts: []
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: renders ingress hosts for base and aks domain when namespace matches environment
+    release:
+      namespace: dev
+    set:
+      service: test-service
+      environment: dev
+      ingress.hosts[0]: test
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Ingress
+      - equal:
+          path: spec.rules[0].host
+          value: test
+      - equal:
+          path: spec.rules[1].host
+          value: test.aks.imp.dev.azure.defra.cloud
+      - equal:
+          path: spec.tls[0].hosts[0]
+          value: test
+      - equal:
+          path: spec.tls[1].hosts[0]
+          value: test.aks.imp.dev.azure.defra.cloud
+
+  - it: appends namespace suffix to ingress hosts when namespace differs from environment
+    release:
+      namespace: feature1
+    set:
+      service: test-service
+      environment: dev
+      ingress.hosts[0]: test
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.rules[0].host
+          value: test-feature1
+      - equal:
+          path: spec.rules[1].host
+          value: test-feature1.aks.imp.dev.azure.defra.cloud

@@ -1,0 +1,84 @@
+suite: deployment template
+templates:
+  - templates/deployment.yaml
+tests:
+  - it: renders a service account and deployment
+    set:
+      service: test-service
+      azure.clientId: 00000000-0000-0000-0000-000000000001
+      container.image: test/image:1.0.0
+      container.replicas: 3
+    asserts:
+      - hasDocuments:
+          count: 2
+
+  - it: sets managed identity client id on service account
+    set:
+      service: test-service
+      azure.clientId: 00000000-0000-0000-0000-000000000001
+      container.image: test/image:1.0.0
+    documentIndex: 0
+    asserts:
+      - isKind:
+          of: ServiceAccount
+      - equal:
+          path: metadata.name
+          value: test-service-service
+      - equal:
+          path: metadata.annotations["azure.workload.identity/client-id"]
+          value: 00000000-0000-0000-0000-000000000001
+
+  - it: uses container.replicas in deployment spec
+    set:
+      service: test-service
+      azure.clientId: 00000000-0000-0000-0000-000000000001
+      container.image: test/image:1.0.0
+      container.replicas: 3
+    documentIndex: 1
+    asserts:
+      - isKind:
+          of: Deployment
+      - equal:
+          path: spec.replicas
+          value: 3
+
+  - it: adds optional secret refs when redis service bus and external secrets are enabled
+    set:
+      service: test-service
+      azure.clientId: 00000000-0000-0000-0000-000000000001
+      container.image: test/image:1.0.0
+      redis.enabled: true
+      serviceBus.enabled: true
+      externalSecret.enabled: true
+    documentIndex: 1
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].envFrom
+          content:
+            secretRef:
+              name: test-service-redis
+      - contains:
+          path: spec.template.spec.containers[0].envFrom
+          content:
+            secretRef:
+              name: test-service-servicebus
+      - contains:
+          path: spec.template.spec.containers[0].envFrom
+          content:
+            secretRef:
+              name: test-service-secrets
+              optional: true
+
+  - it: renders the adal bridge init container when databases are configured
+    set:
+      service: test-service
+      azure.clientId: 00000000-0000-0000-0000-000000000001
+      container.image: test/image:1.0.0
+      database.databaseNames[0]: imports
+    documentIndex: 1
+    asserts:
+      - exists:
+          path: spec.template.spec.initContainers[0]
+      - equal:
+          path: spec.template.spec.initContainers[0].name
+          value: workload-identity-adal-bridge

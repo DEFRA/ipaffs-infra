@@ -85,9 +85,20 @@ stages:
       - name: gitUserEmail
         value: 'ipaffs-ci-bot@defra.gov.uk'
     jobs:
+      - job: TestWebappChart
+        displayName: Test webapp chart templates (DEV)
+        steps:
+          - task: Bash@3
+            displayName: Run webapp chart tests
+            env:
+              CHART_PATH: $(helmChartPath)
+            inputs:
+              filePath: scripts/pipeline/test-webapp-chart.sh
+
       - job: PackageFeatureBranch
         displayName: Package from feature branch (DEV)
         condition: ne(variables['Build.SourceBranch'], 'refs/heads/main')
+        dependsOn: TestWebappChart
         steps:
           - task: AzureCLI@2
             name: pushChartToRegistry
@@ -116,6 +127,7 @@ stages:
       - job: PackageMainBranch
         displayName: Bump chart version and package from main branch (DEV)
         condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+        dependsOn: TestWebappChart
         steps:
           - checkout: self
             persistCredentials: true
