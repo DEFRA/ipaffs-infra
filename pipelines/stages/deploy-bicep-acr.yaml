@@ -32,7 +32,8 @@ stages:
                         --name "ACR-$(Build.BuildId)" \
                         --subscription $(subscriptionId) \
                         --resource-group $(resourceGroupName) \
-                        --template-file bicep/25-acr.bicep
+                        --template-file bicep/25-acr.bicep \
+                        --parameters bicep/envs/${{ lower(parameters.environmentName) }}/25-acr.bicepparam
 
                 - task: AzureCLI@2
                   displayName: Deploy - ACR
@@ -47,7 +48,8 @@ stages:
                         --name "ACR-$(Build.BuildId)" \
                         --subscription $(subscriptionId) \
                         --resource-group $(resourceGroupName) \
-                        --template-file bicep/25-acr.bicep
+                        --template-file bicep/25-acr.bicep \
+                        --parameters bicep/envs/${{ lower(parameters.environmentName) }}/25-acr.bicepparam
 
                 - task: AzureCLI@2
                   displayName: Wait for Deployment - ACR
