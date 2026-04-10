@@ -8,7 +8,7 @@ parameters:
 # See https://learn.microsoft.com/en-us/azure/devops/pipelines/process/variables?view=azure-devops&tabs=yaml%2Cbatch#expansion-of-variables
 
 stages:
-  - stage: ConfigureDeployment
+  - stage: ConfigureClassicDeployment
     displayName: Configure deployment
     variables:
       - group: "${{ parameters.environmentName }}"
@@ -60,7 +60,7 @@ stages:
 
   - stage: DeployClassic
     displayName: Deploy Classic
-    dependsOn: ConfigureDeployment
+    dependsOn: ConfigureClassicDeployment
     variables:
       - group: "${{ parameters.environmentName }}"
       - template: "/pipelines/vars/common.yaml"

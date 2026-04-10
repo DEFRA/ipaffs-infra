@@ -3,7 +3,7 @@ parameters:
     type: string
 
 stages:
-  - stage: ConfigureDeployment
+  - stage: ConfigureInfraDeployment
     displayName: Configure deployment
     variables:
       - group: "${{ parameters.environmentName }}"
@@ -79,7 +79,7 @@ stages:
 
   - stage: DeployInfrastructure
     displayName: Deploy Infrastructure
-    dependsOn: ConfigureDeployment
+    dependsOn: ConfigureInfraDeployment
     variables:
       - group: "${{ parameters.environmentName }}"
       - template: "/pipelines/vars/common.yaml"

@@ -5,7 +5,6 @@ parameters:
 stages:
   - stage: DeployACR
     displayName: Deploy ACR
-    dependsOn: ConfigureDeployment
     variables:
       - group: "${{ parameters.environmentName }}"
       - template: "/pipelines/vars/common.yaml"
