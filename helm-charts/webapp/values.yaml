@@ -19,7 +19,6 @@ livenessProbe:
 azure:
   clientId: ""
   managedIdentityName: ""
-  location: uksouth
 
 externalSecret:
   enabled: false

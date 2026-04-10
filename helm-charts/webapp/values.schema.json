@@ -4,7 +4,6 @@
     "azure": {
       "type": "object",
       "required": [
-        "location"
       ]
     },
     "database": {
