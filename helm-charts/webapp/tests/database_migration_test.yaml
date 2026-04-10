@@ -124,3 +124,25 @@ tests:
           content:
             name: AZURE_SEARCH_DB_CONNECTION_STRING_IMPORTS
             value: "Encrypt=True;Connection Timeout=30;Database=imports;ResourceId=/subscriptions/00000000-0000-0000-0000-000000000003/resourceGroups/rg-dev/providers/Microsoft.Sql/servers/devimpdbssq1401;"
+
+  - it: renders AZURE_SEARCH_USER_ASSIGNED_IDENTITY env var
+    release:
+      namespace: dev
+    set:
+      service: test-service
+      database.principalName: test-service-principal
+      database.databaseNames[0]: imports
+      database.migrations.enabled: true
+      database.migrations.image: test/migrations:1.0.0
+      database.migrations.clientId: 00000000-0000-0000-0000-000000000002
+      search.enabled: true
+      search.principalName: search-principal
+      search.subscriptionId: 00000000-0000-0000-0000-000000000003
+      search.resourceGroupName: rg-dev
+    documentIndex: 1
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AZURE_SEARCH_USER_ASSIGNED_IDENTITY
+            value: "/subscriptions/00000000-0000-0000-0000-000000000003/resourcegroups/rg-dev/providers/Microsoft.ManagedIdentity/userAssignedIdentities/search-principal"
