@@ -189,7 +189,7 @@ stages:
         value: $[stageDependencies.CreateUserGroups.TeamGroups.outputs['ReadersGroup.objectId']]
     jobs:
       - job: DefraGroups
-        displayName: AKS Groups
+        displayName: Defra Groups
         condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
         steps:
           - checkout: self
