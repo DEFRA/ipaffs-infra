@@ -169,8 +169,5 @@ stages:
                 scripts/pipeline/update-group-variable-from-deployment.sh classicSqlServerManagedIdentityObjectId sqlServerManagedIdentityObjectId
                 scripts/pipeline/update-group-variable-from-deployment.sh classicSqlServerResourceId sqlServerResourceId
 
-                scripts/pipeline/update-group-variable-from-deployment.sh redisName redisName
-                scripts/pipeline/update-group-variable-from-deployment.sh storageAccountName storageAccountName
-
 
 # vim: set ts=2 sts=2 sw=2 et:
