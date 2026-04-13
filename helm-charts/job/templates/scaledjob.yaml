@@ -9,7 +9,7 @@ spec:
   pollingInterval: {{ default 30 .Values.keda.pollingInterval }}
   cooldownPeriod: {{ default 300 .Values.keda.cooldownPeriod }}
   maxReplicaCount: {{ default 10 .Values.keda.maxReplicaCount }}
-  successfulJobsHistoryLimit: {{ default 3 .Values.keda.successfulJobsHistoryLimit }}
+  successfulJobsHistoryLimit: {{ default 1 .Values.keda.successfulJobsHistoryLimit }}
   failedJobsHistoryLimit: {{ default 1 .Values.keda.failedJobsHistoryLimit }}
   jobTargetRef:
     backoffLimit: 2 # max pod retries for each run

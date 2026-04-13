@@ -8,7 +8,7 @@ metadata:
 spec:
   schedule: {{ required "CronJob schedule is required" .Values.schedule | quote }}
   concurrencyPolicy: {{ default "Forbid" .Values.concurrencyPolicy }}
-  successfulJobsHistoryLimit: {{ default 3 .Values.successfulJobsHistoryLimit }}
+  successfulJobsHistoryLimit: {{ default 1 .Values.successfulJobsHistoryLimit }}
   failedJobsHistoryLimit: {{ default 1 .Values.failedJobsHistoryLimit }}
   suspend: {{ default false .Values.suspend }}
   jobTemplate:
