@@ -5,6 +5,8 @@ param environment string
 
 param acrName string
 param builtInGroups object
+param classicLocation string
+param classicResourceIds object
 param entraGroups object
 param subnets object
 param tenantId string
@@ -87,6 +89,18 @@ module aso './modules/azure-service-operator.bicep' = {
     deploymentId: deploymentId
     oidcIssuerUrl: aks.outputs.oidcIssuerUrl
     location: location
+    tags: tags
+  }
+}
+
+module classicPrivateEndpoints './modules/classic-private-endpoints.bicep' = {
+  name: 'classicPrivateEndpoints-${deploymentId}'
+  scope: resourceGroup()
+  params: {
+    classicLocation: classicLocation
+    classicResourceIds: classicResourceIds
+    deploymentId: deploymentId
+    subnets: subnets
     tags: tags
   }
 }

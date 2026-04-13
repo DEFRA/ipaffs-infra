@@ -2,35 +2,34 @@ targetScope = 'resourceGroup'
 
 param deploymentId string
 param entraGroups object
-param newLocation string
+param location string
 param searchParams object
-param subnets object
+param sqlServerName string
 param tags object
 
-resource searchService 'Microsoft.Search/searchServices@2015-08-19' existing = {
-  name: searchParams.name
+resource userAssignedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2024-11-30' = {
+  name: searchParams.userAssignedIdentityName
+  location: location
+  tags: tags
 }
 
-resource searchServicePrivateEndpoint 'Microsoft.Network/privateEndpoints@2024-10-01' = {
-  name: '${searchParams.name}-${subnets.privateEndpoints.name}'
-  location: newLocation
-  tags: tags
+var sqlServerContributorId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '6d8ee4ec-f05a-4a1d-8b00-a9b17e38b437')
 
-  properties: {
-    subnet: {
-      id: subnets.privateEndpoints.id
-    }
-
-    privateLinkServiceConnections: [
-      {
-        name: 'search-connection'
-        properties: {
-          privateLinkServiceId: searchService.id
-          groupIds: ['searchService']
-        }
-      }
-    ]
+module sqlServerContributor './sql-server-role-assignment.bicep' = {
+  name: 'sqlServerContributor-${deploymentId}'
+  scope: resourceGroup()
+  params: {
+    deploymentId: deploymentId
+    principalObjectId: userAssignedIdentity.properties.principalId
+    principalType: 'ServicePrincipal'
+    roleDefinitionId: sqlServerContributorId
+    sqlServerName: sqlServerName
   }
+}
+
+// TODO: adopt search service in order to apply user assigned managed identity
+resource searchService 'Microsoft.Search/searchServices@2015-08-19' existing = {
+  name: searchParams.name
 }
 
 var searchServiceContributorRoleId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '7ca78c08-252a-4471-8644-bb5ff32d4ba0')
@@ -73,11 +72,10 @@ module searchReader './search-role-assignment.bicep' = {
   }
 }
 
-// TODO: do we want these outputs?
-//output searchServiceSubscriptionId string = subscription().subscriptionId
-//output searchServiceResourceGroupName string = resourceGroup().name
-//output searchServiceName string = searchService.name
-//output searchServiceId string = searchService.id
-//output searchServiceEndpoint string = searchService.properties.endpoint
-//output searchServiceManagedIdentityPrincipalName string = userAssignedIdentity.name
-//output searchServiceManagedIdentityPrincipalId string = userAssignedIdentity.properties.principalId
+output searchServiceSubscriptionId string = subscription().subscriptionId
+output searchServiceResourceGroupName string = resourceGroup().name
+output searchServiceName string = searchService.name
+output searchServiceResourceId string = searchService.id
+output searchServiceEndpoint string = searchService.properties.endpoint
+output searchServiceManagedIdentityPrincipalName string = userAssignedIdentity.name
+output searchServiceManagedIdentityPrincipalId string = userAssignedIdentity.properties.principalId
