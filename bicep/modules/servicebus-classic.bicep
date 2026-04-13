@@ -1,7 +1,7 @@
 targetScope = 'resourceGroup'
 
 param deploymentId string
-param location string
+param newLocation string
 param serviceBusParams object
 param subnets object
 param tags object
@@ -13,7 +13,7 @@ resource sbNamespace 'Microsoft.ServiceBus/namespaces@2022-01-01-preview' existi
 
 resource sbPrivateEndpoint 'Microsoft.Network/privateEndpoints@2024-10-01' = {
   name: '${serviceBusParams.namespaceName}-${subnets.privateEndpoints.name}'
-  location: location
+  location: newLocation
   tags: tags
 
   properties: {

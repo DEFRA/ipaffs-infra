@@ -2,6 +2,7 @@ using '../../30-classic.bicep'
 
 param entraGroups = {}
 param environment = 'PRE'
+param newLocation = 'uksouth'
 param subnets = {}
 param tenantId = ''
 

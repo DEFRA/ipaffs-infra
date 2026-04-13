@@ -3,6 +3,7 @@ targetScope = 'resourceGroup'
 param deploymentId string
 param entraGroups object
 param location string
+param newLocation string
 param sqlParams object
 param subnets object
 param tags object
@@ -28,7 +29,7 @@ resource sqlServer 'Microsoft.Sql/servers@2023-05-01-preview' = {
 
 resource sqlPrivateEndpoint 'Microsoft.Network/privateEndpoints@2024-10-01' = {
   name: '${sqlParams.serverName}-${subnets.privateEndpoints.name}'
-  location: location
+  location: newLocation
   tags: tags
 
   properties: {

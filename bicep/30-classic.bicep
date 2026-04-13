@@ -9,6 +9,7 @@ param subnets object
 param createdDate string = utcNow('yyyy-MM-dd')
 param deploymentId string = uniqueString(utcNow())
 param location string = resourceGroup().location
+param newLocation string
 param tenantId string
 
 var databaseNames = [
@@ -86,7 +87,7 @@ module search './modules/search-classic.bicep' = {
   params: {
     deploymentId: deploymentId
     entraGroups: entraGroups
-    location: location
+    newLocation: newLocation
     searchParams: searchParams
     subnets: subnets
     tags: tags
@@ -111,7 +112,7 @@ module serviceBus './modules/servicebus-classic.bicep' = {
   scope: resourceGroup()
   params: {
     deploymentId: deploymentId
-    location: location
+    newLocation: newLocation
     serviceBusParams: serviceBusParams
     subnets: subnets
     tags: tags
@@ -125,6 +126,7 @@ module sql './modules/sql-classic.bicep' = {
     deploymentId: deploymentId
     entraGroups: entraGroups
     location: location
+    newLocation: newLocation
     sqlParams: sqlParams
     subnets: subnets
     tags: tags

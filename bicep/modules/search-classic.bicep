@@ -2,7 +2,7 @@ targetScope = 'resourceGroup'
 
 param deploymentId string
 param entraGroups object
-param location string
+param newLocation string
 param searchParams object
 param subnets object
 param tags object
@@ -13,7 +13,7 @@ resource searchService 'Microsoft.Search/searchServices@2015-08-19' existing = {
 
 resource searchServicePrivateEndpoint 'Microsoft.Network/privateEndpoints@2024-10-01' = {
   name: '${searchParams.name}-${subnets.privateEndpoints.name}'
-  location: location
+  location: newLocation
   tags: tags
 
   properties: {
