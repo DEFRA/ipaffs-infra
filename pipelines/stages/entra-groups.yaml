@@ -177,7 +177,22 @@ stages:
         displayName: Update group variables
         dependsOn:
           - TeamGroups
+        variables:
+          - name: teamAdminsDisplayName
+            value: $[dependencies.TeamGroups.outputs['AdminsGroup.objectId']]
+          - name: teamAdminsObjectId
+            value: $[dependencies.TeamGroups.outputs['AdminsGroup.displayName']]
+          - name: teamDevelopersDisplayName
+            value: $[dependencies.TeamGroups.outputs['DevelopersGroup.objectId']]
+          - name: teamDevelopersObjectId
+            value: $[dependencies.TeamGroups.outputs['(DevelopersGroup.displayName']]
+          - name: teamReadersDisplayName
+            value: $[dependencies.TeamGroups.outputs['ReadersGroup.objectId']]
+          - name: teamReadersObjectId
+            value: $[dependencies.TeamGroups.outputs['ReadersGroup.displayName']]
         steps:
+          - checkout: self
+
           - task: Bash@3
             name: StoreLibraryVars
             displayName: Store Library Variables
@@ -191,18 +206,18 @@ stages:
               targetType: inline
               script: |
                 set -x
-                scripts/pipeline/update-group-variable.sh teamAdminsGroupId '$[ dependencies.TeamGroups.outputs['AdminsGroup.objectId'] ]'
-                scripts/pipeline/update-group-variable.sh teamAdminsGroupName '$[ dependencies.TeamGroups.outputs['AdminsGroup.displayName'] ]'
-                scripts/pipeline/update-group-variable.sh teamDevelopersGroupId '$[ dependencies.TeamGroups.outputs['DevelopersGroup.objectId'] ]'
-                scripts/pipeline/update-group-variable.sh teamDevelopersGroupName '$[ dependencies.TeamGroups.outputs['(DevelopersGroup.displayName'] ]'
-                scripts/pipeline/update-group-variable.sh teamReadersGroupId '$[ dependencies.TeamGroups.outputs['ReadersGroup.objectId'] ]'
-                scripts/pipeline/update-group-variable.sh teamReadersGroupName '$[ dependencies.TeamGroups.outputs['ReadersGroup.displayName'] ]'
+                scripts/pipeline/update-group-variable.sh teamAdminsGroupId '$(teamAdminsObjectId)'
+                scripts/pipeline/update-group-variable.sh teamAdminsGroupName '$(teamAdminsDisplayName)'
+                scripts/pipeline/update-group-variable.sh teamDevelopersGroupId '$(teamDevelopersObjectId)'
+                scripts/pipeline/update-group-variable.sh teamDevelopersGroupName '$(teamDevelopersDisplayName)'
+                scripts/pipeline/update-group-variable.sh teamReadersGroupId '$(teamReadersObjectId)'
+                scripts/pipeline/update-group-variable.sh teamReadersGroupName '$(teamReadersDisplayName)'
 
 
   - stage: CreateAccessGroups
     displayName: Create Entra Access Groups
-    condition: in(dependencies.CreateUserGroups.result, 'Succeeded', 'SucceededWithIssues', 'Skipped')
     dependsOn: CreateUserGroups
+    condition: in(dependencies.CreateUserGroups.result, 'Succeeded', 'SucceededWithIssues', 'Skipped')
     variables:
       - group: "${{ parameters.environmentName }}"
       - template: "/pipelines/vars/common.yaml"
@@ -543,7 +558,6 @@ stages:
   - stage: SaveGroupDetails
     displayName: Save group details
     dependsOn:
-      - CreateUserGroups
       - CreateAccessGroups
     condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
     variables:
@@ -598,6 +612,8 @@ stages:
       - job: UpdateGroupVariables
         displayName: Update group variables
         steps:
+          - checkout: self
+
           - task: Bash@3
             name: StoreLibraryVars
             displayName: Store Library Variables
