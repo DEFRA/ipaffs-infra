@@ -188,6 +188,25 @@ stages:
       - name: teamReadersObjectId
         value: $[stageDependencies.CreateUserGroups.TeamGroups.outputs['ReadersGroup.objectId']]
     jobs:
+      - job: DefraGroups
+        displayName: AKS Groups
+        condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+        steps:
+          - checkout: self
+
+          - task: AzureCLI@2
+            name: DefraCertificateReaders
+            env:
+              GROUP_NAME: $(entraAccessGroupBaseName)-AzureCertificateReader
+              GROUP_DESCRIPTION: Entra access group for IPAFFS Clusters to retrieve Defra wildcard certificate(s) in ${{ parameters.environmentName }} environment
+              GROUP_OWNER_OBJECT_IDS: >
+                $(serviceConnectionPrincipalId)
+                $(upstreamServiceConnectionPrincipalId)
+            inputs:
+              azureSubscription: $(upstreamServiceConnection)
+              scriptType: bash
+              scriptPath: scripts/pipeline/create-entra-group.sh
+
       - job: AksGroups
         displayName: AKS Groups
         condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
@@ -523,6 +542,10 @@ stages:
         value: $[stageDependencies.CreateUserGroups.TeamGroups.outputs['ReadersGroup.displayName']]
       - name: teamReadersObjectId
         value: $[stageDependencies.CreateUserGroups.TeamGroups.outputs['ReadersGroup.objectId']]
+      - name: defraCertificateReadersDisplayName
+        value: $[stageDependencies.CreateAccessGroups.DefraGroups.outputs['DefraCertificateReaders.displayName']]
+      - name: defraCertificateReadersObjectId
+        value: $[stageDependencies.CreateAccessGroups.DefraGroups.outputs['DefraCertificateReaders.objectId']]
       - name: aksAdminsDisplayName
         value: $[stageDependencies.CreateAccessGroups.AksGroups.outputs['AksAdmins.displayName']]
       - name: aksAdminsObjectId
@@ -586,6 +609,8 @@ stages:
                 scripts/pipeline/update-group-variable.sh teamDevelopersGroupName '$(teamDevelopersDisplayName)'
                 scripts/pipeline/update-group-variable.sh teamReadersGroupId '$(teamReadersObjectId)'
                 scripts/pipeline/update-group-variable.sh teamReadersGroupName '$(teamReadersDisplayName)'
+                scripts/pipeline/update-group-variable.sh defraCertificateReadersGroupId '$(defraCertificateReadersObjectId)'
+                scripts/pipeline/update-group-variable.sh defraCertificateReadersGroupName '$(defraCertificateReadersDisplayName)'
                 scripts/pipeline/update-group-variable.sh aksAdminsGroupId '$(aksAdminsObjectId)'
                 scripts/pipeline/update-group-variable.sh aksAdminsGroupName '$(aksAdminsDisplayName)'
                 scripts/pipeline/update-group-variable.sh aksContributorsGroupId '$(aksContributorsObjectId)'

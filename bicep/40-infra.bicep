@@ -202,6 +202,7 @@ output aksClusterName string = aks.outputs.aksClusterName
 output aksOidcIssuer string = aks.outputs.oidcIssuerUrl
 output azureServiceOperatorClientId string = aso.outputs.clientId
 output externalSecretsClientId string = externalSecrets.outputs.clientId
+output externalSecretsPrincipalObjectId string = externalSecrets.outputs.principalObjectId
 output keyVaultName string = keyVault.outputs.keyVaultName
 output keyVaultUri string = keyVault.outputs.keyVaultUri
 output redisName string = redis.outputs.redisName

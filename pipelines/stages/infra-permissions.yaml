@@ -28,7 +28,7 @@ stages:
                     GROUP_ID: $(directoryReadersGroupObjectId)
                     PRINCIPAL_ID: $(sqlServerManagedIdentityObjectId)
                   inputs:
-                    # TODO: Get other SPs added as group owners
+                    # TODO: Get other service connection SPs added as group owners
                     azureSubscription: ADO-DefraGovUK-AZR-POC_IMP
                     scriptType: bash
                     scriptPath: scripts/pipeline/add-principal-to-group.sh
@@ -38,6 +38,16 @@ stages:
                   env:
                     GROUP_ID: $(sqlAdminGroupId)
                     PRINCIPAL_ID: $(searchServiceManagedIdentityPrincipalId)
+                  inputs:
+                    azureSubscription: $(serviceConnection)
+                    scriptType: bash
+                    scriptPath: scripts/pipeline/add-principal-to-group.sh
+
+                - task: AzureCLI@2
+                  name: ExternalSecretsDefraCertificateReaders
+                  env:
+                    GROUP_ID: $(defraCertificateReadersGroupId)
+                    PRINCIPAL_ID: $(externalSecretsPrincipalObjectId)
                   inputs:
                     azureSubscription: $(serviceConnection)
                     scriptType: bash

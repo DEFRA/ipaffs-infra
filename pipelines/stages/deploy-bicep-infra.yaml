@@ -207,6 +207,7 @@ stages:
                 scripts/pipeline/update-group-variable-from-deployment.sh acrName acrName
                 scripts/pipeline/update-group-variable-from-deployment.sh azureServiceOperatorClientId azureServiceOperatorClientId
                 scripts/pipeline/update-group-variable-from-deployment.sh externalSecretsClientId externalSecretsClientId
+                scripts/pipeline/update-group-variable-from-deployment.sh externalSecretsPrincipalObjectId externalSecretsPrincipalObjectId
                 scripts/pipeline/update-group-variable-from-deployment.sh aksOidcIssuer aksOidcIssuer
                 scripts/pipeline/update-group-variable-from-deployment.sh keyVaultName keyVaultName
                 scripts/pipeline/update-group-variable-from-deployment.sh keyVaultUrl keyVaultUri
