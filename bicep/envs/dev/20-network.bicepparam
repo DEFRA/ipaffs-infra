@@ -244,6 +244,9 @@ param vnetParams = {
     name: 'UDR-Spoke-Route-From-DEVIMPNETVN1401-01'
     virtualApplianceIp: '10.176.0.100'
   }
+  principalsNeedingContributor: [
+    '08c384da-22b5-4974-924b-5016aa8d4aca' // ADO-DefraGovUK-AZR-IMP-SND1 (ADO service connection)
+  ]
   subnets: [
     // AKS API Server, 14 usable addresses
     {
