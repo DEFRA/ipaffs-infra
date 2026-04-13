@@ -176,6 +176,7 @@ stages:
 
   - stage: CreateAccessGroups
     displayName: Create Entra Access Groups
+    condition: in(dependencies.CreateUserGroups.result, 'Succeeded', 'SucceededWithIssues', 'Skipped')
     dependsOn: CreateUserGroups
     variables:
       - group: "${{ parameters.environmentName }}"
