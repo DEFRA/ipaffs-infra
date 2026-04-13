@@ -2,6 +2,7 @@
 variables:
   classicServiceConnection: ADO-DefraGovUK-AZR-PRE_IMP
   classicSqlAdminUserPrincipalObjectId: 3bc7291e-c9f1-4f90-8c9c-ad81fd5b727e
+  entraAccessGroupBaseName: AAG-Azure-AZR_IMP_PRE1
   serviceConnection: To-BE-DETERMINED
   serviceConnectionPrincipalId: TO-BE-DETERMINED
   subscriptionName: AZR-IMP-PRE1
