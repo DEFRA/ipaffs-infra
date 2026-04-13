@@ -43,6 +43,14 @@ module vnet './modules/virtual-network.bicep' = {
   ]
 }
 
+output aksApiServerSubnetId string = first(filter(vnet.outputs.subnets, subnet => subnet.name == subnetNames.aksApiServer)).id
+output aksApiServerSubnetName string = first(filter(vnet.outputs.subnets, subnet => subnet.name == subnetNames.aksApiServer)).name
+output aksSystemNodesSubnetId string = first(filter(vnet.outputs.subnets, subnet => subnet.name == subnetNames.aksSystemNodes)).id
+output aksSystemNodesSubnetName string = first(filter(vnet.outputs.subnets, subnet => subnet.name == subnetNames.aksSystemNodes)).name
+output aksUserNodesSubnetId string = first(filter(vnet.outputs.subnets, subnet => subnet.name == subnetNames.aksUserNodes)).id
+output aksUserNodesSubnetName string = first(filter(vnet.outputs.subnets, subnet => subnet.name == subnetNames.aksUserNodes)).name
+output appGatewayForContainersSubnetId string = first(filter(vnet.outputs.subnets, subnet => subnet.name == subnetNames.appGatewayForContainers)).id
+output appGatewayForContainersSubnetName string = first(filter(vnet.outputs.subnets, subnet => subnet.name == subnetNames.appGatewayForContainers)).name
 output privateEndpointsSubnetId string = first(filter(vnet.outputs.subnets, subnet => subnet.name == subnetNames.privateEndpoints)).id
 output privateEndpointsSubnetName string = first(filter(vnet.outputs.subnets, subnet => subnet.name == subnetNames.privateEndpoints)).name
 output vnetName string = vnet.outputs.vnetName

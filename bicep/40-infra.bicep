@@ -6,7 +6,7 @@ param environment string
 param acrName string
 param builtInGroups object
 param entraGroups object
-param subnetNames object
+param subnets object
 param tenantId string
 param vnetName string
 
@@ -47,8 +47,7 @@ module acrPrivateEndpoint './modules/acr-private-endpoint.bicep' = {
     acrName: acrName
     deploymentId: deploymentId
     location: location
-    subnetNames: subnetNames
-    subnets: vnet.properties.subnets
+    subnets: subnets
     tags: tags
   }
 }
@@ -63,8 +62,7 @@ module aks './modules/aks.bicep' = {
     entraGroups: entraGroups
     location: location
     logAnalyticsId: monitoring.outputs.logAnalyticsId
-    subnetNames: subnetNames
-    subnets: vnet.properties.subnets
+    subnets: subnets
     tags: tags
     vnetName: vnetName
   }
@@ -114,8 +112,7 @@ module keyVault './modules/keyvault.bicep' = {
     entraGroups: entraGroups
     keyVaultParams: keyVaultParams
     location: location
-    subnetNames: subnetNames
-    subnets: vnet.properties.subnets
+    subnets: subnets
     tags: tags
     tenantId: tenantId
   }
@@ -128,8 +125,7 @@ module redis './modules/redis.bicep' = {
     deploymentId: deploymentId
     redisParams: redisParams
     location: location
-    subnetNames: subnetNames
-    subnets: vnet.properties.subnets
+    subnets: subnets
     tags: tags
     tenantId: tenantId
   }
@@ -144,8 +140,7 @@ module search './modules/search.bicep' = {
     searchParams: searchParams
     location: location
     sqlServerName: sql.outputs.sqlServerName
-    subnetNames: subnetNames
-    subnets: vnet.properties.subnets
+    subnets: subnets
     tags: tags
     tenantId: tenantId
   }
@@ -159,8 +154,7 @@ module sql './modules/sql.bicep' = {
     entraGroups: entraGroups
     location: location
     sqlParams: sqlParams
-    subnetNames: subnetNames
-    subnets: vnet.properties.subnets
+    subnets: subnets
     tags: tags
     tenantId: tenantId
   }
@@ -197,8 +191,7 @@ module storage './modules/storage.bicep' = {
     entraGroups: entraGroups
     location: location
     storageParams: storageParams
-    subnetNames: subnetNames
-    subnets: vnet.properties.subnets
+    subnets: subnets
     tags: tags
   }
 }

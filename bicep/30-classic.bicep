@@ -4,7 +4,7 @@ targetScope = 'resourceGroup'
 param environment string
 
 param entraGroups object
-param privateEndpointsSubnet object
+param subnets object
 
 param createdDate string = utcNow('yyyy-MM-dd')
 param deploymentId string = uniqueString(utcNow())
@@ -86,9 +86,9 @@ module search './modules/search-classic.bicep' = {
   params: {
     deploymentId: deploymentId
     entraGroups: entraGroups
-    privateEndpointsSubnet: privateEndpointsSubnet
-    searchParams: searchParams
     location: location
+    searchParams: searchParams
+    subnets: subnets
     tags: tags
   }
 }
@@ -112,8 +112,8 @@ module serviceBus './modules/servicebus-classic.bicep' = {
   params: {
     deploymentId: deploymentId
     location: location
-    privateEndpointsSubnet: privateEndpointsSubnet
     serviceBusParams: serviceBusParams
+    subnets: subnets
     tags: tags
   }
 }
@@ -125,8 +125,8 @@ module sql './modules/sql-classic.bicep' = {
     deploymentId: deploymentId
     entraGroups: entraGroups
     location: location
-    privateEndpointsSubnet: privateEndpointsSubnet
     sqlParams: sqlParams
+    subnets: subnets
     tags: tags
     tenantId: tenantId
   }

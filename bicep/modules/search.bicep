@@ -5,12 +5,9 @@ param entraGroups object
 param location string
 param searchParams object
 param sqlServerName string
-param subnetNames object
-param subnets array
+param subnets object
 param tags object
 param tenantId string
-
-var subnet = first(filter(subnets, subnet => subnet.name == subnetNames.privateEndpoints))
 
 resource userAssignedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2024-11-30' = {
   name: searchParams.userAssignedIdentityName
@@ -68,13 +65,13 @@ resource searchService 'Microsoft.Search/searchServices@2025-05-01' = {
 }
 
 resource searchServicePrivateEndpoints 'Microsoft.Network/privateEndpoints@2024-10-01' = {
-  name: '${searchParams.name}-${subnet.name}'
+  name: '${searchParams.name}-${subnets.privateEndpoints.name}'
   location: location
   tags: tags
 
   properties: {
     subnet: {
-      id: subnet.id
+      id: subnets.privateEndpoints.id
     }
 
     privateLinkServiceConnections: [

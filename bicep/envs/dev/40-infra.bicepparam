@@ -8,16 +8,9 @@ param builtInGroups = {
 param acrName = 'DEVIMPINFAC1401'
 param entraGroups = {}
 param environment = 'DEV'
+param subnets = {}
 param tenantId = ''
 param vnetName = 'DEVIMPNETVN1401'
-
-param subnetNames = {
-  aksApiServer: 'DEVIMPNETSU4401'
-  aksSystemNodes: 'DEVIMPNETSU4402'
-  aksUserNodes: 'DEVIMPNETSU4406'
-  appGatewayForContainers: 'DEVIMPNETSU4405'
-  privateEndpoints: 'DEVIMPNETSU4404'
-}
 
 param aksParams = {
   name: 'DEVIMPINFAK1401'

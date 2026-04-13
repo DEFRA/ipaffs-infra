@@ -1,6 +1,9 @@
 using '../../30-classic.bicep'
 
+param entraGroups = {}
 param environment = 'PRE'
+param subnets = {}
+param tenantId = ''
 
 param alertsParams = {
   actionGroups: {

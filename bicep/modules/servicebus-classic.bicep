@@ -2,8 +2,8 @@ targetScope = 'resourceGroup'
 
 param deploymentId string
 param location string
-param privateEndpointsSubnet object
 param serviceBusParams object
+param subnets object
 param tags object
 
 // API version matches ARM template at https://defradev.visualstudio.com/DEFRA-Infrastructure/_git/DEFRA-EUX-IMP?path=/database/sql.json
@@ -12,13 +12,13 @@ resource sbNamespace 'Microsoft.ServiceBus/namespaces@2022-01-01-preview' existi
 }
 
 resource sbPrivateEndpoint 'Microsoft.Network/privateEndpoints@2024-10-01' = {
-  name: '${serviceBusParams.namespaceName}-${privateEndpointsSubnet.name}'
+  name: '${serviceBusParams.namespaceName}-${subnets.privateEndpoints.name}'
   location: location
   tags: tags
 
   properties: {
     subnet: {
-      id: privateEndpointsSubnet.id
+      id: subnets.privateEndpoints.id
     }
 
     privateLinkServiceConnections: [

@@ -67,6 +67,28 @@ stages:
                     name: '$(sqlAdminGroupName)'
                   }
                 }
+                param subnets = {
+                  aksApiServer: {
+                    id: '$(aksApiServerSubnetId)'
+                    name: '$(aksApiServerSubnetName)'
+                  }
+                  aksSystemNodes: {
+                    id: '$(aksSystemNodesSubnetId)'
+                    name: '$(aksSystemNodesSubnetName)'
+                  }
+                  aksUserNodes: {
+                    id: '$(aksUserNodesSubnetId)'
+                    name: '$(aksUserNodesSubnetName)'
+                  }
+                  appGatewayForContainers: {
+                    id: '$(appGatewayForContainersSubnetId)'
+                    name: '$(appGatewayForContainersSubnetName)'
+                  }
+                  privateEndpoints: {
+                    id: '$(privateEndpointsSubnetId)'
+                    name: '$(privateEndpointsSubnetName)'
+                  }
+                }
                 EOF
                 cat '$(Build.SourcesDirectory)/40-infra-runtime.bicepparam'
 

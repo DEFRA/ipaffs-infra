@@ -6,14 +6,9 @@ param deploymentId string
 param entraGroups object
 param location string
 param logAnalyticsId string
-param subnetNames object
-param subnets array
+param subnets object
 param tags object
 param vnetName string
-
-var apiServerSubnet = first(filter(subnets, subnet => subnet.name == subnetNames.aksApiServer))
-var systemNodePoolSubnet = first(filter(subnets, subnet => subnet.name == subnetNames.aksSystemNodes))
-var userNodePoolSubnet = first(filter(subnets, subnet => subnet.name == subnetNames.aksUserNodes))
 
 resource userAssignedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2024-11-30' = {
   name: aksParams.userAssignedIdentityName
@@ -80,7 +75,7 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2025-10-01' = {
         osType: 'Linux'
         type: 'VirtualMachineScaleSets'
         vmSize: aksParams.nodePools.system.vmSize
-        vnetSubnetID: systemNodePoolSubnet.id
+        vnetSubnetID: subnets.aksSystemNodes.id
 
         securityProfile: {
           enableSecureBoot: true
@@ -98,7 +93,7 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2025-10-01' = {
         osType: 'Linux'
         type: 'VirtualMachineScaleSets'
         vmSize: aksParams.nodePools.user.vmSize
-        vnetSubnetID: userNodePoolSubnet.id
+        vnetSubnetID: subnets.aksUserNodes.id
 
         securityProfile: {
           enableSecureBoot: true
@@ -111,7 +106,7 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2025-10-01' = {
       enablePrivateCluster: true
       enableVnetIntegration: true
       privateDNSZone: 'none'
-      subnetId: apiServerSubnet.id
+      subnetId: subnets.aksApiServer.id
     }
 
     autoUpgradeProfile: {

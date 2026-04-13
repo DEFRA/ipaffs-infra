@@ -8,16 +8,9 @@ param builtInGroups = {
 param acrName = 'DEVIMPINFAC1401' // common ACR for now
 param entraGroups = {}
 param environment = 'TST'
+param subnets = {}
 param tenantId = ''
 param vnetName = 'TSTIMPNETVN1401'
-
-param subnetNames = {
-  aksApiServer: 'TSTIMPNETSU4401'
-  aksSystemNodes: 'TSTIMPNETSU4402'
-  aksUserNodes: 'TSTIMPNETSU4406'
-  appGatewayForContainers: 'TSTIMPNETSU4405'
-  privateEndpoints: 'TSTIMPNETSU4404'
-}
 
 param aksParams = {
   name: 'TSTIMPINFAK1401'

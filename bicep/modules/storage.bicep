@@ -4,11 +4,8 @@ param deploymentId string
 param entraGroups object
 param location string
 param storageParams object
-param subnetNames object
-param subnets array
+param subnets object
 param tags object
-
-var subnet = first(filter(subnets, subnet => subnet.name == subnetNames.privateEndpoints))
 
 resource storageAccount 'Microsoft.Storage/storageAccounts@2025-01-01' = {
   name: storageParams.name
@@ -56,13 +53,13 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2025-01-01' = {
 }
 
 resource storagePrivateEndpoint 'Microsoft.Network/privateEndpoints@2024-10-01' = {
-  name: '${storageParams.name}-${subnet.name}'
+  name: '${storageParams.name}-${subnets.privateEndpoints.name}'
   location: location
   tags: tags
 
   properties: {
     subnet: {
-      id: subnet.id
+      id: subnets.privateEndpoints.id
     }
 
     privateLinkServiceConnections: [

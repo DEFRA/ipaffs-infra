@@ -2,7 +2,7 @@ using '../../30-classic.bicep'
 
 param entraGroups = {}
 param environment = 'SND'
-param privateEndpointsSubnet = {}
+param subnets = {}
 param tenantId = ''
 
 param alertsParams = {
