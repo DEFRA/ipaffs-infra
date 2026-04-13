@@ -4,12 +4,10 @@ targetScope = 'resourceGroup'
 param environment string
 
 param entraGroups object
-param subnets object
 
 param createdDate string = utcNow('yyyy-MM-dd')
 param deploymentId string = uniqueString(utcNow())
 param location string = resourceGroup().location
-param newLocation string
 param tenantId string
 
 var databaseNames = [
@@ -87,9 +85,9 @@ module search './modules/search-classic.bicep' = {
   params: {
     deploymentId: deploymentId
     entraGroups: entraGroups
-    newLocation: newLocation
+    location: location
     searchParams: searchParams
-    subnets: subnets
+    sqlServerName: sql.outputs.sqlServerName
     tags: tags
   }
 }
@@ -112,9 +110,7 @@ module serviceBus './modules/servicebus-classic.bicep' = {
   scope: resourceGroup()
   params: {
     deploymentId: deploymentId
-    newLocation: newLocation
     serviceBusParams: serviceBusParams
-    subnets: subnets
     tags: tags
   }
 }
@@ -126,12 +122,22 @@ module sql './modules/sql-classic.bicep' = {
     deploymentId: deploymentId
     entraGroups: entraGroups
     location: location
-    newLocation: newLocation
     sqlParams: sqlParams
-    subnets: subnets
     tags: tags
     tenantId: tenantId
   }
 }
+
+output searchServiceSubscriptionId string = search.outputs.searchServiceSubscriptionId
+output searchServiceResourceGroupName string = search.outputs.searchServiceResourceGroupName
+output searchServiceName string = search.outputs.searchServiceName
+output searchServiceManagedIdentityPrincipalName string = search.outputs.searchServiceManagedIdentityPrincipalName
+output searchServiceManagedIdentityPrincipalId string = search.outputs.searchServiceManagedIdentityPrincipalId
+output searchServiceResourceId string = search.outputs.searchServiceResourceId
+output serviceBusNamespaceName string = serviceBus.outputs.serviceBusNamespaceName
+output serviceBusNamespaceResourceId string = serviceBus.outputs.serviceBusNamespaceResourceId
+output sqlServerName string = sql.outputs.sqlServerName
+output sqlServerManagedIdentityObjectId string = sql.outputs.sqlServerManagedIdentityObjectId
+output sqlServerResourceId string = sql.outputs.sqlServerResourceId
 
 // vim: set ts=2 sts=2 sw=2 et:

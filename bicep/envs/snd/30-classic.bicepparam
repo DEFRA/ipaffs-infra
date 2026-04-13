@@ -2,8 +2,6 @@ using '../../30-classic.bicep'
 
 param entraGroups = {}
 param environment = 'SND'
-param newLocation = 'uksouth'
-param subnets = {}
 param tenantId = ''
 
 param alertsParams = {
@@ -41,6 +39,7 @@ param dbwParams = {
 
 param searchParams = {
   name: 'sndimpinfass001'
+  userAssignedIdentityName: 'SNDIMPINFASS001'
 }
 
 param sejParams = {

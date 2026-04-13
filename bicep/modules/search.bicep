@@ -64,7 +64,7 @@ resource searchService 'Microsoft.Search/searchServices@2025-05-01' = {
   }
 }
 
-resource searchServicePrivateEndpoints 'Microsoft.Network/privateEndpoints@2024-10-01' = {
+resource searchServicePrivateEndpoint 'Microsoft.Network/privateEndpoints@2024-10-01' = {
   name: '${searchParams.name}-${subnets.privateEndpoints.name}'
   location: location
   tags: tags
@@ -129,7 +129,7 @@ module searchReader './search-role-assignment.bicep' = {
 output searchServiceSubscriptionId string = subscription().subscriptionId
 output searchServiceResourceGroupName string = resourceGroup().name
 output searchServiceName string = searchService.name
-output searchServiceId string = searchService.id
+output searchServiceResourceId string = searchService.id
 output searchServiceEndpoint string = searchService.properties.endpoint
 output searchServiceManagedIdentityPrincipalName string = userAssignedIdentity.name
 output searchServiceManagedIdentityPrincipalId string = userAssignedIdentity.properties.principalId

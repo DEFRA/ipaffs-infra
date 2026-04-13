@@ -43,12 +43,6 @@ stages:
                     name: '$(sqlAdminGroupName)'
                   }
                 }
-                param subnets = {
-                  privateEndpoints: {
-                    id: '$(privateEndpointsSubnetId)'
-                    name: '$(privateEndpointsSubnetName)'
-                  }
-                }
                 EOF
                 cat '$(Build.SourcesDirectory)/30-classic-runtime.bicepparam'
 
@@ -130,6 +124,53 @@ stages:
                         --subscription $(classicSubscriptionId) \
                         --resource-group $(classicResourceGroupName) \
                         --created
+
+
+  - stage: SaveClassicDeploymentDetails
+    displayName: Save classic deployment details
+    dependsOn: DeployClassic
+    variables:
+      - group: "${{ parameters.environmentName }}"
+      - template: "/pipelines/vars/common.yaml"
+      - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
+    jobs:
+      - job: StoreLibraryVariables
+        displayName: Store library variables
+        steps:
+          - checkout: self
+
+          - task: AzureCLI@2
+            name: ClassicOutputs
+            displayName: Classic outputs
+            condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+            env:
+              ADO_ORG_URL: $(System.CollectionUri)
+              ADO_PROJECT: $(System.TeamProject)
+              ADO_GROUP_NAME: ${{ parameters.environmentName }}
+              AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
+              DEPLOYMENT_NAME: Classic-$(Build.BuildId)
+              RESOURCE_GROUP: $(resourceGroupName)
+              SUBSCRIPTION_ID: $(subscriptionId)
+            inputs:
+              azureSubscription: $(serviceConnection)
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                set -x
+                scripts/pipeline/update-group-variable-from-deployment.sh classicSearchServiceSubscriptionId searchServiceSubscriptionId
+                scripts/pipeline/update-group-variable-from-deployment.sh classicSearchServiceResourceGroupName searchServiceResourceGroupName
+                scripts/pipeline/update-group-variable-from-deployment.sh classicSearchServiceName searchServiceName
+                scripts/pipeline/update-group-variable-from-deployment.sh classicSearchServiceManagedIdentityPrincipalId searchServiceManagedIdentityPrincipalId
+                scripts/pipeline/update-group-variable-from-deployment.sh classicSearchServiceManagedIdentityPrincipalName searchServiceManagedIdentityPrincipalName
+                scripts/pipeline/update-group-variable-from-deployment.sh classicSearchServiceResourceId searchServiceResourceId
+                scripts/pipeline/update-group-variable-from-deployment.sh classicServiceBusNamespaceName serviceBusNamespaceName
+                scripts/pipeline/update-group-variable-from-deployment.sh classicServiceBusNamespaceResourceId serviceBusNamespaceResourceId
+                scripts/pipeline/update-group-variable-from-deployment.sh classicSqlServerName sqlServerName
+                scripts/pipeline/update-group-variable-from-deployment.sh classicSqlServerManagedIdentityObjectId sqlServerManagedIdentityObjectId
+                scripts/pipeline/update-group-variable-from-deployment.sh classicSqlServerResourceId sqlServerResourceId
+
+                scripts/pipeline/update-group-variable-from-deployment.sh redisName redisName
+                scripts/pipeline/update-group-variable-from-deployment.sh storageAccountName storageAccountName
 
 
 # vim: set ts=2 sts=2 sw=2 et:

@@ -25,6 +25,11 @@ stages:
                 cat <<- 'EOF' >'$(Build.SourcesDirectory)/40-infra-runtime.bicepparam'
                 using '40-infra.bicep'
                 extends 'envs/${{ lower(parameters.environmentName) }}/40-infra.bicepparam'
+                param classicResourceIds = {
+                  searchService: '$(classicSearchServiceResourceId)'
+                  serviceBusNamespace: '$(classicServiceBusNamespaceResourceId)'
+                  sqlServer: '$(classicSqlServerResourceId)'
+                }
                 param entraGroups = {
                   aksAdmins: {
                     id: '$(aksAdminsGroupId)'

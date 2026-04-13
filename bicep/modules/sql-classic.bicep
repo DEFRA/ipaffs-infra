@@ -3,9 +3,7 @@ targetScope = 'resourceGroup'
 param deploymentId string
 param entraGroups object
 param location string
-param newLocation string
 param sqlParams object
-param subnets object
 param tags object
 param tenantId string
 
@@ -27,26 +25,8 @@ resource sqlServer 'Microsoft.Sql/servers@2023-05-01-preview' = {
   }
 }
 
-resource sqlPrivateEndpoint 'Microsoft.Network/privateEndpoints@2024-10-01' = {
-  name: '${sqlParams.serverName}-${subnets.privateEndpoints.name}'
-  location: newLocation
-  tags: tags
-
-  properties: {
-    subnet: {
-      id: subnets.privateEndpoints.id
-    }
-
-    privateLinkServiceConnections: [
-      {
-        name: 'sql-connection'
-        properties: {
-          privateLinkServiceId: sqlServer.id
-          groupIds: ['sqlServer']
-        }
-      }
-    ]
-  }
-}
+output sqlServerName string = sqlServer.name
+output sqlServerManagedIdentityObjectId string = sqlServer.identity.principalId
+output sqlServerResourceId string = sqlServer.id
 
 // vim: set ts=2 sts=2 sw=2 et:

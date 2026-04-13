@@ -6,6 +6,8 @@ param builtInGroups = {
 }
 
 param acrName = 'DEVIMPINFAC1401'
+param classicLocation = 'northeurope'
+param classicResourceIds = {}
 param entraGroups = {}
 param environment = 'DEV'
 param subnets = {}

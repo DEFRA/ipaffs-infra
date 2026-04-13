@@ -2,8 +2,6 @@ using '../../30-classic.bicep'
 
 param entraGroups = {}
 param environment = 'TST'
-param newLocation = 'uksouth'
-param subnets = {}
 param tenantId = ''
 
 param alertsParams = {
