@@ -59,10 +59,11 @@ stages:
 
   - template: stages/deploy-bicep-classic.yaml
     parameters:
+      environmentName: ${{ parameters.environmentName }}
       ${{ if eq(parameters.environmentName, 'DEV') }}:
-        environmentName: SND
-      ${{ if ne(parameters.environmentName, 'DEV') }}:
-        environmentName: ${{ parameters.environmentName }}
+        classicEnvironmentName: SND
+      ${{ else }}:
+        classicEnvironmentName: ${{ parameters.environmentName }}
 
   - template: stages/deploy-bicep-infra.yaml
     parameters:
