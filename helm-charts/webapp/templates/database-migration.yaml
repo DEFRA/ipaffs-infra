@@ -88,7 +88,7 @@ spec:
             - name: AZURE_SEARCH_PRINCIPAL_NAME
               value: {{ template "ipaffs-common.azure.searchServicePrincipalName" . }}
             - name: AZURE_SEARCH_USER_ASSIGNED_IDENTITY
-              value: "/subscriptions/{{ .Values.search.subscriptionId }}/resourcegroups/{{ .Values.search.resourceGroupName }}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/{{ .Values.search.principalName }}"
+              value: "/subscriptions/{{ .Values.search.subscriptionId }}/resourcegroups/{{ template "ipaffs-common.azure.searchServiceResourceGroupName" . }}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/{{ template "ipaffs-common.azure.searchServicePrincipalName" . }}"
           {{- end }}
           {{- if .Values.storage.accountName }}
             - name: AZURE_STORAGE_ACCOUNT_NAME
