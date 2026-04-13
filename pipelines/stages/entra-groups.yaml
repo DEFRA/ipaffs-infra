@@ -173,6 +173,31 @@ stages:
               scriptType: bash
               scriptPath: scripts/pipeline/remove-entra-group-members.sh
 
+      - job: SaveTeamGroups
+        displayName: Update group variables
+        dependsOn:
+          - TeamGroups
+        steps:
+          - task: Bash@3
+            name: StoreLibraryVars
+            displayName: Store Library Variables
+            condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+            env:
+              ADO_ORG_URL: $(System.CollectionUri)
+              ADO_PROJECT: $(System.TeamProject)
+              ADO_GROUP_NAME: ${{ parameters.environmentName }}
+              AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
+            inputs:
+              targetType: inline
+              script: |
+                set -x
+                scripts/pipeline/update-group-variable.sh teamAdminsGroupId '$[ dependencies.TeamGroups.outputs['AdminsGroup.objectId'] ]'
+                scripts/pipeline/update-group-variable.sh teamAdminsGroupName '$[ dependencies.TeamGroups.outputs['AdminsGroup.displayName'] ]'
+                scripts/pipeline/update-group-variable.sh teamDevelopersGroupId '$[ dependencies.TeamGroups.outputs['DevelopersGroup.objectId'] ]'
+                scripts/pipeline/update-group-variable.sh teamDevelopersGroupName '$[ dependencies.TeamGroups.outputs['(DevelopersGroup.displayName'] ]'
+                scripts/pipeline/update-group-variable.sh teamReadersGroupId '$[ dependencies.TeamGroups.outputs['ReadersGroup.objectId'] ]'
+                scripts/pipeline/update-group-variable.sh teamReadersGroupName '$[ dependencies.TeamGroups.outputs['ReadersGroup.displayName'] ]'
+
 
   - stage: CreateAccessGroups
     displayName: Create Entra Access Groups
@@ -182,12 +207,6 @@ stages:
       - group: "${{ parameters.environmentName }}"
       - template: "/pipelines/vars/common.yaml"
       - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
-      - name: teamAdminsObjectId
-        value: $[stageDependencies.CreateUserGroups.TeamGroups.outputs['AdminsGroup.objectId']]
-      - name: teamDevelopersObjectId
-        value: $[stageDependencies.CreateUserGroups.TeamGroups.outputs['DevelopersGroup.objectId']]
-      - name: teamReadersObjectId
-        value: $[stageDependencies.CreateUserGroups.TeamGroups.outputs['ReadersGroup.objectId']]
     jobs:
       - job: DefraGroups
         displayName: Defra Groups
@@ -241,7 +260,7 @@ stages:
             name: AksAdminsMembersAdmins
             env:
               GROUP_ID: $(AksAdmins.objectId)
-              PRINCIPAL_ID: $(teamAdminsObjectId)
+              PRINCIPAL_ID: $(teamAdminsGroupId)
             inputs:
               azureSubscription: $(serviceConnection)
               scriptType: bash
@@ -264,7 +283,7 @@ stages:
             name: AksContributorsMembersDevelopers
             env:
               GROUP_ID: $(AksContributors.objectId)
-              PRINCIPAL_ID: $(teamDevelopersObjectId)
+              PRINCIPAL_ID: $(teamDevelopersGroupId)
             inputs:
               azureSubscription: $(serviceConnection)
               scriptType: bash
@@ -287,7 +306,7 @@ stages:
             name: AksReadersMembersReaders
             env:
               GROUP_ID: $(AksReaders.objectId)
-              PRINCIPAL_ID: $(teamReadersObjectId)
+              PRINCIPAL_ID: $(teamReadersGroupId)
             inputs:
               azureSubscription: $(serviceConnection)
               scriptType: bash
@@ -316,7 +335,7 @@ stages:
             name: KeyVaultAdminsMembersAdmins
             env:
               GROUP_ID: $(KeyVaultAdmins.objectId)
-              PRINCIPAL_ID: $(teamAdminsObjectId)
+              PRINCIPAL_ID: $(teamAdminsGroupId)
             inputs:
               azureSubscription: $(serviceConnection)
               scriptType: bash
@@ -339,7 +358,7 @@ stages:
             name: KeyVaultSecretsReaderMembersDevelopers
             env:
               GROUP_ID: $(KeyVaultSecretsReader.objectId)
-              PRINCIPAL_ID: $(teamDevelopersObjectId)
+              PRINCIPAL_ID: $(teamDevelopersGroupId)
             inputs:
               azureSubscription: $(serviceConnection)
               scriptType: bash
@@ -368,7 +387,7 @@ stages:
             name: SearchContributorsMembersAdmins
             env:
               GROUP_ID: $(SearchContributors.objectId)
-              PRINCIPAL_ID: $(teamAdminsObjectId)
+              PRINCIPAL_ID: $(teamAdminsGroupId)
             inputs:
               azureSubscription: $(serviceConnection)
               scriptType: bash
@@ -378,7 +397,7 @@ stages:
             name: SearchContributorsMembersDevelopers
             env:
               GROUP_ID: $(SearchContributors.objectId)
-              PRINCIPAL_ID: $(teamDevelopersObjectId)
+              PRINCIPAL_ID: $(teamDevelopersGroupId)
             inputs:
               azureSubscription: $(serviceConnection)
               scriptType: bash
@@ -401,7 +420,7 @@ stages:
             name: SearchReadersMembersDevelopers
             env:
               GROUP_ID: $(SearchReaders.objectId)
-              PRINCIPAL_ID: $(teamReadersObjectId)
+              PRINCIPAL_ID: $(teamReadersGroupId)
             inputs:
               azureSubscription: $(serviceConnection)
               scriptType: bash
@@ -430,7 +449,7 @@ stages:
             name: BlobStorageContributorsMembersAdmins
             env:
               GROUP_ID: $(BlobStorageContributors.objectId)
-              PRINCIPAL_ID: $(teamAdminsObjectId)
+              PRINCIPAL_ID: $(teamAdminsGroupId)
             inputs:
               azureSubscription: $(serviceConnection)
               scriptType: bash
@@ -440,7 +459,7 @@ stages:
             name: BlobStorageContributorsMembersDevelopers
             env:
               GROUP_ID: $(BlobStorageContributors.objectId)
-              PRINCIPAL_ID: $(teamDevelopersObjectId)
+              PRINCIPAL_ID: $(teamDevelopersGroupId)
             inputs:
               azureSubscription: $(serviceConnection)
               scriptType: bash
@@ -463,7 +482,7 @@ stages:
             name: BlobStorageReadersMembersDevelopers
             env:
               GROUP_ID: $(BlobStorageReaders.objectId)
-              PRINCIPAL_ID: $(teamReadersObjectId)
+              PRINCIPAL_ID: $(teamReadersGroupId)
             inputs:
               azureSubscription: $(serviceConnection)
               scriptType: bash
@@ -493,7 +512,7 @@ stages:
             name: SQLAdminsMembersAdmins
             env:
               GROUP_ID: $(SQLAdmins.objectId)
-              PRINCIPAL_ID: $(teamAdminsObjectId)
+              PRINCIPAL_ID: $(teamAdminsGroupId)
             inputs:
               azureSubscription: $(serviceConnection)
               scriptType: bash
@@ -503,7 +522,7 @@ stages:
             name: SQLAdminsMembersDevelopers
             env:
               GROUP_ID: $(SQLAdmins.objectId)
-              PRINCIPAL_ID: $(teamDevelopersObjectId)
+              PRINCIPAL_ID: $(teamDevelopersGroupId)
             inputs:
               azureSubscription: $(serviceConnection)
               scriptType: bash
@@ -531,18 +550,6 @@ stages:
       - group: "${{ parameters.environmentName }}"
       - template: "/pipelines/vars/common.yaml"
       - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
-      - name: teamAdminsDisplayName
-        value: $[stageDependencies.CreateUserGroups.TeamGroups.outputs['AdminsGroup.displayName']]
-      - name: teamAdminsObjectId
-        value: $[stageDependencies.CreateUserGroups.TeamGroups.outputs['AdminsGroup.objectId']]
-      - name: teamDevelopersDisplayName
-        value: $[stageDependencies.CreateUserGroups.TeamGroups.outputs['DevelopersGroup.displayName']]
-      - name: teamDevelopersObjectId
-        value: $[stageDependencies.CreateUserGroups.TeamGroups.outputs['DevelopersGroup.objectId']]
-      - name: teamReadersDisplayName
-        value: $[stageDependencies.CreateUserGroups.TeamGroups.outputs['ReadersGroup.displayName']]
-      - name: teamReadersObjectId
-        value: $[stageDependencies.CreateUserGroups.TeamGroups.outputs['ReadersGroup.objectId']]
       - name: defraCertificateReadersDisplayName
         value: $[stageDependencies.CreateAccessGroups.DefraGroups.outputs['DefraCertificateReaders.displayName']]
       - name: defraCertificateReadersObjectId
@@ -604,12 +611,6 @@ stages:
               targetType: inline
               script: |
                 set -x
-                scripts/pipeline/update-group-variable.sh teamAdminsGroupId '$(teamAdminsObjectId)'
-                scripts/pipeline/update-group-variable.sh teamAdminsGroupName '$(teamAdminsDisplayName)'
-                scripts/pipeline/update-group-variable.sh teamDevelopersGroupId '$(teamDevelopersObjectId)'
-                scripts/pipeline/update-group-variable.sh teamDevelopersGroupName '$(teamDevelopersDisplayName)'
-                scripts/pipeline/update-group-variable.sh teamReadersGroupId '$(teamReadersObjectId)'
-                scripts/pipeline/update-group-variable.sh teamReadersGroupName '$(teamReadersDisplayName)'
                 scripts/pipeline/update-group-variable.sh defraCertificateReadersGroupId '$(defraCertificateReadersObjectId)'
                 scripts/pipeline/update-group-variable.sh defraCertificateReadersGroupName '$(defraCertificateReadersDisplayName)'
                 scripts/pipeline/update-group-variable.sh aksAdminsGroupId '$(aksAdminsObjectId)'
