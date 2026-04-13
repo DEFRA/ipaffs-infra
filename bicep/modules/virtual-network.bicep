@@ -49,8 +49,9 @@ module vnetNetworkContributor './vnet-role-assignment.bicep' = [for principalId 
     deploymentId: deploymentId
     principalObjectId: principalId
     roleDefinitionId: networkContributorRoleId
-    vnetName: virtualNetwork.name
+    vnetName: vnetParams.name
   }
+  dependsOn: [virtualNetwork]
 }]
 
 resource vnet 'Microsoft.Network/virtualNetworks@2025-05-01' existing = {
