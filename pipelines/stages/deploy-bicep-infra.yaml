@@ -3,7 +3,7 @@ parameters:
     type: string
 
 stages:
-  - stage: ConfigureDeployment
+  - stage: ConfigureInfraDeployment
     displayName: Configure deployment
     variables:
       - group: "${{ parameters.environmentName }}"
@@ -22,9 +22,9 @@ stages:
               targetType: inline
               script: |
                 set -ex
-                cat <<- 'EOF' >'$(Build.SourcesDirectory)/30-infra-runtime.bicepparam'
-                using '30-infra.bicep'
-                extends 'envs/${{ lower(parameters.environmentName) }}/30-infra.bicepparam'
+                cat <<- 'EOF' >'$(Build.SourcesDirectory)/40-infra-runtime.bicepparam'
+                using '40-infra.bicep'
+                extends 'envs/${{ lower(parameters.environmentName) }}/40-infra.bicepparam'
                 param entraGroups = {
                   aksAdmins: {
                     id: '$(aksAdminsGroupId)'
@@ -67,19 +67,41 @@ stages:
                     name: '$(sqlAdminGroupName)'
                   }
                 }
+                param subnets = {
+                  aksApiServer: {
+                    id: '$(aksApiServerSubnetId)'
+                    name: '$(aksApiServerSubnetName)'
+                  }
+                  aksSystemNodes: {
+                    id: '$(aksSystemNodesSubnetId)'
+                    name: '$(aksSystemNodesSubnetName)'
+                  }
+                  aksUserNodes: {
+                    id: '$(aksUserNodesSubnetId)'
+                    name: '$(aksUserNodesSubnetName)'
+                  }
+                  appGatewayForContainers: {
+                    id: '$(appGatewayForContainersSubnetId)'
+                    name: '$(appGatewayForContainersSubnetName)'
+                  }
+                  privateEndpoints: {
+                    id: '$(privateEndpointsSubnetId)'
+                    name: '$(privateEndpointsSubnetName)'
+                  }
+                }
                 EOF
-                cat '$(Build.SourcesDirectory)/30-infra-runtime.bicepparam'
+                cat '$(Build.SourcesDirectory)/40-infra-runtime.bicepparam'
 
           - task: PublishPipelineArtifact@1
             displayName: Publish artifact
             inputs:
-              artifactName: bicepparam
-              targetPath: $(Build.SourcesDirectory)/30-infra-runtime.bicepparam
+              artifactName: bicepparam-infra
+              targetPath: $(Build.SourcesDirectory)/40-infra-runtime.bicepparam
 
 
   - stage: DeployInfrastructure
     displayName: Deploy Infrastructure
-    dependsOn: ConfigureDeployment
+    dependsOn: ConfigureInfraDeployment
     variables:
       - group: "${{ parameters.environmentName }}"
       - template: "/pipelines/vars/common.yaml"
@@ -98,7 +120,7 @@ stages:
                 - task: DownloadPipelineArtifact@2
                   displayName: Download artifact
                   inputs:
-                    artifactName: bicepparam
+                    artifactName: bicepparam-infra
                     targetPath: $(Build.SourcesDirectory)/bicep
 
                 - task: AzureCLI@2
@@ -113,8 +135,8 @@ stages:
                         --name "Infrastructure-$(Build.BuildId)" \
                         --subscription $(subscriptionId) \
                         --resource-group $(resourceGroupName) \
-                        --template-file bicep/30-infra.bicep \
-                        --parameters bicep/30-infra-runtime.bicepparam \
+                        --template-file bicep/40-infra.bicep \
+                        --parameters bicep/40-infra-runtime.bicepparam \
                         --parameters tenantId="$(tenantId)"
 
                 - task: AzureCLI@2
@@ -130,8 +152,8 @@ stages:
                         --name "Infrastructure-$(Build.BuildId)" \
                         --subscription $(subscriptionId) \
                         --resource-group $(resourceGroupName) \
-                        --template-file bicep/30-infra.bicep \
-                        --parameters bicep/30-infra-runtime.bicepparam \
+                        --template-file bicep/40-infra.bicep \
+                        --parameters bicep/40-infra-runtime.bicepparam \
                         --parameters tenantId="$(tenantId)"
 
                 - task: AzureCLI@2

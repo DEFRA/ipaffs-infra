@@ -5,9 +5,9 @@ trigger:
       - main
   paths:
     include:
-      - bicep/envs/*/90-legacy.bicepparam
-      - bicep/90-legacy.bicep
-      - pipelines/legacy.yaml
+      - bicep/envs/*/30-classic.bicepparam
+      - bicep/30-classic.bicep
+      - pipelines/classic.yaml
 
 pr:
   branches:
@@ -15,9 +15,9 @@ pr:
       - main
   paths:
     include:
-      - bicep/envs/*/90-legacy.bicepparam
-      - bicep/90-legacy.bicep
-      - pipelines/legacy.yaml
+      - bicep/envs/*/30-classic.bicepparam
+      - bicep/30-classic.bicep
+      - pipelines/classic.yaml
 
 pool:
   name: DEFRA-COMMON-ubuntu2204-SSV5
@@ -54,32 +54,32 @@ stages:
                 - checkout: self
 
                 - task: AzureCLI@2
-                  displayName: WhatIf - Legacy
+                  displayName: WhatIf - Classic
                   inputs:
-                    azureSubscription: $(legacyServiceConnection)
+                    azureSubscription: $(classicServiceConnection)
                     scriptType: bash
                     scriptLocation: inlineScript
                     inlineScript: |
                       az deployment group what-if \
-                        --name "Legacy-$(Build.BuildId)" \
-                        --subscription $(legacySubscriptionId) \
-                        --resource-group $(legacyResourceGroupName) \
-                        --template-file bicep/90-legacy.bicep \
-                        --parameters bicep/envs/${{ lower(parameters.environmentName) }}/90-legacy.bicepparam
+                        --name "Classic-$(Build.BuildId)" \
+                        --subscription $(classicSubscriptionId) \
+                        --resource-group $(classicResourceGroupName) \
+                        --template-file bicep/30-classic.bicep \
+                        --parameters bicep/envs/${{ lower(parameters.environmentName) }}/30-classic.bicepparam
 
                 - task: AzureCLI@2
-                  displayName: Deploy - Legacy
+                  displayName: Deploy - Classic
                   condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
                   inputs:
-                    azureSubscription: $(legacyServiceConnection)
+                    azureSubscription: $(classicServiceConnection)
                     scriptType: bash
                     scriptLocation: inlineScript
                     inlineScript: |
                       az deployment group create \
-                        --name "Legacy-$(Build.BuildId)" \
-                        --subscription $(legacySubscriptionId) \
-                        --resource-group $(legacyResourceGroupName) \
-                        --template-file bicep/90-legacy.bicep \
-                        --parameters bicep/envs/${{ lower(parameters.environmentName) }}/90-legacy.bicepparam
+                        --name "Classic-$(Build.BuildId)" \
+                        --subscription $(classicSubscriptionId) \
+                        --resource-group $(classicResourceGroupName) \
+                        --template-file bicep/30-classic.bicep \
+                        --parameters bicep/envs/${{ lower(parameters.environmentName) }}/30-classic.bicepparam
 
 # vim: set ts=2 sts=2 sw=2 et:

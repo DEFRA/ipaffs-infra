@@ -1,11 +1,8 @@
-using '../../40-privatelink.bicep'
+using '../../50-privatelink.bicep'
 
 param environment = 'TST'
+param subnets = {}
 param vnetName = 'TSTIMPNETVN1401'
-
-param subnetNames = {
-  privateLink: 'TSTIMPNETSU4403'
-}
 
 param privateLinkParams = {
   name: 'TSTIMPINFPL1401'

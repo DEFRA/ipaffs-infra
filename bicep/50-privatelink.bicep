@@ -3,7 +3,7 @@ targetScope = 'resourceGroup'
 @allowed(['DEV', 'TST'])
 param environment string
 
-param subnetNames object
+param subnets = {}
 param vnetName string
 
 param createdDate string = utcNow('yyyy-MM-dd')
@@ -35,7 +35,7 @@ module privateLink './modules/privatelink.bicep' = {
     loadBalancerFrontendIpConfigurations: loadBalancer.properties.frontendIPConfigurations
     location: location
     privateLinkParams: privateLinkParams
-    subnetNames: subnetNames
+    subnets: subnets
     subnets: vnet.properties.subnets
     tags: tags
   }

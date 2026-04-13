@@ -1,28 +1,16 @@
-using '../../30-infra.bicep'
+using '../../40-infra.bicep'
 
 param builtInGroups = {
   contributors: '04b12060-3b12-49aa-a92a-d62873d8d29e' // AG-Azure-IMP_DEV1-Contributors
   owners: 'dbaf1ee8-c128-4f27-b159-791866210c2e' // AG-Azure-IMP_DEV1-Owners
 }
 
+param acrName = 'DEVIMPINFAC1401'
 param entraGroups = {}
 param environment = 'DEV'
+param subnets = {}
 param tenantId = ''
 param vnetName = 'DEVIMPNETVN1401'
-
-param subnetNames = {
-  aksApiServer: 'DEVIMPNETSU4401'
-  aksSystemNodes: 'DEVIMPNETSU4402'
-  aksUserNodes: 'DEVIMPNETSU4406'
-  appGatewayForContainers: 'DEVIMPNETSU4405'
-  privateEndpoints: 'DEVIMPNETSU4404'
-}
-
-param acrParams = {
-  name: 'DEVIMPINFAC1401'
-  sku: 'Premium'
-  adminEnabled: true
-}
 
 param aksParams = {
   name: 'DEVIMPINFAK1401'

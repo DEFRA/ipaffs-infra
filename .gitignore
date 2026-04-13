@@ -1,3 +1,4 @@
+bicep/*.bicepparam
 deploy/tls/*
 helm-charts/*/charts/
 helm-charts/*/tmpcharts*

@@ -1,11 +1,8 @@
-using '../../40-privatelink.bicep'
+using '../../50-privatelink.bicep'
 
 param environment = 'DEV'
+param subnets = {}
 param vnetName = 'DEVIMPNETVN1401'
-
-param subnetNames = {
-  privateLink: 'DEVIMPNETSU4403'
-}
 
 param privateLinkParams = {
   name: 'DEVIMPINFPL1401'

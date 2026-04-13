@@ -1,5 +1,6 @@
 ---
 variables:
-  legacyServiceConnection: ADO-DefraGovUK-AZR-IMP-SND1
+  classicServiceConnection: ADO-DefraGovUK-AZR-IMP-SND1
+  classicSqlAdminUserPrincipalObjectId: aaf71566-6255-442e-a51d-1633b56a01c2
 
 # vim: set ts=2 sts=2 sw=2 et:

@@ -1,11 +1,14 @@
-using '../../90-legacy.bicep'
+using '../../30-classic.bicep'
 
-param environment = 'TST'
+param entraGroups = {}
+param environment = 'SND'
+param subnets = {}
+param tenantId = ''
 
 param alertsParams = {
   actionGroups: {
     notifyDba: {
-      name: 'TST-IMP-DBA-Team'
+      name: 'SND-IMP-DBA-Team'
       appRecipients: [
         {
           name: 'AppPush: Paul Maguire'
@@ -23,29 +26,41 @@ param alertsParams = {
 }
 
 param dbwParams = {
-  name: 'TSTIMPDBSDBW001'
+  name: 'SNDIMPDBSDBW001'
   adminEntraGroup: 'AG-Azure-EUX-IPAFFS-Kainos-DevUsers'
-  kustoName: 'TSTIMPDBSKUS001'
+  kustoName: 'SNDIMPDBSKUS001'
   kustoSku: {
     name: 'Standard_E2ads_v5'
     tier: 'Standard'
     capacity: 2
   }
-  sqlServerElasticPoolName: 'TSTIMPEDPSQA001'
-  sqlServerResourceId: '/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Sql/servers/TSTIMPDBSSQA001'
+  sqlServerElasticPoolName: 'SNDIMPDBSSQA004'
+  sqlServerResourceId: '/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Sql/servers/SNDIMPDBSSQA004'
+}
+
+param searchParams = {
+  name: 'sndimpinfass001'
 }
 
 param sejParams = {
   databaseName: 'elasticjobs'
   databaseNames: ['notification-microservice']
   databaseMaxSizeGiB: 10
-  jobAgentName: 'TSTIMPDBSJBA001'
+  jobAgentName: 'SNDIMPDBSJBA001'
   jobAgentSku: {
     name: 'JA100'
     capacity: 100
   }
-  sqlServerName: 'TSTIMPDBSSQA001'
-  userAssignedIdentityName: 'tst-imp-elasticjobs-sql'
+  sqlServerName: 'SNDIMPDBSSQA004'
+  userAssignedIdentityName: 'snd-imp-elasticjobs-sql'
+}
+
+param serviceBusParams = {
+  namespaceName: 'SNDIMPINFSBS002'
+}
+
+param sqlParams = {
+  serverName: 'sndimpdbssqa004'
 }
 
 // vim: set ts=2 sts=2 sw=2 et:

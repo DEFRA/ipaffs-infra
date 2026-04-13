@@ -1,28 +1,16 @@
-using '../../30-infra.bicep'
+using '../../40-infra.bicep'
 
 param builtInGroups = {
   contributors: '04b12060-3b12-49aa-a92a-d62873d8d29e' // AG-Azure-IMP_TST1-Contributors
   owners: 'dbaf1ee8-c128-4f27-b159-791866210c2e' // AG-Azure-IMP_TST1-Owners
 }
 
+param acrName = 'DEVIMPINFAC1401' // common ACR for now
 param entraGroups = {}
 param environment = 'TST'
+param subnets = {}
 param tenantId = ''
 param vnetName = 'TSTIMPNETVN1401'
-
-param subnetNames = {
-  aksApiServer: 'TSTIMPNETSU4401'
-  aksSystemNodes: 'TSTIMPNETSU4402'
-  aksUserNodes: 'TSTIMPNETSU4406'
-  appGatewayForContainers: 'TSTIMPNETSU4405'
-  privateEndpoints: 'TSTIMPNETSU4404'
-}
-
-param acrParams = {
-  name: 'TSTIMPINFAC1401'
-  sku: 'Premium'
-  adminEnabled: true
-}
 
 param aksParams = {
   name: 'TSTIMPINFAK1401'

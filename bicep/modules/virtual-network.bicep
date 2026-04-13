@@ -40,8 +40,14 @@ module virtualNetwork 'br/SharedDefraRegistry:network.virtual-network:0.4.2' = {
   }
 }
 
+resource vnet 'Microsoft.Network/virtualNetworks@2025-05-01' existing = {
+  name: vnetParams.name
+  dependsOn: [virtualNetwork]
+}
+
 output vnetName string = virtualNetwork.outputs.name
 output vnetId string = virtualNetwork.outputs.resourceId
 output subnetIds array = virtualNetwork.outputs.subnetResourceIds
+output subnets array = vnet.properties.subnets
 
 // vim: set ts=2 sts=2 sw=2 et:

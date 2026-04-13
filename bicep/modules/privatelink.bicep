@@ -4,11 +4,8 @@ param deploymentId string
 param location string
 param loadBalancerFrontendIpConfigurations array
 param privateLinkParams object
-param subnetNames object
-param subnets array
+param subnets object
 param tags object
-
-var subnet = first(filter(subnets, subnet => subnet.name == subnetNames.privateLink))
 
 resource privateLink 'Microsoft.Network/privateLinkServices@2025-05-01' = {
   name: privateLinkParams.name
@@ -19,13 +16,13 @@ resource privateLink 'Microsoft.Network/privateLinkServices@2025-05-01' = {
     enableProxyProtocol: false
     ipConfigurations: [
       {
-        name: subnet.name
+        name: subnets.privateEndpoints.name
         properties: {
           primary: true
           privateIPAllocationMethod: 'Dynamic'
           privateIPAddressVersion: 'IPv4'
           subnet: {
-            id: subnet.id
+            id: subnets.privateEndpoints.id
           }
         }
       }

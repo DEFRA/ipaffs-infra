@@ -3,9 +3,10 @@ targetScope = 'resourceGroup'
 @allowed(['DEV', 'TST'])
 param environment string
 
+param acrName string
 param builtInGroups object
 param entraGroups object
-param subnetNames object
+param subnets object
 param tenantId string
 param vnetName string
 
@@ -19,7 +20,6 @@ var tags = union(loadJsonContent('default-tags.json'), {
   Location: location
 })
 
-param acrParams object
 param aksParams object
 param alertsParams object
 param asoParams object
@@ -32,19 +32,22 @@ param sqlParams object
 param insightsParams object
 param storageParams object
 
+resource acr 'Microsoft.ContainerRegistry/registries@2025-04-01' existing = {
+  name: acrName
+}
+
 resource vnet 'Microsoft.Network/virtualNetworks@2025-05-01' existing = {
   name: vnetName
 }
 
-module acr './modules/acr.bicep' = {
+module acrPrivateEndpoint './modules/acr-private-endpoint.bicep' = {
   name: 'acr-${deploymentId}'
   scope: resourceGroup()
   params: {
-    acrParams: acrParams
+    acrName: acrName
     deploymentId: deploymentId
     location: location
-    subnetNames: subnetNames
-    subnets: vnet.properties.subnets
+    subnets: subnets
     tags: tags
   }
 }
@@ -53,14 +56,13 @@ module aks './modules/aks.bicep' = {
   name: 'aks-${deploymentId}'
   scope: resourceGroup()
   params: {
-    acrName: acr.outputs.acrName
+    acrName: acrName
     aksParams: aksParams
     deploymentId: deploymentId
     entraGroups: entraGroups
     location: location
     logAnalyticsId: monitoring.outputs.logAnalyticsId
-    subnetNames: subnetNames
-    subnets: vnet.properties.subnets
+    subnets: subnets
     tags: tags
     vnetName: vnetName
   }
@@ -110,8 +112,7 @@ module keyVault './modules/keyvault.bicep' = {
     entraGroups: entraGroups
     keyVaultParams: keyVaultParams
     location: location
-    subnetNames: subnetNames
-    subnets: vnet.properties.subnets
+    subnets: subnets
     tags: tags
     tenantId: tenantId
   }
@@ -124,8 +125,7 @@ module redis './modules/redis.bicep' = {
     deploymentId: deploymentId
     redisParams: redisParams
     location: location
-    subnetNames: subnetNames
-    subnets: vnet.properties.subnets
+    subnets: subnets
     tags: tags
     tenantId: tenantId
   }
@@ -140,8 +140,7 @@ module search './modules/search.bicep' = {
     searchParams: searchParams
     location: location
     sqlServerName: sql.outputs.sqlServerName
-    subnetNames: subnetNames
-    subnets: vnet.properties.subnets
+    subnets: subnets
     tags: tags
     tenantId: tenantId
   }
@@ -155,8 +154,7 @@ module sql './modules/sql.bicep' = {
     entraGroups: entraGroups
     location: location
     sqlParams: sqlParams
-    subnetNames: subnetNames
-    subnets: vnet.properties.subnets
+    subnets: subnets
     tags: tags
     tenantId: tenantId
   }
@@ -193,14 +191,13 @@ module storage './modules/storage.bicep' = {
     entraGroups: entraGroups
     location: location
     storageParams: storageParams
-    subnetNames: subnetNames
-    subnets: vnet.properties.subnets
+    subnets: subnets
     tags: tags
   }
 }
 
-output acrLoginServer string = acr.outputs.acrLoginServer
-output acrName string = acr.outputs.acrName
+output acrName string = acr.name
+output acrLoginServer string = acr.properties.loginServer
 output aksClusterName string = aks.outputs.aksClusterName
 output aksOidcIssuer string = aks.outputs.oidcIssuerUrl
 output azureServiceOperatorClientId string = aso.outputs.clientId

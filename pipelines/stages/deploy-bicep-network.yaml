@@ -98,6 +98,16 @@ stages:
               scriptLocation: inlineScript
               inlineScript: |
                 set -x
+                scripts/pipeline/update-group-variable-from-deployment.sh aksApiServerSubnetId aksApiServerSubnetId
+                scripts/pipeline/update-group-variable-from-deployment.sh aksApiServerSubnetName aksApiServerSubnetName
+                scripts/pipeline/update-group-variable-from-deployment.sh aksSystemNodesSubnetId aksSystemNodesSubnetId
+                scripts/pipeline/update-group-variable-from-deployment.sh aksSystemNodesSubnetName aksSystemNodesSubnetName
+                scripts/pipeline/update-group-variable-from-deployment.sh aksUserNodesSubnetId aksUserNodesSubnetId
+                scripts/pipeline/update-group-variable-from-deployment.sh aksUserNodesSubnetName aksUserNodesSubnetName
+                scripts/pipeline/update-group-variable-from-deployment.sh appGatewayForContainersSubnetId appGatewayForContainersSubnetId
+                scripts/pipeline/update-group-variable-from-deployment.sh appGatewayForContainersSubnetName appGatewayForContainersSubnetName
+                scripts/pipeline/update-group-variable-from-deployment.sh privateEndpointsSubnetId privateEndpointsSubnetId
+                scripts/pipeline/update-group-variable-from-deployment.sh privateEndpointsSubnetName privateEndpointsSubnetName
                 scripts/pipeline/update-group-variable-from-deployment.sh vnetName vnetName
 
 

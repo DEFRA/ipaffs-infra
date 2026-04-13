@@ -1,0 +1,135 @@
+# Note: For hybrid deployments to classic SND environment, we will also need variables from the DEV library
+# group - these should be passed in from the parent pipeline definition, with the classicEnvironmentName parameter
+# for this stage template overridden to SND. This will achieve the necessary variable precedence.
+# See https://learn.microsoft.com/en-us/azure/devops/pipelines/process/variables?view=azure-devops&tabs=yaml%2Cbatch#expansion-of-variables
+parameters:
+  - name: classicEnvironmentName
+    type: string
+
+stages:
+  - stage: ConfigureClassicDeployment
+    displayName: Configure deployment
+    variables:
+      - group: "${{ parameters.classicEnvironmentName }}"
+      - template: "/pipelines/vars/common.yaml"
+      - template: "/pipelines/vars/${{ lower(parameters.classicEnvironmentName) }}.yaml"
+    jobs:
+      - job: ConfigureBicep
+        displayName: Configure Bicep
+        steps:
+          - checkout: self
+
+          - task: Bash@3
+            name: GenerateBicepParams
+            displayName: Generate Bicep Params
+            inputs:
+              targetType: inline
+              script: |
+                set -ex
+                cat <<- 'EOF' >'$(Build.SourcesDirectory)/30-classic-runtime.bicepparam'
+                using '30-classic.bicep'
+                extends 'envs/${{ lower(parameters.classicEnvironmentName) }}/30-classic.bicepparam'
+                param entraGroups = {
+                  searchContributors: {
+                    id: '$(searchContributorsGroupId)'
+                    name: '$(searchContributorsGroupName)'
+                  }
+                  searchReaders: {
+                    id: '$(searchReadersGroupId)'
+                    name: '$(searchReadersGroupName)'
+                  }
+                  sqlAdmins: {
+                    id: '$(sqlAdminGroupId)'
+                    name: '$(sqlAdminGroupName)'
+                  }
+                }
+                param subnets = {
+                  privateEndpoints: {
+                    id: '$(privateEndpointsSubnetId)'
+                    name: '$(privateEndpointsSubnetName)'
+                  }
+                }
+                EOF
+                cat '$(Build.SourcesDirectory)/30-classic-runtime.bicepparam'
+
+          - task: PublishPipelineArtifact@1
+            displayName: Publish artifact
+            inputs:
+              artifactName: bicepparam-classic
+              targetPath: $(Build.SourcesDirectory)/30-classic-runtime.bicepparam
+
+
+  - stage: DeployClassic
+    displayName: Deploy Classic
+    dependsOn: ConfigureClassicDeployment
+    variables:
+      - group: "${{ parameters.classicEnvironmentName }}"
+      - template: "/pipelines/vars/common.yaml"
+      - template: "/pipelines/vars/${{ lower(parameters.classicEnvironmentName) }}.yaml"
+    jobs:
+      - deployment: RunBicep
+        displayName: Run Bicep
+        environment:
+          name: "${{ parameters.classicEnvironmentName }}"
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+
+                - task: DownloadPipelineArtifact@2
+                  displayName: Download artifact
+                  inputs:
+                    artifactName: bicepparam-classic
+                    targetPath: $(Build.SourcesDirectory)/bicep
+
+                - task: AzureCLI@2
+                  displayName: WhatIf - Classic
+                  inputs:
+                    azureSubscription: $(classicServiceConnection)
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      set -x
+                      az deployment group what-if \
+                        --name "Classic-$(Build.BuildId)" \
+                        --subscription $(classicSubscriptionId) \
+                        --resource-group $(classicResourceGroupName) \
+                        --template-file bicep/30-classic.bicep \
+                        --parameters bicep/30-classic-runtime.bicepparam \
+                        --parameters tenantId="$(tenantId)"
+
+                - task: AzureCLI@2
+                  displayName: Deploy - Classic
+                  condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+                  inputs:
+                    azureSubscription: $(classicServiceConnection)
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      set -x
+                      az deployment group create \
+                        --name "Classic-$(Build.BuildId)" \
+                        --subscription $(classicSubscriptionId) \
+                        --resource-group $(classicResourceGroupName) \
+                        --template-file bicep/30-classic.bicep \
+                        --parameters bicep/30-classic-runtime.bicepparam \
+                        --parameters tenantId="$(tenantId)"
+
+                - task: AzureCLI@2
+                  displayName: Wait for Deployment - Classic
+                  condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+                  inputs:
+                    azureSubscription: $(classicServiceConnection)
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      set -x
+                      az deployment group wait \
+                        --name "Classic-$(Build.BuildId)" \
+                        --subscription $(classicSubscriptionId) \
+                        --resource-group $(classicResourceGroupName) \
+                        --created
+
+
+# vim: set ts=2 sts=2 sw=2 et:
