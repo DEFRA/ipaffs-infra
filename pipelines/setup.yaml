@@ -1,0 +1,48 @@
+---
+trigger: none
+pr: none
+
+pool:
+  name: DEFRA-COMMON-ubuntu2204-SSV5
+
+parameters:
+  - name: environmentName
+    displayName: Environment
+    type: string
+    default: SND
+    values:
+      - SND
+      - TST
+      - PRE
+      - PRD
+
+variables:
+  - group: Common
+  - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
+    - group: HigherEnvs
+  - ${{ else }}:
+    - group: LowerEnvs
+  - group: "${{ parameters.environmentName }}"
+  - template: "vars/common.yaml"
+  - template: "vars/${{ lower(parameters.environmentName) }}.yaml"
+
+stages:
+  - stage: Setup
+    jobs:
+      - job: Setup
+        condition: and(not(failed()), not(canceled()))
+        steps:
+          - checkout: self
+
+          - task: AzureCLI@2
+            name: Setup
+            inputs:
+              azureSubscription: $(upstreamServiceConnection)
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                set -x
+                az role assignment create --assignee $(serviceConnectionPrincipalId) --role Owner --scope /subscriptions/$(subscriptionId)
+                az role assignment create --assignee $(serviceConnectionPrincipalId) --role Owner --scope /subscriptions/$(classicSubscriptionId)
+
+# vim: set ts=2 sts=2 sw=2 et:
