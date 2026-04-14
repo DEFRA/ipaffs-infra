@@ -1,17 +1,13 @@
 targetScope = 'resourceGroup'
 
-param acrName string
+param acrResourceId string
 param deploymentId string
 param location string
 param subnets object
 param tags object
 
-resource acr 'Microsoft.ContainerRegistry/registries@2025-04-01' existing = {
-  name: acrName
-}
-
 resource acrPrivateEndpoint 'Microsoft.Network/privateEndpoints@2024-10-01' = {
-  name: '${acrName}-${subnets.privateEndpoints.name}'
+  name: '${last(split(acrResourceId, '/'))}-${subnets.privateEndpoints.name}'
   location: location
   tags: tags
 
@@ -24,7 +20,7 @@ resource acrPrivateEndpoint 'Microsoft.Network/privateEndpoints@2024-10-01' = {
       {
         name: 'acr-connection'
         properties: {
-          privateLinkServiceId: acr.id
+          privateLinkServiceId: acrResourceId
           groupIds: [
             'registry'
           ]

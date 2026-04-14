@@ -1,6 +1,5 @@
 targetScope = 'resourceGroup'
 
-param acrName string
 param aksParams object
 param deploymentId string
 param entraGroups object

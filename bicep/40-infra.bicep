@@ -3,7 +3,7 @@ targetScope = 'resourceGroup'
 @allowed(['DEV', 'TST'])
 param environment string
 
-param acrName string
+param acrResourceId string
 param builtInGroups object
 param classicLocation string
 param classicResourceIds object
@@ -34,19 +34,15 @@ param sqlParams object
 param insightsParams object
 param storageParams object
 
-resource acr 'Microsoft.ContainerRegistry/registries@2025-04-01' existing = {
-  name: acrName
-}
-
 resource vnet 'Microsoft.Network/virtualNetworks@2025-05-01' existing = {
   name: vnetName
 }
 
 module acrPrivateEndpoint './modules/acr-private-endpoint.bicep' = {
-  name: 'acr-${deploymentId}'
+  name: 'acrPrivateEndpoint-${deploymentId}'
   scope: resourceGroup()
   params: {
-    acrName: acrName
+    acrResourceId: acrResourceId
     deploymentId: deploymentId
     location: location
     subnets: subnets
@@ -58,7 +54,6 @@ module aks './modules/aks.bicep' = {
   name: 'aks-${deploymentId}'
   scope: resourceGroup()
   params: {
-    acrName: acrName
     aksParams: aksParams
     deploymentId: deploymentId
     entraGroups: entraGroups
@@ -210,8 +205,6 @@ module storage './modules/storage.bicep' = {
   }
 }
 
-output acrName string = acr.name
-output acrLoginServer string = acr.properties.loginServer
 output aksClusterName string = aks.outputs.aksClusterName
 output aksKubeletPrincipalId string = aks.outputs.kubeletPrincipalId
 output aksOidcIssuer string = aks.outputs.oidcIssuerUrl

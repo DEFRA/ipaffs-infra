@@ -118,4 +118,44 @@ stages:
                         --resource-group $(resourceGroupName) \
                         --created
 
+
+  - stage: SaveACRDeploymentDetails
+    displayName: Save ACR deployment details
+    dependsOn: DeployACR
+    variables:
+      - group: "${{ parameters.environmentName }}"
+      - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
+          - group: HigherEnvs
+      - ${{ else }}:
+          - group: LowerEnvs
+      - template: "/pipelines/vars/common.yaml"
+      - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
+    jobs:
+      - job: StoreLibraryVariables
+        displayName: Store library variables
+        steps:
+          - checkout: self
+
+          - task: AzureCLI@2
+            name: ACROutputs
+            displayName: ACR outputs
+            condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+            env:
+              ADO_ORG_URL: $(System.CollectionUri)
+              ADO_PROJECT: $(System.TeamProject)
+              ADO_GROUP_NAME: LowerEnvs
+              AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
+              DEPLOYMENT_NAME: ACR-$(Build.BuildId)
+              RESOURCE_GROUP: $(resourceGroupName)
+              SUBSCRIPTION_ID: $(subscriptionId)
+            inputs:
+              azureSubscription: $(serviceConnection)
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                set -x
+                scripts/pipeline/update-group-variable-from-deployment.sh acrLoginServer acrLoginServer
+                scripts/pipeline/update-group-variable-from-deployment.sh acrName acrName
+                scripts/pipeline/update-group-variable-from-deployment.sh acrResourceId acrResourceId
+
 # vim: set ts=2 sts=2 sw=2 et:
