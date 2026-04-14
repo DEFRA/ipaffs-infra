@@ -4,7 +4,6 @@ targetScope = 'resourceGroup'
 param environment string
 
 param subnets = {}
-param vnetName string
 
 param createdDate string = utcNow('yyyy-MM-dd')
 param deploymentId string = uniqueString(utcNow())
@@ -23,10 +22,6 @@ resource loadBalancer 'Microsoft.Network/loadBalancers@2025-05-01' existing = {
   scope: resourceGroup(privateLinkParams.loadBalancer.resourceGroup)
 }
 
-resource vnet 'Microsoft.Network/virtualNetworks@2025-05-01' existing = {
-  name: vnetName
-}
-
 module privateLink './modules/privatelink.bicep' = {
   name: 'privateLink-${deploymentId}'
   scope: resourceGroup()
@@ -36,7 +31,6 @@ module privateLink './modules/privatelink.bicep' = {
     location: location
     privateLinkParams: privateLinkParams
     subnets: subnets
-    subnets: vnet.properties.subnets
     tags: tags
   }
 }
