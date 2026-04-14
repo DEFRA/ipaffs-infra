@@ -18,12 +18,10 @@ resource sqlServerAdministrator 'Microsoft.Sql/servers/administrators@2023-05-01
   location: location
 
   properties: {
-    administrators: {
-      administratorType: 'ActiveDirectory'
-      login: entraGroups.sqlAdmins.name
-      sid: entraGroups.sqlAdmins.id
-      tenantId: tenantId
-    }
+    administratorType: 'ActiveDirectory'
+    login: entraGroups.sqlAdmins.name
+    sid: entraGroups.sqlAdmins.id
+    tenantId: tenantId
   }
 }
 
