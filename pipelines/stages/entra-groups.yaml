@@ -185,7 +185,7 @@ stages:
           - name: teamDevelopersDisplayName
             value: $[dependencies.TeamGroups.outputs['DevelopersGroup.displayName']]
           - name: teamDevelopersObjectId
-            value: $[dependencies.TeamGroups.outputs['(DevelopersGroup.objectId']]
+            value: $[dependencies.TeamGroups.outputs['DevelopersGroup.objectId']]
           - name: teamReadersDisplayName
             value: $[dependencies.TeamGroups.outputs['ReadersGroup.displayName']]
           - name: teamReadersObjectId
@@ -220,6 +220,10 @@ stages:
     condition: and(not(failed()), not(canceled()), ${{ eq(parameters.environmentName, 'DEV') }})
     variables:
       - group: "${{ parameters.environmentName }}"
+      - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
+        - group: HigherEnvs
+      - ${{ else }}:
+        - group: LowerEnvs
       - template: "/pipelines/vars/common.yaml"
       - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
     jobs:
@@ -297,6 +301,10 @@ stages:
     condition: and(not(failed()), not(canceled()), in(dependencies.CreateUserGroups.result, 'Succeeded', 'SucceededWithIssues', 'Skipped'))
     variables:
       - group: "${{ parameters.environmentName }}"
+      - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
+        - group: HigherEnvs
+      - ${{ else }}:
+        - group: LowerEnvs
       - template: "/pipelines/vars/common.yaml"
       - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
     jobs:
