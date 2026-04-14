@@ -13,7 +13,8 @@ resource sqlServer 'Microsoft.Sql/servers@2023-05-01-preview' existing = {
 }
 
 resource sqlServerAdministrator 'Microsoft.Sql/servers/administrators@2023-05-01-preview' = {
-  name: concat(sqlParams.serverName, '/activeDirectory')
+  parent: sqlServer
+  name: 'activeDirectory'
   location: location
 
   properties: {
