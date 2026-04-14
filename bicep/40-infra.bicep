@@ -97,9 +97,9 @@ module classicPrivateEndpoints './modules/classic-private-endpoints.bicep' = {
   name: 'classicPrivateEndpoints-${deploymentId}'
   scope: resourceGroup()
   params: {
-    classicLocation: classicLocation
     classicResourceIds: classicResourceIds
     deploymentId: deploymentId
+    location: location
     subnets: subnets
     tags: tags
   }

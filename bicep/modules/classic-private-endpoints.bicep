@@ -1,14 +1,14 @@
 targetScope = 'resourceGroup'
 
-param classicLocation string
 param classicResourceIds object
 param deploymentId string
+param location string
 param subnets object
 param tags object
 
 resource redisPrivateEndpoint 'Microsoft.Network/privateEndpoints@2024-10-01' = {
   name: '${last(split(classicResourceIds.redis, '/'))}-${subnets.privateEndpoints.name}'
-  location: classicLocation
+  location: location
   tags: tags
 
   properties: {
@@ -30,7 +30,7 @@ resource redisPrivateEndpoint 'Microsoft.Network/privateEndpoints@2024-10-01' = 
 
 resource searchServicePrivateEndpoint 'Microsoft.Network/privateEndpoints@2024-10-01' = {
   name: '${last(split(classicResourceIds.searchService, '/'))}-${subnets.privateEndpoints.name}'
-  location: classicLocation
+  location: location
   tags: tags
 
   properties: {
@@ -52,7 +52,7 @@ resource searchServicePrivateEndpoint 'Microsoft.Network/privateEndpoints@2024-1
 
 resource serviceBusPrivateEndpoint 'Microsoft.Network/privateEndpoints@2024-10-01' = {
   name: '${last(split(classicResourceIds.serviceBusNamespace, '/'))}-${subnets.privateEndpoints.name}'
-  location: classicLocation
+  location: location
   tags: tags
 
   properties: {
@@ -74,7 +74,7 @@ resource serviceBusPrivateEndpoint 'Microsoft.Network/privateEndpoints@2024-10-0
 
 resource sqlPrivateEndpoint 'Microsoft.Network/privateEndpoints@2024-10-01' = {
   name: '${last(split(classicResourceIds.sqlServer, '/'))}-${subnets.privateEndpoints.name}'
-  location: classicLocation
+  location: location
   tags: tags
 
   properties: {
