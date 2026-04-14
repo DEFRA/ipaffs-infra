@@ -37,7 +37,7 @@ module acrPull './acr-role-assignment.bicep' = {
 var contributorRoleId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b24988ac-6180-42a0-ab88-20f7382dd24c')
 
 module acrContributor './acr-role-assignment.bicep' = [for principalId in acrParams.principalsNeedingContributor: {
-  name: 'acrContributor-${deploymentId}'
+  name: format('acrContributor-{0}-{1}', deploymentId, substring(uniqueString(principalId), 0, 7))
   scope: resourceGroup()
   params: {
     acrName: acr.name

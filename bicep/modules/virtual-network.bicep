@@ -43,7 +43,7 @@ module virtualNetwork 'br/SharedDefraRegistry:network.virtual-network:0.4.2' = {
 var networkContributorRoleId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '4d97b98b-1d4f-4787-a291-c67834d212e7')
 
 module vnetNetworkContributor './vnet-role-assignment.bicep' = [for principalId in vnetParams.principalsNeedingContributor: {
-  name: 'vnetNetworkContributor-${deploymentId}'
+  name: format('vnetNetworkContributor-{0}-{1}', deploymentId, substring(uniqueString(principalId), 0, 7))
   scope: resourceGroup()
   params: {
     deploymentId: deploymentId
