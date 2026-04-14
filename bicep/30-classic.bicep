@@ -49,6 +49,7 @@ var tags = union(loadJsonContent('default-tags.json'), {
 
 param alertsParams object
 param dbwParams object
+param redisParams object
 param searchParams object
 param sejParams object
 param sqlParams object
@@ -75,6 +76,16 @@ module dbw './modules/database-watcher.bicep' = {
     deploymentId: deploymentId
     location: location
     dbwParams: dbwParams
+    tags: tags
+  }
+}
+
+module redis './modules/redis-classic.bicep' = {
+  name: 'redis-${deploymentId}'
+  scope: resourceGroup()
+  params: {
+    deploymentId: deploymentId
+    redisParams: redisParams
     tags: tags
   }
 }
@@ -128,6 +139,8 @@ module sql './modules/sql-classic.bicep' = {
   }
 }
 
+output redisName string = redis.outputs.redisName
+output redisResourceId string = redis.outputs.redisResourceId
 output searchServiceSubscriptionId string = search.outputs.searchServiceSubscriptionId
 output searchServiceResourceGroupName string = search.outputs.searchServiceResourceGroupName
 output searchServiceName string = search.outputs.searchServiceName

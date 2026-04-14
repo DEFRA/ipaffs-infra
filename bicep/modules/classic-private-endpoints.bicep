@@ -6,6 +6,28 @@ param deploymentId string
 param subnets object
 param tags object
 
+resource redisPrivateEndpoint 'Microsoft.Network/privateEndpoints@2024-10-01' = {
+  name: '${last(split(classicResourceIds.redis, '/'))}-${subnets.privateEndpoints.name}'
+  location: classicLocation
+  tags: tags
+
+  properties: {
+    subnet: {
+      id: subnets.privateEndpoints.id
+    }
+
+    privateLinkServiceConnections: [
+      {
+        name: 'classic-redis-connection'
+        properties: {
+          privateLinkServiceId: classicResourceIds.redis
+          groupIds: ['redisCache']
+        }
+      }
+    ]
+  }
+}
+
 resource searchServicePrivateEndpoint 'Microsoft.Network/privateEndpoints@2024-10-01' = {
   name: '${last(split(classicResourceIds.searchService, '/'))}-${subnets.privateEndpoints.name}'
   location: classicLocation

@@ -31,7 +31,7 @@ resource redis 'Microsoft.Cache/redis@2024-11-01' = {
   }
 }
 
-resource redisPrivateEndpoints 'Microsoft.Network/privateEndpoints@2024-10-01' = {
+resource redisPrivateEndpoint 'Microsoft.Network/privateEndpoints@2024-10-01' = {
   name: '${redisParams.name}-${subnets.privateEndpoints.name}'
   location: location
   tags: tags

@@ -26,6 +26,7 @@ stages:
                 using '40-infra.bicep'
                 extends 'envs/${{ lower(parameters.environmentName) }}/40-infra.bicepparam'
                 param classicResourceIds = {
+                  redis: '$(classicRedisResourceId)'
                   searchService: '$(classicSearchServiceResourceId)'
                   serviceBusNamespace: '$(classicServiceBusNamespaceResourceId)'
                   sqlServer: '$(classicSqlServerResourceId)'

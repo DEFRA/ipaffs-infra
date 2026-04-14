@@ -159,6 +159,8 @@ stages:
               scriptLocation: inlineScript
               inlineScript: |
                 set -x
+                scripts/pipeline/update-group-variable-from-deployment.sh classicRedisName redisName
+                scripts/pipeline/update-group-variable-from-deployment.sh classicRedisResourceId redisResourceId
                 scripts/pipeline/update-group-variable-from-deployment.sh classicSearchServiceSubscriptionId searchServiceSubscriptionId
                 scripts/pipeline/update-group-variable-from-deployment.sh classicSearchServiceResourceGroupName searchServiceResourceGroupName
                 scripts/pipeline/update-group-variable-from-deployment.sh classicSearchServiceName searchServiceName

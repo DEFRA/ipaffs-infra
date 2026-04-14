@@ -37,6 +37,10 @@ param dbwParams = {
   sqlServerResourceId: '/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Sql/servers/SNDIMPDBSSQA004'
 }
 
+param redisParams = {
+  name: 'SNDIMPINFRDS001'
+}
+
 param searchParams = {
   name: 'sndimpinfass001'
   userAssignedIdentityName: 'SNDIMPINFASS001'
