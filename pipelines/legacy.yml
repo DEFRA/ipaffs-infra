@@ -69,7 +69,7 @@ stages:
 
                 - task: AzureCLI@2
                   displayName: Deploy - Classic
-                  condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+                  condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
                   inputs:
                     azureSubscription: $(classicServiceConnection)
                     scriptType: bash

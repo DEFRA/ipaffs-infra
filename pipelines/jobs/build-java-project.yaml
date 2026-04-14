@@ -6,7 +6,7 @@ parameters:
 jobs:
   - job: BuildJavaProject
     displayName: Build Java Project
-    condition: ne(variables['Build.SourceBranch'], 'refs/heads/main')
+    condition: and(not(failed()), not(canceled()), ne(variables['Build.SourceBranch'], 'refs/heads/main'))
     variables:
       MAVEN_CACHE_FOLDER: $(Pipeline.Workspace)/.m2/repository
       MAVEN_OPTS: '-Dmaven.repo.local=$(MAVEN_CACHE_FOLDER)'

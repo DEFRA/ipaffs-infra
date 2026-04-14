@@ -26,7 +26,7 @@ jobs:
 
   - job: PackageMigrationsImage
     displayName: Package Migrations Image
-    condition: ${{ eq(parameters.migrations, true) }}
+    condition: and(not(failed()), not(canceled()), ${{ eq(parameters.migrations, true) }})
     steps:
       - template: /pipelines/steps/build-container-image.yaml@ipaffs-infra
         parameters:

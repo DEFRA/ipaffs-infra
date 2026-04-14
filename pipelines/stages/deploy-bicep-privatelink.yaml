@@ -37,7 +37,7 @@ stages:
 
                 - task: AzureCLI@2
                   displayName: Deploy - PrivateLink
-                  condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+                  condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
                   inputs:
                     azureSubscription: $(serviceConnection)
                     scriptType: bash
@@ -53,7 +53,7 @@ stages:
 
                 - task: AzureCLI@2
                   displayName: Wait for Deployment - PrivateLink
-                  condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+                  condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
                   inputs:
                     azureSubscription: $(serviceConnection)
                     scriptType: bash

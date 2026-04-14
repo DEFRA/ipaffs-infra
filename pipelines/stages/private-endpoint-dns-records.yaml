@@ -35,7 +35,7 @@ stages:
                           -Subscription '$(subscriptionName)'
 
                       - displayName: "ACR: Set DNS records"
-                        condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+                        condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
                         scriptPath: 'Set-PrivateDnsRecordSet.ps1@PipelineCommon'
                         scriptArguments: >
                           -UpdateAllDnsZones $true
@@ -55,7 +55,7 @@ stages:
                           -Subscription '$(subscriptionName)'
 
                       - displayName: "KeyVault: Set DNS records"
-                        condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+                        condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
                         scriptPath: 'Set-PrivateDnsRecordSet.ps1@PipelineCommon'
                         scriptArguments: >
                           -UpdateAllDnsZones $true
@@ -75,7 +75,7 @@ stages:
                           -Subscription '$(subscriptionName)'
 
                       - displayName: "Redis: Set DNS records"
-                        condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+                        condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
                         scriptPath: 'Set-PrivateDnsRecordSet.ps1@PipelineCommon'
                         scriptArguments: >
                           -UpdateAllDnsZones $true
@@ -95,7 +95,7 @@ stages:
                           -Subscription '$(classicSubscriptionName)'
 
                       - displayName: "Redis (Classic): Set DNS records"
-                        condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+                        condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
                         scriptPath: 'Set-PrivateDnsRecordSet.ps1@PipelineCommon'
                         scriptArguments: >
                           -UpdateAllDnsZones $true
@@ -115,7 +115,7 @@ stages:
                           -Subscription '$(subscriptionName)'
 
                       - displayName: "Search: Set DNS records"
-                        condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+                        condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
                         scriptPath: 'Set-PrivateDnsRecordSet.ps1@PipelineCommon'
                         scriptArguments: >
                           -UpdateAllDnsZones $true
@@ -135,7 +135,7 @@ stages:
                           -Subscription '$(classicSubscriptionName)'
 
                       - displayName: "Search (Classic): Set DNS records"
-                        condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+                        condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
                         scriptPath: 'Set-PrivateDnsRecordSet.ps1@PipelineCommon'
                         scriptArguments: >
                           -UpdateAllDnsZones $true
@@ -155,7 +155,7 @@ stages:
                           -Subscription '$(subscriptionName)'
 
                       - displayName: "Storage: Set DNS records"
-                        condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+                        condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
                         scriptPath: 'Set-PrivateDnsRecordSet.ps1@PipelineCommon'
                         scriptArguments: >
                           -UpdateAllDnsZones $true
@@ -175,7 +175,7 @@ stages:
                           -Subscription '$(subscriptionName)'
 
                       - displayName: "SQL: Set DNS records"
-                        condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+                        condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
                         scriptPath: 'Set-PrivateDnsRecordSet.ps1@PipelineCommon'
                         scriptArguments: >
                           -UpdateAllDnsZones $true
@@ -195,7 +195,7 @@ stages:
                           -Subscription '$(classicSubscriptionName)'
 
                       - displayName: "SQL (Classic): Set DNS records"
-                        condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+                        condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
                         scriptPath: 'Set-PrivateDnsRecordSet.ps1@PipelineCommon'
                         scriptArguments: >
                           -UpdateAllDnsZones $true

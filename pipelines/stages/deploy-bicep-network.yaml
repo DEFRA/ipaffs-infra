@@ -37,7 +37,7 @@ stages:
 
                 - task: AzureCLI@2
                   displayName: Deploy - Network
-                  condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+                  condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
                   inputs:
                     azureSubscription: $(serviceConnection)
                     scriptType: bash
@@ -53,7 +53,7 @@ stages:
 
                 - task: AzureCLI@2
                   displayName: Wait for Deployment - Network
-                  condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+                  condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
                   inputs:
                     azureSubscription: $(serviceConnection)
                     scriptType: bash
@@ -83,7 +83,7 @@ stages:
           - task: AzureCLI@2
             name: NetworkOutputs
             displayName: Network outputs
-            condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+            condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
             env:
               ADO_ORG_URL: $(System.CollectionUri)
               ADO_PROJECT: $(System.TeamProject)
@@ -129,7 +129,7 @@ stages:
                 - checkout: self
 
                 - task: Bash@3
-                  condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+                  condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
                   env:
                     ADO_ORG_URL: $(System.CollectionUri)
                     ADO_PROJECT: $(System.TeamProject)
