@@ -7,6 +7,10 @@ stages:
     displayName: Infrastructure Permissions
     variables:
       - group: "${{ parameters.environmentName }}"
+      - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
+        - group: HigherEnvs
+      - ${{ else }}:
+        - group: LowerEnvs
       - template: "/pipelines/vars/common.yaml"
       - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
     jobs:
@@ -38,6 +42,16 @@ stages:
                   env:
                     GROUP_ID: $(sqlAdminGroupId)
                     PRINCIPAL_ID: $(searchServiceManagedIdentityPrincipalId)
+                  inputs:
+                    azureSubscription: $(serviceConnection)
+                    scriptType: bash
+                    scriptPath: scripts/pipeline/add-principal-to-group.sh
+
+                - task: AzureCLI@2
+                  name: AksKubeletAcrPull
+                  env:
+                    GROUP_ID: $(acrPullGroupId)
+                    PRINCIPAL_ID: $(aksKubeletPrincipalId)
                   inputs:
                     azureSubscription: $(serviceConnection)
                     scriptType: bash

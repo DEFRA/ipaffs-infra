@@ -203,19 +203,6 @@ module aksReader './aks-role-assignment.bicep' = {
   }
 }
 
-var acrPullRoleId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '7f951dda-4ed3-4680-a7ca-43fe172d538d')
-
-module acrPull './acr-role-assignment.bicep' = {
-  name: 'acrPull-${deploymentId}'
-  scope: resourceGroup()
-  params: {
-    acrName: acrName
-    deploymentId: deploymentId
-    principalObjectId: aksCluster.properties.identityProfile.kubeletIdentity.objectId
-    roleDefinitionId: acrPullRoleId
-  }
-}
-
 output aksClusterName string = aksCluster.name
 output kubeletPrincipalId string = aksCluster.properties.identityProfile.kubeletIdentity.objectId
 output oidcIssuerUrl string = aksCluster.properties.oidcIssuerProfile.issuerURL

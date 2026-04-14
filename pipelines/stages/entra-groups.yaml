@@ -179,17 +179,17 @@ stages:
           - TeamGroups
         variables:
           - name: teamAdminsDisplayName
-            value: $[dependencies.TeamGroups.outputs['AdminsGroup.objectId']]
-          - name: teamAdminsObjectId
             value: $[dependencies.TeamGroups.outputs['AdminsGroup.displayName']]
+          - name: teamAdminsObjectId
+            value: $[dependencies.TeamGroups.outputs['AdminsGroup.objectId']]
           - name: teamDevelopersDisplayName
-            value: $[dependencies.TeamGroups.outputs['DevelopersGroup.objectId']]
+            value: $[dependencies.TeamGroups.outputs['DevelopersGroup.displayName']]
           - name: teamDevelopersObjectId
-            value: $[dependencies.TeamGroups.outputs['(DevelopersGroup.displayName']]
+            value: $[dependencies.TeamGroups.outputs['(DevelopersGroup.objectId']]
           - name: teamReadersDisplayName
-            value: $[dependencies.TeamGroups.outputs['ReadersGroup.objectId']]
-          - name: teamReadersObjectId
             value: $[dependencies.TeamGroups.outputs['ReadersGroup.displayName']]
+          - name: teamReadersObjectId
+            value: $[dependencies.TeamGroups.outputs['ReadersGroup.objectId']]
         steps:
           - checkout: self
 
@@ -200,7 +200,7 @@ stages:
             env:
               ADO_ORG_URL: $(System.CollectionUri)
               ADO_PROJECT: $(System.TeamProject)
-              ADO_GROUP_NAME: ${{ parameters.environmentName }}
+              ADO_GROUP_NAME: LowerEnvs
               AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
             inputs:
               targetType: inline
@@ -212,6 +212,62 @@ stages:
                 scripts/pipeline/update-group-variable.sh teamDevelopersGroupName '$(teamDevelopersDisplayName)'
                 scripts/pipeline/update-group-variable.sh teamReadersGroupId '$(teamReadersObjectId)'
                 scripts/pipeline/update-group-variable.sh teamReadersGroupName '$(teamReadersDisplayName)'
+
+
+  - stage: CreateCommonAccessGroups
+    displayName: Create Common Entra Access Groups
+    condition: ${{ eq(parameters.environmentName, 'DEV') }}
+    variables:
+      - group: "${{ parameters.environmentName }}"
+      - template: "/pipelines/vars/common.yaml"
+      - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
+    jobs:
+      - job: AcrGroups
+        displayName: ACR Groups
+        condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+        steps:
+          - checkout: self
+
+          - task: AzureCLI@2
+            name: AcrPull
+            env:
+              GROUP_NAME: AAG-Azure-IMP-DEV-AcrPull
+              GROUP_DESCRIPTION: Entra access group for pulling container images from IPAFFS registry in lower environments
+              GROUP_OWNER_OBJECT_IDS: >
+                $(serviceConnectionPrincipalId)
+                $(upstreamServiceConnectionPrincipalId)
+            inputs:
+              azureSubscription: $(upstreamServiceConnection)
+              scriptType: bash
+              scriptPath: scripts/pipeline/create-entra-group.sh
+
+      - job: SaveCommonGroups
+        displayName: Update group variables
+        dependsOn:
+          - AcrGroups
+        variables:
+          - name: acrPullDisplayName
+            value: $[sependencies.AcrGroups.outputs['AcrPull.objectId']]
+          - name: acrPullObjectId
+            value: $[sependencies.AcrGroups.outputs['AcrPull.displayName']]
+        steps:
+          - checkout: self
+
+          - task: Bash@3
+            name: StoreLibraryVars
+            displayName: Store Library Variables
+            condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+            env:
+              ADO_ORG_URL: $(System.CollectionUri)
+              ADO_PROJECT: $(System.TeamProject)
+              ADO_GROUP_NAME: LowerEnvs
+              AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
+            inputs:
+              targetType: inline
+              script: |
+                set -x
+                scripts/pipeline/update-group-variable.sh acrPullGroupId '$(acrPullObjectId)'
+                scripts/pipeline/update-group-variable.sh acrPullGroupName '$(acrPullDisplayName)'
 
 
   - stage: CreateAccessGroups
