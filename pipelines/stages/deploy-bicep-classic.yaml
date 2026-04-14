@@ -151,8 +151,8 @@ stages:
               ADO_GROUP_NAME: ${{ parameters.environmentName }}
               AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
               DEPLOYMENT_NAME: Classic-$(Build.BuildId)
-              RESOURCE_GROUP: $(resourceGroupName)
-              SUBSCRIPTION_ID: $(subscriptionId)
+              RESOURCE_GROUP: $(classicResourceGroupName)
+              SUBSCRIPTION_ID: $(classicSubscriptionId)
             inputs:
               azureSubscription: $(serviceConnection)
               scriptType: bash
