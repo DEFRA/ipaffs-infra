@@ -30,6 +30,8 @@ parameters:
     values:
       - DEV
       - TST
+      - PRE
+      - PRD
 
 variables:
   - group: Common

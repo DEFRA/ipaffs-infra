@@ -20,6 +20,8 @@ parameters:
     values:
       - DEV
       - TST
+      - PRE
+      - PRD
 
   - name: namespace
     displayName: Namespace
