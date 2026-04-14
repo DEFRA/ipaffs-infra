@@ -3,8 +3,8 @@ variables:
   classicServiceConnection: ADO-DefraGovUK-AZR-PRD_IMP
   classicSqlAdminUserPrincipalObjectId: 1ad67fa9-a8aa-4b60-85ab-e6b684750c5a
   entraAccessGroupBaseName: AAG-Azure-AZR_IMP_PRD1
-  serviceConnection: To-BE-DETERMINED
-  serviceConnectionPrincipalId: TO-BE-DETERMINED
+  serviceConnection: ADO-DefraGovUK-AZR-IMP-PRD1
+  serviceConnectionPrincipalId: a3e0f04c-827a-4abc-89c2-249e476b3cf2
   subscriptionName: AZR-IMP-PRD1
 
 # vim: set ts=2 sts=2 sw=2 et:
