@@ -9,9 +9,8 @@ parameters:
   - name: environmentName
     displayName: Environment
     type: string
-    default: SND
+    default: TST
     values:
-      - SND
       - TST
       - PRE
       - PRD
