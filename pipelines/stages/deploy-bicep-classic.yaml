@@ -154,7 +154,7 @@ stages:
               RESOURCE_GROUP: $(classicResourceGroupName)
               SUBSCRIPTION_ID: $(classicSubscriptionId)
             inputs:
-              azureSubscription: $(serviceConnection)
+              azureSubscription: $(classicServiceConnection)
               scriptType: bash
               scriptLocation: inlineScript
               inlineScript: |
