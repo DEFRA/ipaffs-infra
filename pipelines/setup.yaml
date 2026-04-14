@@ -44,7 +44,7 @@ stages:
                 az role assignment create --assignee $(serviceConnectionPrincipalId) --role Owner --scope /subscriptions/$(subscriptionId)
 
           - task: AzureCLI@2
-            name: Setup
+            name: SetupClassic
             inputs:
               azureSubscription: $(classicServiceConnection)
               scriptType: bash
