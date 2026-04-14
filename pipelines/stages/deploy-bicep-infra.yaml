@@ -7,6 +7,10 @@ stages:
     displayName: Configure deployment
     variables:
       - group: "${{ parameters.environmentName }}"
+      - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
+        - group: HigherEnvs
+      - ${{ else }}:
+        - group: LowerEnvs
       - template: "/pipelines/vars/common.yaml"
       - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
     jobs:
@@ -110,6 +114,10 @@ stages:
     dependsOn: ConfigureInfraDeployment
     variables:
       - group: "${{ parameters.environmentName }}"
+      - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
+        - group: HigherEnvs
+      - ${{ else }}:
+        - group: LowerEnvs
       - template: "/pipelines/vars/common.yaml"
       - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
     jobs:
@@ -183,6 +191,10 @@ stages:
     dependsOn: DeployInfrastructure
     variables:
       - group: "${{ parameters.environmentName }}"
+      - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
+        - group: HigherEnvs
+      - ${{ else }}:
+        - group: LowerEnvs
       - template: "/pipelines/vars/common.yaml"
       - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
     jobs:

@@ -7,6 +7,10 @@ stages:
     displayName: Deploy Network
     variables:
       - group: "${{ parameters.environmentName }}"
+      - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
+        - group: HigherEnvs
+      - ${{ else }}:
+        - group: LowerEnvs
       - template: "/pipelines/vars/common.yaml"
       - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
     jobs:
@@ -72,6 +76,10 @@ stages:
     dependsOn: DeployNetwork
     variables:
       - group: "${{ parameters.environmentName }}"
+      - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
+        - group: HigherEnvs
+      - ${{ else }}:
+        - group: LowerEnvs
       - template: "/pipelines/vars/common.yaml"
       - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
     jobs:
@@ -116,6 +124,10 @@ stages:
     dependsOn: SaveNetworkDeploymentDetails
     variables:
       - group: "${{ parameters.environmentName }}"
+      - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
+        - group: HigherEnvs
+      - ${{ else }}:
+        - group: LowerEnvs
       - template: "/pipelines/vars/common.yaml"
       - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
     jobs:

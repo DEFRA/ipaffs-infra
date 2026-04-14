@@ -13,6 +13,10 @@ stages:
     displayName: Configure deployment
     variables:
       - group: "${{ parameters.classicEnvironmentName }}"
+      - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
+        - group: HigherEnvs
+      - ${{ else }}:
+        - group: LowerEnvs
       - template: "/pipelines/vars/common.yaml"
       - template: "/pipelines/vars/${{ lower(parameters.classicEnvironmentName) }}.yaml"
     jobs:
@@ -60,6 +64,10 @@ stages:
     dependsOn: ConfigureClassicDeployment
     variables:
       - group: "${{ parameters.classicEnvironmentName }}"
+      - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
+        - group: HigherEnvs
+      - ${{ else }}:
+        - group: LowerEnvs
       - template: "/pipelines/vars/common.yaml"
       - template: "/pipelines/vars/${{ lower(parameters.classicEnvironmentName) }}.yaml"
     jobs:
@@ -133,6 +141,10 @@ stages:
     dependsOn: DeployClassic
     variables:
       - group: "${{ parameters.classicEnvironmentName }}"
+      - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
+        - group: HigherEnvs
+      - ${{ else }}:
+        - group: LowerEnvs
       - template: "/pipelines/vars/common.yaml"
       - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
     jobs:
