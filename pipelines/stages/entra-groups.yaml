@@ -216,6 +216,7 @@ stages:
 
   - stage: CreateCommonAccessGroups
     displayName: Create Common Entra Access Groups
+    dependsOn: CreateUserGroups
     condition: ${{ eq(parameters.environmentName, 'DEV') }}
     variables:
       - group: "${{ parameters.environmentName }}"
@@ -240,6 +241,26 @@ stages:
               azureSubscription: $(upstreamServiceConnection)
               scriptType: bash
               scriptPath: scripts/pipeline/create-entra-group.sh
+
+          - task: AzureCLI@2
+            name: AcrPullMembersAdmins
+            env:
+              GROUP_ID: $(AcrPull.objectId)
+              PRINCIPAL_ID: $(teamAdminsGroupId)
+            inputs:
+              azureSubscription: $(serviceConnection)
+              scriptType: bash
+              scriptPath: scripts/pipeline/add-principal-to-group.sh
+
+          - task: AzureCLI@2
+            name: AcrPullMembersDevelopers
+            env:
+              GROUP_ID: $(AcrPull.objectId)
+              PRINCIPAL_ID: $(teamDevelopersGroupId)
+            inputs:
+              azureSubscription: $(serviceConnection)
+              scriptType: bash
+              scriptPath: scripts/pipeline/add-principal-to-group.sh
 
       - job: SaveCommonGroups
         displayName: Update group variables
