@@ -1,6 +1,20 @@
 # Override the generated ClusterSecretStore name. Defaults to the release fullname.
 secretStoreNameOverride: ""
 
+# Additional ClusterSecretStores keyed by resource name.
+# This lets a single release expose multiple Azure Key Vault stores.
+# Example:
+# additionalSecretStores:
+#   external-secrets-azure-ccoe:
+#     vaultUrl: "https://example-bootstrap.vault.azure.net/"
+#     tenantId: "00000000-0000-0000-0000-000000000000"
+#     authType: WorkloadIdentity
+#     identityId: ""
+#     serviceAccountRef:
+#       name: external-secrets
+#       namespace: external-secrets
+additionalSecretStores: {}
+
 azure:
   # Required: the Azure Key Vault URI and tenant ID to read secrets from.
   vaultUrl: ""

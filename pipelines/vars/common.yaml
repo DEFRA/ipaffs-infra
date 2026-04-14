@@ -15,6 +15,10 @@ variables:
   upstreamServiceConnection: AZR-SSV5-IPAFFS
   upstreamServiceConnectionPrincipalId: 09b875f4-3dea-4c69-bf36-e6915741d4c4
 
+  # Optional CCoE Key Vault config for bootstrap-only ExternalSecrets.
+  # Set in ADO variable groups per environment when required.
+  bootstrapCcoeKeyVaultResourceId: ""
+
   adminsGroupMembers: >
     sunil.kumar@defra.gov.uk
     sunil.kumar@defra.onmicrosoft.com

@@ -147,11 +147,32 @@ stages:
 
                 - task: AzureCLI@2
                   displayName: Helm Install - external-secrets-azure
+                  env:
+                    BOOTSTRAP_CCOE_KEY_VAULT_RESOURCE_ID: $(bootstrapCcoeKeyVaultResourceId)
                   inputs:
                     azureSubscription: $(serviceConnection)
                     scriptType: bash
                     scriptLocation: inlineScript
                     inlineScript: |
+                      set -euo pipefail
+
+                      ccoe_vault_url=""
+                      if [[ -n "${BOOTSTRAP_CCOE_KEY_VAULT_RESOURCE_ID}" ]]; then
+                        ccoe_vault_name="${BOOTSTRAP_CCOE_KEY_VAULT_RESOURCE_ID##*/}"
+                        ccoe_vault_url="https://${ccoe_vault_name,,}.vault.azure.net/"
+                      fi
+
+                      additional_store_args=()
+                      if [[ -n "${ccoe_vault_url}" ]]; then
+                        ccoe_store_name="external-secrets-azure-ccoe"
+
+                        additional_store_args+=(--set-string "additionalSecretStores.${ccoe_store_name}.vaultUrl=${ccoe_vault_url}")
+                        additional_store_args+=(--set-string "additionalSecretStores.${ccoe_store_name}.tenantId=$(tenantId)")
+                        additional_store_args+=(--set-string "additionalSecretStores.${ccoe_store_name}.identityId=$(externalSecretsClientId)")
+                        additional_store_args+=(--set-string "additionalSecretStores.${ccoe_store_name}.serviceAccountRef.name=external-secrets")
+                        additional_store_args+=(--set-string "additionalSecretStores.${ccoe_store_name}.serviceAccountRef.namespace=external-secrets")
+                      fi
+
                       set -x
                       helm upgrade \
                         --install \
@@ -167,6 +188,7 @@ stages:
                         --set azure.identityId="$(externalSecretsClientId)" \
                         --set azure.serviceAccountRef.name=external-secrets \
                         --set azure.serviceAccountRef.namespace=external-secrets \
+                        "${additional_store_args[@]}" \
                         external-secrets-azure ./helm-charts/external-secrets-azure
 
                 - task: AzureCLI@2
