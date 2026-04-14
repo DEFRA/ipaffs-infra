@@ -10,7 +10,7 @@ stages:
         displayName: Import Container Images
         environment:
           name: "${{ parameters.environmentName }}"
-        condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+        condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
         strategy:
           runOnce:
             deploy:

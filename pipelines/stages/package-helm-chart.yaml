@@ -23,7 +23,7 @@ stages:
 
       - job: PackageFeatureBranch
         displayName: Package from feature branch
-        condition: ne(variables['Build.SourceBranch'], 'refs/heads/main')
+        condition: and(not(failed()), not(canceled()), ne(variables['Build.SourceBranch'], 'refs/heads/main'))
         dependsOn: ExtractVersionFromChart
         variables:
           helmChartVersion: $[ dependencies.ExtractVersionFromChart.outputs['ComputeVersion.helmChartVersion'] ]
@@ -45,7 +45,7 @@ stages:
 
       - job: PackageMainBranch
         displayName: Bump chart version and package from main branch
-        condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+        condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
         dependsOn: ExtractVersionFromChart
         variables:
           helmChartVersion: $[ dependencies.ExtractVersionFromChart.outputs['ComputeVersion.helmChartVersion'] ]

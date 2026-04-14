@@ -97,7 +97,7 @@ stages:
 
                 - task: AzureCLI@2
                   displayName: Deploy - Classic
-                  condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+                  condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
                   inputs:
                     azureSubscription: $(classicServiceConnection)
                     scriptType: bash
@@ -114,7 +114,7 @@ stages:
 
                 - task: AzureCLI@2
                   displayName: Wait for Deployment - Classic
-                  condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+                  condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
                   inputs:
                     azureSubscription: $(classicServiceConnection)
                     scriptType: bash
@@ -144,7 +144,7 @@ stages:
           - task: AzureCLI@2
             name: ClassicOutputs
             displayName: Classic outputs
-            condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+            condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
             env:
               ADO_ORG_URL: $(System.CollectionUri)
               ADO_PROJECT: $(System.TeamProject)

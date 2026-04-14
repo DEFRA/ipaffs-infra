@@ -102,6 +102,7 @@ stages:
     displayName: Build Service
     dependsOn: DetectContainerBuild
     condition: and(
+      not(failed()), not(canceled()),
       eq(dependencies.DetectContainerBuild.result, 'Succeeded'),
       ne(dependencies.DetectContainerBuild.outputs['DetermineBuildMode.SetBuildMode.skipContainerBuild'], 'true')
       )
@@ -116,6 +117,7 @@ stages:
       - DetectContainerBuild
       - BuildService
     condition: and(
+      not(failed()), not(canceled()),
       eq(dependencies.DetectContainerBuild.result, 'Succeeded'),
       ne(dependencies.DetectContainerBuild.outputs['DetermineBuildMode.SetBuildMode.skipContainerBuild'], 'true'),
       eq(dependencies.BuildService.result, 'Succeeded')
@@ -137,6 +139,7 @@ stages:
         - name: skipContainerBuild
           value: $[ stageDependencies.DetectContainerBuild.DetermineBuildMode.outputs['SetBuildMode.skipContainerBuild'] ]
       condition: and(
+        not(failed()), not(canceled()),
         eq(dependencies.DetectContainerBuild.result, 'Succeeded'),
         startsWith(variables['Build.SourceBranch'], 'refs/heads/'),
         or(
@@ -206,7 +209,7 @@ stages:
 
             - task: Bash@3
               displayName: Update service values files
-              condition: ne(variables['skipManifestUpdate'], 'true')
+              condition: and(not(failed()), not(canceled()), ne(variables['skipManifestUpdate'], 'true'))
               env:
                 SERVICE_NAME: "${{ parameters.serviceName }}"
                 BUILD_NUMBER: $(Build.BuildNumber)
@@ -221,7 +224,7 @@ stages:
 
             - task: Bash@3
               displayName: Commit and push manifest changes
-              condition: ne(variables['skipManifestUpdate'], 'true')
+              condition: and(not(failed()), not(canceled()), ne(variables['skipManifestUpdate'], 'true'))
               env:
                 SERVICE_NAME: "${{ parameters.serviceName }}"
                 BUILD_NUMBER: $(Build.BuildNumber)

@@ -16,7 +16,7 @@ parameters:
 jobs:
   - job: MigrationsIdentity
     displayName: Set up Migrations Identity
-    condition: ${{ eq(parameters.migrations, true) }}
+    condition: and(not(failed()), not(canceled()), ${{ eq(parameters.migrations, true) }})
     variables:
       - group: "${{ parameters.environmentName }}"
       - template: "/pipelines/vars/common.yaml"

@@ -91,7 +91,7 @@ stages:
     jobs:
       - job: PackageFeatureBranch
         displayName: Package from feature branch (DEV)
-        condition: ne(variables['Build.SourceBranch'], 'refs/heads/main')
+        condition: and(not(failed()), not(canceled()), ne(variables['Build.SourceBranch'], 'refs/heads/main'))
         steps:
           - task: AzureCLI@2
             name: pushChartToRegistry
@@ -119,7 +119,7 @@ stages:
 
       - job: PackageMainBranch
         displayName: Bump chart version and package from main branch (DEV)
-        condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+        condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
         steps:
           - checkout: self
             persistCredentials: true
@@ -177,6 +177,7 @@ stages:
       displayName: Update ipaffs-manifest bootstrap values
       dependsOn: Package_DEV
       condition: and(
+        not(failed()), not(canceled()),
         eq(dependencies.Package_DEV.result, 'Succeeded'),
         startsWith(variables['Build.SourceBranch'], 'refs/heads/')
         )
@@ -245,7 +246,7 @@ stages:
             - task: Bash@3
               name: ResolveBootstrapChartVersion
               displayName: Resolve bootstrap chart version
-              condition: ne(variables['skipManifestUpdate'], 'true')
+              condition: and(not(failed()), not(canceled()), ne(variables['skipManifestUpdate'], 'true'))
               env:
                 FEATURE_CHART_VERSION: "$(featureChartVersion)"
                 MAIN_CHART_VERSION: "$(mainChartVersion)"
@@ -269,7 +270,7 @@ stages:
 
             - task: Bash@3
               displayName: Update bootstrap values files
-              condition: ne(variables['skipManifestUpdate'], 'true')
+              condition: and(not(failed()), not(canceled()), ne(variables['skipManifestUpdate'], 'true'))
               env:
                 CHART_VERSION: "$(bootstrapChartVersion)"
                 MANIFEST_ROOT: "$(Pipeline.Workspace)/s/ipaffs-manifest"
@@ -281,7 +282,7 @@ stages:
 
             - task: Bash@3
               displayName: Commit and push manifest changes
-              condition: ne(variables['skipManifestUpdate'], 'true')
+              condition: and(not(failed()), not(canceled()), ne(variables['skipManifestUpdate'], 'true'))
               env:
                 BUILD_NUMBER: $(Build.BuildNumber)
                 MANIFEST_BRANCH: "$(targetManifestBranch)"
