@@ -28,7 +28,7 @@ module sqlServerContributor './sql-server-role-assignment.bicep' = {
 }
 
 // TODO: adopt search service in order to apply user assigned managed identity
-resource searchService 'Microsoft.Search/searchServices@2015-08-19' existing = {
+resource searchService 'Microsoft.Search/searchServices@2025-05-01' existing = {
   name: searchParams.name
 }
 
