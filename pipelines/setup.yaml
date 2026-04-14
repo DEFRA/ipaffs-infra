@@ -36,7 +36,7 @@ stages:
           - task: AzureCLI@2
             name: Setup
             inputs:
-              azureSubscription: $(upstreamServiceConnection)
+              azureSubscription: $(serviceConnection)
               scriptType: bash
               scriptLocation: inlineScript
               inlineScript: |
