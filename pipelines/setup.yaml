@@ -43,14 +43,4 @@ stages:
                 set -x
                 az role assignment create --assignee $(serviceConnectionPrincipalId) --role Owner --scope /subscriptions/$(subscriptionId) --subscription $(subscriptionId)
 
-          - task: AzureCLI@2
-            name: SetupClassic
-            inputs:
-              azureSubscription: $(classicServiceConnection)
-              scriptType: bash
-              scriptLocation: inlineScript
-              inlineScript: |
-                set -x
-                az role assignment create --assignee $(serviceConnectionPrincipalId) --role Owner --scope /subscriptions/$(classicSubscriptionId) --subscription $(classicSubscriptionId)
-
 # vim: set ts=2 sts=2 sw=2 et:
