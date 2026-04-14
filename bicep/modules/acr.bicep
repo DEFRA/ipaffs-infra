@@ -29,6 +29,7 @@ module acrPull './acr-role-assignment.bicep' = {
     acrName: acr.name
     deploymentId: deploymentId
     principalObjectId: entraGroups.acrPull.id
+    principalType: 'Group'
     roleDefinitionId: acrPullRoleId
   }
 }

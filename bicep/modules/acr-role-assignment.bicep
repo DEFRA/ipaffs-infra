@@ -3,6 +3,7 @@ targetScope = 'resourceGroup'
 param acrName string
 param deploymentId string
 param principalObjectId string
+param principalType string
 param roleDefinitionId string
 
 resource acr 'Microsoft.ContainerRegistry/registries@2025-04-01' existing = {
@@ -14,7 +15,7 @@ resource roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   scope: acr
   properties: {
     principalId: principalObjectId
-    principalType: 'ServicePrincipal'
+    principalType: principalType
     roleDefinitionId: roleDefinitionId
   }
 }
