@@ -36,6 +36,11 @@ updateGroupVariable() {
     --value "${2}"
 }
 
+if [[ -z "${2}" ]]; then
+  echo "Specified value is blank, aborting..." >&2
+  exit 1
+fi
+
 # Get existing value
 if [[ "$(getGroupVariable "${1}")" != "" ]]; then
   # Update library group variable
