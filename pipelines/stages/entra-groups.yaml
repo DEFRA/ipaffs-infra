@@ -5,7 +5,7 @@ parameters:
 stages:
   - stage: CreateUserGroups
     displayName: Create Entra User Groups
-    condition: ${{ eq(parameters.environmentName, 'DEV') }}
+    condition: and(not(failed()), not(canceled()), ${{ eq(parameters.environmentName, 'DEV') }})
     variables:
       - group: "${{ parameters.environmentName }}"
       - template: "/pipelines/vars/common.yaml"
@@ -13,7 +13,7 @@ stages:
     jobs:
       - job: TeamGroups
         displayName: Team Groups
-        condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+        condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
         steps:
           - checkout: self
 
@@ -196,7 +196,7 @@ stages:
           - task: Bash@3
             name: StoreLibraryVars
             displayName: Store Library Variables
-            condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+            condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
             env:
               ADO_ORG_URL: $(System.CollectionUri)
               ADO_PROJECT: $(System.TeamProject)
@@ -217,7 +217,7 @@ stages:
   - stage: CreateCommonAccessGroups
     displayName: Create Common Entra Access Groups
     dependsOn: CreateUserGroups
-    condition: ${{ eq(parameters.environmentName, 'DEV') }}
+    condition: and(not(failed()), not(canceled()), ${{ eq(parameters.environmentName, 'DEV') }})
     variables:
       - group: "${{ parameters.environmentName }}"
       - template: "/pipelines/vars/common.yaml"
@@ -225,7 +225,7 @@ stages:
     jobs:
       - job: AcrGroups
         displayName: ACR Groups
-        condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+        condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
         steps:
           - checkout: self
 
@@ -277,7 +277,7 @@ stages:
           - task: Bash@3
             name: StoreLibraryVars
             displayName: Store Library Variables
-            condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+            condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
             env:
               ADO_ORG_URL: $(System.CollectionUri)
               ADO_PROJECT: $(System.TeamProject)
@@ -294,7 +294,7 @@ stages:
   - stage: CreateAccessGroups
     displayName: Create Entra Access Groups
     dependsOn: CreateUserGroups
-    condition: in(dependencies.CreateUserGroups.result, 'Succeeded', 'SucceededWithIssues', 'Skipped')
+    condition: and(not(failed()), not(canceled()), in(dependencies.CreateUserGroups.result, 'Succeeded', 'SucceededWithIssues', 'Skipped'))
     variables:
       - group: "${{ parameters.environmentName }}"
       - template: "/pipelines/vars/common.yaml"
@@ -302,7 +302,7 @@ stages:
     jobs:
       - job: DefraGroups
         displayName: Defra Groups
-        condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+        condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
         steps:
           - checkout: self
 
@@ -321,7 +321,7 @@ stages:
 
       - job: AksGroups
         displayName: AKS Groups
-        condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+        condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
         steps:
           - checkout: self
 
@@ -406,7 +406,7 @@ stages:
 
       - job: KeyVaultGroups
         displayName: KeyVault Groups
-        condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+        condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
         steps:
           - checkout: self
 
@@ -458,7 +458,7 @@ stages:
 
       - job: SearchGroups
         displayName: Search Service Groups
-        condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+        condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
         steps:
           - checkout: self
 
@@ -520,7 +520,7 @@ stages:
 
       - job: StorageGroups
         displayName: Storage Account Groups
-        condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+        condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
         steps:
           - checkout: self
 
@@ -583,7 +583,7 @@ stages:
 
       - job: SQLGroups
         displayName: SQL Groups
-        condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+        condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
         steps:
           - checkout: self
 
@@ -622,7 +622,7 @@ stages:
 
           - task: AzureCLI@2
             name: SQLAdminsMemberClassicAdminUser
-            condition: ne(variables['classicSqlAdminUserPrincipalObjectId'], '')
+            condition: and(not(failed()), not(canceled()), ne(variables['classicSqlAdminUserPrincipalObjectId'], ''))
             env:
               GROUP_ID: $(SQLAdmins.objectId)
               PRINCIPAL_ID: $(classicSqlAdminUserPrincipalObjectId)
@@ -636,7 +636,7 @@ stages:
     displayName: Save group details
     dependsOn:
       - CreateAccessGroups
-    condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+    condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
     variables:
       - group: "${{ parameters.environmentName }}"
       - template: "/pipelines/vars/common.yaml"
@@ -694,7 +694,7 @@ stages:
           - task: Bash@3
             name: StoreLibraryVars
             displayName: Store Library Variables
-            condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+            condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
             env:
               ADO_ORG_URL: $(System.CollectionUri)
               ADO_PROJECT: $(System.TeamProject)
