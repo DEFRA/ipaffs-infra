@@ -37,8 +37,74 @@ parameters:
     default: master
 
 stages:
+  - stage: DetectContainerBuild
+    displayName: Detect Container Build Requirement
+    jobs:
+      - job: DetermineBuildMode
+        displayName: Determine if container build is required
+        steps:
+          - checkout: self
+            fetchDepth: 2
+            path: s/self
+
+          - task: Bash@3
+            name: SetBuildMode
+            displayName: Detect config-only values changes
+            env:
+              SOURCE_VERSION: $(Build.SourceVersion)
+            inputs:
+              targetType: inline
+              workingDirectory: $(Pipeline.Workspace)/s/self
+              script: |
+                set -euo pipefail
+
+                head_commit="${SOURCE_VERSION:-}"
+                if [[ -z "${head_commit}" ]] || ! git cat-file -e "${head_commit}^{commit}" >/dev/null 2>&1; then
+                  head_commit="$(git rev-parse HEAD)"
+                fi
+
+                if git rev-parse "${head_commit}^" >/dev/null 2>&1; then
+                  base_commit="$(git rev-parse "${head_commit}^")"
+                else
+                  base_commit="$(git hash-object -t tree /dev/null)"
+                fi
+
+                mapfile -t changed_files < <(git diff --name-only "${base_commit}" "${head_commit}" --)
+
+                echo "Comparing changes from ${base_commit} to ${head_commit}"
+
+                if [[ ${#changed_files[@]} -eq 0 ]]; then
+                  echo "No changed files detected. Container build and package stages will run."
+                  echo "##vso[task.setvariable variable=skipContainerBuild;isOutput=true]false"
+                  exit 0
+                fi
+
+                printf 'Changed files:\n'
+                printf ' - %s\n' "${changed_files[@]}"
+
+                config_values_only=true
+                for changed_file in "${changed_files[@]}"; do
+                  if [[ ! "${changed_file}" =~ ^(deployment|config)(/[^/]+)?/values\.ya?ml$ ]]; then
+                    config_values_only=false
+                    break
+                  fi
+                done
+
+                if [[ "${config_values_only}" == "true" ]]; then
+                  echo "Only deployment/config values.yaml files changed. Skipping container build and package stages."
+                  echo "##vso[task.setvariable variable=skipContainerBuild;isOutput=true]true"
+                else
+                  echo "Detected non-values changes. Container build and package stages will run."
+                  echo "##vso[task.setvariable variable=skipContainerBuild;isOutput=true]false"
+                fi
+
   - stage: BuildService
     displayName: Build Service
+    dependsOn: DetectContainerBuild
+    condition: and(
+      eq(dependencies.DetectContainerBuild.result, 'Succeeded'),
+      ne(dependencies.DetectContainerBuild.outputs['DetermineBuildMode.SetBuildMode.skipContainerBuild'], 'true')
+      )
     jobs:
       - template: /pipelines/jobs/build-java-project.yaml@ipaffs-infra
         parameters:
@@ -46,7 +112,14 @@ stages:
 
   - stage: PackageService
     displayName: Package Service Image
-    dependsOn: BuildService
+    dependsOn:
+      - DetectContainerBuild
+      - BuildService
+    condition: and(
+      eq(dependencies.DetectContainerBuild.result, 'Succeeded'),
+      ne(dependencies.DetectContainerBuild.outputs['DetermineBuildMode.SetBuildMode.skipContainerBuild'], 'true'),
+      eq(dependencies.BuildService.result, 'Succeeded')
+      )
     jobs:
       - template: /pipelines/jobs/package-java-project.yaml@ipaffs-infra
         parameters:
@@ -57,10 +130,19 @@ stages:
   - ${{ if eq(parameters.updateManifest, true) }}:
     - stage: UpdateManifest
       displayName: Update ipaffs-manifest
-      dependsOn: PackageService
+      dependsOn:
+        - DetectContainerBuild
+        - PackageService
+      variables:
+        - name: skipContainerBuild
+          value: $[ stageDependencies.DetectContainerBuild.DetermineBuildMode.outputs['SetBuildMode.skipContainerBuild'] ]
       condition: and(
-        eq(dependencies.PackageService.result, 'Succeeded'),
-        startsWith(variables['Build.SourceBranch'], 'refs/heads/')
+        eq(dependencies.DetectContainerBuild.result, 'Succeeded'),
+        startsWith(variables['Build.SourceBranch'], 'refs/heads/'),
+        or(
+          eq(dependencies.DetectContainerBuild.outputs['DetermineBuildMode.SetBuildMode.skipContainerBuild'], 'true'),
+          eq(dependencies.PackageService.result, 'Succeeded')
+          )
         )
       jobs:
         - job: UpdateManifest
@@ -129,6 +211,7 @@ stages:
                 SERVICE_NAME: "${{ parameters.serviceName }}"
                 BUILD_NUMBER: $(Build.BuildNumber)
                 ACR_LOGIN_SERVER: $(acrLoginServer)
+                SKIP_CONTAINER_IMAGE_UPDATE: $(skipContainerBuild)
                 MANIFEST_ROOT: "$(Pipeline.Workspace)/s/ipaffs-manifest"
                 SERVICE_ROOT: "$(Pipeline.Workspace)/s/self"
               inputs:
