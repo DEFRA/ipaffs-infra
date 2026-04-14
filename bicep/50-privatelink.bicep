@@ -3,7 +3,7 @@ targetScope = 'resourceGroup'
 @allowed(['DEV', 'TST'])
 param environment string
 
-param subnets = {}
+param subnets object = {}
 
 param createdDate string = utcNow('yyyy-MM-dd')
 param deploymentId string = uniqueString(utcNow())

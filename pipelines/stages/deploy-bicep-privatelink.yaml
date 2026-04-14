@@ -3,6 +3,48 @@ parameters:
     type: string
 
 stages:
+  - stage: ConfigurePrivateLinkDeployment
+    displayName: Configure deployment
+    variables:
+      - group: "${{ parameters.environmentName }}"
+      - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
+          - group: HigherEnvs
+      - ${{ else }}:
+          - group: LowerEnvs
+      - template: "/pipelines/vars/common.yaml"
+      - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
+    jobs:
+      - job: ConfigureBicep
+        displayName: Configure Bicep
+        steps:
+          - checkout: self
+
+          - task: Bash@3
+            name: GenerateBicepParams
+            displayName: Generate Bicep Params
+            inputs:
+              targetType: inline
+              script: |
+                set -ex
+                cat <<- 'EOF' >'$(Build.SourcesDirectory)/50-privatelink-runtime.bicepparam'
+                using '50-privatelink.bicep'
+                extends 'envs/${{ lower(parameters.environmentName) }}/50-privatelink.bicepparam'
+                param subnets = {
+                  privateEndpoints: {
+                    id: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPINFRG1401/providers/Microsoft.Network/virtualNetworks/DEVIMPNETVN1401/subnets/DEVIMPNETSU4404'
+                    name: 'DEVIMPNETSU4404'
+                  }
+                }
+                EOF
+                cat '$(Build.SourcesDirectory)/50-privatelink-runtime.bicepparam'
+
+          - task: PublishPipelineArtifact@1
+            displayName: Publish artifact
+            inputs:
+              artifactName: bicepparam-privatelink
+              targetPath: $(Build.SourcesDirectory)/50-privatelink-runtime.bicepparam
+
+
   - stage: DeployPrivateLink
     displayName: Deploy Private Link
     variables:
@@ -24,6 +66,12 @@ stages:
               steps:
                 - checkout: self
 
+                - task: DownloadPipelineArtifact@2
+                  displayName: Download artifact
+                  inputs:
+                    artifactName: bicepparam-privatelink
+                    targetPath: $(Build.SourcesDirectory)/bicep
+
                 - task: AzureCLI@2
                   displayName: WhatIf - PrivateLink
                   inputs:
@@ -37,7 +85,7 @@ stages:
                         --subscription $(subscriptionId) \
                         --resource-group $(resourceGroupName) \
                         --template-file bicep/50-privatelink.bicep \
-                        --parameters bicep/envs/${{ lower(parameters.environmentName) }}/50-privatelink.bicepparam
+                        --parameters bicep/50-privatelink-runtime.bicepparam
 
                 - task: AzureCLI@2
                   displayName: Deploy - PrivateLink
@@ -53,7 +101,7 @@ stages:
                         --subscription $(subscriptionId) \
                         --resource-group $(resourceGroupName) \
                         --template-file bicep/50-privatelink.bicep \
-                        --parameters bicep/envs/${{ lower(parameters.environmentName) }}/50-privatelink.bicepparam
+                        --parameters bicep/50-privatelink-runtime.bicepparam
 
                 - task: AzureCLI@2
                   displayName: Wait for Deployment - PrivateLink
