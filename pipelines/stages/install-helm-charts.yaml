@@ -148,7 +148,7 @@ stages:
                 - task: AzureCLI@2
                   displayName: Helm Install - external-secrets-azure
                   env:
-                    BOOTSTRAP_CCOE_KEY_VAULT_RESOURCE_ID: $(bootstrapCcoeKeyVaultResourceId)
+                    BOOTSTRAP_CCOE_SECRET_STORE_NAME: $(bootstrapCcoeSecretStoreName)
                   inputs:
                     azureSubscription: $(serviceConnection)
                     scriptType: bash
@@ -156,14 +156,9 @@ stages:
                     inlineScript: |
                       set -euo pipefail
 
-                      ccoe_vault_url=""
-                      if [[ -n "${BOOTSTRAP_CCOE_KEY_VAULT_RESOURCE_ID}" ]]; then
-                        ccoe_vault_name="${BOOTSTRAP_CCOE_KEY_VAULT_RESOURCE_ID##*/}"
-                        ccoe_vault_url="https://${ccoe_vault_name,,}.vault.azure.net/"
-                      fi
-
                       additional_store_args=()
-                      if [[ -n "${ccoe_vault_url}" ]]; then
+                      if [[ -n "${BOOTSTRAP_CCOE_SECRET_STORE_NAME}" ]]; then
+                        ccoe_vault_url="https://${BOOTSTRAP_CCOE_SECRET_STORE_NAME,,}.vault.azure.net/"
                         ccoe_store_name="external-secrets-azure-ccoe"
 
                         additional_store_args+=(--set-string "additionalSecretStores.${ccoe_store_name}.vaultUrl=${ccoe_vault_url}")
