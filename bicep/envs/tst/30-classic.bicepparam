@@ -43,6 +43,7 @@ param redisParams = {
 
 param searchParams = {
   name: 'tstimpinfass001'
+  userAssignedIdentityName: 'TSTIMPINFASS001'
 }
 
 param sejParams = {
