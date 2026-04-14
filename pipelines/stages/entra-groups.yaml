@@ -268,9 +268,9 @@ stages:
           - AcrGroups
         variables:
           - name: acrPullDisplayName
-            value: $[dependencies.AcrGroups.outputs['AcrPull.objectId']]
-          - name: acrPullObjectId
             value: $[dependencies.AcrGroups.outputs['AcrPull.displayName']]
+          - name: acrPullObjectId
+            value: $[dependencies.AcrGroups.outputs['AcrPull.objectId']]
         steps:
           - checkout: self
 
