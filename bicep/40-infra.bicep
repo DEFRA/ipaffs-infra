@@ -213,6 +213,7 @@ module storage './modules/storage.bicep' = {
 output acrName string = acr.name
 output acrLoginServer string = acr.properties.loginServer
 output aksClusterName string = aks.outputs.aksClusterName
+output aksKubeletPrincipalId string = aks.outputs.kubeletPrincipalId
 output aksOidcIssuer string = aks.outputs.oidcIssuerUrl
 output azureServiceOperatorClientId string = aso.outputs.clientId
 output externalSecretsClientId string = externalSecrets.outputs.clientId

@@ -3,6 +3,44 @@ parameters:
     type: string
 
 stages:
+  - stage: ConfigureACRDeployment
+    displayName: Configure deployment
+    variables:
+      - group: "${{ parameters.environmentName }}"
+      - template: "/pipelines/vars/common.yaml"
+      - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
+    jobs:
+      - job: ConfigureBicep
+        displayName: Configure Bicep
+        steps:
+          - checkout: self
+
+          - task: Bash@3
+            name: GenerateBicepParams
+            displayName: Generate Bicep Params
+            inputs:
+              targetType: inline
+              script: |
+                set -ex
+                cat <<- 'EOF' >'$(Build.SourcesDirectory)/25-acr-runtime.bicepparam'
+                using '25-acr.bicep'
+                extends 'envs/${{ lower(parameters.environmentName) }}/25-acr.bicepparam'
+                param entraGroups = {
+                  acrPull: {
+                    id: '$(acrPullGroupId)'
+                    name: '$(acrPullGroupName)'
+                  }
+                }
+                EOF
+                cat '$(Build.SourcesDirectory)/25-acr-runtime.bicepparam'
+
+          - task: PublishPipelineArtifact@1
+            displayName: Publish artifact
+            inputs:
+              artifactName: bicepparam-acr
+              targetPath: $(Build.SourcesDirectory)/25-acr-runtime.bicepparam
+
+
   - stage: DeployACR
     displayName: Deploy ACR
     variables:
@@ -20,6 +58,12 @@ stages:
               steps:
                 - checkout: self
 
+                - task: DownloadPipelineArtifact@2
+                  displayName: Download artifact
+                  inputs:
+                    artifactName: bicepparam-acr
+                    targetPath: $(Build.SourcesDirectory)/bicep
+
                 - task: AzureCLI@2
                   displayName: WhatIf - ACR
                   inputs:
@@ -33,7 +77,7 @@ stages:
                         --subscription $(subscriptionId) \
                         --resource-group $(resourceGroupName) \
                         --template-file bicep/25-acr.bicep \
-                        --parameters bicep/envs/${{ lower(parameters.environmentName) }}/25-acr.bicepparam
+                        --parameters bicep/25-acr-runtime.bicepparam
 
                 - task: AzureCLI@2
                   displayName: Deploy - ACR
@@ -49,7 +93,7 @@ stages:
                         --subscription $(subscriptionId) \
                         --resource-group $(resourceGroupName) \
                         --template-file bicep/25-acr.bicep \
-                        --parameters bicep/envs/${{ lower(parameters.environmentName) }}/25-acr.bicepparam
+                        --parameters bicep/25-acr-runtime.bicepparam
 
                 - task: AzureCLI@2
                   displayName: Wait for Deployment - ACR

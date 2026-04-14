@@ -2,6 +2,8 @@ using '../../25-acr.bicep'
 
 param environment = 'DEV'
 
+param entraGroups = {}
+
 param acrParams = {
   name: 'DEVIMPINFAC1401'
   sku: 'Premium'
