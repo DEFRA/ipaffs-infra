@@ -244,6 +244,7 @@ param vnetParams = {
     name: 'UDR-Spoke-Route-From-TSTIMPNETVN1401-01'
     virtualApplianceIp: '10.176.0.100'
   }
+  principalsNeedingContributor: []
   subnets: [
     // AKS API Server, 14 usable addresses
     {
