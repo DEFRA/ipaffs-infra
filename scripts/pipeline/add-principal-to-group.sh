@@ -10,6 +10,7 @@ while (( attempt < max_attempts )); do
   STATUS=$?
   (( STATUS == 0 )) && exit 0
   [[ "${RESULT}" =~ "One or more added object references already exist" ]] && exit 0
+  [[ "${RESULT}" =~ "Invalid" ]] && exit 1
   sleep 10
 done
 
