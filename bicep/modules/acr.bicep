@@ -34,6 +34,20 @@ module acrPull './acr-role-assignment.bicep' = {
   }
 }
 
+var contributorRoleId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b24988ac-6180-42a0-ab88-20f7382dd24c')
+
+module acrContributor './acr-role-assignment.bicep' = [for principalId in acrParams.principalsNeedingContributor: {
+  name: 'acrContributor-${deploymentId}'
+  scope: resourceGroup()
+  params: {
+    acrName: acr.name
+    deploymentId: deploymentId
+    principalObjectId: principalId
+    principalType: 'ServicePrincipal'
+    roleDefinitionId: contributorRoleId
+  }
+}]
+
 output acrName string = acr.name
 output acrLoginServer string = acr.properties.loginServer
 output acrResourceId string = acr.id
