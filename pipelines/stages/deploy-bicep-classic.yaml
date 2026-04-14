@@ -170,7 +170,6 @@ stages:
                 scripts/pipeline/update-group-variable-from-deployment.sh classicServiceBusNamespaceName serviceBusNamespaceName
                 scripts/pipeline/update-group-variable-from-deployment.sh classicServiceBusNamespaceResourceId serviceBusNamespaceResourceId
                 scripts/pipeline/update-group-variable-from-deployment.sh classicSqlServerName sqlServerName
-                scripts/pipeline/update-group-variable-from-deployment.sh classicSqlServerManagedIdentityObjectId sqlServerManagedIdentityObjectId
                 scripts/pipeline/update-group-variable-from-deployment.sh classicSqlServerResourceId sqlServerResourceId
 
 

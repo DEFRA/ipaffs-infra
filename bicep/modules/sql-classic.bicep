@@ -26,7 +26,6 @@ resource sqlServerAdministrator 'Microsoft.Sql/servers/administrators@2023-05-01
 }
 
 output sqlServerName string = sqlServer.name
-output sqlServerManagedIdentityObjectId string = sqlServer.identity.principalId
 output sqlServerResourceId string = sqlServer.id
 
 // vim: set ts=2 sts=2 sw=2 et:

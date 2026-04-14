@@ -150,7 +150,6 @@ output searchServiceResourceId string = search.outputs.searchServiceResourceId
 output serviceBusNamespaceName string = serviceBus.outputs.serviceBusNamespaceName
 output serviceBusNamespaceResourceId string = serviceBus.outputs.serviceBusNamespaceResourceId
 output sqlServerName string = sql.outputs.sqlServerName
-output sqlServerManagedIdentityObjectId string = sql.outputs.sqlServerManagedIdentityObjectId
 output sqlServerResourceId string = sql.outputs.sqlServerResourceId
 
 // vim: set ts=2 sts=2 sw=2 et:
