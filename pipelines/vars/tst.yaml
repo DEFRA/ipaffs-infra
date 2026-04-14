@@ -2,6 +2,7 @@
 variables:
   classicServiceConnection: ADO-DefraGovUK-AZR-IMP-TST1
   classicSqlAdminUserPrincipalObjectId: 8cb087fd-066a-44a7-9391-179898417544
+  classicSubscriptionName: AZR-TST
   entraAccessGroupBaseName: AAG-Azure-AZR_IMP_TST1
   serviceConnection: ADO-DefraGovUK-AZR-IMP-TST1
   serviceConnectionPrincipalId: 7b097afb-e281-4bc4-8086-c1ff4f47964b
