@@ -37,6 +37,15 @@ param dbwParams = {
   sqlServerResourceId: '/subscriptions/81ca326e-6270-418a-b764-e02a4ca60457/resourceGroups/PREIMPINFRGP001/providers/Microsoft.Sql/servers/PREIMPDBSSQA001'
 }
 
+param redisParams = {
+  name: 'PREIMPINFRDS001'
+}
+
+param searchParams = {
+  name: 'preimpinfass001'
+  userAssignedIdentityName: 'PREIMPINFASS001'
+}
+
 param sejParams = {
   databaseName: 'elasticjobs'
   databaseNames: ['notification-microservice']
@@ -48,6 +57,14 @@ param sejParams = {
   }
   sqlServerName: 'PREIMPDBSSQA001'
   userAssignedIdentityName: 'pre-imp-elasticjobs-sql'
+}
+
+param serviceBusParams = {
+  namespaceName: 'PREIMPINFSBS002'
+}
+
+param sqlParams = {
+  serverName: 'preimpdbssqa001'
 }
 
 // vim: set ts=2 sts=2 sw=2 et:
