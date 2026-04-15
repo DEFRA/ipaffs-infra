@@ -32,10 +32,7 @@ resources:
 
 variables:
   - group: Common
-  - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
-    - group: HigherEnvs
-  - ${{ else }}:
-    - group: LowerEnvs
+  - group: LowerEnvs
   - group: "DEV"
   - template: "vars/common.yaml"
   - template: "vars/dev.yaml"
