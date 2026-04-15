@@ -34,6 +34,10 @@ parameters:
       - TST
       - PRE
       - PRD
+  - name: establishPeering
+    displayName: Establish Peering
+    type: boolean
+    default: false
 
 variables:
   - group: Common
@@ -49,6 +53,11 @@ stages:
   - template: stages/deploy-bicep-network.yaml
     parameters:
       environmentName: ${{ parameters.environmentName }}
+
+  - ${{ if parameters.establishPeering }}:
+    - template: stages/establish-peering.yaml
+      parameters:
+        environmentName: ${{ parameters.environmentName }}
 
   - ${{ if eq(parameters.environmentName, 'DEV') }}:
     - template: stages/deploy-bicep-acr.yaml
