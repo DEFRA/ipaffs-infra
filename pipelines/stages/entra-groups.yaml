@@ -429,7 +429,7 @@ stages:
 
   - stage: CreateAccessGroups
     displayName: Create Entra Access Groups
-    condition: and(not(failed()), not(canceled()), in(dependencies.CreateUserGroups.result, 'Succeeded', 'SucceededWithIssues', 'Skipped'))
+    condition: and(not(failed()), not(canceled()))
     variables:
       - group: "${{ parameters.environmentName }}"
       - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
