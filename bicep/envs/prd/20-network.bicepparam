@@ -263,8 +263,8 @@ param vnetParams = {
           service: 'Microsoft.ServiceBus'
         }
       ]
-      routeTableId: '/subscriptions/0022ef8e-d44e-49c5-8cfd-5e8e9c6e913e/resourceGroups/PRDIMPINFRG1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-PRDIMPNETVN1401-01'
-      networkSecurityGroupId: '/subscriptions/0022ef8e-d44e-49c5-8cfd-5e8e9c6e913e/resourceGroups/PRDIMPINFRG1401/providers/Microsoft.Network/networkSecurityGroups/PRDIMPNETNS1401-AKS'
+      routeTableId: '/subscriptions/5f38dc6f-69b9-4d1b-9000-7e0b8277e515/resourceGroups/PRDIMPINFRG1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-PRDIMPNETVN1401-01'
+      networkSecurityGroupId: '/subscriptions/5f38dc6f-69b9-4d1b-9000-7e0b8277e515/resourceGroups/PRDIMPINFRG1401/providers/Microsoft.Network/networkSecurityGroups/PRDIMPNETNS1401-AKS'
     }
     // AKS System Node Pool, 14 usable addresses
     {
@@ -276,8 +276,8 @@ param vnetParams = {
           service: 'Microsoft.ServiceBus'
         }
       ]
-      routeTableId: '/subscriptions/0022ef8e-d44e-49c5-8cfd-5e8e9c6e913e/resourceGroups/PRDIMPINFRG1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-PRDIMPNETVN1401-01'
-      networkSecurityGroupId: '/subscriptions/0022ef8e-d44e-49c5-8cfd-5e8e9c6e913e/resourceGroups/PRDIMPINFRG1401/providers/Microsoft.Network/networkSecurityGroups/PRDIMPNETNS1401-AKS'
+      routeTableId: '/subscriptions/5f38dc6f-69b9-4d1b-9000-7e0b8277e515/resourceGroups/PRDIMPINFRG1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-PRDIMPNETVN1401-01'
+      networkSecurityGroupId: '/subscriptions/5f38dc6f-69b9-4d1b-9000-7e0b8277e515/resourceGroups/PRDIMPINFRG1401/providers/Microsoft.Network/networkSecurityGroups/PRDIMPNETNS1401-AKS'
     }
     // PrivateLink, 30 usable addresses
     {
@@ -287,8 +287,8 @@ param vnetParams = {
       serviceEndpoints: []
       privateEndpointNetworkPolicies: 'Disabled'
       privateLinkServiceNetworkPolicies: 'Disabled'
-      routeTableId: '/subscriptions/0022ef8e-d44e-49c5-8cfd-5e8e9c6e913e/resourceGroups/PRDIMPINFRG1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-PRDIMPNETVN1401-01'
-      networkSecurityGroupId: '/subscriptions/0022ef8e-d44e-49c5-8cfd-5e8e9c6e913e/resourceGroups/PRDIMPINFRG1401/providers/Microsoft.Network/networkSecurityGroups/PRDIMPNETNS1401-PrivateLink'
+      routeTableId: '/subscriptions/5f38dc6f-69b9-4d1b-9000-7e0b8277e515/resourceGroups/PRDIMPINFRG1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-PRDIMPNETVN1401-01'
+      networkSecurityGroupId: '/subscriptions/5f38dc6f-69b9-4d1b-9000-7e0b8277e515/resourceGroups/PRDIMPINFRG1401/providers/Microsoft.Network/networkSecurityGroups/PRDIMPNETNS1401-PrivateLink'
     }
     // Private Endpoints, 62 usable addresses
     {
@@ -298,16 +298,16 @@ param vnetParams = {
       serviceEndpoints: []
       privateEndpointNetworkPolicies: 'Disabled'
       privateLinkServiceNetworkPolicies: 'Disabled'
-      routeTableId: '/subscriptions/0022ef8e-d44e-49c5-8cfd-5e8e9c6e913e/resourceGroups/PRDIMPINFRG1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-PRDIMPNETVN1401-01'
-      networkSecurityGroupId: '/subscriptions/0022ef8e-d44e-49c5-8cfd-5e8e9c6e913e/resourceGroups/PRDIMPINFRG1401/providers/Microsoft.Network/networkSecurityGroups/PRDIMPNETNS1401-PrivateEndpoint'
+      routeTableId: '/subscriptions/5f38dc6f-69b9-4d1b-9000-7e0b8277e515/resourceGroups/PRDIMPINFRG1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-PRDIMPNETVN1401-01'
+      networkSecurityGroupId: '/subscriptions/5f38dc6f-69b9-4d1b-9000-7e0b8277e515/resourceGroups/PRDIMPINFRG1401/providers/Microsoft.Network/networkSecurityGroups/PRDIMPNETNS1401-PrivateEndpoint'
     }
     // App Gateway for Containers, see https://learn.microsoft.com/en-us/azure/application-gateway/for-containers/container-networking
     {
       name: 'PRDIMPNETSU4405'
       addressPrefix: '10.179.141.0/24'
       serviceEndpoints: []
-      routeTableId: '/subscriptions/0022ef8e-d44e-49c5-8cfd-5e8e9c6e913e/resourceGroups/PRDIMPINFRG1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-PRDIMPNETVN1401-01'
-      networkSecurityGroupId: '/subscriptions/0022ef8e-d44e-49c5-8cfd-5e8e9c6e913e/resourceGroups/PRDIMPINFRG1401/providers/Microsoft.Network/networkSecurityGroups/PRDIMPNETNS1401-AKS'
+      routeTableId: '/subscriptions/5f38dc6f-69b9-4d1b-9000-7e0b8277e515/resourceGroups/PRDIMPINFRG1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-PRDIMPNETVN1401-01'
+      networkSecurityGroupId: '/subscriptions/5f38dc6f-69b9-4d1b-9000-7e0b8277e515/resourceGroups/PRDIMPINFRG1401/providers/Microsoft.Network/networkSecurityGroups/PRDIMPNETNS1401-AKS'
     }
     // AKS User Node Pool, 253 usable addresses
     {
@@ -319,8 +319,8 @@ param vnetParams = {
           service: 'Microsoft.ServiceBus'
         }
       ]
-      routeTableId: '/subscriptions/0022ef8e-d44e-49c5-8cfd-5e8e9c6e913e/resourceGroups/PRDIMPINFRG1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-PRDIMPNETVN1401-01'
-      networkSecurityGroupId: '/subscriptions/0022ef8e-d44e-49c5-8cfd-5e8e9c6e913e/resourceGroups/PRDIMPINFRG1401/providers/Microsoft.Network/networkSecurityGroups/PRDIMPNETNS1401-AKS'
+      routeTableId: '/subscriptions/5f38dc6f-69b9-4d1b-9000-7e0b8277e515/resourceGroups/PRDIMPINFRG1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-PRDIMPNETVN1401-01'
+      networkSecurityGroupId: '/subscriptions/5f38dc6f-69b9-4d1b-9000-7e0b8277e515/resourceGroups/PRDIMPINFRG1401/providers/Microsoft.Network/networkSecurityGroups/PRDIMPNETNS1401-AKS'
     }
     // Reserved, 126 usable addresses
     {
@@ -328,8 +328,8 @@ param vnetParams = {
       addressPrefix: '10.179.143.0/25'
       delegations: []
       serviceEndpoints: []
-      routeTableId: '/subscriptions/0022ef8e-d44e-49c5-8cfd-5e8e9c6e913e/resourceGroups/PRDIMPINFRG1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-PRDIMPNETVN1401-01'
-      networkSecurityGroupId: '/subscriptions/0022ef8e-d44e-49c5-8cfd-5e8e9c6e913e/resourceGroups/PRDIMPINFRG1401/providers/Microsoft.Network/networkSecurityGroups/PRDIMPNETNS1401-Reserved'
+      routeTableId: '/subscriptions/5f38dc6f-69b9-4d1b-9000-7e0b8277e515/resourceGroups/PRDIMPINFRG1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-PRDIMPNETVN1401-01'
+      networkSecurityGroupId: '/subscriptions/5f38dc6f-69b9-4d1b-9000-7e0b8277e515/resourceGroups/PRDIMPINFRG1401/providers/Microsoft.Network/networkSecurityGroups/PRDIMPNETNS1401-Reserved'
     }
     // Reserved, 126 usable addresses
     {
@@ -337,8 +337,8 @@ param vnetParams = {
       addressPrefix: '10.179.143.128/25'
       delegations: []
       serviceEndpoints: []
-      routeTableId: '/subscriptions/0022ef8e-d44e-49c5-8cfd-5e8e9c6e913e/resourceGroups/PRDIMPINFRG1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-PRDIMPNETVN1401-01'
-      networkSecurityGroupId: '/subscriptions/0022ef8e-d44e-49c5-8cfd-5e8e9c6e913e/resourceGroups/PRDIMPINFRG1401/providers/Microsoft.Network/networkSecurityGroups/PRDIMPNETNS1401-Reserved'
+      routeTableId: '/subscriptions/5f38dc6f-69b9-4d1b-9000-7e0b8277e515/resourceGroups/PRDIMPINFRG1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-PRDIMPNETVN1401-01'
+      networkSecurityGroupId: '/subscriptions/5f38dc6f-69b9-4d1b-9000-7e0b8277e515/resourceGroups/PRDIMPINFRG1401/providers/Microsoft.Network/networkSecurityGroups/PRDIMPNETNS1401-Reserved'
     }
   ]
 }
