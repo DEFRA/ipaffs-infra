@@ -1,4 +1,4 @@
-service: "bootstrap"
+service: "ipaffs"
 project: ipaffs
 environment: dev
 
