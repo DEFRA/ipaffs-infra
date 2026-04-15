@@ -11,7 +11,7 @@ param alertsParams = {
       appRecipients: [
         {
           name: 'AppPush: Paul Maguire'
-          upn: 'paul.maguire@defra.onmicrosoftc.com'
+          upn: 'paul.maguire@defra.onmicrosoft.com'
         }
       ]
       emailRecipients: [
