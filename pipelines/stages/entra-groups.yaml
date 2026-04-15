@@ -3,313 +3,421 @@ parameters:
     type: string
 
 stages:
-  - stage: CreateUserGroups
-    displayName: Create Entra User Groups
-    condition: and(not(failed()), not(canceled()), ${{ or(eq(parameters.environmentName, 'DEV'), eq(parameters.environmentName, 'PRD')) }})
-    variables:
-      - group: "${{ parameters.environmentName }}"
-      - template: "/pipelines/vars/common.yaml"
-      - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
-      - name: teamGroupSuffix
-        ${{ if eq(parameters.environmentName, 'PRD') }}:
-          value: '_Admin'
-        ${{ else }}:
-          value: ''
-    jobs:
-      - job: TeamGroups
-        displayName: Team Groups
-        condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
-        steps:
-          - checkout: self
+  - ${{ if eq(parameters.environmentName, 'DEV') }}:
+    - stage: CreateUserGroups
+      displayName: Lower Env User Groups
+      condition: and(not(failed()), not(canceled()))
+      variables:
+        - group: "${{ parameters.environmentName }}"
+        - template: "/pipelines/vars/common.yaml"
+        - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
+      jobs:
+        - job: TeamGroups
+          displayName: Team Groups
+          condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+          steps:
+            - checkout: self
 
-          - task: AzureCLI@2
-            name: AdminsGroup
-            env:
-              GROUP_NAME: AAG-Users-IMP-IPAFFS-ProjAdmins$(teamGroupSuffix)
-              GROUP_DESCRIPTION: Entra user group for IPAFFS Project Admins
-              GROUP_OWNER_OBJECT_IDS: $(teamGroupsOwnerObjectIds)
-            inputs:
-              azureSubscription: $(upstreamServiceConnection)
-              scriptType: bash
-              scriptPath: scripts/pipeline/create-entra-group.sh
+            - task: AzureCLI@2
+              name: AdminsGroup
+              env:
+                GROUP_NAME: AAG-Users-IMP-IPAFFS-ProjAdmins
+                GROUP_DESCRIPTION: Entra user group for IPAFFS Project Admins
+                GROUP_OWNER_OBJECT_IDS: >
+                  $(serviceConnectionPrincipalId)
+                  $(upstreamServiceConnectionPrincipalId)
+              inputs:
+                azureSubscription: $(upstreamServiceConnection)
+                scriptType: bash
+                scriptPath: scripts/pipeline/create-entra-group.sh
+                scriptArguments: "-u"
 
-          - task: AzureCLI@2
-            name: GetAdminsMembers
-            env:
-              NAMES: $(adminsGroupMembers)
-            inputs:
-              azureSubscription: $(upstreamServiceConnection)
-              scriptType: bash
-              scriptPath: scripts/pipeline/lookup-directory-objects.sh
-              scriptArguments: "-o ado -t user"
+            - task: AzureCLI@2
+              name: GetAdminsMembers
+              env:
+                NAMES: $(lowerEnvsAdminsGroupMembers)
+              inputs:
+                azureSubscription: $(upstreamServiceConnection)
+                scriptType: bash
+                scriptPath: scripts/pipeline/lookup-directory-objects.sh
+                scriptArguments: "-o ado -t user"
 
-          - task: AzureCLI@2
-            name: DetermineAdminsMemberChanges
-            env:
-              GROUP_ID: $(AdminsGroup.objectId)
-              OBJECT_IDS: $(GetAdminsMembers.objectIds)
-            inputs:
-              azureSubscription: $(upstreamServiceConnection)
-              scriptType: bash
-              scriptPath: scripts/pipeline/determine-group-members.sh
+            - task: AzureCLI@2
+              name: DetermineAdminsMemberChanges
+              env:
+                GROUP_ID: $(AdminsGroup.objectId)
+                OBJECT_IDS: $(GetAdminsMembers.objectIds)
+              inputs:
+                azureSubscription: $(upstreamServiceConnection)
+                scriptType: bash
+                scriptPath: scripts/pipeline/determine-group-members.sh
 
-          - task: AzureCLI@2
-            name: AddAdminsMembers
-            env:
-              GROUP_ID: $(AdminsGroup.objectId)
-              GROUP_MEMBERS: $(DetermineAdminsMemberChanges.membersToAdd)
-            inputs:
-              azureSubscription: $(serviceConnection)
-              scriptType: bash
-              scriptPath: scripts/pipeline/add-entra-group-members.sh
+            - task: AzureCLI@2
+              name: AddAdminsMembers
+              env:
+                GROUP_ID: $(AdminsGroup.objectId)
+                GROUP_MEMBERS: $(DetermineAdminsMemberChanges.membersToAdd)
+              inputs:
+                azureSubscription: $(serviceConnection)
+                scriptType: bash
+                scriptPath: scripts/pipeline/add-entra-group-members.sh
 
-          - task: AzureCLI@2
-            name: RemoveAdminsMembers
-            env:
-              GROUP_ID: $(AdminsGroup.objectId)
-              GROUP_MEMBERS: $(DetermineAdminsMemberChanges.membersToRemove)
-            inputs:
-              azureSubscription: $(serviceConnection)
-              scriptType: bash
-              scriptPath: scripts/pipeline/remove-entra-group-members.sh
+            - task: AzureCLI@2
+              name: RemoveAdminsMembers
+              env:
+                GROUP_ID: $(AdminsGroup.objectId)
+                GROUP_MEMBERS: $(DetermineAdminsMemberChanges.membersToRemove)
+              inputs:
+                azureSubscription: $(serviceConnection)
+                scriptType: bash
+                scriptPath: scripts/pipeline/remove-entra-group-members.sh
 
-          - task: AzureCLI@2
-            name: DevelopersGroup
-            env:
-              GROUP_NAME: AAG-Users-IMP-IPAFFS-Developers$(teamGroupSuffix)
-              GROUP_DESCRIPTION: Entra user group for IPAFFS Developers
-              GROUP_OWNER_OBJECT_IDS: $(teamGroupsOwnerObjectIds)
-            inputs:
-              azureSubscription: $(upstreamServiceConnection)
-              scriptType: bash
-              scriptPath: scripts/pipeline/create-entra-group.sh
+            - task: AzureCLI@2
+              name: DevelopersGroup
+              env:
+                GROUP_NAME: AAG-Users-IMP-IPAFFS-Developers
+                GROUP_DESCRIPTION: Entra user group for IPAFFS Developers
+                GROUP_OWNER_OBJECT_IDS: >
+                  $(serviceConnectionPrincipalId)
+                  $(upstreamServiceConnectionPrincipalId)
+              inputs:
+                azureSubscription: $(upstreamServiceConnection)
+                scriptType: bash
+                scriptPath: scripts/pipeline/create-entra-group.sh
+                scriptArguments: "-u"
 
-          - task: AzureCLI@2
-            name: GetDevelopersMembers
-            env:
-              NAMES: $(developersGroupMembers)
-            inputs:
-              azureSubscription: $(upstreamServiceConnection)
-              scriptType: bash
-              scriptPath: scripts/pipeline/lookup-directory-objects.sh
-              scriptArguments: "-o ado -t user"
+            - task: AzureCLI@2
+              name: GetDevelopersMembers
+              env:
+                NAMES: $(lowerEnvsDevelopersGroupMembers)
+              inputs:
+                azureSubscription: $(upstreamServiceConnection)
+                scriptType: bash
+                scriptPath: scripts/pipeline/lookup-directory-objects.sh
+                scriptArguments: "-o ado -t user"
 
-          - task: AzureCLI@2
-            name: DetermineDevelopersMemberChanges
-            env:
-              GROUP_ID: $(DevelopersGroup.objectId)
-              OBJECT_IDS: $(GetDevelopersMembers.objectIds)
-            inputs:
-              azureSubscription: $(upstreamServiceConnection)
-              scriptType: bash
-              scriptPath: scripts/pipeline/determine-group-members.sh
+            - task: AzureCLI@2
+              name: DetermineDevelopersMemberChanges
+              env:
+                GROUP_ID: $(DevelopersGroup.objectId)
+                OBJECT_IDS: $(GetDevelopersMembers.objectIds)
+              inputs:
+                azureSubscription: $(upstreamServiceConnection)
+                scriptType: bash
+                scriptPath: scripts/pipeline/determine-group-members.sh
 
-          - task: AzureCLI@2
-            name: AddDevelopersMembers
-            env:
-              GROUP_ID: $(DevelopersGroup.objectId)
-              GROUP_MEMBERS: $(DetermineDevelopersMemberChanges.membersToAdd)
-            inputs:
-              azureSubscription: $(serviceConnection)
-              scriptType: bash
-              scriptPath: scripts/pipeline/add-entra-group-members.sh
+            - task: AzureCLI@2
+              name: AddDevelopersMembers
+              env:
+                GROUP_ID: $(DevelopersGroup.objectId)
+                GROUP_MEMBERS: $(DetermineDevelopersMemberChanges.membersToAdd)
+              inputs:
+                azureSubscription: $(serviceConnection)
+                scriptType: bash
+                scriptPath: scripts/pipeline/add-entra-group-members.sh
 
-          - task: AzureCLI@2
-            name: RemoveDevelopersMembers
-            env:
-              GROUP_ID: $(DevelopersGroup.objectId)
-              GROUP_MEMBERS: $(DetermineDevelopersMemberChanges.membersToRemove)
-            inputs:
-              azureSubscription: $(serviceConnection)
-              scriptType: bash
-              scriptPath: scripts/pipeline/remove-entra-group-members.sh
+            - task: AzureCLI@2
+              name: RemoveDevelopersMembers
+              env:
+                GROUP_ID: $(DevelopersGroup.objectId)
+                GROUP_MEMBERS: $(DetermineDevelopersMemberChanges.membersToRemove)
+              inputs:
+                azureSubscription: $(serviceConnection)
+                scriptType: bash
+                scriptPath: scripts/pipeline/remove-entra-group-members.sh
 
-          - task: AzureCLI@2
-            name: ReadersGroup
-            env:
-              GROUP_NAME: AAG-Users-IMP-IPAFFS-Readers$(teamGroupSuffix)
-              GROUP_DESCRIPTION: Entra user group for IPAFFS Readers
-              GROUP_OWNER_OBJECT_IDS: $(teamGroupsOwnerObjectIds)
-            inputs:
-              azureSubscription: $(upstreamServiceConnection)
-              scriptType: bash
-              scriptPath: scripts/pipeline/create-entra-group.sh
+            - task: AzureCLI@2
+              name: ReadersGroup
+              env:
+                GROUP_NAME: AAG-Users-IMP-IPAFFS-Readers
+                GROUP_DESCRIPTION: Entra user group for IPAFFS Readers
+                GROUP_OWNER_OBJECT_IDS: >
+                  $(serviceConnectionPrincipalId)
+                  $(upstreamServiceConnectionPrincipalId)
+              inputs:
+                azureSubscription: $(upstreamServiceConnection)
+                scriptType: bash
+                scriptPath: scripts/pipeline/create-entra-group.sh
+                scriptArguments: "-u"
 
-          - task: AzureCLI@2
-            name: GetReadersMembers
-            env:
-              NAMES: $(readersGroupMembers)
-            inputs:
-              azureSubscription: $(upstreamServiceConnection)
-              scriptType: bash
-              scriptPath: scripts/pipeline/lookup-directory-objects.sh
-              scriptArguments: "-o ado -t user"
+            - task: AzureCLI@2
+              name: GetReadersMembers
+              env:
+                NAMES: $(lowerEnvsReadersGroupMembers)
+              inputs:
+                azureSubscription: $(upstreamServiceConnection)
+                scriptType: bash
+                scriptPath: scripts/pipeline/lookup-directory-objects.sh
+                scriptArguments: "-o ado -t user"
 
-          - task: AzureCLI@2
-            name: DetermineReadersMemberChanges
-            env:
-              GROUP_ID: $(ReadersGroup.objectId)
-              OBJECT_IDS: $(GetReadersMembers.objectIds)
-            inputs:
-              azureSubscription: $(upstreamServiceConnection)
-              scriptType: bash
-              scriptPath: scripts/pipeline/determine-group-members.sh
+            - task: AzureCLI@2
+              name: DetermineReadersMemberChanges
+              env:
+                GROUP_ID: $(ReadersGroup.objectId)
+                OBJECT_IDS: $(GetReadersMembers.objectIds)
+              inputs:
+                azureSubscription: $(upstreamServiceConnection)
+                scriptType: bash
+                scriptPath: scripts/pipeline/determine-group-members.sh
 
-          - task: AzureCLI@2
-            name: AddReadersMembers
-            env:
-              GROUP_ID: $(ReadersGroup.objectId)
-              GROUP_MEMBERS: $(DetermineReadersMemberChanges.membersToAdd)
-            inputs:
-              azureSubscription: $(serviceConnection)
-              scriptType: bash
-              scriptPath: scripts/pipeline/add-entra-group-members.sh
+            - task: AzureCLI@2
+              name: AddReadersMembers
+              env:
+                GROUP_ID: $(ReadersGroup.objectId)
+                GROUP_MEMBERS: $(DetermineReadersMemberChanges.membersToAdd)
+              inputs:
+                azureSubscription: $(serviceConnection)
+                scriptType: bash
+                scriptPath: scripts/pipeline/add-entra-group-members.sh
 
-          - task: AzureCLI@2
-            name: RemoveReadersMembers
-            env:
-              GROUP_ID: $(ReadersGroup.objectId)
-              GROUP_MEMBERS: $(DetermineReadersMemberChanges.membersToRemove)
-            inputs:
-              azureSubscription: $(serviceConnection)
-              scriptType: bash
-              scriptPath: scripts/pipeline/remove-entra-group-members.sh
+            - task: AzureCLI@2
+              name: RemoveReadersMembers
+              env:
+                GROUP_ID: $(ReadersGroup.objectId)
+                GROUP_MEMBERS: $(DetermineReadersMemberChanges.membersToRemove)
+              inputs:
+                azureSubscription: $(serviceConnection)
+                scriptType: bash
+                scriptPath: scripts/pipeline/remove-entra-group-members.sh
 
-      - job: SaveTeamGroups
-        displayName: Update group variables
-        dependsOn:
-          - TeamGroups
-        variables:
-          - name: adoGroupName
-            ${{ if eq(parameters.environmentName, 'PRD') }}:
-              value: 'HigherEnvs'
-            ${{ else }}:
-              value: 'LowerEnvs'
-          - name: teamAdminsDisplayName
-            value: $[dependencies.TeamGroups.outputs['AdminsGroup.displayName']]
-          - name: teamAdminsObjectId
-            value: $[dependencies.TeamGroups.outputs['AdminsGroup.objectId']]
-          - name: teamDevelopersDisplayName
-            value: $[dependencies.TeamGroups.outputs['DevelopersGroup.displayName']]
-          - name: teamDevelopersObjectId
-            value: $[dependencies.TeamGroups.outputs['DevelopersGroup.objectId']]
-          - name: teamReadersDisplayName
-            value: $[dependencies.TeamGroups.outputs['ReadersGroup.displayName']]
-          - name: teamReadersObjectId
-            value: $[dependencies.TeamGroups.outputs['ReadersGroup.objectId']]
-        steps:
-          - checkout: self
+        - job: SaveTeamGroups
+          displayName: Update group variables
+          condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+          dependsOn:
+            - TeamGroups
+          variables:
+            - name: adoGroupName
+              value: LowerEnvs
+            - name: teamAdminsDisplayName
+              value: $[dependencies.TeamGroups.outputs['AdminsGroup.displayName']]
+            - name: teamAdminsObjectId
+              value: $[dependencies.TeamGroups.outputs['AdminsGroup.objectId']]
+            - name: teamDevelopersDisplayName
+              value: $[dependencies.TeamGroups.outputs['DevelopersGroup.displayName']]
+            - name: teamDevelopersObjectId
+              value: $[dependencies.TeamGroups.outputs['DevelopersGroup.objectId']]
+            - name: teamReadersDisplayName
+              value: $[dependencies.TeamGroups.outputs['ReadersGroup.displayName']]
+            - name: teamReadersObjectId
+              value: $[dependencies.TeamGroups.outputs['ReadersGroup.objectId']]
+          steps:
+            - checkout: self
 
-          - task: Bash@3
-            name: StoreLibraryVars
-            displayName: Store Library Variables
-            condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
-            env:
-              ADO_ORG_URL: $(System.CollectionUri)
-              ADO_PROJECT: $(System.TeamProject)
-              ADO_GROUP_NAME: $(adoGroupName)
-              AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
-            inputs:
-              targetType: inline
-              script: |
-                set -x
-                scripts/pipeline/update-group-variable.sh teamAdminsGroupId '$(teamAdminsObjectId)'
-                scripts/pipeline/update-group-variable.sh teamAdminsGroupName '$(teamAdminsDisplayName)'
-                scripts/pipeline/update-group-variable.sh teamDevelopersGroupId '$(teamDevelopersObjectId)'
-                scripts/pipeline/update-group-variable.sh teamDevelopersGroupName '$(teamDevelopersDisplayName)'
-                scripts/pipeline/update-group-variable.sh teamReadersGroupId '$(teamReadersObjectId)'
-                scripts/pipeline/update-group-variable.sh teamReadersGroupName '$(teamReadersDisplayName)'
+            - task: Bash@3
+              name: StoreLibraryVars
+              displayName: Store Library Variables
+              env:
+                ADO_ORG_URL: $(System.CollectionUri)
+                ADO_PROJECT: $(System.TeamProject)
+                ADO_GROUP_NAME: $(adoGroupName)
+                AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
+              inputs:
+                targetType: inline
+                script: |
+                  set -x
+                  scripts/pipeline/update-group-variable.sh teamAdminsGroupId '$(teamAdminsObjectId)'
+                  scripts/pipeline/update-group-variable.sh teamAdminsGroupName '$(teamAdminsDisplayName)'
+                  scripts/pipeline/update-group-variable.sh teamDevelopersGroupId '$(teamDevelopersObjectId)'
+                  scripts/pipeline/update-group-variable.sh teamDevelopersGroupName '$(teamDevelopersDisplayName)'
+                  scripts/pipeline/update-group-variable.sh teamReadersGroupId '$(teamReadersObjectId)'
+                  scripts/pipeline/update-group-variable.sh teamReadersGroupName '$(teamReadersDisplayName)'
 
 
-  - stage: CreateCommonAccessGroups
-    displayName: Create Common Entra Access Groups
-    dependsOn: CreateUserGroups
-    condition: and(not(failed()), not(canceled()), ${{ or(eq(parameters.environmentName, 'DEV'), eq(parameters.environmentName, 'PRD')) }})
-    variables:
-      - group: "${{ parameters.environmentName }}"
-      - ${{ if eq(parameters.environmentName, 'PRD') }}:
-        - group: HigherEnvs
-      - ${{ else }}:
-        - group: LowerEnvs
-      - template: "/pipelines/vars/common.yaml"
-      - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
-    jobs:
-      - job: AcrGroups
-        displayName: ACR Groups
-        condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
-        steps:
-          - checkout: self
+  - ${{ if eq(parameters.environmentName, 'PRD') }}:
+    - stage: CreateUserGroups
+      displayName: Higher Env User Groups
+      condition: and(not(failed()), not(canceled()))
+      variables:
+        - group: "${{ parameters.environmentName }}"
+        - template: "/pipelines/vars/common.yaml"
+        - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
+      jobs:
+        - job: TeamGroups
+          displayName: Team Groups
+          condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+          steps:
+            - checkout: self
 
-          - task: AzureCLI@2
-            name: AcrPull
-            env:
-              GROUP_NAME: AAG-Azure-IMP-${{ parameters.environmentName }}-AcrPull
-              GROUP_DESCRIPTION: Entra access group for pulling container images from IPAFFS registry in lower environments
-              GROUP_OWNER_OBJECT_IDS: >
-                $(serviceConnectionPrincipalId)
-                $(upstreamServiceConnectionPrincipalId)
-            inputs:
-              azureSubscription: $(upstreamServiceConnection)
-              scriptType: bash
-              scriptPath: scripts/pipeline/create-entra-group.sh
+            - task: AzureCLI@2
+              name: ReadersGroup
+              env:
+                GROUP_NAME: AAG-Users-IMP-IPAFFS-Readers_Admin
+                GROUP_DESCRIPTION: Entra user group for IPAFFS Readers
+                GROUP_OWNER_OBJECT_IDS: >
+                  $(serviceConnectionPrincipalId)
+                  $(upstreamServiceConnectionPrincipalId)
+              inputs:
+                azureSubscription: $(upstreamServiceConnection)
+                scriptType: bash
+                scriptPath: scripts/pipeline/create-entra-group.sh
 
-          - task: AzureCLI@2
-            name: AcrPullMembersAdmins
-            env:
-              GROUP_ID: $(AcrPull.objectId)
-              PRINCIPAL_ID: $(teamAdminsGroupId)
-            inputs:
-              azureSubscription: $(serviceConnection)
-              scriptType: bash
-              scriptPath: scripts/pipeline/add-principal-to-group.sh
+            - task: AzureCLI@2
+              name: GetReadersMembers
+              env:
+                NAMES: $(higherEnvsReadersGroupMembers)
+              inputs:
+                azureSubscription: $(upstreamServiceConnection)
+                scriptType: bash
+                scriptPath: scripts/pipeline/lookup-directory-objects.sh
+                scriptArguments: "-o ado -t user"
 
-          - task: AzureCLI@2
-            name: AcrPullMembersDevelopers
-            env:
-              GROUP_ID: $(AcrPull.objectId)
-              PRINCIPAL_ID: $(teamDevelopersGroupId)
-            inputs:
-              azureSubscription: $(serviceConnection)
-              scriptType: bash
-              scriptPath: scripts/pipeline/add-principal-to-group.sh
+            - task: AzureCLI@2
+              name: DetermineReadersMemberChanges
+              env:
+                GROUP_ID: $(ReadersGroup.objectId)
+                OBJECT_IDS: $(GetReadersMembers.objectIds)
+              inputs:
+                azureSubscription: $(upstreamServiceConnection)
+                scriptType: bash
+                scriptPath: scripts/pipeline/determine-group-members.sh
 
-      - job: SaveCommonGroups
-        displayName: Update group variables
-        dependsOn:
-          - AcrGroups
-        variables:
-          - name: adoGroupName
-            ${{ if eq(parameters.environmentName, 'PRD') }}:
-              value: 'HigherEnvs'
-            ${{ else }}:
-              value: 'LowerEnvs'
-          - name: acrPullDisplayName
-            value: $[dependencies.AcrGroups.outputs['AcrPull.displayName']]
-          - name: acrPullObjectId
-            value: $[dependencies.AcrGroups.outputs['AcrPull.objectId']]
-        steps:
-          - checkout: self
+            - task: AzureCLI@2
+              name: AddReadersMembers
+              env:
+                GROUP_ID: $(ReadersGroup.objectId)
+                GROUP_MEMBERS: $(DetermineReadersMemberChanges.membersToAdd)
+              inputs:
+                azureSubscription: $(serviceConnection)
+                scriptType: bash
+                scriptPath: scripts/pipeline/add-entra-group-members.sh
 
-          - task: Bash@3
-            name: StoreLibraryVars
-            displayName: Store Library Variables
-            condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
-            env:
-              ADO_ORG_URL: $(System.CollectionUri)
-              ADO_PROJECT: $(System.TeamProject)
-              ADO_GROUP_NAME: $(adoGroupName)
-              AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
-            inputs:
-              targetType: inline
-              script: |
-                set -x
-                scripts/pipeline/update-group-variable.sh acrPullGroupId '$(acrPullObjectId)'
-                scripts/pipeline/update-group-variable.sh acrPullGroupName '$(acrPullDisplayName)'
+            - task: AzureCLI@2
+              name: RemoveReadersMembers
+              env:
+                GROUP_ID: $(ReadersGroup.objectId)
+                GROUP_MEMBERS: $(DetermineReadersMemberChanges.membersToRemove)
+              inputs:
+                azureSubscription: $(serviceConnection)
+                scriptType: bash
+                scriptPath: scripts/pipeline/remove-entra-group-members.sh
+
+        - job: SaveTeamGroups
+          displayName: Update group variables
+          condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+          dependsOn:
+            - TeamGroups
+          variables:
+            - name: adoGroupName
+              value: HigherEnvs
+            - name: teamAdminsDisplayName
+              value: $[dependencies.TeamGroups.outputs['AdminsGroup.displayName']]
+            - name: teamAdminsObjectId
+              value: $[dependencies.TeamGroups.outputs['AdminsGroup.objectId']]
+            - name: teamDevelopersDisplayName
+              value: $[dependencies.TeamGroups.outputs['DevelopersGroup.displayName']]
+            - name: teamDevelopersObjectId
+              value: $[dependencies.TeamGroups.outputs['DevelopersGroup.objectId']]
+            - name: teamReadersDisplayName
+              value: $[dependencies.TeamGroups.outputs['ReadersGroup.displayName']]
+            - name: teamReadersObjectId
+              value: $[dependencies.TeamGroups.outputs['ReadersGroup.objectId']]
+          steps:
+            - checkout: self
+
+            - task: Bash@3
+              name: StoreLibraryVars
+              displayName: Store Library Variables
+              env:
+                ADO_ORG_URL: $(System.CollectionUri)
+                ADO_PROJECT: $(System.TeamProject)
+                ADO_GROUP_NAME: $(adoGroupName)
+                AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
+              inputs:
+                targetType: inline
+                script: |
+                  set -x
+                  scripts/pipeline/update-group-variable.sh teamReadersGroupId '$(teamReadersObjectId)'
+                  scripts/pipeline/update-group-variable.sh teamReadersGroupName '$(teamReadersDisplayName)'
+
+
+  - ${{ if or(eq(parameters.environmentName, 'DEV'), eq(parameters.environmentName, 'PRD')) }}:
+    - stage: CreateCommonAccessGroups
+      displayName: Create Common Entra Access Groups
+      condition: and(not(failed()), not(canceled()))
+      variables:
+        - group: "${{ parameters.environmentName }}"
+        - ${{ if eq(parameters.environmentName, 'PRD') }}:
+          - group: HigherEnvs
+        - ${{ else }}:
+          - group: LowerEnvs
+        - template: "/pipelines/vars/common.yaml"
+        - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
+      jobs:
+        - job: ACRGroups
+          displayName: ACR Groups
+          condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+          steps:
+            - checkout: self
+
+            - task: AzureCLI@2
+              name: AcrPull
+              env:
+                GROUP_NAME: AAG-Azure-IMP-${{ parameters.environmentName }}-AcrPull
+                GROUP_DESCRIPTION: Entra access group for pulling container images from IPAFFS registry
+                GROUP_OWNER_OBJECT_IDS: >
+                  $(serviceConnectionPrincipalId)
+                  $(upstreamServiceConnectionPrincipalId)
+              inputs:
+                azureSubscription: $(upstreamServiceConnection)
+                scriptType: bash
+                scriptPath: scripts/pipeline/create-entra-group.sh
+
+            - task: AzureCLI@2
+              name: AcrPullMembersAdmins
+              env:
+                GROUP_ID: $(AcrPull.objectId)
+                PRINCIPAL_ID: $(teamAdminsGroupId)
+              inputs:
+                azureSubscription: $(serviceConnection)
+                scriptType: bash
+                scriptPath: scripts/pipeline/add-principal-to-group.sh
+
+            - task: AzureCLI@2
+              name: AcrPullMembersDevelopers
+              env:
+                GROUP_ID: $(AcrPull.objectId)
+                PRINCIPAL_ID: $(teamDevelopersGroupId)
+              inputs:
+                azureSubscription: $(serviceConnection)
+                scriptType: bash
+                scriptPath: scripts/pipeline/add-principal-to-group.sh
+
+        - job: SaveCommonGroups
+          displayName: Update group variables
+          condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+          dependsOn:
+            - ACRGroups
+          variables:
+            - name: adoGroupName
+              ${{ if eq(parameters.environmentName, 'PRD') }}:
+                value: 'HigherEnvs'
+              ${{ else }}:
+                value: 'LowerEnvs'
+            - name: acrPullDisplayName
+              value: $[dependencies.ACRGroups.outputs['AcrPull.displayName']]
+            - name: acrPullObjectId
+              value: $[dependencies.ACRGroups.outputs['AcrPull.objectId']]
+          steps:
+            - checkout: self
+
+            - task: Bash@3
+              name: StoreLibraryVars
+              displayName: Store Library Variables
+              env:
+                ADO_ORG_URL: $(System.CollectionUri)
+                ADO_PROJECT: $(System.TeamProject)
+                ADO_GROUP_NAME: $(adoGroupName)
+                AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
+              inputs:
+                targetType: inline
+                script: |
+                  set -x
+                  scripts/pipeline/update-group-variable.sh acrPullGroupId '$(acrPullObjectId)'
+                  scripts/pipeline/update-group-variable.sh acrPullGroupName '$(acrPullDisplayName)'
 
 
   - stage: CreateAccessGroups
     displayName: Create Entra Access Groups
-    dependsOn: CreateUserGroups
     condition: and(not(failed()), not(canceled()), in(dependencies.CreateUserGroups.result, 'Succeeded', 'SucceededWithIssues', 'Skipped'))
     variables:
       - group: "${{ parameters.environmentName }}"
@@ -652,62 +760,64 @@ stages:
               scriptPath: scripts/pipeline/add-principal-to-group.sh
 
 
-  - stage: SaveGroupDetails
-    displayName: Save group details
-    dependsOn:
-      - CreateAccessGroups
-    condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
-    variables:
-      - group: "${{ parameters.environmentName }}"
-      - template: "/pipelines/vars/common.yaml"
-      - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
-      - name: defraCertificateReadersDisplayName
-        value: $[stageDependencies.CreateAccessGroups.DefraGroups.outputs['DefraCertificateReaders.displayName']]
-      - name: defraCertificateReadersObjectId
-        value: $[stageDependencies.CreateAccessGroups.DefraGroups.outputs['DefraCertificateReaders.objectId']]
-      - name: aksAdminsDisplayName
-        value: $[stageDependencies.CreateAccessGroups.AksGroups.outputs['AksAdmins.displayName']]
-      - name: aksAdminsObjectId
-        value: $[stageDependencies.CreateAccessGroups.AksGroups.outputs['AksAdmins.objectId']]
-      - name: aksContributorsDisplayName
-        value: $[stageDependencies.CreateAccessGroups.AksGroups.outputs['AksContributors.displayName']]
-      - name: aksContributorsObjectId
-        value: $[stageDependencies.CreateAccessGroups.AksGroups.outputs['AksContributors.objectId']]
-      - name: aksReadersDisplayName
-        value: $[stageDependencies.CreateAccessGroups.AksGroups.outputs['AksReaders.displayName']]
-      - name: aksReadersObjectId
-        value: $[stageDependencies.CreateAccessGroups.AksGroups.outputs['AksReaders.objectId']]
-      - name: keyVaultAdminsDisplayName
-        value: $[stageDependencies.CreateAccessGroups.KeyVaultGroups.outputs['KeyVaultAdmins.displayName']]
-      - name: keyVaultAdminsObjectId
-        value: $[stageDependencies.CreateAccessGroups.KeyVaultGroups.outputs['KeyVaultAdmins.objectId']]
-      - name: keyVaultSecretsReaderDisplayName
-        value: $[stageDependencies.CreateAccessGroups.KeyVaultGroups.outputs['KeyVaultSecretsReader.displayName']]
-      - name: keyVaultSecretsReaderObjectId
-        value: $[stageDependencies.CreateAccessGroups.KeyVaultGroups.outputs['KeyVaultSecretsReader.objectId']]
-      - name: searchContributorsDisplayName
-        value: $[stageDependencies.CreateAccessGroups.SearchGroups.outputs['SearchContributors.displayName']]
-      - name: searchContributorsObjectId
-        value: $[stageDependencies.CreateAccessGroups.SearchGroups.outputs['SearchContributors.objectId']]
-      - name: searchReadersDisplayName
-        value: $[stageDependencies.CreateAccessGroups.SearchGroups.outputs['SearchReaders.displayName']]
-      - name: searchReadersObjectId
-        value: $[stageDependencies.CreateAccessGroups.SearchGroups.outputs['SearchReaders.objectId']]
-      - name: blobStorageContributorsDisplayName
-        value: $[stageDependencies.CreateAccessGroups.StorageGroups.outputs['BlobStorageContributors.displayName']]
-      - name: blobStorageContributorsObjectId
-        value: $[stageDependencies.CreateAccessGroups.StorageGroups.outputs['BlobStorageContributors.objectId']]
-      - name: blobStorageReadersDisplayName
-        value: $[stageDependencies.CreateAccessGroups.StorageGroups.outputs['BlobStorageReaders.displayName']]
-      - name: blobStorageReadersObjectId
-        value: $[stageDependencies.CreateAccessGroups.StorageGroups.outputs['BlobStorageReaders.objectId']]
-      - name: sqlAdminsDisplayName
-        value: $[stageDependencies.CreateAccessGroups.SQLGroups.outputs['SQLAdmins.displayName']]
-      - name: sqlAdminsObjectId
-        value: $[stageDependencies.CreateAccessGroups.SQLGroups.outputs['SQLAdmins.objectId']]
-    jobs:
-      - job: UpdateGroupVariables
+      - job: SaveAccessGroups
         displayName: Update group variables
+        condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+        dependsOn:
+          - DefraGroups
+          - AksGroups
+          - KeyVaultGroups
+          - SearchGroups
+          - StorageGroups
+          - SQLGroups
+        variables:
+          - group: "${{ parameters.environmentName }}"
+          - template: "/pipelines/vars/common.yaml"
+          - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
+          - name: defraCertificateReadersDisplayName
+            value: $[dependencies.DefraGroups.outputs['DefraCertificateReaders.displayName']]
+          - name: defraCertificateReadersObjectId
+            value: $[dependencies.DefraGroups.outputs['DefraCertificateReaders.objectId']]
+          - name: aksAdminsDisplayName
+            value: $[dependencies.AksGroups.outputs['AksAdmins.displayName']]
+          - name: aksAdminsObjectId
+            value: $[dependencies.AksGroups.outputs['AksAdmins.objectId']]
+          - name: aksContributorsDisplayName
+            value: $[dependencies.AksGroups.outputs['AksContributors.displayName']]
+          - name: aksContributorsObjectId
+            value: $[dependencies.AksGroups.outputs['AksContributors.objectId']]
+          - name: aksReadersDisplayName
+            value: $[dependencies.AksGroups.outputs['AksReaders.displayName']]
+          - name: aksReadersObjectId
+            value: $[dependencies.AksGroups.outputs['AksReaders.objectId']]
+          - name: keyVaultAdminsDisplayName
+            value: $[dependencies.KeyVaultGroups.outputs['KeyVaultAdmins.displayName']]
+          - name: keyVaultAdminsObjectId
+            value: $[dependencies.KeyVaultGroups.outputs['KeyVaultAdmins.objectId']]
+          - name: keyVaultSecretsReaderDisplayName
+            value: $[dependencies.KeyVaultGroups.outputs['KeyVaultSecretsReader.displayName']]
+          - name: keyVaultSecretsReaderObjectId
+            value: $[dependencies.KeyVaultGroups.outputs['KeyVaultSecretsReader.objectId']]
+          - name: searchContributorsDisplayName
+            value: $[dependencies.SearchGroups.outputs['SearchContributors.displayName']]
+          - name: searchContributorsObjectId
+            value: $[dependencies.SearchGroups.outputs['SearchContributors.objectId']]
+          - name: searchReadersDisplayName
+            value: $[dependencies.SearchGroups.outputs['SearchReaders.displayName']]
+          - name: searchReadersObjectId
+            value: $[dependencies.SearchGroups.outputs['SearchReaders.objectId']]
+          - name: blobStorageContributorsDisplayName
+            value: $[dependencies.StorageGroups.outputs['BlobStorageContributors.displayName']]
+          - name: blobStorageContributorsObjectId
+            value: $[dependencies.StorageGroups.outputs['BlobStorageContributors.objectId']]
+          - name: blobStorageReadersDisplayName
+            value: $[dependencies.StorageGroups.outputs['BlobStorageReaders.displayName']]
+          - name: blobStorageReadersObjectId
+            value: $[dependencies.StorageGroups.outputs['BlobStorageReaders.objectId']]
+          - name: sqlAdminsDisplayName
+            value: $[dependencies.SQLGroups.outputs['SQLAdmins.displayName']]
+          - name: sqlAdminsObjectId
+            value: $[dependencies.SQLGroups.outputs['SQLAdmins.objectId']]
         steps:
           - checkout: self
 
