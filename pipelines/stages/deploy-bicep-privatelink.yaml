@@ -31,8 +31,8 @@ stages:
                 extends 'envs/${{ lower(parameters.environmentName) }}/50-privatelink.bicepparam'
                 param subnets = {
                   privateEndpoints: {
-                    id: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPINFRG1401/providers/Microsoft.Network/virtualNetworks/DEVIMPNETVN1401/subnets/DEVIMPNETSU4404'
-                    name: 'DEVIMPNETSU4404'
+                    id: '$(privateEndpointsSubnetId)'
+                    name: '$(privateEndpointsSubnetName)'
                   }
                 }
                 EOF
