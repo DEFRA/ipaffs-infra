@@ -250,6 +250,7 @@ stages:
                 azureSubscription: $(upstreamServiceConnection)
                 scriptType: bash
                 scriptPath: scripts/pipeline/create-entra-group.sh
+                scriptArguments: "-u"
 
             - task: AzureCLI@2
               name: GetReadersMembers
