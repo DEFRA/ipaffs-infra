@@ -258,7 +258,11 @@ param vnetParams = {
           }
         }
       ]
-      serviceEndpoints: []
+      serviceEndpoints: [
+        {
+          service: 'Microsoft.ServiceBus'
+        }
+      ]
       routeTableId: '/subscriptions/0022ef8e-d44e-49c5-8cfd-5e8e9c6e913e/resourceGroups/PRDIMPINFRG1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-PRDIMPNETVN1401-01'
       networkSecurityGroupId: '/subscriptions/0022ef8e-d44e-49c5-8cfd-5e8e9c6e913e/resourceGroups/PRDIMPINFRG1401/providers/Microsoft.Network/networkSecurityGroups/PRDIMPNETNS1401-AKS'
     }
@@ -267,7 +271,11 @@ param vnetParams = {
       name: 'PRDIMPNETSU4402'
       addressPrefix: '10.179.140.16/28'
       delegations: []
-      serviceEndpoints: []
+      serviceEndpoints: [
+        {
+          service: 'Microsoft.ServiceBus'
+        }
+      ]
       routeTableId: '/subscriptions/0022ef8e-d44e-49c5-8cfd-5e8e9c6e913e/resourceGroups/PRDIMPINFRG1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-PRDIMPNETVN1401-01'
       networkSecurityGroupId: '/subscriptions/0022ef8e-d44e-49c5-8cfd-5e8e9c6e913e/resourceGroups/PRDIMPINFRG1401/providers/Microsoft.Network/networkSecurityGroups/PRDIMPNETNS1401-AKS'
     }
@@ -306,7 +314,11 @@ param vnetParams = {
       name: 'PRDIMPNETSU4406'
       addressPrefix: '10.179.142.0/24'
       delegations: []
-      serviceEndpoints: []
+      serviceEndpoints: [
+        {
+          service: 'Microsoft.ServiceBus'
+        }
+      ]
       routeTableId: '/subscriptions/0022ef8e-d44e-49c5-8cfd-5e8e9c6e913e/resourceGroups/PRDIMPINFRG1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-PRDIMPNETVN1401-01'
       networkSecurityGroupId: '/subscriptions/0022ef8e-d44e-49c5-8cfd-5e8e9c6e913e/resourceGroups/PRDIMPINFRG1401/providers/Microsoft.Network/networkSecurityGroups/PRDIMPNETNS1401-AKS'
     }
