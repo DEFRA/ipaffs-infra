@@ -28,49 +28,51 @@ resource redisPrivateEndpoint 'Microsoft.Network/privateEndpoints@2024-10-01' = 
   }
 }
 
-resource searchServicePrivateEndpoint 'Microsoft.Network/privateEndpoints@2024-10-01' = {
-  name: '${last(split(classicResourceIds.searchService, '/'))}-${subnets.privateEndpoints.name}'
-  location: location
-  tags: tags
+// TODO: This is disabled to prevent breaking connectivity to classic apps - we will use service endpoints as temporary workaround
+//resource searchServicePrivateEndpoint 'Microsoft.Network/privateEndpoints@2024-10-01' = {
+//  name: '${last(split(classicResourceIds.searchService, '/'))}-${subnets.privateEndpoints.name}'
+//  location: location
+//  tags: tags
+//
+//  properties: {
+//    subnet: {
+//      id: subnets.privateEndpoints.id
+//    }
+//
+//    privateLinkServiceConnections: [
+//      {
+//        name: 'classic-search-connection'
+//        properties: {
+//          privateLinkServiceId: classicResourceIds.searchService
+//          groupIds: ['searchService']
+//        }
+//      }
+//    ]
+//  }
+//}
 
-  properties: {
-    subnet: {
-      id: subnets.privateEndpoints.id
-    }
-
-    privateLinkServiceConnections: [
-      {
-        name: 'classic-search-connection'
-        properties: {
-          privateLinkServiceId: classicResourceIds.searchService
-          groupIds: ['searchService']
-        }
-      }
-    ]
-  }
-}
-
-resource serviceBusPrivateEndpoint 'Microsoft.Network/privateEndpoints@2024-10-01' = {
-  name: '${last(split(classicResourceIds.serviceBusNamespace, '/'))}-${subnets.privateEndpoints.name}'
-  location: location
-  tags: tags
-
-  properties: {
-    subnet: {
-      id: subnets.privateEndpoints.id
-    }
-
-    privateLinkServiceConnections: [
-      {
-        name: 'classic-servicebus-connection'
-        properties: {
-          privateLinkServiceId: classicResourceIds.serviceBusNamespace
-          groupIds: ['namespace']
-        }
-      }
-    ]
-  }
-}
+// TODO: This is disabled to prevent breaking connectivity to classic apps - we will use service endpoints as temporary workaround
+//resource serviceBusPrivateEndpoint 'Microsoft.Network/privateEndpoints@2024-10-01' = {
+//  name: '${last(split(classicResourceIds.serviceBusNamespace, '/'))}-${subnets.privateEndpoints.name}'
+//  location: location
+//  tags: tags
+//
+//  properties: {
+//    subnet: {
+//      id: subnets.privateEndpoints.id
+//    }
+//
+//    privateLinkServiceConnections: [
+//      {
+//        name: 'classic-servicebus-connection'
+//        properties: {
+//          privateLinkServiceId: classicResourceIds.serviceBusNamespace
+//          groupIds: ['namespace']
+//        }
+//      }
+//    ]
+//  }
+//}
 
 resource sqlPrivateEndpoint 'Microsoft.Network/privateEndpoints@2024-10-01' = {
   name: '${last(split(classicResourceIds.sqlServer, '/'))}-${subnets.privateEndpoints.name}'
