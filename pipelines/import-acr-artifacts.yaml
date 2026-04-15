@@ -33,6 +33,10 @@ parameters:
 
 variables:
   - group: Common
+  - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
+    - group: HigherEnvs
+  - ${{ else }}:
+    - group: LowerEnvs
   - group: "${{ parameters.environmentName }}"
   - template: "vars/common.yaml"
   - template: "vars/${{ lower(parameters.environmentName) }}.yaml"
