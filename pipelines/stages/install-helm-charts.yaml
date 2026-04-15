@@ -223,7 +223,7 @@ stages:
                         --timeout 2m \
                         $(helmDryRun) \
                         --set environment="${{ lower(parameters.environmentName) }}" \
-                        --set container.image="$(acrLoginServer)/manicminer/ms-identity-redirect-handler:v0.1.1" \
+                        --set container.image="$(acrLoginServer)/ipaffs/redirect-handler:20260415.9" \
                         ms-identity-redirect-handler ./helm-charts/ms-identity-redirect-handler
 
 # vim: set ts=2 sts=2 sw=2 et:
