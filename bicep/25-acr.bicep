@@ -1,6 +1,6 @@
 targetScope = 'resourceGroup'
 
-@allowed(['DEV'])
+@allowed(['DEV', 'PRD'])
 param environment string
 
 param createdDate string = utcNow('yyyy-MM-dd')

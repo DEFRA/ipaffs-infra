@@ -1,6 +1,6 @@
 targetScope = 'resourceGroup'
 
-@allowed(['DEV', 'TST'])
+@allowed(['DEV', 'TST', 'PRE', 'PRD'])
 param environment string
 
 param subnets object = {}
