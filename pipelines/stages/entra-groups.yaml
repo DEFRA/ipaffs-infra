@@ -459,6 +459,17 @@ stages:
               scriptType: bash
               scriptPath: scripts/pipeline/create-entra-group.sh
 
+          - ${{ if and(ne(parameters.environmentName, 'PRE'), ne(parameters.environmentName, 'PRD')) }}:
+            - task: AzureCLI@2
+              name: DefraCertificateReadersMembersAdmins
+              env:
+                GROUP_ID: $(defraCertificateReadersGroupId)
+                PRINCIPAL_ID: $(teamAdminsGroupId)
+              inputs:
+                azureSubscription: $(serviceConnection)
+                scriptType: bash
+                scriptPath: scripts/pipeline/add-principal-to-group.sh
+
       - job: AksGroups
         displayName: AKS Groups
         condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
