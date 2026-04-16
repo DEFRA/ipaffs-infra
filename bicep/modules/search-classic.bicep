@@ -13,7 +13,7 @@ resource userAssignedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@
   tags: tags
 }
 
-var sqlServerContributorId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '6d8ee4ec-f05a-4a1d-8b00-a9b17e38b437')
+var sqlServerContributorRoleId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '6d8ee4ec-f05a-4a1d-8b00-a9b17e38b437')
 
 module sqlServerContributor './sql-server-role-assignment.bicep' = {
   name: 'sqlServerContributor-${deploymentId}'
@@ -22,7 +22,7 @@ module sqlServerContributor './sql-server-role-assignment.bicep' = {
     deploymentId: deploymentId
     principalObjectId: userAssignedIdentity.properties.principalId
     principalType: 'ServicePrincipal'
-    roleDefinitionId: sqlServerContributorId
+    roleDefinitionId: sqlServerContributorRoleId
     sqlServerName: sqlServerName
   }
 }

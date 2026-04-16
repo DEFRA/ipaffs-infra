@@ -8,6 +8,7 @@ param entraGroups object
 param createdDate string = utcNow('yyyy-MM-dd')
 param deploymentId string = uniqueString(utcNow())
 param location string = resourceGroup().location
+param principalsNeedingContributor array
 param tenantId string
 
 var databaseNames = [
@@ -54,6 +55,18 @@ param searchParams object
 param sejParams object
 param sqlParams object
 param serviceBusParams object
+
+var contributorRoleId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b24988ac-6180-42a0-ab88-20f7382dd24c')
+
+module additionalContributors './modules/resource-group-role-assignment.bicep' = [for principalId in principalsNeedingContributor: {
+  name: format('additionalContributors-{0}-{1}', deploymentId, substring(uniqueString(principalId), 0, 7))
+  params: {
+    deploymentId: deploymentId
+    principalObjectId: principalId
+    principalType: 'ServicePrincipal'
+    roleDefinitionId: contributorRoleId
+  }
+}]
 
 // TODO: move this to infra module and lift to new subscription
 module alerts './modules/alerts.bicep' = {

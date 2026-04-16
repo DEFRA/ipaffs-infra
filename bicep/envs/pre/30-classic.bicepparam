@@ -4,6 +4,10 @@ param entraGroups = {}
 param environment = 'PRE'
 param tenantId = ''
 
+param principalsNeedingContributor = [
+  '53a47ce7-dbaa-494e-8a87-54b13248ccd8' // ADO-DefraGovUK-AZR-IMP-PRE1 (ADO service connection)
+]
+
 param alertsParams = {
   actionGroups: {
     notifyDba: {
