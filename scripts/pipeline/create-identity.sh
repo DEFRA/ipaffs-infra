@@ -2,11 +2,11 @@
 
 set -eux
 
-az identity create --name "${MANAGED_IDENTITY_NAME}" --resource-group "${RESOURCE_GROUP_NAME}"
-CLIENT_ID="$(az identity show --name "${MANAGED_IDENTITY_NAME}" --resource-group "${RESOURCE_GROUP_NAME}" --query clientId --output tsv)"
-PRINCIPAL_ID="$(az identity show --name "${MANAGED_IDENTITY_NAME}" --resource-group "${RESOURCE_GROUP_NAME}" --query principalId --output tsv)"
+az identity create --subscription "${SUBSCRIPTION_NAME}" --name "${MANAGED_IDENTITY_NAME}" --resource-group "${RESOURCE_GROUP_NAME}"
+CLIENT_ID="$(az identity show --subscription "${SUBSCRIPTION_NAME}" --name "${MANAGED_IDENTITY_NAME}" --resource-group "${RESOURCE_GROUP_NAME}" --query clientId --output tsv)"
+PRINCIPAL_ID="$(az identity show --subscription "${SUBSCRIPTION_NAME}" --name "${MANAGED_IDENTITY_NAME}" --resource-group "${RESOURCE_GROUP_NAME}" --query principalId --output tsv)"
 
-az identity federated-credential create --identity-name "${MANAGED_IDENTITY_NAME}" --resource-group "${RESOURCE_GROUP_NAME}" --name "${AKS_CREDENTIAL}" --issuer "${AKS_ISSUER}" --audiences "${AKS_AUDIENCES}" --subject "${AKS_SUBJECT}"
+az identity federated-credential create --subscription "${SUBSCRIPTION_NAME}" --identity-name "${MANAGED_IDENTITY_NAME}" --resource-group "${RESOURCE_GROUP_NAME}" --name "${AKS_CREDENTIAL}" --issuer "${AKS_ISSUER}" --audiences "${AKS_AUDIENCES}" --subject "${AKS_SUBJECT}"
 
 set +x
 echo "##vso[task.setvariable variable=principalId]${PRINCIPAL_ID}"

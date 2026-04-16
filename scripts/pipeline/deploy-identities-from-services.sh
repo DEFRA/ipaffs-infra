@@ -72,7 +72,7 @@ ensure_identity() {
 
   "${SCRIPT_DIR}/create-identity.sh"
 
-  principal_id="$(az identity show --name "${managed_identity_name}" --resource-group "${RESOURCE_GROUP_NAME}" --query principalId -o tsv)"
+  principal_id="$(az identity show --subscription "${SUBSCRIPTION_NAME}" --name "${managed_identity_name}" --resource-group "${RESOURCE_GROUP_NAME}" --query principalId -o tsv)"
 
   export GROUP_ID="${SEARCH_CONTRIBUTORS_GROUP_ID}"
   export PRINCIPAL_ID="${principal_id}"
