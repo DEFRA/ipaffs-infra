@@ -53,7 +53,7 @@ stages:
                     GROUP_ID: $(acrPullGroupId)
                     PRINCIPAL_ID: $(aksKubeletPrincipalId)
                   inputs:
-                    azureSubscription: $(serviceConnection)
+                    azureSubscription: $(commonGroupsServiceConnection)
                     scriptType: bash
                     scriptPath: scripts/pipeline/add-principal-to-group.sh
 
