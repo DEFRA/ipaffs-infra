@@ -13,7 +13,6 @@ serviceBus:
     - risk-feedback-queue
     - enotification-submission-queue
     - enotification-processing-status-queue
-    - gvms-queue
   topics:
     - name: notification-topic
     - name: alvs-topic
