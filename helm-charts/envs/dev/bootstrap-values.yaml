@@ -9,7 +9,6 @@ azure:
 serviceBus:
   queues:
     - notify-queue
-    - dev-dmp-gto-queue-1
     - enotification-event-queue
     - risk-feedback-queue
     - enotification-submission-queue
