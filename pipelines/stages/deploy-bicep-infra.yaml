@@ -29,7 +29,6 @@ stages:
                 cat <<- 'EOF' >'$(Build.SourcesDirectory)/40-infra-runtime.bicepparam'
                 using '40-infra.bicep'
                 extends 'envs/${{ lower(parameters.environmentName) }}/40-infra.bicepparam'
-                param acrResourceId = '$(acrResourceId)'
                 param classicResourceIds = {
                   redis: '$(classicRedisResourceId)'
                   searchService: '$(classicSearchServiceResourceId)'

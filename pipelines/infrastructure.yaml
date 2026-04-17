@@ -23,7 +23,7 @@ parameters:
       - PRE
       - PRD
   - name: establishPeering
-    displayName: Establish Peering
+    displayName: Establish Peering To Hub
     type: boolean
     default: false
 

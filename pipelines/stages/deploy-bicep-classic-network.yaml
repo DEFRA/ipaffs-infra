@@ -1,0 +1,125 @@
+# Note: For hybrid deployments to classic SND environment, we will also need variables from the DEV library
+# group - these should be passed in from the parent pipeline definition, with the classicEnvironmentName parameter
+# for this stage template overridden to SND. This will achieve the necessary variable precedence.
+# See https://learn.microsoft.com/en-us/azure/devops/pipelines/process/variables?view=azure-devops&tabs=yaml%2Cbatch#expansion-of-variables
+parameters:
+  - name: environmentName
+    type: string
+  - name: classicEnvironmentName
+    type: string
+
+stages:
+  - stage: ConfigureClassicNetworkDeployment
+    displayName: Configure deployment
+    variables:
+      - group: "${{ parameters.classicEnvironmentName }}"
+      - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
+        - group: HigherEnvs
+      - ${{ else }}:
+        - group: LowerEnvs
+      - template: "/pipelines/vars/common.yaml"
+      - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
+      - template: "/pipelines/vars/${{ lower(parameters.classicEnvironmentName) }}.yaml"
+    jobs:
+      - job: ConfigureBicep
+        displayName: Configure Bicep
+        steps:
+          - checkout: self
+
+          - task: Bash@3
+            name: GenerateBicepParams
+            displayName: Generate Bicep Params
+            inputs:
+              targetType: inline
+              script: |
+                set -ex
+                cat <<- 'EOF' >'$(Build.SourcesDirectory)/35-classic-network-runtime.bicepparam'
+                using '35-classic-network.bicep'
+                extends 'envs/${{ lower(parameters.classicEnvironmentName) }}/35-classic-network.bicepparam'
+                param newVnetResourceId = '$(networkResourceId)'
+                EOF
+                cat '$(Build.SourcesDirectory)/35-classic-network-runtime.bicepparam'
+
+          - task: PublishPipelineArtifact@1
+            displayName: Publish artifact
+            inputs:
+              artifactName: bicepparam-classic
+              targetPath: $(Build.SourcesDirectory)/35-classic-network-runtime.bicepparam
+
+
+  - stage: DeployClassicNetwork
+    displayName: Deploy Classic Network
+    dependsOn: ConfigureClassicNetworkDeployment
+    variables:
+      - group: "${{ parameters.classicEnvironmentName }}"
+      - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
+        - group: HigherEnvs
+      - ${{ else }}:
+        - group: LowerEnvs
+      - template: "/pipelines/vars/common.yaml"
+      - template: "/pipelines/vars/${{ lower(parameters.classicEnvironmentName) }}.yaml"
+    jobs:
+      - deployment: RunBicep
+        displayName: Run Bicep
+        environment:
+          name: "${{ parameters.classicEnvironmentName }}"
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+
+                - task: DownloadPipelineArtifact@2
+                  displayName: Download artifact
+                  inputs:
+                    artifactName: bicepparam-classic
+                    targetPath: $(Build.SourcesDirectory)/bicep
+
+                - task: AzureCLI@2
+                  displayName: WhatIf - ClassicNetwork
+                  inputs:
+                    azureSubscription: $(classicServiceConnection)
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      set -x
+                      az deployment group what-if \
+                        --name "ClassicNetwork-$(Build.BuildId)" \
+                        --subscription $(classicSubscriptionId) \
+                        --resource-group $(classicNetworkResourceGroupName) \
+                        --template-file bicep/35-classic-network.bicep \
+                        --parameters bicep/35-classic-network-runtime.bicepparam
+
+                - task: AzureCLI@2
+                  displayName: Deploy - ClassicNetwork
+                  condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+                  inputs:
+                    azureSubscription: $(classicServiceConnection)
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      set -x
+                      az deployment group create \
+                        --name "ClassicNetwork-$(Build.BuildId)" \
+                        --subscription $(classicSubscriptionId) \
+                        --resource-group $(classicNetworkResourceGroupName) \
+                        --template-file bicep/35-classic-network.bicep \
+                        --parameters bicep/35-classic-network-runtime.bicepparam
+
+                - task: AzureCLI@2
+                  displayName: Wait for Deployment - ClassicNetwork
+                  condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+                  inputs:
+                    azureSubscription: $(classicServiceConnection)
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      set -x
+                      az deployment group wait \
+                        --name "ClassicNetwork-$(Build.BuildId)" \
+                        --subscription $(classicSubscriptionId) \
+                        --resource-group $(classicNetworkResourceGroupName) \
+                        --created
+
+
+# vim: set ts=2 sts=2 sw=2 et:

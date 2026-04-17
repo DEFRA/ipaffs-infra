@@ -4,8 +4,6 @@ param entraGroups = {}
 param environment = 'SND'
 param tenantId = ''
 
-param newVnetResourceId = ''
-
 param principalsNeedingContributor = [
   'c5daee65-10cb-4d04-b721-d3da81357568' // ADO-DefraGovUK-AZR-IMP-DEV1 (ADO service connection)
 ]
@@ -71,10 +69,6 @@ param serviceBusParams = {
 
 param sqlParams = {
   serverName: 'sndimpdbssqa004'
-}
-
-param vnetParams = {
-  name: 'SNDINFNETVNT001'
 }
 
 // vim: set ts=2 sts=2 sw=2 et:
