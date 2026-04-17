@@ -72,6 +72,14 @@ stages:
       ${{ else }}:
         classicEnvironmentName: ${{ parameters.environmentName }}
 
+  - template: stages/deploy-bicep-classic-network.yaml
+    parameters:
+      environmentName: ${{ parameters.environmentName }}
+      ${{ if eq(parameters.environmentName, 'DEV') }}:
+        classicEnvironmentName: SND
+      ${{ else }}:
+        classicEnvironmentName: ${{ parameters.environmentName }}
+
   - template: stages/deploy-bicep-infra.yaml
     parameters:
       environmentName: ${{ parameters.environmentName }}
