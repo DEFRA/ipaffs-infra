@@ -14,8 +14,8 @@ stages:
         - ${{ else }}:
           - group: LowerEnvs
         - group: "${{ parameters.environmentName }}"
-        - template: "vars/common.yaml"
-        - template: "vars/${{ lower(parameters.environmentName) }}.yaml"
+        - template: "/pipelines/vars/common.yaml"
+        - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
       jobs:
         - job: TeamGroups
           displayName: Team Groups
@@ -239,8 +239,8 @@ stages:
         - ${{ else }}:
           - group: LowerEnvs
         - group: "${{ parameters.environmentName }}"
-        - template: "vars/common.yaml"
-        - template: "vars/${{ lower(parameters.environmentName) }}.yaml"
+        - template: "/pipelines/vars/common.yaml"
+        - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
       jobs:
         - job: TeamGroups
           displayName: Team Groups
@@ -352,8 +352,8 @@ stages:
         - ${{ else }}:
           - group: LowerEnvs
         - group: "${{ parameters.environmentName }}"
-        - template: "vars/common.yaml"
-        - template: "vars/${{ lower(parameters.environmentName) }}.yaml"
+        - template: "/pipelines/vars/common.yaml"
+        - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
       jobs:
         - job: ACRGroups
           displayName: ACR Groups
@@ -449,8 +449,8 @@ stages:
       - ${{ else }}:
         - group: LowerEnvs
       - group: "${{ parameters.environmentName }}"
-      - template: "vars/common.yaml"
-      - template: "vars/${{ lower(parameters.environmentName) }}.yaml"
+      - template: "/pipelines/vars/common.yaml"
+      - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
     jobs:
       - job: DefraGroups
         displayName: Defra Groups
@@ -829,8 +829,8 @@ stages:
           - ${{ else }}:
             - group: LowerEnvs
           - group: "${{ parameters.environmentName }}"
-          - template: "vars/common.yaml"
-          - template: "vars/${{ lower(parameters.environmentName) }}.yaml"
+          - template: "/pipelines/vars/common.yaml"
+          - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
           - name: defraCertificateReadersDisplayName
             value: $[dependencies.DefraGroups.outputs['DefraCertificateReaders.displayName']]
           - name: defraCertificateReadersObjectId

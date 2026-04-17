@@ -16,8 +16,8 @@ steps:
       - ${{ else }}:
         - group: LowerEnvs
       - group: "${{ parameters.environmentName }}"
-      - template: "vars/common.yaml"
-      - template: "vars/${{ lower(parameters.environmentName) }}.yaml"
+      - template: "/pipelines/vars/common.yaml"
+      - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
     inputs:
       azureSubscription: $(serviceConnection)
       scriptType: bash

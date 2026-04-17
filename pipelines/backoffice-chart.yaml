@@ -34,8 +34,8 @@ variables:
   - group: Common
   - group: LowerEnvs
   - group: "DEV"
-  - template: "vars/common.yaml"
-  - template: "vars/dev.yaml"
+  - template: "/pipelines/vars/common.yaml"
+  - template: "/pipelines/vars/dev.yaml"
   - name: helmChartName
     value: backoffice
   - name: helmChartPath
@@ -77,8 +77,8 @@ stages:
     variables:
       - group: Common
       - group: "DEV"
-      - template: "vars/common.yaml"
-      - template: "vars/dev.yaml"
+      - template: "/pipelines/vars/common.yaml"
+      - template: "/pipelines/vars/dev.yaml"
       - name: helmChartVersion
         value: $[ stageDependencies.ExtractVersion.ExtractVersionFromChart.outputs['ComputeVersion.helmChartVersion'] ]
       - name: gitUserName

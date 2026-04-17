@@ -12,8 +12,8 @@ stages:
       - ${{ else }}:
         - group: LowerEnvs
       - group: "${{ parameters.environmentName }}"
-      - template: "vars/common.yaml"
-      - template: "vars/${{ lower(parameters.environmentName) }}.yaml"
+      - template: "/pipelines/vars/common.yaml"
+      - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
     jobs:
       - deployment: RunBicep
         displayName: Run Bicep
@@ -82,8 +82,8 @@ stages:
       - ${{ else }}:
         - group: LowerEnvs
       - group: "${{ parameters.environmentName }}"
-      - template: "vars/common.yaml"
-      - template: "vars/${{ lower(parameters.environmentName) }}.yaml"
+      - template: "/pipelines/vars/common.yaml"
+      - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
     jobs:
       - job: StoreLibraryVariables
         displayName: Store library variables
