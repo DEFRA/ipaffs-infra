@@ -43,7 +43,7 @@ stages:
           - task: PublishPipelineArtifact@1
             displayName: Publish artifact
             inputs:
-              artifactName: bicepparam-classic
+              artifactName: bicepparam-classic-network
               targetPath: $(Build.SourcesDirectory)/35-classic-network-runtime.bicepparam
 
 
@@ -72,7 +72,7 @@ stages:
                 - task: DownloadPipelineArtifact@2
                   displayName: Download artifact
                   inputs:
-                    artifactName: bicepparam-classic
+                    artifactName: bicepparam-classic-network
                     targetPath: $(Build.SourcesDirectory)/bicep
 
                 - task: AzureCLI@2
