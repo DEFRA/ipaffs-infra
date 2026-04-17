@@ -12,14 +12,6 @@ serviceBus:
 ipaffsConfig:
   data: {}
 
-secretStore:
-  name: "external-secrets-azure-ccoe"
-
-externalSecret:
-  enabled: false
-  refreshInterval: ""
-  secrets: []
-
 originIngress:
   annotations:
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
