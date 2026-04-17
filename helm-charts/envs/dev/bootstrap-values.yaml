@@ -10,7 +10,6 @@ serviceBus:
   queues:
     - notify-queue
     - enotification-event-queue
-    - risk-feedback-queue
     - enotification-submission-queue
     - enotification-processing-status-queue
   topics:
