@@ -50,7 +50,6 @@ stages:
                     name: '$(sqlAdminGroupName)'
                   }
                 }
-                param newVnetResourceId = '$(vnetResourceId)'
                 EOF
                 cat '$(Build.SourcesDirectory)/30-classic-runtime.bicepparam'
 

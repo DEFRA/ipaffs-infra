@@ -4,8 +4,6 @@ param entraGroups = {}
 param environment = 'PRD'
 param tenantId = ''
 
-param newVnetResourceId = ''
-
 param principalsNeedingContributor = [
   'a3e0f04c-827a-4abc-89c2-249e476b3cf2' // ADO-DefraGovUK-AZR-IMP-PRD1 (ADO service connection)
 ]
