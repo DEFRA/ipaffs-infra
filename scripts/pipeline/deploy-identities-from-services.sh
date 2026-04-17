@@ -132,7 +132,7 @@ for service_dir in "${service_dirs[@]}"; do
   service_name="$(basename "${service_dir}")"
   echo "Configuring identities for ${service_name}"
 
-  ensure_identity "${service_name}" "service" "${service_name}-service" "system:serviceaccount:${NAMESPACE}:${service_name}-service" "false"
+  ensure_identity "${service_name}" "service" "${service_name}-service" "system:serviceaccount:${NAMESPACE}:${service_name}-service" "true"
 
   if service_has_migrations_enabled "${service_name}"; then
     ensure_identity "${service_name}" "migrations" "${service_name}-migration" "system:serviceaccount:${NAMESPACE}:${service_name}-migrations" "true"
