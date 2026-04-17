@@ -6,13 +6,14 @@ stages:
   - stage: EstablishPeering
     displayName: Establish Peering
     variables:
-      - group: "${{ parameters.environmentName }}"
+      - group: Common
       - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
         - group: HigherEnvs
       - ${{ else }}:
         - group: LowerEnvs
-      - template: "/pipelines/vars/common.yaml"
-      - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
+      - group: "${{ parameters.environmentName }}"
+      - template: "vars/common.yaml"
+      - template: "vars/${{ lower(parameters.environmentName) }}.yaml"
     jobs:
       - deployment: TriggerPeeringPipeline
         environment:

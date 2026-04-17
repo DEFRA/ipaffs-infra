@@ -12,13 +12,15 @@ stages:
   - stage: ConfigureClassicNetworkDeployment
     displayName: Configure deployment
     variables:
-      - group: "${{ parameters.classicEnvironmentName }}"
+      - group: Common
       - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
         - group: HigherEnvs
       - ${{ else }}:
         - group: LowerEnvs
-      - template: "/pipelines/vars/common.yaml"
-      - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
+      - group: "${{ parameters.classicEnvironmentName }}"
+      - group: "${{ parameters.environmentName }}"
+      - template: "vars/common.yaml"
+      - template: "vars/${{ lower(parameters.environmentName) }}.yaml"
       - template: "/pipelines/vars/${{ lower(parameters.classicEnvironmentName) }}.yaml"
     jobs:
       - job: ConfigureBicep

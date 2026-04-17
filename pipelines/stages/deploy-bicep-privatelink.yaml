@@ -6,13 +6,14 @@ stages:
   - stage: ConfigurePrivateLinkDeployment
     displayName: Configure deployment
     variables:
-      - group: "${{ parameters.environmentName }}"
+      - group: Common
       - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
-          - group: HigherEnvs
+        - group: HigherEnvs
       - ${{ else }}:
-          - group: LowerEnvs
-      - template: "/pipelines/vars/common.yaml"
-      - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
+        - group: LowerEnvs
+      - group: "${{ parameters.environmentName }}"
+      - template: "vars/common.yaml"
+      - template: "vars/${{ lower(parameters.environmentName) }}.yaml"
     jobs:
       - job: ConfigureBicep
         displayName: Configure Bicep
@@ -48,13 +49,14 @@ stages:
   - stage: DeployPrivateLink
     displayName: Deploy Private Link
     variables:
-      - group: "${{ parameters.environmentName }}"
+      - group: Common
       - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
         - group: HigherEnvs
       - ${{ else }}:
         - group: LowerEnvs
-      - template: "/pipelines/vars/common.yaml"
-      - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
+      - group: "${{ parameters.environmentName }}"
+      - template: "vars/common.yaml"
+      - template: "vars/${{ lower(parameters.environmentName) }}.yaml"
     jobs:
       - deployment: RunBicep
         displayName: Run Bicep

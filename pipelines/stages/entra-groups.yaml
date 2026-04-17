@@ -8,9 +8,14 @@ stages:
       displayName: Lower Env User Groups
       condition: and(not(failed()), not(canceled()))
       variables:
+        - group: Common
+        - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
+          - group: HigherEnvs
+        - ${{ else }}:
+          - group: LowerEnvs
         - group: "${{ parameters.environmentName }}"
-        - template: "/pipelines/vars/common.yaml"
-        - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
+        - template: "vars/common.yaml"
+        - template: "vars/${{ lower(parameters.environmentName) }}.yaml"
       jobs:
         - job: TeamGroups
           displayName: Team Groups
@@ -228,9 +233,14 @@ stages:
       displayName: Higher Env User Groups
       condition: and(not(failed()), not(canceled()))
       variables:
+        - group: Common
+        - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
+          - group: HigherEnvs
+        - ${{ else }}:
+          - group: LowerEnvs
         - group: "${{ parameters.environmentName }}"
-        - template: "/pipelines/vars/common.yaml"
-        - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
+        - template: "vars/common.yaml"
+        - template: "vars/${{ lower(parameters.environmentName) }}.yaml"
       jobs:
         - job: TeamGroups
           displayName: Team Groups
@@ -336,13 +346,14 @@ stages:
       displayName: Create Common Entra Access Groups
       condition: and(not(failed()), not(canceled()))
       variables:
-        - group: "${{ parameters.environmentName }}"
-        - ${{ if eq(parameters.environmentName, 'PRD') }}:
+        - group: Common
+        - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
           - group: HigherEnvs
         - ${{ else }}:
           - group: LowerEnvs
-        - template: "/pipelines/vars/common.yaml"
-        - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
+        - group: "${{ parameters.environmentName }}"
+        - template: "vars/common.yaml"
+        - template: "vars/${{ lower(parameters.environmentName) }}.yaml"
       jobs:
         - job: ACRGroups
           displayName: ACR Groups
@@ -432,13 +443,14 @@ stages:
     displayName: Create Entra Access Groups
     condition: and(not(failed()), not(canceled()))
     variables:
-      - group: "${{ parameters.environmentName }}"
+      - group: Common
       - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
         - group: HigherEnvs
       - ${{ else }}:
         - group: LowerEnvs
-      - template: "/pipelines/vars/common.yaml"
-      - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
+      - group: "${{ parameters.environmentName }}"
+      - template: "vars/common.yaml"
+      - template: "vars/${{ lower(parameters.environmentName) }}.yaml"
     jobs:
       - job: DefraGroups
         displayName: Defra Groups
@@ -811,9 +823,14 @@ stages:
           - StorageGroups
           - SQLGroups
         variables:
+          - group: Common
+          - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
+            - group: HigherEnvs
+          - ${{ else }}:
+            - group: LowerEnvs
           - group: "${{ parameters.environmentName }}"
-          - template: "/pipelines/vars/common.yaml"
-          - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
+          - template: "vars/common.yaml"
+          - template: "vars/${{ lower(parameters.environmentName) }}.yaml"
           - name: defraCertificateReadersDisplayName
             value: $[dependencies.DefraGroups.outputs['DefraCertificateReaders.displayName']]
           - name: defraCertificateReadersObjectId
