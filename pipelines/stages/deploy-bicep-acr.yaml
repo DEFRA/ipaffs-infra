@@ -35,6 +35,12 @@ stages:
                     name: '$(acrPullGroupName)'
                   }
                 }
+                param subnets = {
+                  privateEndpoints: {
+                    id: '$(privateEndpointsSubnetId)'
+                    name: '$(privateEndpointsSubnetName)'
+                  }
+                }
                 EOF
                 cat '$(Build.SourcesDirectory)/25-acr-runtime.bicepparam'
 

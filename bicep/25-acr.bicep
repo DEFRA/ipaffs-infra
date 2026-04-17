@@ -7,6 +7,7 @@ param createdDate string = utcNow('yyyy-MM-dd')
 param deploymentId string = uniqueString(utcNow())
 param entraGroups object
 param location string = resourceGroup().location
+param subnets object
 
 var tags = union(loadJsonContent('default-tags.json'), {
   CreatedDate: createdDate
@@ -24,6 +25,7 @@ module acr './modules/acr.bicep' = {
     deploymentId: deploymentId
     entraGroups: entraGroups
     location: location
+    subnets: subnets
     tags: tags
   }
 }

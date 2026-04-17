@@ -18,6 +18,7 @@ stages:
       - ${{ else }}:
         - group: LowerEnvs
       - template: "/pipelines/vars/common.yaml"
+      - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
       - template: "/pipelines/vars/${{ lower(parameters.classicEnvironmentName) }}.yaml"
     jobs:
       - job: ConfigureBicep
@@ -49,6 +50,7 @@ stages:
                     name: '$(sqlAdminGroupName)'
                   }
                 }
+                param newVnetResourceId = '$(vnetResourceId)'
                 EOF
                 cat '$(Build.SourcesDirectory)/30-classic-runtime.bicepparam'
 

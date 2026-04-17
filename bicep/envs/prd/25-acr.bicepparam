@@ -3,6 +3,7 @@ using '../../25-acr.bicep'
 param environment = 'PRD'
 
 param entraGroups = {}
+param subnets = {}
 
 param acrParams = {
   name: 'PRDIMPINFAC1401'

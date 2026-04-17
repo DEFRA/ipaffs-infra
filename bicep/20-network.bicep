@@ -54,5 +54,6 @@ output appGatewayForContainersSubnetName string = first(filter(vnet.outputs.subn
 output privateEndpointsSubnetId string = first(filter(vnet.outputs.subnets, subnet => subnet.name == subnetNames.privateEndpoints)).id
 output privateEndpointsSubnetName string = first(filter(vnet.outputs.subnets, subnet => subnet.name == subnetNames.privateEndpoints)).name
 output vnetName string = vnet.outputs.vnetName
+output vnetResourceId string = vnet.outputs.vnetResourceId
 
 // vim: set ts=2 sts=2 sw=2 et:

@@ -5,7 +5,6 @@ param builtInGroups = {
   owners: '11111111-1111-1111-1111-111111111111' // AG-Azure-IMP_PRD1-Owners
 }
 
-param acrResourceId = ''
 param classicLocation = 'northeurope'
 param classicResourceIds = {}
 param entraGroups = {}

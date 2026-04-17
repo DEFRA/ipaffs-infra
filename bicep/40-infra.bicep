@@ -3,7 +3,6 @@ targetScope = 'resourceGroup'
 @allowed(['DEV', 'TST', 'PRE', 'PRD'])
 param environment string
 
-param acrResourceId string
 param builtInGroups object
 param classicLocation string
 param classicResourceIds object
@@ -36,18 +35,6 @@ param storageParams object
 
 resource vnet 'Microsoft.Network/virtualNetworks@2025-05-01' existing = {
   name: vnetName
-}
-
-module acrPrivateEndpoint './modules/acr-private-endpoint.bicep' = {
-  name: 'acrPrivateEndpoint-${deploymentId}'
-  scope: resourceGroup()
-  params: {
-    acrResourceId: acrResourceId
-    deploymentId: deploymentId
-    location: location
-    subnets: subnets
-    tags: tags
-  }
 }
 
 module aks './modules/aks.bicep' = {
@@ -84,18 +71,6 @@ module aso './modules/azure-service-operator.bicep' = {
     deploymentId: deploymentId
     oidcIssuerUrl: aks.outputs.oidcIssuerUrl
     location: location
-    tags: tags
-  }
-}
-
-module classicPrivateEndpoints './modules/classic-private-endpoints.bicep' = {
-  name: 'classicPrivateEndpoints-${deploymentId}'
-  scope: resourceGroup()
-  params: {
-    classicResourceIds: classicResourceIds
-    deploymentId: deploymentId
-    location: location
-    subnets: subnets
     tags: tags
   }
 }

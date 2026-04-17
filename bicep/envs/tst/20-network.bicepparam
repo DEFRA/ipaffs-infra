@@ -244,6 +244,7 @@ param vnetParams = {
     name: 'UDR-Spoke-Route-From-TSTIMPNETVN1401-01'
     virtualApplianceIp: '10.176.0.100'
   }
+  classicVnetResourceId: '/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTINFNETRGP001/providers/Microsoft.Network/virtualNetworks/TSTINFNETVNT001'
   principalsNeedingContributor: []
   subnets: [
     // AKS API Server, 14 usable addresses

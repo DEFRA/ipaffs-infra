@@ -4,6 +4,8 @@ param entraGroups = {}
 param environment = 'PRE'
 param tenantId = ''
 
+param newVnetResourceId = ''
+
 param principalsNeedingContributor = [
   '53a47ce7-dbaa-494e-8a87-54b13248ccd8' // ADO-DefraGovUK-AZR-IMP-PRE1 (ADO service connection)
 ]
@@ -69,6 +71,10 @@ param serviceBusParams = {
 
 param sqlParams = {
   serverName: 'preimpdbssqa001'
+}
+
+param vnetParams = {
+  name: 'PREINFNETVNT001'
 }
 
 // vim: set ts=2 sts=2 sw=2 et:

@@ -4,6 +4,7 @@ targetScope = 'resourceGroup'
 param environment string
 
 param entraGroups object
+param newVnetResourceId string
 
 param createdDate string = utcNow('yyyy-MM-dd')
 param deploymentId string = uniqueString(utcNow())
@@ -55,6 +56,7 @@ param searchParams object
 param sejParams object
 param sqlParams object
 param serviceBusParams object
+param vnetParams object
 
 var contributorRoleId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b24988ac-6180-42a0-ab88-20f7382dd24c')
 
@@ -149,6 +151,16 @@ module sql './modules/sql-classic.bicep' = {
     sqlParams: sqlParams
     tags: tags
     tenantId: tenantId
+  }
+}
+
+module vnet './modules/virtual-network-classic.bicep' = {
+  name: 'vnet-${deploymentId}'
+  scope: resourceGroup()
+  params: {
+    deploymentId: deploymentId
+    newVnetResourceId: newVnetResourceId
+    vnetParams: vnetParams
   }
 }
 

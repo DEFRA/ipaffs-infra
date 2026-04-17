@@ -59,9 +59,23 @@ resource vnet 'Microsoft.Network/virtualNetworks@2025-05-01' existing = {
   dependsOn: [virtualNetwork]
 }
 
-output vnetName string = virtualNetwork.outputs.name
-output vnetId string = virtualNetwork.outputs.resourceId
+resource classicPeering 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2025-05-01' = {
+  name: format('{0}-{1}', vnet.name, last(split(vnetParams.classicVnetResourceId, '/')))
+  parent: vnet
+  properties: {
+    allowForwardedTraffic: false
+    allowGatewayTransit: false
+    allowVirtualNetworkAccess: true
+    enableOnlyIPv6Peering: false
+    remoteVirtualNetwork: {
+      id: vnetParams.classicVnetResourceId
+    }
+  }
+}
+
 output subnetIds array = virtualNetwork.outputs.subnetResourceIds
 output subnets array = vnet.properties.subnets
+output vnetName string = virtualNetwork.outputs.name
+output vnetResourceId string = virtualNetwork.outputs.resourceId
 
 // vim: set ts=2 sts=2 sw=2 et:

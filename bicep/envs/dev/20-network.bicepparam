@@ -244,6 +244,7 @@ param vnetParams = {
     name: 'UDR-Spoke-Route-From-DEVIMPNETVN1401-01'
     virtualApplianceIp: '10.176.0.100'
   }
+  classicVnetResourceId: '/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Network/virtualNetworks/SNDINFNETVNT001'
   principalsNeedingContributor: [
     '08c384da-22b5-4974-924b-5016aa8d4aca' // ADO-DefraGovUK-AZR-IMP-SND1 (ADO service connection)
     '7b097afb-e281-4bc4-8086-c1ff4f47964b' // ADO-DefraGovUK-AZR-IMP-TST11 (ADO service connection)

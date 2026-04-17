@@ -3,6 +3,7 @@ using '../../25-acr.bicep'
 param environment = 'DEV'
 
 param entraGroups = {}
+param subnets = {}
 
 param acrParams = {
   name: 'DEVIMPINFAC1401'

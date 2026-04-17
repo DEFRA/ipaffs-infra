@@ -244,6 +244,7 @@ param vnetParams = {
     name: 'UDR-Spoke-Route-From-PREIMPNETVN1401-01'
     virtualApplianceIp: '10.176.0.100'
   }
+  classicVnetResourceId: '/subscriptions/81ca326e-6270-418a-b764-e02a4ca60457/resourceGroups/PREINFNETRGP001/providers/Microsoft.Network/virtualNetworks/PREINFNETVNT001'
   principalsNeedingContributor: []
   subnets: [
     // AKS API Server, 14 usable addresses

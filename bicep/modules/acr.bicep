@@ -4,6 +4,7 @@ param acrParams object
 param deploymentId string
 param entraGroups object
 param location string
+param subnets object
 param tags object
 
 resource acr 'Microsoft.ContainerRegistry/registries@2025-04-01' = {
@@ -17,6 +18,30 @@ resource acr 'Microsoft.ContainerRegistry/registries@2025-04-01' = {
 
   properties: {
     adminUserEnabled: acrParams.adminEnabled
+  }
+}
+
+resource acrPrivateEndpoint 'Microsoft.Network/privateEndpoints@2024-10-01' = {
+  name: format('{0}-{1}', acrParams.name, subnets.privateEndpoints.name)
+  location: location
+  tags: tags
+
+  properties: {
+    subnet: {
+      id: subnets.privateEndpoints.id
+    }
+
+    privateLinkServiceConnections: [
+      {
+        name: 'acr-connection'
+        properties: {
+          privateLinkServiceId: acr.id
+          groupIds: [
+            'registry'
+          ]
+        }
+      }
+    ]
   }
 }
 

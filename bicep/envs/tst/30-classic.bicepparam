@@ -4,6 +4,8 @@ param entraGroups = {}
 param environment = 'TST'
 param tenantId = ''
 
+param newVnetResourceId = ''
+
 param principalsNeedingContributor = [
   '7b097afb-e281-4bc4-8086-c1ff4f47964b' // ADO-DefraGovUK-AZR-IMP-TST11 (ADO service connection)
 ]
@@ -69,6 +71,10 @@ param serviceBusParams = {
 
 param sqlParams = {
   serverName: 'tstimpdbssqa001'
+}
+
+param vnetParams = {
+  name: 'TSTINFNETVNT001'
 }
 
 // vim: set ts=2 sts=2 sw=2 et:
