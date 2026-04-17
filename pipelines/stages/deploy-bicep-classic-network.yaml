@@ -38,7 +38,7 @@ stages:
                 cat <<- 'EOF' >'$(Build.SourcesDirectory)/35-classic-network-runtime.bicepparam'
                 using '35-classic-network.bicep'
                 extends 'envs/${{ lower(parameters.classicEnvironmentName) }}/35-classic-network.bicepparam'
-                param newVnetResourceId = '$(networkResourceId)'
+                param newVnetResourceId = '$(vnetResourceId)'
                 EOF
                 cat '$(Build.SourcesDirectory)/35-classic-network-runtime.bicepparam'
 
