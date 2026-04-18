@@ -1,0 +1,23 @@
+parameters:
+  - name: tags
+    type: object
+    default: []
+
+stages:
+  - stage: TagBuild
+    displayName: Tag Build
+    jobs:
+      - ${{ each tag in parameters.tags }}:
+        - job: Tag${{ tag }}
+          displayName: Set ${{ tag }} tag
+          pool: server
+          steps:
+            - task: InvokeRESTAPI@1
+              inputs:
+                serviceConnection: ADO-Generic-defragovuk
+                method: PUT
+                headers: >
+                  {"Content-Type": "application/json", "Authorization": "Bearer $(System.AccessToken)"}
+                urlSuffix: "/DEFRA-EUTD-IPAFFS/_apis/build/builds/$(Build.BuildId)/tags/${{ tag }}?api-version=6.0"
+
+# vim: set ts=2 sts=2 sw=2 et:
