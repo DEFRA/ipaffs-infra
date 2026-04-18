@@ -50,6 +50,21 @@ variables:
   - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
 
 stages:
+  - stage: TagBuild
+    displayName: Tag Build
+    jobs:
+      - job: TagBuild
+        displayName: Tag build
+        pool: server
+        steps:
+          - task: InvokeRESTAPI@1
+            inputs:
+              serviceConnection: ADO-Generic-defragovuk
+              method: PUT
+              headers: >
+                {"Content-Type": "application/json", "Authorization": "Bearer $(System.AccessToken)"}
+              urlSuffix: "/DEFRA-EUTD-IPAFFS/_apis/build/builds/$(Build.BuildId)/tags/Environment-${{ parameters.environmentName }}?api-version=6.0"
+
   - template: stages/deploy-bicep-resource-group.yaml
     parameters:
       environmentName: ${{ parameters.environmentName }}
