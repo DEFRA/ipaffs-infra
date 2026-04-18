@@ -36,18 +36,19 @@ parameters:
     type: string
     default: master
 
+variables:
+  - group: Common
+  - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
+      - group: HigherEnvs
+  - ${{ else }}:
+      - group: LowerEnvs
+  - group: "${{ parameters.environmentName }}"
+  - template: "/pipelines/vars/common.yaml"
+  - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
+
 stages:
   - stage: DetectContainerBuild
     displayName: Detect Container Build Requirement
-    variables:
-      - group: Common
-      - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
-          - group: HigherEnvs
-      - ${{ else }}:
-          - group: LowerEnvs
-      - group: "${{ parameters.environmentName }}"
-      - template: "/pipelines/vars/common.yaml"
-      - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
 
     jobs:
       - job: DetermineBuildMode
