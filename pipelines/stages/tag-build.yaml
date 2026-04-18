@@ -8,7 +8,7 @@ stages:
     displayName: Tag Build
     jobs:
       - ${{ each tag in parameters.tags }}:
-        - job: Tag${{ tag }}
+        - job: Tag${{ replace(tag, '-', '_') }}
           displayName: Set ${{ tag }} tag
           pool: server
           steps:
