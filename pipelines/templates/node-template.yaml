@@ -136,6 +136,14 @@ stages:
         - DetectContainerBuild
         - PackageService
       variables:
+        - group: Common
+        - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
+            - group: HigherEnvs
+        - ${{ else }}:
+            - group: LowerEnvs
+        - group: "${{ parameters.environmentName }}"
+        - template: "/pipelines/vars/common.yaml"
+        - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
         - name: skipContainerBuild
           value: $[ stageDependencies.DetectContainerBuild.DetermineBuildMode.outputs['SetBuildMode.skipContainerBuild'] ]
       condition: and(
