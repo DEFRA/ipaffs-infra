@@ -42,6 +42,11 @@ variables:
   - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
 
 stages:
+  - template: stages/tag-build.yaml
+    parameters:
+      tags:
+        - Environment-${{ parameters.environmentName }}
+
   - template: stages/import-acr-artifacts.yaml
     parameters:
       environmentName: ${{ parameters.environmentName }}

@@ -38,6 +38,11 @@ variables:
   - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
 
 stages:
+  - template: stages/tag-build.yaml
+    parameters:
+      tags:
+        - Environment-${{ parameters.environmentName }}
+
   - template: stages/infra-permissions.yaml
     parameters:
       environmentName: ${{ parameters.environmentName }}

@@ -46,6 +46,11 @@ resources:
       ref: feature/v6-optional-subscription-for-private-endpoint-records
 
 stages:
+  - template: stages/tag-build.yaml
+    parameters:
+      tags:
+        - Environment-${{ parameters.environmentName }}
+
   - template: stages/entra-groups.yaml
     parameters:
       environmentName: ${{ parameters.environmentName }}

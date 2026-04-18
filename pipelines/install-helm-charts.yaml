@@ -46,6 +46,11 @@ variables:
       value: '--dry-run'
 
 stages:
+  - template: stages/tag-build.yaml
+    parameters:
+      tags:
+        - Environment-${{ parameters.environmentName }}
+
   - template: stages/install-helm-charts.yaml
     parameters:
       environmentName: ${{ parameters.environmentName }}

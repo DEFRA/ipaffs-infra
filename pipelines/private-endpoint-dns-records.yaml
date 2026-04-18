@@ -46,6 +46,11 @@ resources:
 
 
 stages:
+  - template: stages/tag-build.yaml
+    parameters:
+      tags:
+        - Environment-${{ parameters.environmentName }}
+
   - template: stages/private-endpoint-dns-records.yaml
     parameters:
       environmentName: ${{ parameters.environmentName }}
