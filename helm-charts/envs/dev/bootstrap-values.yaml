@@ -66,6 +66,6 @@ externalSecret:
   secrets: []
   certs:
     - secretKey: star-azure-defra-cloud-cert
-      remoteKey: cert/star-azure-defra-cloud-cert
+      remoteKey: secret/star-azure-defra-cloud-cert
 
 # vim: set ts=2 sts=2 sw=2 et:
