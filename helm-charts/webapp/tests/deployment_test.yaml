@@ -49,6 +49,7 @@ tests:
       container.image: test/image:1.0.0
       redis.enabled: true
       serviceBus.enabled: true
+      serviceBus.useSecrets: true
       externalSecret.enabled: true
     documentIndex: 1
     asserts:

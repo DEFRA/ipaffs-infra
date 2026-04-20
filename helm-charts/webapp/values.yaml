@@ -28,6 +28,7 @@ redis:
 
 serviceBus:
   enabled: false
+  useSecrets: false
 
 storage:
   accountName: ""
