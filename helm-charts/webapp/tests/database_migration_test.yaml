@@ -62,6 +62,7 @@ tests:
       database.migrations.image: test/migrations:1.0.0
       database.migrations.clientId: 00000000-0000-0000-0000-000000000002
       serviceBus.enabled: true
+      serviceBus.useSecrets: true
       externalSecret.enabled: true
       redis.enabled: true
       search.enabled: true
