@@ -19,10 +19,12 @@ spec:
     - Listen
     - Manage
   operatorSpec:
+    {{- if .Values.serviceBus.useSecrets }}
     secrets:
       primaryConnectionString:
         name: {{ printf "%s-servicebus" .Values.service }}
         key: SERVICE_BUS_CONNECTION_STRING
+    {{- end }}
 
 {{- end }}
 

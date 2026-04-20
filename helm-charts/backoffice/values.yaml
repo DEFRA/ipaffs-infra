@@ -16,6 +16,7 @@ redis:
 
 serviceBus:
   enabled: false
+  useSecrets: false
 
 secretStore:
   name: "external-secrets-azure"
