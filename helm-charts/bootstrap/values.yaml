@@ -19,6 +19,7 @@ externalSecret:
   enabled: false
   refreshInterval: ""
   secrets: []
+  certs: []
 
 originIngress:
   annotations:

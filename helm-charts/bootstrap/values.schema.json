@@ -56,6 +56,24 @@
               "remoteKey"
             ]
           }
+        },
+        "certs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "secretKey": {
+                "type": "string"
+              },
+              "remoteKey": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "secretKey",
+              "remoteKey"
+            ]
+          }
         }
       }
     },
