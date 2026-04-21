@@ -20,8 +20,10 @@ Ingress hosts for Azure Front Door origins
 */}}
 {{- define "ipaffs-common.ingressOriginHosts" -}}
   {{- $suffix := eq $.Release.Namespace $.Values.environment | ternary "" (printf "-%s" $.Release.Namespace) -}}
-  {{- printf "importnotification-%s%s.azure.defra.cloud" $.Values.environment $suffix }}
-  {{- printf "importnotification-%s%s-new.azure.defra.cloud" $.Values.environment $suffix }}
+  {{- $hosts := list -}}
+  {{- $hosts = append $hosts (printf "importnotification-%s%s.azure.defra.cloud" $.Values.environment $suffix) -}}
+  {{- $hosts = append $hosts (printf "importnotification-%s%s-new.azure.defra.cloud" $.Values.environment $suffix) -}}
+  {{- $hosts | join "\n" -}}
 {{- end }}
 
 {{/* vim: set ts=2 sts=2 sw=2 et: */}}
