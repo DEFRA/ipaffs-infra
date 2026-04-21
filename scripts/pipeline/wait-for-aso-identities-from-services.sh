@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -euo pipefail
+set -euxo pipefail
 
 : "${NAMESPACE:?NAMESPACE is required}"
 : "${RESOURCE_GROUP_NAME:?RESOURCE_GROUP_NAME is required}"
