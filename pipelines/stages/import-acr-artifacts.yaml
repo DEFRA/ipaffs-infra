@@ -169,7 +169,7 @@ stages:
                         --name $(acrName) \
                         --subscription $(subscriptionName) \
                         --source docker.io/defradigital/java:jre-21 \
-                        --image liquibase/defradigital/java:jre-21 \
+                        --image defradigital/java:jre-21 \
                         --username $(dockerHubUser) \
                         --password $(dockerHubToken) \
                         --force \
@@ -186,7 +186,7 @@ stages:
                         --name $(acrName) \
                         --subscription $(subscriptionName) \
                         --source docker.io/defradigital/node:latest-24 \
-                        --image liquibase/defradigital/node:latest-24 \
+                        --image defradigital/node:latest-24 \
                         --username $(dockerHubUser) \
                         --password $(dockerHubToken) \
                         --force \
