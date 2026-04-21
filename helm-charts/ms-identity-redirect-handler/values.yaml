@@ -2,7 +2,7 @@ environment: dev
 replicas: 3
 
 container:
-  image: ipaffs/redirect-handler
+  image: manicminer/ms-identity-redirect-handler
   imagePullPolicy: Always
 
 # vim: set ts=2 sts=2 sw=2 et:
