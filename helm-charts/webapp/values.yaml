@@ -40,6 +40,8 @@ database:
   sqlServerName: ""
   databaseNames: []
   principalName: ""
+  legacyManagedIdentityUser: ""
+  legacyBaseServiceDbUserAd: ""
   migrations:
     clientId: ""
     managedIdentityName: ""
