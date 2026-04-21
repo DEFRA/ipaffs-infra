@@ -176,23 +176,6 @@ stages:
                         --verbose
 
                 - task: AzureCLI@2
-                  displayName: Import defradigital/java:jre-21
-                  inputs:
-                    azureSubscription: $(serviceConnection)
-                    scriptType: bash
-                    scriptLocation: inlineScript
-                    inlineScript: |
-                      az acr import \
-                        --name $(acrName) \
-                        --subscription $(subscriptionName) \
-                        --source docker.io/defradigital/java:jre-21 \
-                        --image liquibase/defradigital/java:jre-21 \
-                        --username $(dockerHubUser) \
-                        --password $(dockerHubToken) \
-                        --force \
-                        --verbose
-
-                - task: AzureCLI@2
                   displayName: Import defradigital/node
                   inputs:
                     azureSubscription: $(serviceConnection)
