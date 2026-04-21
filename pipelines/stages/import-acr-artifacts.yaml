@@ -141,4 +141,55 @@ stages:
                         --force \
                         --verbose
 
+                - task: AzureCLI@2
+                  displayName: Import liquibase/liquibase
+                  inputs:
+                    azureSubscription: $(serviceConnection)
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      az acr import \
+                        --name $(acrName) \
+                        --subscription $(subscriptionName) \
+                        --source docker.io/liquibase/liquibase:4.33.0 \
+                        --image liquibase/liquibase:4.33.0 \
+                        --username $(dockerHubUser) \
+                        --password $(dockerHubToken) \
+                        --force \
+                        --verbose
+
+                - task: AzureCLI@2
+                  displayName: Import defradigital/java:jre-21
+                  inputs:
+                    azureSubscription: $(serviceConnection)
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      az acr import \
+                        --name $(acrName) \
+                        --subscription $(subscriptionName) \
+                        --source docker.io/defradigital/java:jre-21 \
+                        --image liquibase/defradigital/java:jre-21 \
+                        --username $(dockerHubUser) \
+                        --password $(dockerHubToken) \
+                        --force \
+                        --verbose
+
+                - task: AzureCLI@2
+                  displayName: Import defradigital/node
+                  inputs:
+                    azureSubscription: $(serviceConnection)
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      az acr import \
+                        --name $(acrName) \
+                        --subscription $(subscriptionName) \
+                        --source docker.io/defradigital/node:latest-24 \
+                        --image liquibase/defradigital/node:latest-24 \
+                        --username $(dockerHubUser) \
+                        --password $(dockerHubToken) \
+                        --force \
+                        --verbose
+
 # vim: set ts=2 sts=2 sw=2 et:
