@@ -22,7 +22,11 @@ Ingress hosts for Azure Front Door origins
   {{- $suffix := eq $.Release.Namespace $.Values.environment | ternary "" (printf "-%s" $.Release.Namespace) -}}
   {{- $hosts := list -}}
   {{- $hosts = append $hosts (printf "importnotification-%s%s.azure.defra.cloud" $.Values.environment $suffix) -}}
+  {{- $hosts = append $hosts (printf "importnotification-int-%s%s.azure.defra.cloud" $.Values.environment $suffix) -}}
+  {{- $hosts = append $hosts (printf "importnotification-api-%s%s.azure.defra.cloud" $.Values.environment $suffix) -}}
   {{- $hosts = append $hosts (printf "importnotification-%s%s-new.azure.defra.cloud" $.Values.environment $suffix) -}}
+  {{- $hosts = append $hosts (printf "importnotification-int-%s%s-new.azure.defra.cloud" $.Values.environment $suffix) -}}
+  {{- $hosts = append $hosts (printf "importnotification-api-%s%s-new.azure.defra.cloud" $.Values.environment $suffix) -}}
   {{- $hosts | join "\n" -}}
 {{- end }}
 
