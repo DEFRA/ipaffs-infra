@@ -95,12 +95,14 @@ spec:
               value: {{ .Values.storage.accountName | quote }}
           {{- end }}
             - name: BASE_SERVICE_DB_USER_AD
+              value:
               {{- if .Values.database.legacyBaseServiceDbUserAd }}
                 {{ .Values.database.legacyBaseServiceDbUserAd | quote }}
               {{- else }}
                 {{ include "webapp.azure.servicePrincipalName" . | quote }}
               {{- end }}
             - name: MANAGED_IDENTITY_USER
+              value:
               {{- if .Values.database.legacyManagedIdentityUser }}
                 {{ .Values.database.legacyManagedIdentityUser | quote }}
               {{- else }}
