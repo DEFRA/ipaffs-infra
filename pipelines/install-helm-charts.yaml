@@ -6,6 +6,10 @@ trigger:
   paths:
     include:
       - helm-charts/*-values.yaml
+      - helm-charts/app-routing-controller/**
+      - helm-charts/azure-service-operator-config/**
+      - helm-charts/external-secrets-azure/**
+      - helm-charts/ms-identity-redirect-handler/**
       - pipelines/install-helm-charts.yaml
       - pipelines/stages/install-helm-charts.yaml
 
@@ -16,6 +20,10 @@ pr:
   paths:
     include:
       - helm-charts/*-values.yaml
+      - helm-charts/app-routing-controller/**
+      - helm-charts/azure-service-operator-config/**
+      - helm-charts/external-secrets-azure/**
+      - helm-charts/ms-identity-redirect-handler/**
       - pipelines/install-helm-charts.yaml
       - pipelines/stages/install-helm-charts.yaml
 
