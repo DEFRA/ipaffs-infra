@@ -1,13 +1,10 @@
 ---
 service: "bootstrap"
 project: ipaffs
-environment: tst
+environment: pre
 
 azure:
   location: uksouth
-  sqlServer: tstimpdbssqa001
-  sqlServerHostname: tstimpdbssqa001.database.windows.net
-  serviceBusNamespace: tstimpinfsbs002
 
 serviceBus:
   queues: []
