@@ -1,0 +1,56 @@
+---
+service: "bootstrap"
+project: ipaffs
+environment: pre
+
+azure:
+  location: uksouth
+
+serviceBus:
+  queues: []
+  topics: []
+
+storageAccount:
+  blobService:
+    containers: []
+
+ipaffsConfig:
+  data:
+    JWT_AUDIENCE: "a2617985-5645-47ec-8912-7a943b3895ba"
+    JWT_CLIENT_ID: "a2617985-5645-47ec-8912-7a943b3895ba"
+    JWT_CERT_ISSUER: "api://proxy"
+    JWT_JWKS: "http://proxy/common/discovery/keys"
+    JWT_WELL_KNOWNS: "http://proxy/.well-known/openid-configuration"
+    ENV_DOMAIN: ""
+    MDM_SERVICE_URL: "https://pre-internal-gateway.trade.azure.defra.cloud"
+    TRADE_PLATFORM_EHC_URL: "https://pre-internal-gateway.trade.azure.defra.cloud"
+    TRADE_PLATFORM_AUTH_URL: "https://login.microsoftonline.com/9e1ba897-3a49-4461-b406-377db4ec2959/oauth2/v2.0/token"
+    TRADE_PLATFORM_CLIENT_ID: "7bff75e6-913e-479d-bc6e-eac32af4433b"
+    TRADE_PLATFORM_SCOPE: "api://pre-futuretrade-int.defra.gov.uk/.default"
+    FILE_STORE_API_AUTH_URL: "https://login.microsoftonline.com/9e1ba897-3a49-4461-b406-377db4ec2959/oauth2/v2.0/token"
+    FILE_STORE_API_CLIENT_ID: "7bff75e6-913e-479d-bc6e-eac32af4433b"
+    FILE_STORE_API_SCOPE: "api://pre-futuretrade-ext.defra.gov.uk/.default"
+    FILE_STORE_API_URL:  "https://pre-gateway.trade.azure.defra.cloud/trade-file-store/v1/"
+    TDS_ACTIVITY_TYPES_URL: "https://pre-gateway.trade.azure.defra.cloud/graphql/v1"
+    TDS_AE_SEARCH_URL: "https://pre-gateway.trade.azure.defra.cloud/graphql/v1"
+    TDS_CLIENT_ID: "0fa149e1-51f8-4a57-83c6-ed4d8ee9fba5"
+    TDS_SCOPE: "https://azptrdpre1.onmicrosoft.com/Trade.RDS/.default"
+    TDS_TOKEN_URL: "https://login.microsoftonline.com/AZPTRDPRE1.onmicrosoft.com/oauth2/v2.0/token"
+    EVENT_HUB_ENVIRONMENT: "PRE-BLUE"
+    EVENT_HUB_KEY_NAME: "QRADAR_APP"
+    EVENT_HUB_NAME: "insights-application-logs"
+    EVENT_HUB_NAMESPACE: "PREIMPSOCENS001"
+    MONITORING_TYPE: "event-hub"
+    B2B_CUSTOMER_USER_ID: "edee7058-7f46-e911-a95a-000d3ab6488a"
+    REMOTE_DEBUG: "true"
+    PROTOCOL: "http"
+
+externalSecret:
+  enabled: true
+  refreshInterval: 1h
+  secrets: []
+  certs:
+    - secretKey: ipaffs-tls
+      remoteKey: secret/star-azure-defra-cloud-cert
+
+# vim: set ts=2 sts=2 sw=2 et:
