@@ -1,12 +1,8 @@
 using '../../40-infra.bicep'
 
 param builtInGroups = {
-  //contributors: '00000000-0000-0000-0000-000000000000' // AG-Azure-IMP_PRE1-Contributors
-  //owners: '11111111-1111-1111-1111-111111111111' // AG-Azure-IMP_PRE1-Owners
-
-  // TODO: temporarily using TST access groups and will revoke/switch when PRE groups are created
-  contributors: '89d5f0bd-ba3d-4779-95b6-66bf7f0ef487' // AG-Azure-IMP_TST1-Contributors
-  owners: '8c073ada-277c-4716-a666-fb7470806d58' // AG-Azure-IMP_TST1-Owners
+  contributors: '80a5fda0-7d36-4c3a-a5de-44a6a525fd2d' // AG-Azure-IMP_PRE1-Contributors
+  owners: '400ebb88-9bab-427b-b282-86e9bcc010ab' // AG-Azure-IMP_PRE1-Owners
 }
 
 param classicLocation = 'northeurope'
