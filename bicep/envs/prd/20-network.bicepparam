@@ -245,7 +245,9 @@ param vnetParams = {
     virtualApplianceIp: '10.176.0.100'
   }
   classicVnetResourceId: '/subscriptions/79ee8c9c-33d7-4074-9f4c-a13f07c62a33/resourceGroups/PRDINFNETRGP001/providers/Microsoft.Network/virtualNetworks/PRDINFNETVNT001'
-  principalsNeedingContributor: []
+  principalsNeedingContributor: [
+    '6ab71598-0565-4705-bb77-5070ea4916cb' // ADO-DefraGovUK-AZR-PRD_IMP (ADO service connection)
+  ]
   subnets: [
     // AKS API Server, 14 usable addresses
     {
@@ -260,6 +262,9 @@ param vnetParams = {
         }
       ]
       serviceEndpoints: [
+        {
+          service: 'Microsoft.ContainerRegistry'
+        }
         {
           service: 'Microsoft.KeyVault'
         }
@@ -276,6 +281,9 @@ param vnetParams = {
       addressPrefix: '10.179.140.16/28'
       delegations: []
       serviceEndpoints: [
+        {
+          service: 'Microsoft.ContainerRegistry'
+        }
         {
           service: 'Microsoft.KeyVault'
         }
@@ -322,6 +330,9 @@ param vnetParams = {
       addressPrefix: '10.179.142.0/24'
       delegations: []
       serviceEndpoints: [
+        {
+          service: 'Microsoft.ContainerRegistry'
+        }
         {
           service: 'Microsoft.KeyVault'
         }
