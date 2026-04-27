@@ -24,5 +24,8 @@ externalSecret:
 originIngress:
   annotations:
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      proxy_set_header X-Original-Host $host;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
 
 # vim: set ts=2 sts=2 sw=2 et:
