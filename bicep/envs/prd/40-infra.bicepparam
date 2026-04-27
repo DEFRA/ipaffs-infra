@@ -1,8 +1,8 @@
 using '../../40-infra.bicep'
 
 param builtInGroups = {
-  contributors: '00000000-0000-0000-0000-000000000000' // AG-Azure-IMP_PRD1-Contributors
-  owners: '11111111-1111-1111-1111-111111111111' // AG-Azure-IMP_PRD1-Owners
+  contributors: 'b64aa742-daaf-4b7a-ab71-e7fd9e93905e' // AG-Azure-IMP_PRD1-Contributors
+  owners: '3b6d27b3-b49b-44ad-8fc1-75bbf4d5c3fd' // AG-Azure-IMP_PRD1-Owners
 }
 
 param classicLocation = 'northeurope'
