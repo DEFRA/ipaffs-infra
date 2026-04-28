@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -ux
+set -u
 
 TOKEN="$(az account get-access-token --scope https://graph.microsoft.com/.default --query accessToken -o tsv)"
 [[ $? -ne 0 ]] && exit 1

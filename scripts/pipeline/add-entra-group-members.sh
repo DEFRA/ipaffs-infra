@@ -66,7 +66,12 @@ EOF
 groupResult="$(curl -X PATCH -H "Authorization: Bearer ${TOKEN}" -H "Content-Type: application/json; charset=utf-8" -d "${groupJson}" "https://graph.microsoft.com/v1.0/groups/${groupObjectId}")"
 [[ $? -ne 0 ]] && exit 1
 errorCode="$(jq -r '.error.code' <<<"${groupResult}")"
-[[ "${errorCode}" == "null" ]] || [[ "${errorCode}" == "" ]] || exit 1
+if [[ "${errorCode}" != "null" ]] && [[ "${errorCode}" != "" ]]; then
+  logInfo "Group update failed: $(jq -c '.error' <<<"${groupResult}")"
+  exit 1
+fi
+
+logInfo "Successfully added requested members to group '${groupObjectId}'"
 
 exit 0
 
