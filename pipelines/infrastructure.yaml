@@ -68,7 +68,7 @@ stages:
         parameters:
           environmentName: ${{ parameters.environmentName }}
 
-  - ${{ if or(eq(parameters.environmentName, 'DEV'), eq(parameters.environmentName, 'PRD')) }}:
+  - ${{ if or(eq(parameters.environmentName, 'DEV'), eq(parameters.environmentName, 'PRE')) }}:
       - template: stages/deploy-bicep-acr.yaml
         parameters:
           environmentName: ${{ parameters.environmentName }}

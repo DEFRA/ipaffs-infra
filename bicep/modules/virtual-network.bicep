@@ -1,6 +1,7 @@
 targetScope = 'resourceGroup'
 
 param deploymentId string
+param environment string
 param location string
 param tags object
 param vnetParams object
@@ -59,7 +60,7 @@ resource vnet 'Microsoft.Network/virtualNetworks@2025-05-01' existing = {
   dependsOn: [virtualNetwork]
 }
 
-resource classicPeering 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2025-05-01' = {
+resource classicPeering 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2025-05-01' = if (environment != 'PRD') {
   name: format('{0}-{1}', vnet.name, last(split(vnetParams.classicVnetResourceId, '/')))
   parent: vnet
   properties: {
