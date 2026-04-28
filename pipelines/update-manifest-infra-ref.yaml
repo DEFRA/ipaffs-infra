@@ -1,0 +1,143 @@
+trigger:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - pipelines/jobs/deploy-chart.yaml
+      - pipelines/stages/tag-build.yaml
+      - pipelines/vars/**
+      - pipelines/update-manifest-infra-ref.yaml
+      - scripts/pipeline/add-principal-to-group.sh
+      - scripts/pipeline/create-identity.sh
+      - scripts/pipeline/deploy-identities-from-services.sh
+      - scripts/pipeline/update-manifest-infra-ref.sh
+      - scripts/pipeline/wait-for-aso-identities-from-services.sh
+      - scripts/pipeline/wait-for-group-membership.sh
+
+pr: none
+
+pool:
+  name: 'DEFRA-COMMON-ubuntu2204-SSV5'
+
+resources:
+  repositories:
+    - repository: ipaffs-manifest
+      type: github
+      endpoint: DEFRA
+      name: DEFRA/ipaffs-manifest
+      ref: refs/heads/master
+
+parameters:
+  - name: infraTagPrefix
+    type: string
+    default: ipaffs-infra-pin
+
+stages:
+  - stage: UpdateManifestInfraPin
+    displayName: Update ipaffs-manifest ipaffs-infra ref
+    condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+    jobs:
+      - job: UpdateManifestInfraPin
+        displayName: Pin manifest to ipaffs-infra tag
+        steps:
+          - checkout: self
+            path: s/ipaffs-infra
+            persistCredentials: true
+            clean: true
+
+          - checkout: ipaffs-manifest
+            path: s/ipaffs-manifest
+            persistCredentials: true
+
+          - task: Bash@3
+            name: ResolveInfraTag
+            displayName: Create or resolve infra pin tag
+            env:
+              INFRA_TAG_PREFIX: "${{ parameters.infraTagPrefix }}"
+              SOURCE_VERSION: "$(Build.SourceVersion)"
+            inputs:
+              targetType: inline
+              workingDirectory: $(Pipeline.Workspace)/s/ipaffs-infra
+              script: |
+                set -euo pipefail
+
+                if ! [[ "${SOURCE_VERSION}" =~ ^[0-9a-f]{40}$ ]]; then
+                  echo "Build.SourceVersion is not a commit SHA: ${SOURCE_VERSION}" >&2
+                  exit 1
+                fi
+
+                short_sha="${SOURCE_VERSION:0:12}"
+                infra_tag="${INFRA_TAG_PREFIX}-${short_sha}"
+                infra_ref="refs/tags/${infra_tag}"
+
+                git fetch --tags origin
+
+                if git ls-remote --exit-code --tags origin "refs/tags/${infra_tag}" >/dev/null 2>&1; then
+                  echo "Tag already exists: ${infra_tag}"
+                else
+                  git tag "${infra_tag}" "${SOURCE_VERSION}"
+                  git push origin "refs/tags/${infra_tag}"
+                fi
+
+                echo "Using infra ref: ${infra_ref}"
+                echo "##vso[task.setvariable variable=infraTag;isOutput=true]${infra_tag}"
+                echo "##vso[task.setvariable variable=infraRef;isOutput=true]${infra_ref}"
+
+          - task: Bash@3
+            name: ResolveManifestBranch
+            displayName: Resolve and checkout manifest branch
+            inputs:
+              targetType: inline
+              workingDirectory: $(Pipeline.Workspace)/s/ipaffs-manifest
+              script: |
+                set -euo pipefail
+
+                target_manifest_branch="master"
+
+                git fetch origin
+
+                if ! git ls-remote --exit-code --heads origin "${target_manifest_branch}" >/dev/null; then
+                  echo "Manifest branch '${target_manifest_branch}' does not exist" >&2
+                  exit 1
+                fi
+
+                git checkout -B "${target_manifest_branch}" "origin/${target_manifest_branch}"
+                echo "##vso[task.setvariable variable=targetManifestBranch;isOutput=true]${target_manifest_branch}"
+
+          - task: Bash@3
+            displayName: Update manifest ipaffs-infra refs
+            env:
+              MANIFEST_ROOT: "$(Pipeline.Workspace)/s/ipaffs-manifest"
+              INFRA_REF: "$(ResolveInfraTag.infraRef)"
+            inputs:
+              targetType: filePath
+              filePath: $(Pipeline.Workspace)/s/ipaffs-infra/scripts/pipeline/update-manifest-infra-ref.sh
+              workingDirectory: $(Pipeline.Workspace)/s/ipaffs-infra
+
+          - task: Bash@3
+            displayName: Commit and push manifest ref pin
+            env:
+              MANIFEST_BRANCH: "$(ResolveManifestBranch.targetManifestBranch)"
+              INFRA_TAG: "$(ResolveInfraTag.infraTag)"
+            inputs:
+              targetType: inline
+              workingDirectory: $(Pipeline.Workspace)/s/ipaffs-manifest
+              script: |
+                set -euo pipefail
+
+                git config user.name "IPAFFS CI Bot"
+                git config user.email "ipaffs-ci-bot@defra.gov.uk"
+
+                git add pipeline.yaml release-pipeline.yaml
+
+                if git diff --cached --quiet; then
+                  echo "No ipaffs-manifest ref changes detected"
+                  exit 0
+                fi
+
+                git commit -m "Pin ipaffs-infra ref to ${INFRA_TAG}"
+                git pull --rebase origin "${MANIFEST_BRANCH}"
+                git push origin "HEAD:${MANIFEST_BRANCH}"
+
+# vim: set ts=2 sts=2 sw=2 et:
