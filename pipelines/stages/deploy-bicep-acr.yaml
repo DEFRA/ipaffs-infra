@@ -141,9 +141,9 @@ stages:
       - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
       - name: adoGroupName
         ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
-          - value: HigherEnvs
+          value: HigherEnvs
         ${{ else }}:
-          - value: LowerEnvs
+          value: LowerEnvs
     jobs:
       - job: StoreLibraryVariables
         displayName: Store library variables
