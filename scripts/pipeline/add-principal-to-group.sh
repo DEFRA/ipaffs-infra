@@ -185,7 +185,7 @@ attempt=0
 last_error=""
 
 while (( attempt < max_attempts )); do
-  (( attempt++ ))
+  (( ++attempt ))
 
   set +e
   RESULT="$(az ad group member add -g "${GROUP_ID}" --member-id "${PRINCIPAL_ID}" 2>&1)"
