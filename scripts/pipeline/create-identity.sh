@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -eux
+set -eu
 
 az identity create --subscription "${SUBSCRIPTION_NAME}" --name "${MANAGED_IDENTITY_NAME}" --resource-group "${RESOURCE_GROUP_NAME}"
 CLIENT_ID="$(az identity show --subscription "${SUBSCRIPTION_NAME}" --name "${MANAGED_IDENTITY_NAME}" --resource-group "${RESOURCE_GROUP_NAME}" --query clientId --output tsv)"

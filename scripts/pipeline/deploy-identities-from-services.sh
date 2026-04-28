@@ -16,6 +16,27 @@ lower_resource_group_name="$(echo "${RESOURCE_GROUP_NAME}" | tr '[:upper:]' '[:l
 wait_pids=()
 wait_descriptions=()
 
+cleanup_wait_jobs() {
+  local pid
+
+  for pid in "${wait_pids[@]}"; do
+    if kill -0 "${pid}" 2>/dev/null; then
+      kill "${pid}" 2>/dev/null || true
+      wait "${pid}" 2>/dev/null || true
+    fi
+  done
+}
+
+on_exit_cleanup() {
+  local status=$?
+
+  if [[ ${status} -ne 0 ]]; then
+    cleanup_wait_jobs
+  fi
+}
+
+trap on_exit_cleanup EXIT
+
 queue_group_membership_wait() {
   local group_id="$1"
   local principal_id="$2"
