@@ -103,6 +103,7 @@ printGroupDebug() {
   local ownerSample=
   local ownerCount=
   local callerIsOwner=
+  local ownerRefStatus=
 
   groupSummary="$(runWithXtraceHidden curl -s -H "Authorization: Bearer ${token}" "https://graph.microsoft.com/v1.0/groups/${groupObjectId}?\$select=id,displayName,mailEnabled,securityEnabled,isAssignableToRole,groupTypes")"
   if [[ $? -eq 0 ]] && [[ -n "${groupSummary}" ]]; then
@@ -134,6 +135,28 @@ printGroupDebug() {
     fi
   else
     logInfo "Failed to query group owners for '${groupObjectId}'"
+  fi
+
+  if [[ -n "${callerObjectId}" ]]; then
+    ownerRefStatus="$(runWithXtraceHidden curl -w '%{http_code}' -s -o /dev/null -H "Authorization: Bearer ${token}" "https://graph.microsoft.com/v1.0/groups/${groupObjectId}/owners/${callerObjectId}/\$ref")"
+    if [[ $? -eq 0 ]]; then
+      case "${ownerRefStatus}" in
+        200)
+          logInfo "Direct owner ref check: caller '${callerObjectId}' IS an owner of group '${groupObjectId}' (HTTP 200)"
+          ;;
+        404)
+          logInfo "Direct owner ref check: caller '${callerObjectId}' is NOT an owner of group '${groupObjectId}' (HTTP 404)"
+          ;;
+        403)
+          logInfo "Direct owner ref check for caller '${callerObjectId}' on group '${groupObjectId}' was denied (HTTP 403)"
+          ;;
+        *)
+          logInfo "Direct owner ref check for caller '${callerObjectId}' on group '${groupObjectId}' returned HTTP ${ownerRefStatus}"
+          ;;
+      esac
+    else
+      logInfo "Direct owner ref check failed for caller '${callerObjectId}' on group '${groupObjectId}'"
+    fi
   fi
 }
 
