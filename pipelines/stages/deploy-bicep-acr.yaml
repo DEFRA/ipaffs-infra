@@ -139,6 +139,11 @@ stages:
       - group: "${{ parameters.environmentName }}"
       - template: "/pipelines/vars/common.yaml"
       - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
+      - name: adoGroupName
+        ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
+          - value: HigherEnvs
+        ${{ else }}:
+          - value: LowerEnvs
     jobs:
       - job: StoreLibraryVariables
         displayName: Store library variables
@@ -152,7 +157,7 @@ stages:
             env:
               ADO_ORG_URL: $(System.CollectionUri)
               ADO_PROJECT: $(System.TeamProject)
-              ADO_GROUP_NAME: LowerEnvs
+              ADO_GROUP_NAME: $(adoGroupName)
               AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
               DEPLOYMENT_NAME: ACR-$(Build.BuildId)
               RESOURCE_GROUP: $(resourceGroupName)
