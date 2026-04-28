@@ -10,6 +10,7 @@ variables:
     a-marcel.vandenhof@Defra.onmicrosoft.com
     a-andrew.hardy@defra.onmicrosoft.com
     a-jon.shaw@defra.onmicrosoft.com
+    a-daniel.johansson@defra.onmicrosoft.com
 
   # Note: members of admins group do not also need to be developer group members
   lowerEnvsAdminsGroupMembers: >
