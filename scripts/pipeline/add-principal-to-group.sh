@@ -6,16 +6,6 @@ logInfo() {
   echo "[add-principal-to-group] $*" >&2
 }
 
-runWithXtraceHidden() {
-  local hadXtrace=0
-  [[ "$-" == *x* ]] && hadXtrace=1
-  (( hadXtrace == 1 )) && set +x
-  "$@"
-  local status=$?
-  (( hadXtrace == 1 )) && set -x
-  return $status
-}
-
 decodeJwtPayload() {
   local token="$1"
   local payload=
@@ -86,7 +76,7 @@ printGroupDebug() {
   local callerIsOwner=
   local ownerRefStatus=
 
-  groupSummary="$(runWithXtraceHidden curl -s -H "Authorization: Bearer ${token}" "https://graph.microsoft.com/v1.0/groups/${groupObjectId}?\$select=id,displayName,mailEnabled,securityEnabled,isAssignableToRole,groupTypes")"
+  groupSummary="$(curl -s -H "Authorization: Bearer ${token}" "https://graph.microsoft.com/v1.0/groups/${groupObjectId}?\$select=id,displayName,mailEnabled,securityEnabled,isAssignableToRole,groupTypes")"
   if [[ $? -eq 0 ]] && [[ -n "${groupSummary}" ]]; then
     if [[ "$(jq -r '.error.code // empty' <<<"${groupSummary}")" != "" ]]; then
       logInfo "Failed to read target group metadata: $(jq -c '.error' <<<"${groupSummary}")"
@@ -97,7 +87,7 @@ printGroupDebug() {
     logInfo "Failed to query target group metadata for '${groupObjectId}'"
   fi
 
-  ownerSample="$(runWithXtraceHidden curl -s -H "Authorization: Bearer ${token}" "https://graph.microsoft.com/v1.0/groups/${groupObjectId}/owners?\$select=id,displayName")"
+  ownerSample="$(curl -s -H "Authorization: Bearer ${token}" "https://graph.microsoft.com/v1.0/groups/${groupObjectId}/owners?\$select=id,displayName")"
   if [[ $? -eq 0 ]] && [[ -n "${ownerSample}" ]]; then
     if [[ "$(jq -r '.error.code // empty' <<<"${ownerSample}")" != "" ]]; then
       logInfo "Failed to list group owners: $(jq -c '.error' <<<"${ownerSample}")"
@@ -119,7 +109,7 @@ printGroupDebug() {
   fi
 
   if [[ -n "${callerObjectId}" ]]; then
-    ownerRefStatus="$(runWithXtraceHidden curl -w '%{http_code}' -s -o /dev/null -H "Authorization: Bearer ${token}" "https://graph.microsoft.com/v1.0/groups/${groupObjectId}/owners/${callerObjectId}/\$ref")"
+    ownerRefStatus="$(curl -w '%{http_code}' -s -o /dev/null -H "Authorization: Bearer ${token}" "https://graph.microsoft.com/v1.0/groups/${groupObjectId}/owners/${callerObjectId}/\$ref")"
     if [[ $? -eq 0 ]]; then
       case "${ownerRefStatus}" in
         200)
@@ -146,7 +136,7 @@ printMemberDebug() {
   local oid="$2"
   local memberObject=
 
-  memberObject="$(runWithXtraceHidden curl -s -H "Authorization: Bearer ${token}" "https://graph.microsoft.com/v1.0/directoryObjects/${oid}")"
+  memberObject="$(curl -s -H "Authorization: Bearer ${token}" "https://graph.microsoft.com/v1.0/directoryObjects/${oid}")"
   if [[ $? -eq 0 ]] && [[ -n "${memberObject}" ]]; then
     if [[ "$(jq -r '.error.code // empty' <<<"${memberObject}")" != "" ]]; then
       logInfo "Member '${oid}' lookup failed: $(jq -c '.error' <<<"${memberObject}")"
@@ -164,7 +154,7 @@ printMembershipRefDebug() {
   local principalObjectId="$3"
   local membershipStatus=
 
-  membershipStatus="$(runWithXtraceHidden curl -w '%{http_code}' -s -o /dev/null -H "Authorization: Bearer ${token}" "https://graph.microsoft.com/v1.0/groups/${groupObjectId}/members/${principalObjectId}/\$ref")"
+  membershipStatus="$(curl -w '%{http_code}' -s -o /dev/null -H "Authorization: Bearer ${token}" "https://graph.microsoft.com/v1.0/groups/${groupObjectId}/members/${principalObjectId}/\$ref")"
   if [[ $? -eq 0 ]]; then
     logInfo "Membership ref status for principal '${principalObjectId}' in group '${groupObjectId}': HTTP ${membershipStatus}"
   else
@@ -172,7 +162,7 @@ printMembershipRefDebug() {
   fi
 }
 
-TOKEN="$(runWithXtraceHidden az account get-access-token --scope https://graph.microsoft.com/.default --query accessToken -o tsv)"
+TOKEN="$(az account get-access-token --scope https://graph.microsoft.com/.default --query accessToken -o tsv)"
 [[ $? -ne 0 ]] && exit 1
 
 callerObjectId="$(jq -r '.oid // empty' <<<"$(decodeJwtPayload "${TOKEN}")")"
