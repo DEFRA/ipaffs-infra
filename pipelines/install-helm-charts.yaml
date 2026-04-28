@@ -43,7 +43,10 @@ parameters:
 
 variables:
   - group: Common
-  - group: LowerEnvs
+  - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
+    - group: HigherEnvs
+  - ${{ else }}:
+    - group: LowerEnvs
   - group: "${{ parameters.environmentName }}"
   - template: "/pipelines/vars/common.yaml"
   - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
