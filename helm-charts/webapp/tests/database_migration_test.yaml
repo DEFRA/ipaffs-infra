@@ -83,6 +83,7 @@ tests:
           content:
             secretRef:
               name: test-service-servicebus
+              optional: true
       - contains:
           path: spec.template.spec.containers[0].envFrom
           content:
