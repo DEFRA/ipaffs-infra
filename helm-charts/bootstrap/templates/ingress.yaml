@@ -1,5 +1,3 @@
-{{- if eq .Values.environment "dev" }}
-
 {{- $hosts := trim (include "ipaffs-common.ingressOriginHosts" .) }}
 {{- if not (empty $hosts) }}
 {{- $hostsList := splitList "\n" $hosts }}
@@ -36,5 +34,4 @@ spec:
     {{- end }}
 {{- end }}
 
-{{- end }}
 # vim: set ts=2 sts=2 sw=2 et:
