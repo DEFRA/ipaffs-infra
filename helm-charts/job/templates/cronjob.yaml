@@ -49,6 +49,7 @@ spec:
 {{- if .Values.serviceBus.enabled }}
                 - secretRef:
                     name: {{ printf "%s-servicebus" .Values.service }}
+                    optional: true
 {{- end }}
               {{ with .Values.env }}
               env:
