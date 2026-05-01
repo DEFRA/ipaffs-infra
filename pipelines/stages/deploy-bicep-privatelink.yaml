@@ -4,7 +4,7 @@ parameters:
 
 stages:
   - stage: ConfigurePrivateLinkDeployment
-    displayName: Configure deployment
+    displayName: Configure Private Link deployment
     variables:
       - group: Common
       - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:

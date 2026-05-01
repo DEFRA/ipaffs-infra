@@ -10,7 +10,7 @@ parameters:
 
 stages:
   - stage: ConfigureClassicNetworkDeployment
-    displayName: Configure deployment
+    displayName: Configure Classic Network deployment
     variables:
       - group: Common
       - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:

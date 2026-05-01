@@ -4,7 +4,7 @@ parameters:
 
 stages:
   - stage: ConfigureACRDeployment
-    displayName: Configure deployment
+    displayName: Configure ACR deployment
     variables:
       - group: Common
       - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:

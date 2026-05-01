@@ -4,7 +4,7 @@ parameters:
 
 stages:
   - stage: ConfigureInfraDeployment
-    displayName: Configure deployment
+    displayName: Configure Infrastructure deployment
     variables:
       - group: Common
       - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
@@ -189,7 +189,7 @@ stages:
 
 
   - stage: SaveInfrastructureDeploymentDetails
-    displayName: Save infrastructure deployment details
+    displayName: Save Infrastructure deployment details
     dependsOn: DeployInfrastructure
     variables:
       - group: Common

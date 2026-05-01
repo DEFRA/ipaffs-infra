@@ -73,7 +73,7 @@ stages:
 
 
   - stage: SaveNetworkDeploymentDetails
-    displayName: Save network deployment details
+    displayName: Save Network deployment details
     dependsOn: DeployNetwork
     variables:
       - group: Common
