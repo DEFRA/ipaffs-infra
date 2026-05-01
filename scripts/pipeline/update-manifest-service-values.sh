@@ -4,7 +4,6 @@ set -euo pipefail
 
 : "${SERVICE_NAME:?SERVICE_NAME is required}"
 : "${BUILD_NUMBER:?BUILD_NUMBER is required}"
-: "${ACR_LOGIN_SERVER:?ACR_LOGIN_SERVER is required}"
 : "${MANIFEST_ROOT:?MANIFEST_ROOT is required}"
 : "${SERVICE_ROOT:?SERVICE_ROOT is required}"
 skip_container_image_update="$(printf '%s' "${SKIP_CONTAINER_IMAGE_UPDATE:-false}" | tr '[:upper:]' '[:lower:]')"
@@ -66,8 +65,8 @@ else
   fi
 fi
 
-service_image="${ACR_LOGIN_SERVER}/ipaffs/${SERVICE_NAME}:${BUILD_NUMBER}"
-migrations_image="${ACR_LOGIN_SERVER}/ipaffs/${SERVICE_NAME}-configuration:${BUILD_NUMBER}"
+service_image="ipaffs/${SERVICE_NAME}:${BUILD_NUMBER}"
+migrations_image="ipaffs/${SERVICE_NAME}-configuration:${BUILD_NUMBER}"
 migrations_enabled_in_base="$(yq e '.database.migrations.enabled // false' "${base_file}" | tr '[:upper:]' '[:lower:]')"
 
 if [[ "${skip_container_image_update}" != "true" ]]; then

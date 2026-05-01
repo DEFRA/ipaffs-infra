@@ -1,6 +1,7 @@
 service: ""
 project: ipaffs
 environment: dev
+imageRegistry: ""
 
 externalSecret:
   enabled: false

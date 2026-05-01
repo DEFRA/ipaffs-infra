@@ -25,7 +25,7 @@ spec:
           restartPolicy: OnFailure
           containers:
             - name: {{ .Chart.Name }}
-              image: "{{ .Values.container.image }}"
+              image: "{{ include "job.image.resolve" (dict "root" . "image" .Values.container.image) }}"
               {{ if .Values.container.command }}
               command: ["{{ .Values.container.command }}"]
               {{ end }}
@@ -62,7 +62,7 @@ spec:
 {{- if .Values.initContainer.enabled }}
           initContainers:
             - name: {{ .Chart.Name }}-init
-              image: "{{ .Values.initContainer.image }}"
+              image: "{{ include "job.image.resolve" (dict "root" . "image" .Values.initContainer.image) }}"
               command: {{ .Values.initContainer.command }}
 {{- end }}
 {{- end }}

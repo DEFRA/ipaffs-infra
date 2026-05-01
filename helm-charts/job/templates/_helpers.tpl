@@ -31,4 +31,27 @@ Explicit values are still supported as a compatibility fallback.
 {{- $clientId -}}
 {{- end }}
 
+{{/*
+Resolve an image reference.
+
+If the supplied image already contains a registry host, return as-is.
+Otherwise prefix with `.Values.imageRegistry` when provided.
+*/}}
+{{- define "job.image.resolve" -}}
+{{- $image := required "Image value is required." .image -}}
+{{- $parts := splitList "/" $image -}}
+{{- $firstPart := first $parts -}}
+{{- $hasRegistryHost := and (gt (len $parts) 1) (or (contains "." $firstPart) (contains ":" $firstPart) (eq $firstPart "localhost")) -}}
+{{- if $hasRegistryHost -}}
+{{- $image -}}
+{{- else -}}
+{{- $registry := (default "" .root.Values.imageRegistry) | trimSuffix "/" -}}
+{{- if $registry -}}
+{{- printf "%s/%s" $registry $image -}}
+{{- else -}}
+{{- $image -}}
+{{- end -}}
+{{- end -}}
+{{- end }}
+
 {{/* vim: set ts=2 sts=2 sw=2 et: */}}
