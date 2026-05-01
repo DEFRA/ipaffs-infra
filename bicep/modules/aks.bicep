@@ -9,6 +9,8 @@ param subnets object
 param tags object
 param vnetName string
 
+var fortinetCA = loadFileAsBase64('../files/PAsubca.crt')
+
 resource userAssignedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2024-11-30' = {
   name: aksParams.userAssignedIdentityName
   location: location
@@ -150,6 +152,7 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2025-10-01' = {
     }
 
     securityProfile: {
+      customCATrustCertificates: [fortinetCA]
       workloadIdentity: {
         enabled: true
       }
