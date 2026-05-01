@@ -35,7 +35,7 @@ spec:
       restartPolicy: Never
       containers:
         - name: database-migration
-          image: "{{ .Values.database.migrations.image }}"
+          image: "{{ include "webapp.image.resolve" (dict "root" . "image" .Values.database.migrations.image) }}"
           {{- if .Values.database.migrations.command }}
           command: ["{{ .Values.database.migrations.command }}"]
           {{- end }}

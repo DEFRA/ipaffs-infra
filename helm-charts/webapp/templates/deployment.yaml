@@ -29,7 +29,7 @@ spec:
       shareProcessNamespace: true
       containers:
         - name: {{ .Chart.Name }}
-          image: "{{ .Values.container.image }}"
+          image: "{{ include "webapp.image.resolve" (dict "root" . "image" .Values.container.image) }}"
           {{- if .Values.container.command }}
           command: ["{{ .Values.container.command }}"]
           {{- end }}

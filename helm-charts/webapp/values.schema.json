@@ -15,6 +15,9 @@
     "image": {
       "type": "string"
     },
+    "imageRegistry": {
+      "type": "string"
+    },
     "ingress": {
       "type": "object",
       "required": [

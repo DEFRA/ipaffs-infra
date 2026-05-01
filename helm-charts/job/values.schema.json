@@ -12,6 +12,9 @@
     "environment": {
       "type": "string"
     },
+    "imageRegistry": {
+      "type": "string"
+    },
     "externalSecret": {
       "type": "object",
       "required": [
