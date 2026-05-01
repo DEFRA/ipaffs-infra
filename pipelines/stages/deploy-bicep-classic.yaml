@@ -140,7 +140,7 @@ stages:
 
 
   - stage: SaveClassicDeploymentDetails
-    displayName: Save classic deployment details
+    displayName: Save Classic deployment details
     dependsOn: DeployClassic
     variables:
       - group: Common
