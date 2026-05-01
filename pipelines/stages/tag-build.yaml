@@ -6,6 +6,7 @@ parameters:
 stages:
   - stage: TagBuild
     displayName: Tag Build
+    isSkippable: false
     jobs:
       - ${{ each tag in parameters.tags }}:
         - job: Tag${{ replace(tag, '-', '_') }}
