@@ -35,6 +35,14 @@ parameters:
     type: string
     default: ""
 
+  - name: acrNameOverride
+    type: string
+    default: ""
+
+  - name: acrLoginServerOverride
+    type: string
+    default: ""
+
 jobs:
   - job: DeployChart
     displayName: Deploy Helm Charts
@@ -55,6 +63,11 @@ jobs:
       - task: AzureCLI@2
         name: AuthenticateAzure
         displayName: Authenticate with Azure
+        env:
+          ${{ if ne(parameters.acrNameOverride, '') }}:
+            ACR_NAME: ${{ parameters.acrNameOverride }}
+          ${{ else }}:
+            ACR_NAME: $(acrName)
         inputs:
           azureSubscription: $(serviceConnection)
           scriptType: bash
@@ -64,7 +77,7 @@ jobs:
             az aks install-cli
             az aks get-credentials -n "$(kubernetesCluster)" -g "$(resourceGroupName)" --subscription "$(subscriptionName)"
             kubelogin convert-kubeconfig -l azurecli
-            az acr login --name "$(acrName)" --subscription "$(subscriptionName)"
+            az acr login --name "${ACR_NAME}" --subscription "$(subscriptionName)"
 
       - task: AzureCLI@2
         name: DeployHelmCharts
@@ -72,7 +85,10 @@ jobs:
         env:
           ENVIRONMENT: ${{ lower(parameters.environmentName) }}
           AZURE_LOCATION: $(location)
-          AZURE_CONTAINER_REGISTRY_HOST: $(acrLoginServer)
+          ${{ if ne(parameters.acrLoginServerOverride, '') }}:
+            AZURE_CONTAINER_REGISTRY_HOST: ${{ parameters.acrLoginServerOverride }}
+          ${{ else }}:
+            AZURE_CONTAINER_REGISTRY_HOST: $(acrLoginServer)
           APPLICATIONINSIGHTS_CONNECTION_STRING: $(insightsConnectionString)
           APPLICATIONINSIGHTS_INSTRUMENTATION_STRING: $(insightsInstrumentationKey)
           AZURE_TENANT_ID: $(tenantId)
