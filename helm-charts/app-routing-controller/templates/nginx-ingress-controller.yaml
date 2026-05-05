@@ -5,6 +5,11 @@ metadata:
 spec:
   ingressClassName: {{ .Values.ingressClassName }}
   controllerNamePrefix: {{ .Values.name }}
+  defaultSSLCertificate:
+    forceSSLRedirect: false
+    secret:
+      name: star-azure-defra-cloud-cert
+      namespace: defra-certs
   {{- with .Values.loadBalancerAnnotations }}
   loadBalancerAnnotations:
     {{- toYaml . | nindent 4 }}
