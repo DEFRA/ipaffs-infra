@@ -28,26 +28,7 @@ stages:
                       az aks install-cli
                       az aks get-credentials -n "$(kubernetesCluster)" -g "$(resourceGroupName)" --subscription "$(subscriptionName)"
                       kubelogin convert-kubeconfig -l azurecli
-                      az acr login --name "$(acrName)" --subscription "$(subscriptionName)"
-
-                # See https://learn.microsoft.com/en-us/azure/aks/app-routing-nginx-configuration?pivots=nginx-ingress-controller
-                - task: AzureCLI@2
-                  displayName: Helm Install - app-routing-controller
-                  inputs:
-                    azureSubscription: $(serviceConnection)
-                    scriptType: bash
-                    scriptLocation: inlineScript
-                    inlineScript: |
-                      set -x
-                      helm upgrade \
-                        --install \
-                        --debug \
-                        --namespace app-routing-namespace \
-                        --create-namespace \
-                        --dependency-update \
-                        --timeout 2m \
-                        $(helmDryRun) \
-                        app-routing-controller ./helm-charts/app-routing-controller
+                      az acr login --name "$(acrName)" --subscription "$(subscriptionName)" || az acr check-health -n "$(acrName)" --yes
 
                 - task: AzureCLI@2
                   displayName: Helm Install - cert-manager
@@ -207,6 +188,43 @@ stages:
                         --repo "https://kedacore.github.io/charts"
 
                 - task: AzureCLI@2
+                  displayName: Helm Install - defra-certs
+                  inputs:
+                    azureSubscription: $(serviceConnection)
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      set -x
+                      helm upgrade \
+                        --install \
+                        --debug \
+                        --namespace defra-certs \
+                        --create-namespace \
+                        --dependency-update \
+                        --timeout 2m \
+                        $(helmDryRun) \
+                        defra-certs ./helm-charts/defra-certs
+
+                # See https://learn.microsoft.com/en-us/azure/aks/app-routing-nginx-configuration?pivots=nginx-ingress-controller
+                - task: AzureCLI@2
+                  displayName: Helm Install - app-routing-controller
+                  inputs:
+                    azureSubscription: $(serviceConnection)
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      set -x
+                      helm upgrade \
+                        --install \
+                        --debug \
+                        --namespace app-routing-namespace \
+                        --create-namespace \
+                        --dependency-update \
+                        --timeout 2m \
+                        $(helmDryRun) \
+                        app-routing-controller ./helm-charts/app-routing-controller
+
+                - task: AzureCLI@2
                   displayName: Helm Install - ms-identity-redirect-handler
                   inputs:
                     azureSubscription: $(serviceConnection)
@@ -223,7 +241,6 @@ stages:
                         --timeout 2m \
                         $(helmDryRun) \
                         --set environment="${{ lower(parameters.environmentName) }}" \
-                        --set container.image="$(acrLoginServer)/manicminer/ms-identity-redirect-handler:v0.1.1" \
                         ms-identity-redirect-handler ./helm-charts/ms-identity-redirect-handler
 
 # vim: set ts=2 sts=2 sw=2 et:
