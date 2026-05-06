@@ -2,6 +2,8 @@
 
 {{- $root := . }}
 {{- $blobService := default (dict "containers" (list)) $root.Values.storageAccount.blobService }}
+{{- $namespace := lower $root.Release.Namespace }}
+{{- $environment := lower (toString $root.Values.environment) }}
 
 apiVersion: storage.azure.com/v1api20230101
 kind: StorageAccount
@@ -30,11 +32,15 @@ spec:
 
 
 {{- range $blobService.containers }}
+{{- $containerName := lower (toString .) }}
+{{- if ne $namespace $environment }}
+{{- $containerName = printf "%s-%s" $containerName $namespace | trunc 63 | trimSuffix "-" }}
+{{- end }}
 ---
 apiVersion: storage.azure.com/v1api20230101
 kind: StorageAccountsBlobServicesContainer
 metadata:
-  name: {{ . }}
+  name: {{ $containerName }}
   labels:
     {{- include "ipaffs-common.labels" $root | nindent 4 }}
   annotations:
