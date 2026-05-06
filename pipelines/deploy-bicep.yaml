@@ -98,4 +98,9 @@ stages:
     parameters:
       environmentName: ${{ parameters.environmentName }}
 
+  # TODO: enable when ADO permissions are granted for DNS zones
+  #- template: stages/deploy-bicep-dns.yaml
+  #  parameters:
+  #    environmentName: ${{ parameters.environmentName }}
+
 # vim: set ts=2 sts=2 sw=2 et:
