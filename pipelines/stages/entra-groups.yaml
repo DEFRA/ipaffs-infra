@@ -249,6 +249,60 @@ stages:
             - checkout: self
 
             - task: AzureCLI@2
+              name: AdminsGroup
+              env:
+                GROUP_NAME: AAG-Users-IMP-IPAFFS-Admins_Admin
+                GROUP_DESCRIPTION: Entra user group for IPAFFS Admins
+                GROUP_OWNER_OBJECT_IDS: >
+                  $(serviceConnectionPrincipalId)
+                  $(upstreamServiceConnectionPrincipalId)
+              inputs:
+                azureSubscription: $(upstreamServiceConnection)
+                scriptType: bash
+                scriptPath: scripts/pipeline/create-entra-group.sh
+                scriptArguments: "-u"
+
+            - task: AzureCLI@2
+              name: GetAdminsMembers
+              env:
+                NAMES: $(higherEnvsAdminsGroupMembers)
+              inputs:
+                azureSubscription: $(upstreamServiceConnection)
+                scriptType: bash
+                scriptPath: scripts/pipeline/lookup-directory-objects.sh
+                scriptArguments: "-o ado -t user"
+
+            - task: AzureCLI@2
+              name: DetermineAdminsMemberChanges
+              env:
+                GROUP_ID: $(AdminsGroup.objectId)
+                OBJECT_IDS: $(GetAdminsMembers.objectIds)
+              inputs:
+                azureSubscription: $(upstreamServiceConnection)
+                scriptType: bash
+                scriptPath: scripts/pipeline/determine-group-members.sh
+
+            - task: AzureCLI@2
+              name: AddAdminsMembers
+              env:
+                GROUP_ID: $(AdminsGroup.objectId)
+                GROUP_MEMBERS: $(DetermineAdminsMemberChanges.membersToAdd)
+              inputs:
+                azureSubscription: $(serviceConnection)
+                scriptType: bash
+                scriptPath: scripts/pipeline/add-entra-group-members.sh
+
+            - task: AzureCLI@2
+              name: RemoveAdminsMembers
+              env:
+                GROUP_ID: $(AdminsGroup.objectId)
+                GROUP_MEMBERS: $(DetermineAdminsMemberChanges.membersToRemove)
+              inputs:
+                azureSubscription: $(serviceConnection)
+                scriptType: bash
+                scriptPath: scripts/pipeline/remove-entra-group-members.sh
+
+            - task: AzureCLI@2
               name: ReadersGroup
               env:
                 GROUP_NAME: AAG-Users-IMP-IPAFFS-Readers_Admin
@@ -314,10 +368,6 @@ stages:
               value: $[dependencies.TeamGroups.outputs['AdminsGroup.displayName']]
             - name: teamAdminsObjectId
               value: $[dependencies.TeamGroups.outputs['AdminsGroup.objectId']]
-            - name: teamDevelopersDisplayName
-              value: $[dependencies.TeamGroups.outputs['DevelopersGroup.displayName']]
-            - name: teamDevelopersObjectId
-              value: $[dependencies.TeamGroups.outputs['DevelopersGroup.objectId']]
             - name: teamReadersDisplayName
               value: $[dependencies.TeamGroups.outputs['ReadersGroup.displayName']]
             - name: teamReadersObjectId
@@ -337,6 +387,8 @@ stages:
                 targetType: inline
                 script: |
                   set -x
+                  scripts/pipeline/update-group-variable.sh teamAdminsGroupId '$(teamAdminsObjectId)'
+                  scripts/pipeline/update-group-variable.sh teamAdminsGroupName '$(teamAdminsDisplayName)'
                   scripts/pipeline/update-group-variable.sh teamReadersGroupId '$(teamReadersObjectId)'
                   scripts/pipeline/update-group-variable.sh teamReadersGroupName '$(teamReadersDisplayName)'
 
@@ -471,16 +523,15 @@ stages:
               scriptType: bash
               scriptPath: scripts/pipeline/create-entra-group.sh
 
-          - ${{ if and(ne(parameters.environmentName, 'PRE'), ne(parameters.environmentName, 'PRD')) }}:
-            - task: AzureCLI@2
-              name: DefraCertificateReadersMembersAdmins
-              env:
-                GROUP_ID: $(defraCertificateReadersGroupId)
-                PRINCIPAL_ID: $(teamAdminsGroupId)
-              inputs:
-                azureSubscription: $(serviceConnection)
-                scriptType: bash
-                scriptPath: scripts/pipeline/add-principal-to-group.sh
+          - task: AzureCLI@2
+            name: DefraCertificateReadersMembersAdmins
+            env:
+              GROUP_ID: $(defraCertificateReadersGroupId)
+              PRINCIPAL_ID: $(teamAdminsGroupId)
+            inputs:
+              azureSubscription: $(serviceConnection)
+              scriptType: bash
+              scriptPath: scripts/pipeline/add-principal-to-group.sh
 
       - job: AksGroups
         displayName: AKS Groups
@@ -511,16 +562,15 @@ stages:
               scriptType: bash
               scriptPath: scripts/pipeline/add-principal-to-group.sh
 
-          - ${{ if and(ne(parameters.environmentName, 'PRE'), ne(parameters.environmentName, 'PRD')) }}:
-            - task: AzureCLI@2
-              name: AksAdminsMembersAdmins
-              env:
-                GROUP_ID: $(AksAdmins.objectId)
-                PRINCIPAL_ID: $(teamAdminsGroupId)
-              inputs:
-                azureSubscription: $(serviceConnection)
-                scriptType: bash
-                scriptPath: scripts/pipeline/add-principal-to-group.sh
+          - task: AzureCLI@2
+            name: AksAdminsMembersAdmins
+            env:
+              GROUP_ID: $(AksAdmins.objectId)
+              PRINCIPAL_ID: $(teamAdminsGroupId)
+            inputs:
+              azureSubscription: $(serviceConnection)
+              scriptType: bash
+              scriptPath: scripts/pipeline/add-principal-to-group.sh
 
           - task: AzureCLI@2
             name: AksContributors
@@ -588,16 +638,15 @@ stages:
               scriptType: bash
               scriptPath: scripts/pipeline/create-entra-group.sh
 
-          - ${{ if and(ne(parameters.environmentName, 'PRE'), ne(parameters.environmentName, 'PRD')) }}:
-            - task: AzureCLI@2
-              name: KeyVaultAdminsMembersAdmins
-              env:
-                GROUP_ID: $(KeyVaultAdmins.objectId)
-                PRINCIPAL_ID: $(teamAdminsGroupId)
-              inputs:
-                azureSubscription: $(serviceConnection)
-                scriptType: bash
-                scriptPath: scripts/pipeline/add-principal-to-group.sh
+          - task: AzureCLI@2
+            name: KeyVaultAdminsMembersAdmins
+            env:
+              GROUP_ID: $(KeyVaultAdmins.objectId)
+              PRINCIPAL_ID: $(teamAdminsGroupId)
+            inputs:
+              azureSubscription: $(serviceConnection)
+              scriptType: bash
+              scriptPath: scripts/pipeline/add-principal-to-group.sh
 
           - task: AzureCLI@2
             name: KeyVaultSecretsReader
@@ -652,17 +701,17 @@ stages:
               scriptType: bash
               scriptPath: scripts/pipeline/create-entra-group.sh
 
-          - ${{ if and(ne(parameters.environmentName, 'PRE'), ne(parameters.environmentName, 'PRD')) }}:
-            - task: AzureCLI@2
-              name: SearchContributorsMembersAdmins
-              env:
-                GROUP_ID: $(SearchContributors.objectId)
-                PRINCIPAL_ID: $(teamAdminsGroupId)
-              inputs:
-                azureSubscription: $(serviceConnection)
-                scriptType: bash
-                scriptPath: scripts/pipeline/add-principal-to-group.sh
+          - task: AzureCLI@2
+            name: SearchContributorsMembersAdmins
+            env:
+              GROUP_ID: $(SearchContributors.objectId)
+              PRINCIPAL_ID: $(teamAdminsGroupId)
+            inputs:
+              azureSubscription: $(serviceConnection)
+              scriptType: bash
+              scriptPath: scripts/pipeline/add-principal-to-group.sh
 
+          - ${{ if and(ne(parameters.environmentName, 'PRE'), ne(parameters.environmentName, 'PRD')) }}:
             - task: AzureCLI@2
               name: SearchContributorsMembersDevelopers
               env:
@@ -715,17 +764,17 @@ stages:
               scriptType: bash
               scriptPath: scripts/pipeline/create-entra-group.sh
 
-          - ${{ if and(ne(parameters.environmentName, 'PRE'), ne(parameters.environmentName, 'PRD')) }}:
-            - task: AzureCLI@2
-              name: BlobStorageContributorsMembersAdmins
-              env:
-                GROUP_ID: $(BlobStorageContributors.objectId)
-                PRINCIPAL_ID: $(teamAdminsGroupId)
-              inputs:
-                azureSubscription: $(serviceConnection)
-                scriptType: bash
-                scriptPath: scripts/pipeline/add-principal-to-group.sh
+          - task: AzureCLI@2
+            name: BlobStorageContributorsMembersAdmins
+            env:
+              GROUP_ID: $(BlobStorageContributors.objectId)
+              PRINCIPAL_ID: $(teamAdminsGroupId)
+            inputs:
+              azureSubscription: $(serviceConnection)
+              scriptType: bash
+              scriptPath: scripts/pipeline/add-principal-to-group.sh
 
+          - ${{ if and(ne(parameters.environmentName, 'PRE'), ne(parameters.environmentName, 'PRD')) }}:
             - task: AzureCLI@2
               name: BlobStorageContributorsMembersDevelopers
               env:
@@ -779,17 +828,17 @@ stages:
               scriptType: bash
               scriptPath: scripts/pipeline/create-entra-group.sh
 
-          - ${{ if and(ne(parameters.environmentName, 'PRE'), ne(parameters.environmentName, 'PRD')) }}:
-            - task: AzureCLI@2
-              name: SQLAdminsMembersAdmins
-              env:
-                GROUP_ID: $(SQLAdmins.objectId)
-                PRINCIPAL_ID: $(teamAdminsGroupId)
-              inputs:
-                azureSubscription: $(serviceConnection)
-                scriptType: bash
-                scriptPath: scripts/pipeline/add-principal-to-group.sh
+          - task: AzureCLI@2
+            name: SQLAdminsMembersAdmins
+            env:
+              GROUP_ID: $(SQLAdmins.objectId)
+              PRINCIPAL_ID: $(teamAdminsGroupId)
+            inputs:
+              azureSubscription: $(serviceConnection)
+              scriptType: bash
+              scriptPath: scripts/pipeline/add-principal-to-group.sh
 
+          - ${{ if and(ne(parameters.environmentName, 'PRE'), ne(parameters.environmentName, 'PRD')) }}:
             - task: AzureCLI@2
               name: SQLAdminsMembersDevelopers
               env:
