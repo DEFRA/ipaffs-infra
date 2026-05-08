@@ -5,6 +5,13 @@ variables:
   upstreamServiceConnectionPrincipalId: 09b875f4-3dea-4c69-bf36-e6915741d4c4
 
   # SC-cleared admin accounts only!
+  higherEnvsAdminsGroupMembers: >
+    a-tom.bamford@Defra.onmicrosoft.com
+    a-suresh.sundaram@defra.onmicrosoft.com
+    a-srinivasan.kannan@defra.onmicrosoft.com
+    a-suhas.avula@defra.onmicrosoft.com
+
+  # SC-cleared admin accounts only!
   higherEnvsReadersGroupMembers: >
     a-tom.bamford@Defra.onmicrosoft.com
     a-marcel.vandenhof@Defra.onmicrosoft.com
@@ -35,6 +42,9 @@ variables:
     Tom.Bamford@defra.gov.uk
     tom.bamford@defra.onmicrosoft.com
     a-tom.bamford@Defra.onmicrosoft.com
+    a-suresh.sundaram@defra.onmicrosoft.com
+    a-srinivasan.kannan@defra.onmicrosoft.com
+    a-suhas.avula@defra.onmicrosoft.com
 
   lowerEnvsDevelopersGroupMembers: >
     abhishek.desai@Defra.onmicrosoft.com
