@@ -1,0 +1,42 @@
+---
+trigger: none
+pr: none
+
+pool:
+  name: DEFRA-COMMON-ubuntu2204-SSV5
+
+parameters:
+  - name: environmentName
+    displayName: Environment
+    type: string
+    default: DEV
+    values:
+      - DEV
+      - TST
+      - PRE
+      - PRD
+
+  - name: imageTag
+    displayName: Image Tag
+    type: string
+    default: latest
+
+variables:
+  - group: Common
+  - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
+      - group: HigherEnvs
+  - ${{ else }}:
+      - group: LowerEnvs
+  - group: "${{ parameters.environmentName }}"
+
+steps:
+  - task: AzureCLI@2
+    displayName: Run Container
+    inputs:
+      azureSubscription: $(serviceConnection)
+      scriptType: bash
+      scriptLocation: inlineScript
+      inlineScript: |
+        az acr login --name "$(acrName)" --subscription "$(subscriptionName)"
+        docker pull $(acrLoginServer)/ipaffs/qa-automation:${{ parameters.imageTag }}
+        docker run $(acrLoginServer)/ipaffs/qa-automation:${{ parameters.imageTag }}
