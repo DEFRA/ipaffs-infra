@@ -51,9 +51,7 @@ steps:
       scriptLocation: inlineScript
       workingDirectory: $(Pipeline.Workspace)/s/ipaffs-qa-automation
       inlineScript: |
-        set -x
         $(Pipeline.Workspace)/s/ipaffs-infra/scripts/pipeline/substitute-environment-variables.sh .env-kv $(keyVaultName) .env-substituted
-
   - task: AzureCLI@2
     displayName: Run Container
     inputs:
@@ -66,5 +64,5 @@ steps:
         az acr login --name "$(acrName)" --subscription "$(subscriptionName)"
         docker pull $(acrLoginServer)/ipaffs/qa-automation:${{ parameters.imageTag }}
 
-        # docker run --env-file .env-substituted $(acrLoginServer)/ipaffs/qa-automation:${{ parameters.imageTag }} test
-        docker run --env-file .env-substituted $(acrLoginServer)/ipaffs/qa-automation:${{ parameters.imageTag }} test -- --grep "@smoke"
+        docker run --env-file .env-substituted $(acrLoginServer)/ipaffs/qa-automation:${{ parameters.imageTag }} test
+        # docker run --env-file .env-substituted $(acrLoginServer)/ipaffs/qa-automation:${{ parameters.imageTag }} test -- --grep "@smoke"
