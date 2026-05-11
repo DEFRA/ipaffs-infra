@@ -38,6 +38,8 @@ resources:
       ref: refs/heads/imta-21213 # Hardcoded against feature branch for now
 
 steps:
+  - checkout: self
+
   - checkout: ipaffs-qa-automation
     path: s/ipaffs-qa-automation
 
@@ -47,10 +49,10 @@ steps:
       azureSubscription: $(serviceConnection)
       scriptType: bash
       scriptLocation: inlineScript
-      workingDirectory: $(Agent.BuildDirectory)/s/ipaffs-qa-automation
+      workingDirectory: $(Pipeline.Workspace)/s/ipaffs-qa-automation
       inlineScript: |
         set -x
-        scripts/pipeline/substitute-environment-variables.sh .env $(keyVaultName) .env-substituted
+        $(Pipeline.Workspace)/s/ipaffs-infra/scripts/pipeline/substitute-environment-variables.sh .env-kv $(keyVaultName) .env-substituted
 
   - task: AzureCLI@2
     displayName: Run Container
@@ -58,11 +60,11 @@ steps:
       azureSubscription: $(serviceConnection)
       scriptType: bash
       scriptLocation: inlineScript
-      workingDirectory: $(Agent.BuildDirectory)/s/ipaffs-qa-automation
+      workingDirectory: $(Pipeline.Workspace)/s/ipaffs-qa-automation
       inlineScript: |
         set -x
         az acr login --name "$(acrName)" --subscription "$(subscriptionName)"
         docker pull $(acrLoginServer)/ipaffs/qa-automation:${{ parameters.imageTag }}
 
-        # docker run --env-file .env $(acrLoginServer)/ipaffs/qa-automation:${{ parameters.imageTag }} test
-        docker run --env-file .env $(acrLoginServer)/ipaffs/qa-automation:${{ parameters.imageTag }} test -- --grep "@smoke"
+        # docker run --env-file .env-substituted $(acrLoginServer)/ipaffs/qa-automation:${{ parameters.imageTag }} test
+        docker run --env-file .env-substituted $(acrLoginServer)/ipaffs/qa-automation:${{ parameters.imageTag }} test -- --grep "@smoke"
