@@ -63,4 +63,6 @@ steps:
         set -x
         az acr login --name "$(acrName)" --subscription "$(subscriptionName)"
         docker pull $(acrLoginServer)/ipaffs/qa-automation:${{ parameters.imageTag }}
-        docker run $(acrLoginServer)/ipaffs/qa-automation:${{ parameters.imageTag }} --
+
+        # docker run --env-file .env $(acrLoginServer)/ipaffs/qa-automation:${{ parameters.imageTag }} test
+        docker run --env-file .env $(acrLoginServer)/ipaffs/qa-automation:${{ parameters.imageTag }} test -- --grep "@smoke"
