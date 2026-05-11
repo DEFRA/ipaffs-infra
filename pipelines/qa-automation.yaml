@@ -29,14 +29,38 @@ variables:
       - group: LowerEnvs
   - group: "${{ parameters.environmentName }}"
 
+resources:
+  repositories:
+    - repository: ipaffs-qa-automation
+      type: github
+      endpoint: DEFRA
+      name: DEFRA/ipaffs-qa-automation
+      ref: refs/heads/imta-21213 # Hardcoded against feature branch for now
+
 steps:
+  - checkout: ipaffs-qa-automation
+    path: s/ipaffs-qa-automation
+
+  - task: AzureCLI@2
+    displayName: Update QA Automation environment file
+    inputs:
+      azureSubscription: $(serviceConnection)
+      scriptType: bash
+      scriptLocation: inlineScript
+      workingDirectory: $(Agent.BuildDirectory)/s/ipaffs-qa-automation
+      inlineScript: |
+        set -x
+        scripts/pipeline/substitute-environment-variables.sh .env $(keyVaultName) .env-substituted
+
   - task: AzureCLI@2
     displayName: Run Container
     inputs:
       azureSubscription: $(serviceConnection)
       scriptType: bash
       scriptLocation: inlineScript
+      workingDirectory: $(Agent.BuildDirectory)/s/ipaffs-qa-automation
       inlineScript: |
+        set -x
         az acr login --name "$(acrName)" --subscription "$(subscriptionName)"
         docker pull $(acrLoginServer)/ipaffs/qa-automation:${{ parameters.imageTag }}
-        docker run $(acrLoginServer)/ipaffs/qa-automation:${{ parameters.imageTag }}
+        docker run $(acrLoginServer)/ipaffs/qa-automation:${{ parameters.imageTag }} --
