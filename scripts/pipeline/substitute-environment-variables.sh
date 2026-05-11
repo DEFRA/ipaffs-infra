@@ -2,10 +2,7 @@
 
 # usage $0 [.env file] [KV] [output .env file]
 
-set -x
-
 SCRIPTS_DIR="$(cd "$(dirname $0)"/.. && pwd)"
-
 AKV_KEYS=$(sed -n 's/.*${\([^}]*\)}.*/\1/p' "${1}" | sort -u)
 
 echo ":: Fetching secrets from Azure Key Vault ${2}"
