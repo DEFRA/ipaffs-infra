@@ -28,6 +28,8 @@ variables:
   - ${{ else }}:
       - group: LowerEnvs
   - group: "${{ parameters.environmentName }}"
+  - template: "/pipelines/vars/common.yaml"
+  - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
 
 resources:
   repositories:
