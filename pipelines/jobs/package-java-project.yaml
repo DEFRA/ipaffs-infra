@@ -13,6 +13,9 @@ jobs:
     displayName: Package Java Image
 
     steps:
+      - checkout: self
+        lfs: true
+
       - task: DownloadPipelineArtifact@2
         displayName: Download service artifacts
         inputs:
@@ -29,6 +32,9 @@ jobs:
     displayName: Package Migrations Image
     condition: and(not(failed()), not(canceled()), ${{ eq(parameters.migrations, true) }})
     steps:
+      - checkout: self
+        lfs: true
+
       - template: /pipelines/steps/build-container-image.yaml@ipaffs-infra
         parameters:
           dockerFile: configuration/${{ parameters.dockerFile }}
