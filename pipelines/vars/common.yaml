@@ -57,6 +57,7 @@ variables:
     toby.steed@Defra.onmicrosoft.com
 
   lowerEnvsReadersGroupMembers: >
+    mayur.rao@defra.onmicrosoft.com
     duncan.cheshire@Defra.onmicrosoft.com
     a-suresh.sundaram@defra.onmicrosoft.com
     a-srinivasan.kannan@defra.onmicrosoft.com
