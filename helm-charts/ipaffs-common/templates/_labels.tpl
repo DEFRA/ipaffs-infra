@@ -9,7 +9,6 @@ app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
 defra.gov.uk/environment: "{{ .Values.environment }}"
 defra.gov.uk/project: "{{ .Values.project }}"
-defra.gov.uk/release-date: "{{ now | date "2006-01-02T15.04.05" }}"
 defra.gov.uk/service: "{{ .Values.service }}"
 {{ include "ipaffs-common.selectorLabels" . }}
 {{- end }}
