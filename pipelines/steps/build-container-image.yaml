@@ -10,6 +10,7 @@ parameters:
 
   - name: tagName
     type: string
+    default: ' '
 
 steps:
   - task: AzureCLI@2
