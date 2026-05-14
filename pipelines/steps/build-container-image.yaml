@@ -20,7 +20,7 @@ steps:
       scriptType: bash
       scriptLocation: inlineScript
       inlineScript: |
-        if [[ -n  "${{ parameters.tagName }}"; then
+        if [[ -n  "${{ parameters.tagName }}" ]]; then
           TAG_NAME="${{ parameters.tagName }}"
         else
           TAG_NAME="$(Build.BuildNumber)"
