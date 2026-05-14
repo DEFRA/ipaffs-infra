@@ -1,9 +1,14 @@
 parameters:
   - name: directory
     type: string
+
   - name: dockerFile
     type: string
+
   - name: imageName
+    type: string
+
+  - name: tagName
     type: string
 
 steps:
@@ -14,9 +19,13 @@ steps:
       scriptType: bash
       scriptLocation: inlineScript
       inlineScript: |
-        az acr login --name "$(acrName)" --subscription "$(subscriptionName)"
-        docker build --platform=linux/amd64 --tag "${{ parameters.imageName }}:$(Build.BuildNumber)" --file "${{ parameters.dockerFile }}" "${{ parameters.directory }}" --build-arg IMAGE_ACR="$(acrLoginServer)"
-        docker tag "${{ parameters.imageName }}:$(Build.BuildNumber)" "$(acrLoginServer)/ipaffs/${{ parameters.imageName }}:$(Build.BuildNumber)"
-        docker push "$(acrLoginServer)/ipaffs/${{ parameters.imageName }}:$(Build.BuildNumber)"
+        if [[ -n  "${{ parameters.tagName }}"; then
+          TAG_NAME="${{ parameters.tagName }}"
+        else
+          TAG_NAME="$(Build.BuildNumber)"
+        fi
 
-# vim: set ts=2 sts=2 sw=2 et:
+        az acr login --name "$(acrName)" --subscription "$(subscriptionName)"
+        docker build --platform=linux/amd64 --tag "${{ parameters.imageName }}:${TAG_NAME}" --file "${{ parameters.dockerFile }}" "${{ parameters.directory }}" --build-arg IMAGE_ACR="$(acrLoginServer)"
+        docker tag "${{ parameters.imageName }}:${TAG_NAME}" "$(acrLoginServer)/ipaffs/${{ parameters.imageName }}:${TAG_NAME}"
+        docker push "$(acrLoginServer)/ipaffs/${{ parameters.imageName }}:${TAG_NAME}"
