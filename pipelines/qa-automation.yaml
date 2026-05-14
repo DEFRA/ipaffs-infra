@@ -71,6 +71,7 @@ steps:
   - task: AzureCLI@2
     displayName: Run Container
     env:
+      CI: true
       WORKERS: ${{ parameters.workers }}
       IMAGE_TAG: ${{ parameters.imageTag }}
       PLAYWRIGHT_TAG: ${{ parameters.playwrightTag }}
@@ -85,7 +86,7 @@ steps:
         docker pull $(acrLoginServer)/ipaffs/qa-automation:${IMAGE_TAG}
 
         if [[ -n "${PLAYWRIGHT_TAG}" ]]; then
-          docker run --init --env-file .env-substituted $(acrLoginServer)/ipaffs/qa-automation:${{ parameters.imageTag }} npm test -- --grep "${PLAYWRIGHT_TAG}" --workers=${WORKERS}
+          docker run --init --env-file .env-substituted --env CI $(acrLoginServer)/ipaffs/qa-automation:${{ parameters.imageTag }} npm test -- --grep "${PLAYWRIGHT_TAG}" --workers=${WORKERS}
         else
-          docker run --init --env-file .env-substituted $(acrLoginServer)/ipaffs/qa-automation:${{ parameters.imageTag }} npm test -- --workers=${WORKERS}
+          docker run --init --env-file .env-substituted --env CI $(acrLoginServer)/ipaffs/qa-automation:${{ parameters.imageTag }} npm test -- --workers=${WORKERS}
         fi
