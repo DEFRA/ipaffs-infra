@@ -16,10 +16,23 @@ parameters:
       - PRE
       - PRD
 
+  - name: workers
+    displayName: Workers
+    default: 8
+    values:
+      - 4
+      - 8
+      - 12
+      - 16
+
   - name: imageTag
     displayName: Image Tag
-    type: string
     default: latest
+
+  - name: playwrightTag
+    displayName: Playwright Tag
+    type: string
+    default: ' '
 
 variables:
   - group: Common
@@ -54,8 +67,13 @@ steps:
       workingDirectory: $(Pipeline.Workspace)/s/ipaffs-qa-automation
       inlineScript: |
         $(Pipeline.Workspace)/s/ipaffs-infra/scripts/pipeline/substitute-environment-variables.sh .env-kv $(keyVaultName) .env-substituted
+
   - task: AzureCLI@2
     displayName: Run Container
+    env:
+      WORKERS: ${{ parameters.workers }}
+      IMAGE_TAG: ${{ parameters.imageTag }}
+      PLAYWRIGHT_TAG: ${{ parameters.playwrightTag }}
     inputs:
       azureSubscription: $(serviceConnection)
       scriptType: bash
@@ -64,5 +82,10 @@ steps:
       inlineScript: |
         set -x
         az acr login --name "$(acrName)" --subscription "$(subscriptionName)"
-        docker pull $(acrLoginServer)/ipaffs/qa-automation:${{ parameters.imageTag }}
-        docker run --init --env-file .env-substituted $(acrLoginServer)/ipaffs/qa-automation:${{ parameters.imageTag }} npm test -- --grep "@smoke" --workers=10
+        docker pull $(acrLoginServer)/ipaffs/qa-automation:${IMAGE_TAG}
+
+        if [[ -n "${PLAYWRIGHT_TAG}" ]]; then
+          docker run --init --env-file .env-substituted $(acrLoginServer)/ipaffs/qa-automation:${{ parameters.imageTag }} npm test -- --grep "${PLAYWRIGHT_TAG}" --workers=${WORKERS}
+        else
+          docker run --init --env-file .env-substituted $(acrLoginServer)/ipaffs/qa-automation:${{ parameters.imageTag }} npm test -- --workers=${WORKERS}
+        fi
