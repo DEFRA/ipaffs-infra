@@ -87,17 +87,17 @@ steps:
       inlineScript: |
         set -x
         az acr login --name "$(acrName)" --subscription "$(subscriptionName)"
-        docker pull $(acrLoginServer)/ipaffs/qa-automation:${IMAGE_TAG}
+        docker pull "$(acrLoginServer)/ipaffs/qa-automation:${IMAGE_TAG}"
 
         case "${PLAYWRIGHT_TAG}" in
           "test")
-            docker run --init --env-file .env-substituted --env CI $(acrLoginServer)/ipaffs/qa-automation:${{ parameters.imageTag }} npm test -- --workers=${WORKERS}
+            docker run --init --env-file .env-substituted --env CI "$(acrLoginServer)/ipaffs/qa-automation:${{ parameters.imageTag }}" npm test -- --workers="${WORKERS}"
             ;;
           "test:a11y")
-            docker run --init --env-file .env-substituted --env CI $(acrLoginServer)/ipaffs/qa-automation:${{ parameters.imageTag }} npm test:a11y -- --workers=${WORKERS}
+            docker run --init --env-file .env-substituted --env CI "$(acrLoginServer)/ipaffs/qa-automation:${{ parameters.imageTag }}" npm test:a11y -- --workers="${WORKERS}"
             ;;
           "test:cross-browser")
-            docker run --init --env-file .env-substituted --env CI $(acrLoginServer)/ipaffs/qa-automation:${{ parameters.imageTag }} npm test:browserstack -- --workers=${WORKERS}
+            docker run --init --env-file .env-substituted --env CI "$(acrLoginServer)/ipaffs/qa-automation:${{ parameters.imageTag }}" npm test:browserstack -- --workers="${WORKERS}"
             ;;
           *)
             echo "Unknown test suite tag: ${PLAYWRIGHT_TAG}"
