@@ -20,6 +20,7 @@ steps:
       scriptType: bash
       scriptLocation: inlineScript
       inlineScript: |
+        set -x
         if [[ -n  "${{ parameters.tagName }}" ]]; then
           TAG_NAME="${{ parameters.tagName }}"
         else
