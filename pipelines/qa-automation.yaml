@@ -29,10 +29,14 @@ parameters:
     displayName: Image Tag
     default: latest
 
-  - name: playwrightTag
-    displayName: Playwright Tag
+  - name: testSuite
+    displayName: Test Suite
     type: string
-    default: ' '
+    default: 'test'
+    values:
+      - test
+      - test:a11y
+      - test:cross-browser
 
 variables:
   - group: Common
@@ -74,7 +78,7 @@ steps:
       CI: true
       WORKERS: ${{ parameters.workers }}
       IMAGE_TAG: ${{ parameters.imageTag }}
-      PLAYWRIGHT_TAG: ${{ parameters.playwrightTag }}
+      PLAYWRIGHT_TAG: ${{ parameters.testSuite }}
     inputs:
       azureSubscription: $(serviceConnection)
       scriptType: bash
@@ -85,8 +89,17 @@ steps:
         az acr login --name "$(acrName)" --subscription "$(subscriptionName)"
         docker pull $(acrLoginServer)/ipaffs/qa-automation:${IMAGE_TAG}
 
-        if [[ -n "${PLAYWRIGHT_TAG}" ]]; then
-          docker run --init --env-file .env-substituted --env CI $(acrLoginServer)/ipaffs/qa-automation:${{ parameters.imageTag }} npm test -- --grep "${PLAYWRIGHT_TAG}" --workers=${WORKERS}
-        else
-          docker run --init --env-file .env-substituted --env CI $(acrLoginServer)/ipaffs/qa-automation:${{ parameters.imageTag }} npm test -- --workers=${WORKERS}
-        fi
+        case "${PLAYWRIGHT_TAG}" in
+          "test")
+            docker run --init --env-file .env-substituted --env CI $(acrLoginServer)/ipaffs/qa-automation:${{ parameters.imageTag }} npm test -- --workers=${WORKERS}
+            ;;
+          "test:a11y")
+            docker run --init --env-file .env-substituted --env CI $(acrLoginServer)/ipaffs/qa-automation:${{ parameters.imageTag }} npm test:a11y -- --workers=${WORKERS}
+            ;;
+          "test:cross-browser")
+            docker run --init --env-file .env-substituted --env CI $(acrLoginServer)/ipaffs/qa-automation:${{ parameters.imageTag }} npm test:browserstack -- --workers=${WORKERS}
+            ;;
+          *)
+            echo "Unknown test suite tag: ${PLAYWRIGHT_TAG}"
+          ;;
+        esac
