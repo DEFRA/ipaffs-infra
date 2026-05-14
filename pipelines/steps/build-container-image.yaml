@@ -15,13 +15,15 @@ parameters:
 steps:
   - task: AzureCLI@2
     displayName: Build and Push Container Image
+    env:
+      TAG_NAME_PARAMETER: ${{ parameters.tagName }}
     inputs:
       azureSubscription: $(serviceConnection)
       scriptType: bash
       scriptLocation: inlineScript
       inlineScript: |
         set -x
-        if [[ -n  "${{ parameters.tagName }}" ]]; then
+        if [[ -n  "${TAG_NAME_PARAMETER// /}" ]]; then
           TAG_NAME="${{ parameters.tagName }}"
         else
           TAG_NAME="$(Build.BuildNumber)"
