@@ -79,4 +79,41 @@ Otherwise prefix with `.Values.imageRegistry` when provided.
 {{- end -}}
 {{- end }}
 
+{{/*
+Stable hashes used to trigger Deployment rollouts when referenced config/secrets change.
+*/}}
+{{- define "webapp.rollout.hashFromObjectData" -}}
+{{- $obj := .obj -}}
+{{- if $obj -}}
+{{- $payload := dict "data" (get $obj "data" | default dict) "binaryData" (get $obj "binaryData" | default dict) -}}
+{{- toJson $payload | sha256sum -}}
+{{- else -}}
+absent
+{{- end -}}
+{{- end }}
+
+{{- define "webapp.rollout.serviceConfigChecksum" -}}
+{{- $data := dict "ENVIRONMENT" (printf "%v" .Values.environment) -}}
+{{- range $databaseName := .Values.database.databaseNames }}
+{{- $db := dict "databaseName" $databaseName "Values" $.Values "Release" $.Release -}}
+{{- $key := printf "DATABASE_DB_CONNECTION_STRING_%s" (upper (snakecase $databaseName)) -}}
+{{- $value := printf "jdbc:sqlserver://%s:1433;databaseName=%s;encrypt=true;socketTimeout=1800000;loginTimeout=15;authentication=ActiveDirectoryManagedIdentity;msiClientId=%s" (include "ipaffs-common.azure.sqlServerHostname" $db) (include "ipaffs-common.azure.databaseName" $db) (include "webapp.azure.serviceClientId" $) -}}
+{{- $_ := set $data $key $value -}}
+{{- end }}
+{{- range $key, $val := .Values.config }}
+{{- $_ := set $data $key (printf "%v" $val) -}}
+{{- end }}
+{{- toJson $data | sha256sum -}}
+{{- end }}
+
+{{- define "webapp.rollout.ipaffsConfigChecksum" -}}
+{{- $cm := lookup "v1" "ConfigMap" .Release.Namespace "ipaffs-config" -}}
+{{- include "webapp.rollout.hashFromObjectData" (dict "obj" $cm) -}}
+{{- end }}
+
+{{- define "webapp.rollout.secretChecksum" -}}
+{{- $secret := lookup "v1" "Secret" .namespace .name -}}
+{{- include "webapp.rollout.hashFromObjectData" (dict "obj" $secret) -}}
+{{- end }}
+
 {{/* vim: set ts=2 sts=2 sw=2 et: */}}

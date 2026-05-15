@@ -24,6 +24,16 @@ spec:
       labels:
         {{- include "ipaffs-common.labels" . | nindent 8 }}
         azure.workload.identity/use: "true"
+      annotations:
+        checksum/service-config: {{ include "webapp.rollout.serviceConfigChecksum" . }}
+        checksum/ipaffs-config: {{ include "webapp.rollout.ipaffsConfigChecksum" . }}
+        checksum/service-secrets: {{ include "webapp.rollout.secretChecksum" (dict "namespace" .Release.Namespace "name" (printf "%s-secrets" .Values.service)) }}
+        {{- if .Values.redis.enabled }}
+        checksum/redis-secret: {{ include "webapp.rollout.secretChecksum" (dict "namespace" .Release.Namespace "name" (printf "%s-redis" .Values.service)) }}
+        {{- end }}
+        {{- if .Values.serviceBus.useSecrets }}
+        checksum/servicebus-secret: {{ include "webapp.rollout.secretChecksum" (dict "namespace" .Release.Namespace "name" (printf "%s-servicebus" .Values.service)) }}
+        {{- end }}
     spec:
       serviceAccountName: {{ .Values.service }}-service
       shareProcessNamespace: true
