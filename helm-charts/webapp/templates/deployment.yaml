@@ -28,6 +28,9 @@ spec:
         checksum/service-config: {{ include "webapp.rollout.serviceConfigChecksum" . }}
         checksum/ipaffs-config: {{ include "webapp.rollout.ipaffsConfigChecksum" . }}
         checksum/service-secrets: {{ include "webapp.rollout.secretChecksum" (dict "namespace" .Release.Namespace "name" (printf "%s-secrets" .Values.service)) }}
+        {{- if .Values.externalSecret.enabled }}
+        secret.reloader.stakater.com/reload: "{{ printf "%s-secrets" .Values.service }}"
+        {{- end }}
         {{- if .Values.redis.enabled }}
         checksum/redis-secret: {{ include "webapp.rollout.secretChecksum" (dict "namespace" .Release.Namespace "name" (printf "%s-redis" .Values.service)) }}
         {{- end }}
