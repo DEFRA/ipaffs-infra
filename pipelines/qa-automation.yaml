@@ -97,7 +97,7 @@ steps:
         docker pull "$(acrLoginServer)/ipaffs/qa-automation:${IMAGE_TAG}"
 
         if [[ -n "${PLAYWRIGHT_TAG// /}" ]]; then
-          docker run --init --volume "${PWD}/playwright-report:/app/playwright-report:rw" --env-file .env-substituted "$(acrLoginServer)/ipaffs/qa-automation:${{ parameters.imageTag }}" npm test -- -- grep "${PLAYWRIGHT_TAG}" --workers="${WORKERS}"
+          docker run --init --volume "${PWD}/playwright-report:/app/playwright-report:rw" --env-file .env-substituted "$(acrLoginServer)/ipaffs/qa-automation:${{ parameters.imageTag }}" npm test -- --grep "${PLAYWRIGHT_TAG}" --workers="${WORKERS}"
         else
           case "${TEST_SUITE}" in
             "test")
