@@ -114,4 +114,10 @@ steps:
               ;;
           esac
         fi
-
+    - task: PublishPipelineArtifact@1
+      displayName:  playwright report
+      inputs:
+        targetPath: $(Pipeline.Workspace)/s/ipaffs-qa-automation/playwright-report
+        artifact: playwright-report
+        publishLocation: 'pipeline'
+      condition: succeededOrFailed()
