@@ -168,6 +168,28 @@ stages:
                         external-secrets-azure ./helm-charts/external-secrets-azure
 
                 - task: AzureCLI@2
+                  displayName: Helm Install - reloader
+                  inputs:
+                    azureSubscription: $(serviceConnection)
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      set -x
+                      helm upgrade \
+                        --install \
+                        --debug \
+                        --namespace reloader \
+                        --create-namespace \
+                        --dependency-update \
+                        --timeout 2m \
+                        $(helmDryRun) \
+                        --values helm-charts/reloader-values.yaml \
+                        --set image.repository="$(acrLoginServer)/stakater/reloader" \
+                        reloader reloader \
+                        --repo "https://stakater.github.io/stakater-charts" \
+                        --version 2.2.11
+
+                - task: AzureCLI@2
                   displayName: Helm Install - keda
                   inputs:
                     azureSubscription: $(serviceConnection)

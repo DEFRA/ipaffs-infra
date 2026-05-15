@@ -1,0 +1,9 @@
+# Reloader settings:
+# - only restart workloads that explicitly opt in via annotations
+# - ignore Jobs/CronJobs (they naturally pick up config on next run)
+reloader:
+  autoReloadAll: false
+  reloadStrategy: annotations
+  ignoreJobs: true
+  ignoreCronJobs: true
+

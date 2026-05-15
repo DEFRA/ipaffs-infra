@@ -108,6 +108,21 @@ stages:
                         --verbose
 
                 - task: AzureCLI@2
+                  displayName: Import stakater/reloader
+                  inputs:
+                    azureSubscription: $(serviceConnection)
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      az acr import \
+                        --name $(acrName) \
+                        --subscription $(subscriptionName) \
+                        --source ghcr.io/stakater/reloader:v1.4.16 \
+                        --image stakater/reloader:v1.4.16 \
+                        --force \
+                        --verbose
+
+                - task: AzureCLI@2
                   displayName: Import manicminer/ms-identity-redirect-handler
                   inputs:
                     azureSubscription: $(serviceConnection)
