@@ -80,7 +80,6 @@ steps:
   - task: AzureCLI@2
     displayName: Run Container
     env:
-      CI: true
       WORKERS: ${{ parameters.workers }}
       IMAGE_TAG: ${{ parameters.imageTag }}
       PLAYWRIGHT_TAG: ${{ parameters.playwrightTag }}
@@ -92,25 +91,27 @@ steps:
       workingDirectory: $(Pipeline.Workspace)/s/ipaffs-qa-automation
       inlineScript: |
         set -x
+
+        mkdir playwright-report
         az acr login --name "$(acrName)" --subscription "$(subscriptionName)"
         docker pull "$(acrLoginServer)/ipaffs/qa-automation:${IMAGE_TAG}"
 
         if [[ -n "${PLAYWRIGHT_TAG// /}" ]]; then
-          docker run --init --env-file .env-substituted --env CI "$(acrLoginServer)/ipaffs/qa-automation:${{ parameters.imageTag }}" npm test -- -- grep "${PLAYWRIGHT_TAG}" --workers="${WORKERS}"
+          docker run --init --volume "${PWD}/playwright-report:/app/playwright-report:rw" --env-file .env-substituted "$(acrLoginServer)/ipaffs/qa-automation:${{ parameters.imageTag }}" npm test -- -- grep "${PLAYWRIGHT_TAG}" --workers="${WORKERS}"
         else
           case "${TEST_SUITE}" in
             "test")
-              docker run --init --env-file .env-substituted --env CI "$(acrLoginServer)/ipaffs/qa-automation:${{ parameters.imageTag }}" npm test -- --workers="${WORKERS}"
+              docker run --init --volume "${PWD}/playwright-report:/app/playwright-report:rw" --env-file .env-substituted "$(acrLoginServer)/ipaffs/qa-automation:${{ parameters.imageTag }}" npm test -- --workers="${WORKERS}"
               ;;
             "test:a11y")
-              docker run --init --env-file .env-substituted --env CI "$(acrLoginServer)/ipaffs/qa-automation:${{ parameters.imageTag }}" npm test:a11y -- --workers="${WORKERS}"
+              docker run --init --volume "${PWD}/playwright-report:/app/playwright-report:rw" --env-file .env-substituted "$(acrLoginServer)/ipaffs/qa-automation:${{ parameters.imageTag }}" npm test:a11y -- --workers="${WORKERS}"
               ;;
             "test:cross-browser")
-              docker run --init --env-file .env-substituted --env CI "$(acrLoginServer)/ipaffs/qa-automation:${{ parameters.imageTag }}" npm test:browserstack -- --workers="${WORKERS}"
+              docker run --init --volume "${PWD}/playwright-report:/app/playwright-report:rw" --env-file .env-substituted "$(acrLoginServer)/ipaffs/qa-automation:${{ parameters.imageTag }}" npm test:browserstack -- --workers="${WORKERS}"
               ;;
             *)
-              echo "Unknown test suite tag: ${PLAYWRIGHT_TAG}"
-            ;;
+              echo "Unknown test suite tag: ${TEST_SUITE}"
+              ;;
           esac
         fi
 
