@@ -24,6 +24,7 @@ parameters:
       - 8
       - 12
       - 16
+      - 100
 
   - name: imageTag
     displayName: Image Tag
@@ -92,33 +93,43 @@ steps:
       inlineScript: |
         set -x
 
-        mkdir playwright-report
+        mkdir playwright-report test-results
         az acr login --name "$(acrName)" --subscription "$(subscriptionName)"
         docker pull "$(acrLoginServer)/ipaffs/qa-automation:${IMAGE_TAG}"
 
         if [[ -n "${PLAYWRIGHT_TAG// /}" ]]; then
-          docker run --init --volume "${PWD}/playwright-report:/app/playwright-report:rw" --env-file .env-substituted "$(acrLoginServer)/ipaffs/qa-automation:${{ parameters.imageTag }}" npm test -- --grep "${PLAYWRIGHT_TAG}" --workers="${WORKERS}"
+          docker run --init --volume "${PWD}/playwright-report:/app/playwright-report:rw" --volume "${PWD}/test-results:/app/test-results:rw" --env-file .env-substituted "$(acrLoginServer)/ipaffs/qa-automation:${{ parameters.imageTag }}" npm test -- --grep "${PLAYWRIGHT_TAG}" --workers="${WORKERS}"
         else
           case "${TEST_SUITE}" in
             "test")
-              docker run --init --volume "${PWD}/playwright-report:/app/playwright-report:rw" --env-file .env-substituted "$(acrLoginServer)/ipaffs/qa-automation:${{ parameters.imageTag }}" npm test -- --workers="${WORKERS}"
+              docker run --init --volume "${PWD}/playwright-report:/app/playwright-report:rw" --volume "${PWD}/test-results:/app/test-results:rw" --env-file .env-substituted "$(acrLoginServer)/ipaffs/qa-automation:${{ parameters.imageTag }}" npm test -- --workers="${WORKERS}"
               ;;
             "test:a11y")
-              docker run --init --volume "${PWD}/playwright-report:/app/playwright-report:rw" --env-file .env-substituted "$(acrLoginServer)/ipaffs/qa-automation:${{ parameters.imageTag }}" npm test:a11y -- --workers="${WORKERS}"
+              docker run --init --volume "${PWD}/playwright-report:/app/playwright-report:rw" --volume "${PWD}/test-results:/app/test-results:rw" --env-file .env-substituted "$(acrLoginServer)/ipaffs/qa-automation:${{ parameters.imageTag }}" npm test:a11y -- --workers="${WORKERS}"
               ;;
             "test:cross-browser")
-              docker run --init --volume "${PWD}/playwright-report:/app/playwright-report:rw" --env-file .env-substituted "$(acrLoginServer)/ipaffs/qa-automation:${{ parameters.imageTag }}" npm test:browserstack -- --workers="${WORKERS}"
+              docker run --init --volume "${PWD}/playwright-report:/app/playwright-report:rw" --volume "${PWD}/test-results:/app/test-results:rw" --env-file .env-substituted "$(acrLoginServer)/ipaffs/qa-automation:${{ parameters.imageTag }}" npm test:browserstack -- --workers="${WORKERS}"
               ;;
             *)
               echo "Unknown test suite tag: ${TEST_SUITE}"
               ;;
           esac
         fi
+  - task: PublishTestResults@2
+    displayName: Publish test results
+    inputs:
+      searchFolder: $(Pipeline.Workspace)/s/ipaffs-qa-automation/test-results
+      testResultsFormat: JUnit
+      testResultsFiles: junit.xml
+      mergeTestResults: true
+    condition: succeededOrFailed()
 
   - task: PublishPipelineArtifact@1
-    displayName:  playwright report
+    displayName: Publish Report
     inputs:
       targetPath: $(Pipeline.Workspace)/s/ipaffs-qa-automation/playwright-report
       artifact: playwright-report
       publishLocation: 'pipeline'
     condition: succeededOrFailed()
+
+
