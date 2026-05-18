@@ -97,7 +97,7 @@ steps:
       IMAGE_TAG: ${{ parameters.imageTag }}
       PLAYWRIGHT_TAG: ${{ parameters.playwrightTag }}
       TEST_SUITE: ${{ parameters.testSuite }}
-      QA_AUTOMATION_ENV: ${{ lower(parameters.environmentName) }}
+      QA_AUTOMATION_ENV: ${{ parameters.environmentName }}
     inputs:
       azureSubscription: $(serviceConnection)
       scriptType: bash
@@ -130,6 +130,16 @@ steps:
               ;;
           esac
         fi
+  - task: AzureCLI@2
+    displayName: Release CSV Report
+    inputs:
+      azureSubscription: $(serviceConnection)
+      scriptType: bash
+      scriptLocation: inlineScript
+      workingDirectory: $(Pipeline.Workspace)/s/ipaffs-qa-automation
+      inlineScript: |
+        set -x
+        docker run --init --volume "${PWD}/playwright-report:/app/playwright-report:rw" --volume "${PWD}/test-results:/app/test-results:rw" --env-file .env-substituted "$(acrLoginServer)/ipaffs/qa-automation:${{ parameters.imageTag }}" npm report:release-csv
   - task: PublishTestResults@2
     displayName: Publish test results
     inputs:
