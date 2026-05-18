@@ -140,6 +140,23 @@ stages:
                         --verbose
 
                 - task: AzureCLI@2
+                  displayName: Import manicminer/network-tools
+                  inputs:
+                    azureSubscription: $(serviceConnection)
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      az acr import \
+                        --name $(acrName) \
+                        --subscription $(subscriptionName) \
+                        --source docker.io/manicminer/network-tools:latest \
+                        --image manicminer/network-tools:latest \
+                        --username $(dockerHubUser) \
+                        --password $(dockerHubToken) \
+                        --force \
+                        --verbose
+
+                - task: AzureCLI@2
                   displayName: Import manicminer/workload-identity-adal-bridge
                   inputs:
                     azureSubscription: $(serviceConnection)
