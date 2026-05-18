@@ -49,19 +49,19 @@ parameters:
 
 variables:
   - group: Common
-  - ${{ if in(parameters.environmentName, 'PRD', 'NEW-PRD', 'PRE') }}
+  - ${{ if in(parameters.environmentName, 'PRD', 'NEW-PRD', 'PRE') }}:
     - group: HigherEnvs
   - ${{ else }}:
     - group: LowerEnvs
   - group: "${{ parameters.environmentName }}"
   - template: "/pipelines/vars/common.yaml"
-  - ${{ if in(parameters.environmentName, 'PRD', 'NEW-PRD') }}
+  - ${{ if in(parameters.environmentName, 'PRD', 'NEW-PRD') }}:
     - template: "/pipelines/vars/prd.yaml"
-  - ${{ if in(parameters.environmentName, 'PRE') }}
+  - ${{ if in(parameters.environmentName, 'PRE') }}:
     - template: "/pipelines/vars/pre.yaml"
-  - ${{ if in(parameters.environmentName, 'TST', 'NEW-TST') }}
+  - ${{ if in(parameters.environmentName, 'TST', 'NEW-TST') }}:
     - template: "/pipelines/vars/tst.yaml"
-  - ${{ if in(parameters.environmentName, 'DEV', 'NEW-DEV') }}
+  - ${{ if in(parameters.environmentName, 'DEV', 'NEW-DEV') }}:
     - template: "/pipelines/vars/dev.yaml"
 resources:
   repositories:
