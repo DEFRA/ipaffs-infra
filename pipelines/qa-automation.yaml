@@ -105,26 +105,25 @@ steps:
       workingDirectory: $(Pipeline.Workspace)/s/ipaffs-qa-automation
       inlineScript: |
         set -x
-        readonly DOCKER_RUN="docker run --init --volume "${PWD}/playwright-report:/app/playwright-report:rw" --volume "${PWD}/test-results:/app/test-results:rw" --env-file .env-substituted "$(acrLoginServer)/ipaffs/qa-automation:${{ parameters.imageTag }}"
-
-
+        readonly DOCKER_RUN="docker run --init --volume "${PWD}/playwright-report:/app/playwright-report:rw" --volume "${PWD}/test-results:/app/test-results:rw" --env-file .env-substituted "$(acrLoginServer)/ipaffs/qa-automation:${{ parameters.imageTag }}""
+        echo "Executing QA automation framework for environment ${QA_AUTOMATION_ENV}"
 
         mkdir playwright-report test-results
         az acr login --name "$(acrName)" --subscription "$(subscriptionName)"
         docker pull "$(acrLoginServer)/ipaffs/qa-automation:${IMAGE_TAG}"
 
         if [[ -n "${PLAYWRIGHT_TAG// /}" ]]; then
-          "${DOCKER_RUN}" npm test -- --grep "${PLAYWRIGHT_TAG}" --workers="${WORKERS}"
+          ${DOCKER_RUN} npm test -- --grep "${PLAYWRIGHT_TAG}" --workers="${WORKERS}"
         else
           case "${TEST_SUITE}" in
             "test")
-              "${DOCKER_RUN}" npm test -- --workers="${WORKERS}"
+              ${DOCKER_RUN} npm test -- --workers="${WORKERS}"
               ;;
             "test:a11y")
-              "${DOCKER_RUN}" npm test:a11y -- --workers="${WORKERS}"
+              ${DOCKER_RUN} npm test:a11y -- --workers="${WORKERS}"
               ;;
             "test:cross-browser")
-              "${DOCKER_RUN}" npm test:browserstack -- --workers="${WORKERS}"
+              ${DOCKER_RUN} npm test:browserstack -- --workers="${WORKERS}"
               ;;
             *)
               echo "Unknown test suite tag: ${TEST_SUITE}"
