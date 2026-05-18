@@ -53,16 +53,19 @@ variables:
     - group: HigherEnvs
   - ${{ else }}:
     - group: LowerEnvs
-  - group: "${{ parameters.environmentName }}"
   - template: "/pipelines/vars/common.yaml"
   - ${{ if in(parameters.environmentName, 'PRD', 'NEW-PRD') }}:
-    - template: "/pipelines/vars/prd.yaml"
-  - ${{ if in(parameters.environmentName, 'PRE') }}:
-    - template: "/pipelines/vars/pre.yaml"
-  - ${{ if in(parameters.environmentName, 'TST', 'NEW-TST') }}:
-    - template: "/pipelines/vars/tst.yaml"
-  - ${{ if in(parameters.environmentName, 'DEV', 'NEW-DEV') }}:
-    - template: "/pipelines/vars/dev.yaml"
+      - group: PRD
+      - template: "/pipelines/vars/prd.yaml"
+  - ${{ elseif in(parameters.environmentName, 'PRE') }}:
+      - group: PRE
+      - template: "/pipelines/vars/pre.yaml"
+  - ${{ elseif in(parameters.environmentName, 'TST', 'NEW-TST') }}:
+      - group: TST
+      - template: "/pipelines/vars/tst.yaml"
+  - ${{ elseif in(parameters.environmentName, 'DEV', 'NEW-DEV') }}:
+      - group: DEV
+      - template: "/pipelines/vars/dev.yaml"
 resources:
   repositories:
     - repository: ipaffs-qa-automation
