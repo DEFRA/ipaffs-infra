@@ -97,7 +97,7 @@ steps:
       IMAGE_TAG: ${{ parameters.imageTag }}
       PLAYWRIGHT_TAG: ${{ parameters.playwrightTag }}
       TEST_SUITE: ${{ parameters.testSuite }}
-      QA_AUTOMATION_ENV: ${{ parameters.environmentName }}
+      QA_AUTOMATION_ENV: ${{ lower(parameters.environmentName) }}
     inputs:
       azureSubscription: $(serviceConnection)
       scriptType: bash
