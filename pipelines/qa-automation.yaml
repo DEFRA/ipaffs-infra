@@ -9,8 +9,11 @@ parameters:
   - name: environmentName
     displayName: Environment
     type: string
-    default: DEV
+    default: NEW-DEV
     values:
+      - NEW-DEV
+      - NEW-TST
+      - NEW-PRD
       - DEV
       - TST
       - PRE
@@ -46,14 +49,20 @@ parameters:
 
 variables:
   - group: Common
-  - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
-      - group: HigherEnvs
+  - ${{ if in(parameters.environmentName, 'PRD', 'NEW-PRD', 'PRE') }}
+    - group: HigherEnvs
   - ${{ else }}:
-      - group: LowerEnvs
+    - group: LowerEnvs
   - group: "${{ parameters.environmentName }}"
   - template: "/pipelines/vars/common.yaml"
-  - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
-
+  - ${{ if in(parameters.environmentName, 'PRD', 'NEW-PRD') }}
+    - template: "/pipelines/vars/prd.yaml"
+  - ${{ if in(parameters.environmentName, 'PRE') }}
+    - template: "/pipelines/vars/pre.yaml"
+  - ${{ if in(parameters.environmentName, 'TST', 'NEW-TST') }}
+    - template: "/pipelines/vars/tst.yaml"
+  - ${{ if in(parameters.environmentName, 'DEV', 'NEW-DEV') }}
+    - template: "/pipelines/vars/dev.yaml"
 resources:
   repositories:
     - repository: ipaffs-qa-automation
@@ -85,6 +94,7 @@ steps:
       IMAGE_TAG: ${{ parameters.imageTag }}
       PLAYWRIGHT_TAG: ${{ parameters.playwrightTag }}
       TEST_SUITE: ${{ parameters.testSuite }}
+      QA_AUTOMATION_ENV: ${{ lower(parameters.environmentName) }}
     inputs:
       azureSubscription: $(serviceConnection)
       scriptType: bash
@@ -92,23 +102,26 @@ steps:
       workingDirectory: $(Pipeline.Workspace)/s/ipaffs-qa-automation
       inlineScript: |
         set -x
+        readonly DOCKER_RUN="docker run --init --volume "${PWD}/playwright-report:/app/playwright-report:rw" --volume "${PWD}/test-results:/app/test-results:rw" --env-file .env-substituted "$(acrLoginServer)/ipaffs/qa-automation:${{ parameters.imageTag }}"
+
+
 
         mkdir playwright-report test-results
         az acr login --name "$(acrName)" --subscription "$(subscriptionName)"
         docker pull "$(acrLoginServer)/ipaffs/qa-automation:${IMAGE_TAG}"
 
         if [[ -n "${PLAYWRIGHT_TAG// /}" ]]; then
-          docker run --init --volume "${PWD}/playwright-report:/app/playwright-report:rw" --volume "${PWD}/test-results:/app/test-results:rw" --env-file .env-substituted "$(acrLoginServer)/ipaffs/qa-automation:${{ parameters.imageTag }}" npm test -- --grep "${PLAYWRIGHT_TAG}" --workers="${WORKERS}"
+          "${DOCKER_RUN}" npm test -- --grep "${PLAYWRIGHT_TAG}" --workers="${WORKERS}"
         else
           case "${TEST_SUITE}" in
             "test")
-              docker run --init --volume "${PWD}/playwright-report:/app/playwright-report:rw" --volume "${PWD}/test-results:/app/test-results:rw" --env-file .env-substituted "$(acrLoginServer)/ipaffs/qa-automation:${{ parameters.imageTag }}" npm test -- --workers="${WORKERS}"
+              "${DOCKER_RUN}" npm test -- --workers="${WORKERS}"
               ;;
             "test:a11y")
-              docker run --init --volume "${PWD}/playwright-report:/app/playwright-report:rw" --volume "${PWD}/test-results:/app/test-results:rw" --env-file .env-substituted "$(acrLoginServer)/ipaffs/qa-automation:${{ parameters.imageTag }}" npm test:a11y -- --workers="${WORKERS}"
+              "${DOCKER_RUN}" npm test:a11y -- --workers="${WORKERS}"
               ;;
             "test:cross-browser")
-              docker run --init --volume "${PWD}/playwright-report:/app/playwright-report:rw" --volume "${PWD}/test-results:/app/test-results:rw" --env-file .env-substituted "$(acrLoginServer)/ipaffs/qa-automation:${{ parameters.imageTag }}" npm test:browserstack -- --workers="${WORKERS}"
+              "${DOCKER_RUN}" npm test:browserstack -- --workers="${WORKERS}"
               ;;
             *)
               echo "Unknown test suite tag: ${TEST_SUITE}"
