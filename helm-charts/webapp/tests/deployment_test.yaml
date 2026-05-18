@@ -71,6 +71,18 @@ tests:
               name: test-service-secrets
               optional: true
 
+  - it: uses ports.container for the http container port
+    set:
+      service: test-service
+      azure.clientId: 00000000-0000-0000-0000-000000000001
+      container.image: test/image:1.0.0
+      ports.container: 4000
+    documentIndex: 1
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].ports[0].containerPort
+          value: 4000
+
   - it: renders the adal bridge init container when databases are configured
     set:
       service: test-service

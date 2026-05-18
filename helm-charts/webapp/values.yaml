@@ -10,6 +10,10 @@ container:
   command: ""
   args: []
 
+ports:
+  service: 80
+  container: 8000
+
 livenessProbe:
   httpGet:
     path: /admin/health

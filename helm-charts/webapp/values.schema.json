@@ -24,6 +24,17 @@
         "hosts"
       ]
     },
+    "ports": {
+      "type": "object",
+      "properties": {
+        "service": {
+          "type": "integer"
+        },
+        "container": {
+          "type": "integer"
+        }
+      }
+    },
     "externalSecret": {
       "type": "object",
       "required": [

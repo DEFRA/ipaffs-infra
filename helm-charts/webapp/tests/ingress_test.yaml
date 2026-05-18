@@ -51,3 +51,16 @@ tests:
       - equal:
           path: spec.rules[1].host
           value: test-feature1.aks.imp.dev.azure.defra.cloud
+
+  - it: uses ports.service for ingress backend service port
+    release:
+      namespace: dev
+    set:
+      service: test-service
+      environment: dev
+      ingress.hosts[0]: test
+      ports.service: 8080
+    asserts:
+      - equal:
+          path: spec.rules[0].http.paths[0].backend.service.port.number
+          value: 8080

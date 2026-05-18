@@ -88,7 +88,7 @@ spec:
           {{- end }}
           ports:
             - name: http
-              containerPort: 8000
+              containerPort: {{ .Values.ports.container }}
               protocol: TCP
             - name: debug
               containerPort: 5005
