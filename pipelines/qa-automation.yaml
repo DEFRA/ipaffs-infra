@@ -84,7 +84,7 @@ stages:
   - stage: RunTests
     displayName: Run QA Automation Test Suite
     jobs:
-      - job: RunAndPublishTest
+      - job: RunAndPublishTests
         steps:
           - checkout: self
 
