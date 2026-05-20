@@ -27,7 +27,6 @@ parameters:
       - 8
       - 12
       - 16
-      - 100
 
   - name: imageTag
     displayName: Image Tag
@@ -55,17 +54,18 @@ variables:
     - group: LowerEnvs
   - template: "/pipelines/vars/common.yaml"
   - ${{ if in(parameters.environmentName, 'PRD', 'NEW-PRD') }}:
-      - group: PRD
-      - template: "/pipelines/vars/prd.yaml"
+    - group: PRD
+    - template: "/pipelines/vars/prd.yaml"
   - ${{ elseif in(parameters.environmentName, 'PRE') }}:
-      - group: PRE
-      - template: "/pipelines/vars/pre.yaml"
+    - group: PRE
+    - template: "/pipelines/vars/pre.yaml"
   - ${{ elseif in(parameters.environmentName, 'TST', 'NEW-TST') }}:
-      - group: TST
-      - template: "/pipelines/vars/tst.yaml"
+    - group: TST
+    - template: "/pipelines/vars/tst.yaml"
   - ${{ elseif in(parameters.environmentName, 'DEV', 'NEW-DEV') }}:
-      - group: DEV
-      - template: "/pipelines/vars/dev.yaml"
+    - group: DEV
+    - template: "/pipelines/vars/dev.yaml"
+
 resources:
   repositories:
     - repository: ipaffs-qa-automation
@@ -105,7 +105,7 @@ steps:
       workingDirectory: $(Pipeline.Workspace)/s/ipaffs-qa-automation
       inlineScript: |
         set -x
-        readonly DOCKER_RUN="docker run --init --volume "${PWD}/playwright-report:/app/playwright-report:rw" --volume "${PWD}/test-results:/app/test-results:rw" --env-file .env-substituted --env ENV=$QA_AUTOMATION_ENV "$(acrLoginServer)/ipaffs/qa-automation:${{ parameters.imageTag }}""
+        readonly DOCKER_RUN="docker run --init --volume "${PWD}/playwright-report:/app/playwright-report:rw" --volume "${PWD}/test-results:/app/test-results:rw" --env-file .env-substituted --env ENV=$QA_AUTOMATION_ENV "$(acrLoginServer)/ipaffs/qa-automation:${IMAGE_TAG}""
         echo "Executing QA automation framework for environment ${QA_AUTOMATION_ENV}"
 
         mkdir playwright-report test-results
@@ -132,6 +132,9 @@ steps:
         fi
   - task: AzureCLI@2
     displayName: Release CSV Report
+    env:
+      IMAGE_TAG: ${{ parameters.imageTag }}
+      QA_AUTOMATION_ENV: ${{ lower(parameters.environmentName) }}
     inputs:
       azureSubscription: $(serviceConnection)
       scriptType: bash
@@ -139,7 +142,8 @@ steps:
       workingDirectory: $(Pipeline.Workspace)/s/ipaffs-qa-automation
       inlineScript: |
         set -x
-        docker run --init --volume "${PWD}/playwright-report:/app/playwright-report:rw" --volume "${PWD}/test-results:/app/test-results:rw" --env-file .env-substituted "$(acrLoginServer)/ipaffs/qa-automation:${{ parameters.imageTag }}" npm report:release-csv
+        docker run --init --volume "${PWD}/playwright-report:/app/playwright-report:rw" --volume "${PWD}/test-results:/app/test-results:rw" --env-file .env-substituted --env ENV=$QA_AUTOMATION_ENV "$(acrLoginServer)/ipaffs/qa-automation:${IMAGE_TAG}" npm report:release-csv
+    condition: succeededOrFailed()
   - task: PublishTestResults@2
     displayName: Publish test results
     inputs:
