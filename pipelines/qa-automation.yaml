@@ -96,7 +96,7 @@ stages:
                 $(Pipeline.Workspace)/s/ipaffs-infra/scripts/pipeline/substitute-environment-variables.sh .env-kv $(keyVaultName) .env-substituted
 
           - task: AzureCLI@2
-            displayName: Run Container
+            displayName: Run Automation Container
             env:
               WORKERS: ${{ parameters.workers }}
               IMAGE_TAG: ${{ parameters.imageTag }}
@@ -137,7 +137,7 @@ stages:
                 fi
 
           - task: AzureCLI@2
-            displayName: Release CSV Report
+            displayName: Generate CSV Report
             env:
               IMAGE_TAG: ${{ parameters.imageTag }}
               QA_AUTOMATION_ENV: ${{ lower(parameters.environmentName) }}
@@ -148,6 +148,7 @@ stages:
               workingDirectory: $(Pipeline.Workspace)/s/ipaffs-qa-automation
               inlineScript: |
                 set -x
+                readonly DOCKER_RUN="docker run --init --volume "${PWD}/playwright-report:/app/playwright-report:rw" --volume "${PWD}/test-results:/app/test-results:rw" --env-file .env-substituted --env ENV=$QA_AUTOMATION_ENV "$(acrLoginServer)/ipaffs/qa-automation:${IMAGE_TAG}""
                 ${DOCKER_RUN} npm run report:release-csv
             condition: succeededOrFailed()
 
