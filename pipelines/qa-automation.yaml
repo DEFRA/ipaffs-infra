@@ -148,7 +148,7 @@ stages:
               workingDirectory: $(Pipeline.Workspace)/s/ipaffs-qa-automation
               inlineScript: |
                 set -x
-                ${DOCKER_RUN}" npm run report:release-csv
+                ${DOCKER_RUN} npm run report:release-csv
             condition: succeededOrFailed()
 
           - task: PublishPipelineArtifact@1
