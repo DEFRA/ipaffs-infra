@@ -142,7 +142,7 @@ steps:
       workingDirectory: $(Pipeline.Workspace)/s/ipaffs-qa-automation
       inlineScript: |
         set -x
-        docker run --init --volume "${PWD}/playwright-report:/app/playwright-report:rw" --volume "${PWD}/test-results:/app/test-results:rw" --env-file .env-substituted --env ENV=$QA_AUTOMATION_ENV "$(acrLoginServer)/ipaffs/qa-automation:${IMAGE_TAG}" npm report:release-csv
+        docker run --init --volume "${PWD}/playwright-report:/app/playwright-report:rw" --volume "${PWD}/test-results:/app/test-results:rw" --env-file .env-substituted --env ENV=$QA_AUTOMATION_ENV "$(acrLoginServer)/ipaffs/qa-automation:${IMAGE_TAG}" npm run report:release-csv
     condition: succeededOrFailed()
   - task: PublishTestResults@2
     displayName: Publish test results
