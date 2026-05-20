@@ -27,6 +27,7 @@ parameters:
       - 8
       - 12
       - 16
+      - 100
 
   - name: imageTag
     displayName: Image Tag
@@ -45,6 +46,11 @@ parameters:
       - test
       - test:a11y
       - test:cross-browser
+
+  - name: csvReport
+    displayName: Generate CSV report
+    type: boolean
+    default: true
 
 variables:
   - group: Common
@@ -150,7 +156,8 @@ stages:
                 set -x
                 readonly DOCKER_RUN="docker run --init --volume "${PWD}/playwright-report:/app/playwright-report:rw" --volume "${PWD}/test-results:/app/test-results:rw" --env-file .env-substituted --env ENV=$QA_AUTOMATION_ENV "$(acrLoginServer)/ipaffs/qa-automation:${IMAGE_TAG}""
                 ${DOCKER_RUN} npm run report:release-csv
-            condition: succeededOrFailed()
+            condition: and(succeededOrFailed(), eq('${{ parameters.csvReport }}', true))
+
 
           - task: PublishPipelineArtifact@1
             displayName: Publish Playwright Report Artifact
