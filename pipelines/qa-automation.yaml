@@ -55,15 +55,8 @@ variables:
   - ${{ else }}:
     - group: LowerEnvs
   - template: "/pipelines/vars/common.yaml"
-  - ${{ if eq(parameters.environmentName, 'NEW-PRD') }}:
-    - group: PRD
-    - template: "/pipelines/vars/prd.yaml"
-  - ${{ elseif eq(parameters.environmentName, 'NEW-TST') }}:
-    - group: TST
-    - template: "/pipelines/vars/tst.yaml"
-  - ${{ elseif eq(parameters.environmentName, 'NEW-DEV') }}:
-    - group: DEV
-    - template: "/pipelines/vars/dev.yaml"
+  - group: DEV
+  - template: "/pipelines/vars/dev.yaml"
 
 resources:
   repositories:
@@ -102,7 +95,6 @@ stages:
               PLAYWRIGHT_TAG: ${{ parameters.playwrightTag }}
               TEST_SUITE: ${{ parameters.testSuite }}
               QA_AUTOMATION_ENV: ${{ lower(parameters.environmentName) }}
-              AUT
             inputs:
               azureSubscription: $(serviceConnection)
               scriptType: bash
@@ -115,7 +107,7 @@ stages:
 
                 mkdir playwright-report test-results
                 az acr login --name "$(qaAutomationAcrName)" --subscription "$(qaAutomationSubscriptionName)"
-                docker pull "$(acrLoginServer).azurecr.io/ipaffs/qa-automation:${IMAGE_TAG}"
+                docker pull "$(qaAutomationAcrName).azurecr.io/ipaffs/qa-automation:${IMAGE_TAG}"
 
                 if [[ -n "${PLAYWRIGHT_TAG// /}" ]]; then
                   ${DOCKER_RUN} npm test -- --grep "${PLAYWRIGHT_TAG}" --workers="${WORKERS}"
