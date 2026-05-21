@@ -33,20 +33,24 @@ steps:
       scriptLocation: inlineScript
       inlineScript: |
         set -x
-        if [[ -n  "${ACR_NAME_PARAMETER// /}" ]]; then
-          ACR_NAME="${{ parameters.acrName }}"
+        echo Debug: ${{ parameters.acrName }}, ${{ parameters.acrSubscriptionName }}, ${{ parameters.tagName }}
+        printenv
+        exit
+
+        if [[ -n "${ACR_NAME_PARAMETER// /}" ]]; then
+          ACR_NAME="${ACR_NAME_PARAMETER}"
         else
           ACR_NAME="$(acrName)"
         fi
 
-        if [[ -n  "${ACR_SUBSCRIPTION_NAME_PARAMETER// /}" ]]; then
-          SUBSCRIPTION_NAME="${{ parameters.acrSubscriptionName }}"
+        if [[ -n "${ACR_SUBSCRIPTION_NAME_PARAMETER// /}" ]]; then
+          SUBSCRIPTION_NAME="${ACR_SUBSCRIPTION_NAME_PARAMETER}"
         else
           SUBSCRIPTION_NAME="$(subscriptionName)"
         fi
 
-        if [[ -n  "${TAG_NAME_PARAMETER// /}" ]]; then
-          TAG_NAME="${{ parameters.tagName }}"
+        if [[ -n "${TAG_NAME_PARAMETER// /}" ]]; then
+          TAG_NAME="${TAG_NAME_PARAMETER}"
         else
           TAG_NAME="$(Build.BuildNumber)"
         fi
