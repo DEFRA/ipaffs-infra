@@ -63,7 +63,7 @@ resources:
       type: github
       endpoint: DEFRA
       name: DEFRA/ipaffs-qa-automation
-      ref: refs/heads/imta-21213 # Hardcoded against feature branch for now
+      ref: refs/heads/main
 
 stages:
   - stage: RunTests
