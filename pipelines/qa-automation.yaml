@@ -23,7 +23,6 @@ parameters:
       - 8
       - 12
       - 16
-      - 100
 
   - name: imageTag
     displayName: Image Tag
@@ -85,7 +84,7 @@ stages:
               scriptLocation: inlineScript
               workingDirectory: $(Pipeline.Workspace)/s/ipaffs-qa-automation
               inlineScript: |
-                $(Pipeline.Workspace)/s/ipaffs-infra/scripts/pipeline/substitute-environment-variables.sh .env-kv $(keyVaultName) .env-substituted
+                $(Pipeline.Workspace)/s/ipaffs-infra/scripts/pipeline/substitute-environment-variables.sh .env-kv $(qaAutomationKeyvaultName) .env-substituted
 
           - task: AzureCLI@2
             displayName: Run Automation Container
