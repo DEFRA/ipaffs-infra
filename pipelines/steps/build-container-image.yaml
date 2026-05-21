@@ -1,22 +1,57 @@
 parameters:
   - name: directory
     type: string
+
   - name: dockerFile
     type: string
+
   - name: imageName
     type: string
+
+  - name: acrName
+    type: string
+    default: ' '
+
+  - name: acrSubscriptionName
+    type: string
+    default: ' '
+
+  - name: tagName
+    type: string
+    default: ' '
 
 steps:
   - task: AzureCLI@2
     displayName: Build and Push Container Image
+    env:
+      ACR_NAME_PARAMETER: ${{ parameters.acrName }}
+      ACR_SUBSCRIPTION_NAME_PARAMETER: ${{ parameters.acrSubscriptionName }}
+      TAG_NAME_PARAMETER: ${{ parameters.tagName }}
     inputs:
       azureSubscription: $(serviceConnection)
       scriptType: bash
       scriptLocation: inlineScript
       inlineScript: |
-        az acr login --name "$(acrName)" --subscription "$(subscriptionName)"
-        docker build --platform=linux/amd64 --tag "${{ parameters.imageName }}:$(Build.BuildNumber)" --file "${{ parameters.dockerFile }}" "${{ parameters.directory }}" --build-arg IMAGE_ACR="$(acrLoginServer)"
-        docker tag "${{ parameters.imageName }}:$(Build.BuildNumber)" "$(acrLoginServer)/ipaffs/${{ parameters.imageName }}:$(Build.BuildNumber)"
-        docker push "$(acrLoginServer)/ipaffs/${{ parameters.imageName }}:$(Build.BuildNumber)"
+        set -x
+        if [[ -n "${ACR_NAME_PARAMETER// /}" ]]; then
+          ACR_NAME="${ACR_NAME_PARAMETER}"
+        else
+          ACR_NAME="$(acrName)"
+        fi
 
-# vim: set ts=2 sts=2 sw=2 et:
+        if [[ -n "${ACR_SUBSCRIPTION_NAME_PARAMETER// /}" ]]; then
+          SUBSCRIPTION_NAME="${ACR_SUBSCRIPTION_NAME_PARAMETER}"
+        else
+          SUBSCRIPTION_NAME="$(subscriptionName)"
+        fi
+
+        if [[ -n "${TAG_NAME_PARAMETER// /}" ]]; then
+          TAG_NAME="${TAG_NAME_PARAMETER}"
+        else
+          TAG_NAME="$(Build.BuildNumber)"
+        fi
+
+        az acr login --name "${ACR_NAME}" --subscription "${SUBSCRIPTION_NAME}"
+        docker build --platform=linux/amd64 --tag "${{ parameters.imageName }}:${TAG_NAME}" --file "${{ parameters.dockerFile }}" "${{ parameters.directory }}" --build-arg IMAGE_ACR="${ACR_NAME}.azurecr.io"
+        docker tag "${{ parameters.imageName }}:${TAG_NAME}" "${ACR_NAME}.azurecr.io/ipaffs/${{ parameters.imageName }}:${TAG_NAME}"
+        docker push "${ACR_NAME}.azurecr.io/ipaffs/${{ parameters.imageName }}:${TAG_NAME}"

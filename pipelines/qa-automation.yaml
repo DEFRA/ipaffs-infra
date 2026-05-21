@@ -1,0 +1,169 @@
+---
+trigger: none
+pr: none
+
+pool:
+  name: DEFRA-COMMON-ubuntu2204-SSV5
+
+parameters:
+  - name: environmentName
+    displayName: Environment
+    type: string
+    default: NEW-DEV
+    values:
+      - NEW-DEV
+      - NEW-TST
+      - NEW-PRD
+
+  - name: workers
+    displayName: Workers
+    default: 8
+    values:
+      - 4
+      - 8
+      - 12
+      - 16
+
+  - name: imageTag
+    displayName: Image Tag
+    default: latest
+
+  - name: playwrightTag
+    displayName: Playwright Tag (if set overrides any Test Suite selection!)
+    type: string
+    default: ' '
+
+  - name: testSuite
+    displayName: Test Suite
+    type: string
+    default: test
+    values:
+      - test
+      - test:a11y
+      - test:cross-browser
+
+  - name: csvReport
+    displayName: Generate CSV report
+    type: boolean
+    default: true
+
+variables:
+  - group: Common
+  - ${{ if eq(parameters.environmentName, 'NEW-PRD') }}:
+    - group: HigherEnvs
+  - ${{ else }}:
+    - group: LowerEnvs
+  - template: "/pipelines/vars/common.yaml"
+  - group: DEV
+  - template: "/pipelines/vars/dev.yaml"
+
+resources:
+  repositories:
+    - repository: ipaffs-qa-automation
+      type: github
+      endpoint: DEFRA
+      name: DEFRA/ipaffs-qa-automation
+      ref: refs/heads/imta-21213 # Hardcoded against feature branch for now
+
+stages:
+  - stage: RunTests
+    displayName: Run QA Automation Test Suite
+    jobs:
+      - job: RunAndPublishTests
+        steps:
+          - checkout: self
+
+          - checkout: ipaffs-qa-automation
+            path: s/ipaffs-qa-automation
+
+          - task: AzureCLI@2
+            displayName: Update QA Automation environment file
+            inputs:
+              azureSubscription: $(serviceConnection)
+              scriptType: bash
+              scriptLocation: inlineScript
+              workingDirectory: $(Pipeline.Workspace)/s/ipaffs-qa-automation
+              inlineScript: |
+                $(Pipeline.Workspace)/s/ipaffs-infra/scripts/pipeline/substitute-environment-variables.sh .env-kv $(qaAutomationKeyvaultName) .env-substituted
+
+          - task: AzureCLI@2
+            displayName: Run Automation Container
+            env:
+              WORKERS: ${{ parameters.workers }}
+              IMAGE_TAG: ${{ parameters.imageTag }}
+              PLAYWRIGHT_TAG: ${{ parameters.playwrightTag }}
+              TEST_SUITE: ${{ parameters.testSuite }}
+              QA_AUTOMATION_ENV: ${{ lower(parameters.environmentName) }}
+            inputs:
+              azureSubscription: $(serviceConnection)
+              scriptType: bash
+              scriptLocation: inlineScript
+              workingDirectory: $(Pipeline.Workspace)/s/ipaffs-qa-automation
+              inlineScript: |
+                set -x
+                readonly DOCKER_RUN="docker run --init --volume "${PWD}/playwright-report:/app/playwright-report:rw" --volume "${PWD}/test-results:/app/test-results:rw" --env-file .env-substituted --env ENV=$QA_AUTOMATION_ENV "$(acrLoginServer)/ipaffs/qa-automation:${IMAGE_TAG}""
+                echo "Executing QA automation framework for environment ${QA_AUTOMATION_ENV}"
+
+                mkdir playwright-report test-results
+                az acr login --name "$(qaAutomationAcrName)" --subscription "$(qaAutomationSubscriptionName)"
+                docker pull "$(qaAutomationAcrName).azurecr.io/ipaffs/qa-automation:${IMAGE_TAG}"
+
+                if [[ -n "${PLAYWRIGHT_TAG// /}" ]]; then
+                  ${DOCKER_RUN} npm test -- --grep "${PLAYWRIGHT_TAG}" --workers="${WORKERS}"
+                else
+                  case "${TEST_SUITE}" in
+                    "test")
+                      ${DOCKER_RUN} npm test -- --workers="${WORKERS}"
+                      ;;
+                    "test:a11y")
+                      ${DOCKER_RUN} npm test:a11y -- --workers="${WORKERS}"
+                      ;;
+                    "test:cross-browser")
+                      ${DOCKER_RUN} npm test:browserstack -- --workers="${WORKERS}"
+                      ;;
+                    *)
+                      echo "Unknown test suite tag: ${TEST_SUITE}"
+                      ;;
+                  esac
+                fi
+
+          - task: AzureCLI@2
+            displayName: Generate CSV Report
+            env:
+              IMAGE_TAG: ${{ parameters.imageTag }}
+              QA_AUTOMATION_ENV: ${{ lower(parameters.environmentName) }}
+            inputs:
+              azureSubscription: $(serviceConnection)
+              scriptType: bash
+              scriptLocation: inlineScript
+              workingDirectory: $(Pipeline.Workspace)/s/ipaffs-qa-automation
+              inlineScript: |
+                set -x
+                readonly DOCKER_RUN="docker run --init --volume "${PWD}/playwright-report:/app/playwright-report:rw" --volume "${PWD}/test-results:/app/test-results:rw" --env-file .env-substituted --env ENV=$QA_AUTOMATION_ENV "$(acrLoginServer)/ipaffs/qa-automation:${IMAGE_TAG}""
+                ${DOCKER_RUN} npm run report:release-csv
+            condition: and(succeededOrFailed(), eq('${{ parameters.csvReport }}', true))
+
+          - task: PublishPipelineArtifact@1
+            displayName: Publish Playwright Report Artifact
+            inputs:
+              targetPath: $(Pipeline.Workspace)/s/ipaffs-qa-automation/playwright-report
+              artifact: playwright-report
+              publishLocation: 'pipeline'
+            condition: succeededOrFailed()
+
+          - task: PublishPipelineArtifact@1
+            displayName: Publish Test Results Artifact
+            inputs:
+              targetPath: $(Pipeline.Workspace)/s/ipaffs-qa-automation/test-results
+              artifact: test-results
+              publishLocation: 'pipeline'
+            condition: succeededOrFailed()
+
+          - task: PublishTestResults@2
+            displayName: Publish Test results
+            inputs:
+              searchFolder: $(Pipeline.Workspace)/s/ipaffs-qa-automation/test-results
+              testResultsFormat: JUnit
+              testResultsFiles: junit.xml
+              mergeTestResults: true
+            condition: succeededOrFailed()
