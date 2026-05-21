@@ -33,10 +33,6 @@ steps:
       scriptLocation: inlineScript
       inlineScript: |
         set -x
-        echo Debug: ${{ parameters.acrName }}, ${{ parameters.acrSubscriptionName }}, ${{ parameters.tagName }}
-        printenv
-        exit
-
         if [[ -n "${ACR_NAME_PARAMETER// /}" ]]; then
           ACR_NAME="${ACR_NAME_PARAMETER}"
         else
