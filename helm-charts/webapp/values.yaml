@@ -44,6 +44,8 @@ database:
   enabled: false
   sqlServerName: ""
   databaseNames: []
+  managedDatabaseNames: []
+  referencedDatabaseNames: []
   principalName: ""
   legacyManagedIdentityUser: ""
   legacyBaseServiceDbUserAd: ""

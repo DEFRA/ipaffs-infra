@@ -148,3 +148,27 @@ tests:
           content:
             name: AZURE_SEARCH_USER_ASSIGNED_IDENTITY
             value: "/subscriptions/00000000-0000-0000-0000-000000000003/resourcegroups/rg-dev/providers/Microsoft.ManagedIdentity/userAssignedIdentities/search-principal"
+
+  - it: renders database connection env vars from managed and referenced database lists
+    release:
+      namespace: dev
+    set:
+      service: test-service
+      database.principalName: test-service-principal
+      database.managedDatabaseNames[0]: imports-primary
+      database.referencedDatabaseNames[0]: imports-secondary
+      database.migrations.enabled: true
+      database.migrations.image: test/migrations:1.0.0
+      database.migrations.clientId: 00000000-0000-0000-0000-000000000002
+    documentIndex: 1
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: DATABASE_DB_CONNECTION_STRING_IMPORTS_PRIMARY
+            value: "jdbc:sqlserver://devimpdbssq1401.database.windows.net:1433;databaseName=imports-primary;encrypt=true;socketTimeout=1800000;loginTimeout=15;authentication=ActiveDirectoryManagedIdentity;msiClientId=00000000-0000-0000-0000-000000000002"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: DATABASE_DB_CONNECTION_STRING_IMPORTS_SECONDARY
+            value: "jdbc:sqlserver://devimpdbssq1401.database.windows.net:1433;databaseName=imports-secondary;encrypt=true;socketTimeout=1800000;loginTimeout=15;authentication=ActiveDirectoryManagedIdentity;msiClientId=00000000-0000-0000-0000-000000000002"

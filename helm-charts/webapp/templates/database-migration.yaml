@@ -1,4 +1,5 @@
 {{- if .Values.database.migrations.enabled }}
+{{- $databaseNames := include "webapp.database.connectionNames" . | fromJsonArray -}}
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -68,7 +69,7 @@ spec:
           {{- with .Values.env }}
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- range $databaseName := .Values.database.databaseNames }}
+          {{- range $databaseName := $databaseNames }}
           {{- $db := dict "databaseName" $databaseName "Values" $.Values "Release" $.Release }}
             - name: DATABASE_DB_CONNECTION_STRING_{{ upper (snakecase $databaseName) }}
               value: "jdbc:sqlserver://{{ template "ipaffs-common.azure.sqlServerHostname" $db }}:1433;databaseName={{ template "ipaffs-common.azure.databaseName" $db }};encrypt=true;socketTimeout=1800000;loginTimeout=15;authentication=ActiveDirectoryManagedIdentity;msiClientId={{ include "webapp.azure.migrationsClientId" $ }}"
@@ -109,7 +110,7 @@ spec:
               {{- else }}
                 {{ include "webapp.azure.servicePrincipalName" . | quote }}
               {{- end }}
-      {{- if .Values.database.databaseNames }}
+      {{- if gt (len $databaseNames) 0 }}
       initContainers:
         - name: workload-identity-adal-bridge
           image: "manicminer/workload-identity-adal-bridge:0.4.1"

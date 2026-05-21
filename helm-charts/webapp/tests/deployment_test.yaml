@@ -96,3 +96,18 @@ tests:
       - equal:
           path: spec.template.spec.initContainers[0].name
           value: workload-identity-adal-bridge
+
+  - it: renders the adal bridge init container when managed and referenced databases are configured
+    set:
+      service: test-service
+      azure.clientId: 00000000-0000-0000-0000-000000000001
+      container.image: test/image:1.0.0
+      database.managedDatabaseNames[0]: imports-primary
+      database.referencedDatabaseNames[0]: imports-secondary
+    documentIndex: 1
+    asserts:
+      - exists:
+          path: spec.template.spec.initContainers[0]
+      - equal:
+          path: spec.template.spec.initContainers[0].name
+          value: workload-identity-adal-bridge

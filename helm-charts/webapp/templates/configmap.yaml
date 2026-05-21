@@ -1,3 +1,4 @@
+{{- $databaseNames := include "webapp.database.connectionNames" . | fromJsonArray -}}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -10,7 +11,7 @@ metadata:
     helm.sh/hook-weight: "9"
 data:
   ENVIRONMENT: "{{ .Values.environment }}"
-{{- range $databaseName := .Values.database.databaseNames }}
+{{- range $databaseName := $databaseNames }}
 {{- $db := dict "databaseName" $databaseName "Values" $.Values "Release" $.Release }}
   DATABASE_DB_CONNECTION_STRING_{{ upper (snakecase $databaseName) }}: "jdbc:sqlserver://{{ template "ipaffs-common.azure.sqlServerHostname" $db }}:1433;databaseName={{ template "ipaffs-common.azure.databaseName" $db }};encrypt=true;socketTimeout=1800000;loginTimeout=15;authentication=ActiveDirectoryManagedIdentity;msiClientId={{ include "webapp.azure.serviceClientId" $ }}"
 {{- end }}

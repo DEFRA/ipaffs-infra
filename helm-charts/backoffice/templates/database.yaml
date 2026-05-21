@@ -1,7 +1,8 @@
 {{- if eq .Values.environment "dev" }}
 
 {{ if .Values.database.enabled }}
-{{ range $databaseName := .Values.database.databaseNames }}
+{{- $managedDatabaseNames := include "backoffice.database.managedNames" . | fromJsonArray -}}
+{{ range $databaseName := $managedDatabaseNames }}
 {{ $db := dict "databaseName" $databaseName "Values" $.Values "Release" $.Release }}
 ---
 apiVersion: sql.azure.com/v1api20211101

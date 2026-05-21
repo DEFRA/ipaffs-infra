@@ -11,7 +11,21 @@
       "type": "object",
       "required": [
         "enabled"
-      ]
+      ],
+      "properties": {
+        "databaseNames": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "managedDatabaseNames": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
     },
     "image": {
       "type": "string"

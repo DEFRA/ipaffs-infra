@@ -1,3 +1,4 @@
+{{- $databaseNames := include "webapp.database.connectionNames" . | fromJsonArray -}}
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -97,7 +98,7 @@ spec:
           resources:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-      {{- if .Values.database.databaseNames }}
+      {{- if gt (len $databaseNames) 0 }}
       initContainers:
         - name: workload-identity-adal-bridge
           image: "manicminer/workload-identity-adal-bridge:0.4.1"

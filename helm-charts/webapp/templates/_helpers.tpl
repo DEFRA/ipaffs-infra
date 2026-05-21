@@ -57,6 +57,25 @@ Explicit values are still supported as a compatibility fallback.
 {{- end }}
 
 {{/*
+Resolve the list of database names that should receive connection strings.
+
+Backwards compatibility:
+- If database.managedDatabaseNames or database.referencedDatabaseNames is set,
+  use their union (de-duplicated).
+- Otherwise fall back to legacy database.databaseNames.
+*/}}
+{{- define "webapp.database.connectionNames" -}}
+{{- $database := .Values.database | default dict -}}
+{{- $managedDatabaseNames := get $database "managedDatabaseNames" | default list -}}
+{{- $referencedDatabaseNames := get $database "referencedDatabaseNames" | default list -}}
+{{- if or (gt (len $managedDatabaseNames) 0) (gt (len $referencedDatabaseNames) 0) -}}
+{{- concat $managedDatabaseNames $referencedDatabaseNames | uniq | toJson -}}
+{{- else -}}
+{{- get $database "databaseNames" | default list | toJson -}}
+{{- end -}}
+{{- end }}
+
+{{/*
 Resolve an image reference.
 
 If the supplied image already contains a registry host, return as-is.
@@ -94,7 +113,8 @@ absent
 
 {{- define "webapp.rollout.serviceConfigChecksum" -}}
 {{- $data := dict "ENVIRONMENT" (printf "%v" .Values.environment) -}}
-{{- range $databaseName := .Values.database.databaseNames }}
+{{- $databaseNames := include "webapp.database.connectionNames" . | fromJsonArray -}}
+{{- range $databaseName := $databaseNames }}
 {{- $db := dict "databaseName" $databaseName "Values" $.Values "Release" $.Release -}}
 {{- $key := printf "DATABASE_DB_CONNECTION_STRING_%s" (upper (snakecase $databaseName)) -}}
 {{- $value := printf "jdbc:sqlserver://%s:1433;databaseName=%s;encrypt=true;socketTimeout=1800000;loginTimeout=15;authentication=ActiveDirectoryManagedIdentity;msiClientId=%s" (include "ipaffs-common.azure.sqlServerHostname" $db) (include "ipaffs-common.azure.databaseName" $db) (include "webapp.azure.serviceClientId" $) -}}
