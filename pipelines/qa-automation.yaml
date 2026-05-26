@@ -70,6 +70,7 @@ stages:
     displayName: Run QA Automation Test Suite
     jobs:
       - job: RunAndPublishTests
+        timeoutInMinutes: 180
         steps:
           - checkout: self
 
