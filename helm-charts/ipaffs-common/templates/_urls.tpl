@@ -5,7 +5,7 @@ Canonical base URL to use for B2B clients, for use when the host cannot be infer
   {{- if eq $.Release.Namespace $.Values.environment -}}
     {{- printf "https://importnotification-int-%s-new.azure.defra.cloud" $.Values.environment }}
   {{- else -}}
-    {{- printf "http://proxy-int-%s.aks.imp.%s.azure.defra.cloud" $.Release.Namespace $.Values.environment }}
+    {{- printf "https://proxy-int-%s.aks.imp.%s.azure.defra.cloud" $.Release.Namespace $.Values.environment }}
   {{- end -}}
 {{- end }}
 
@@ -20,7 +20,7 @@ Canonical base URL to use for B2C clients, for use when the host cannot be infer
       {{- printf "https://importnotification-%s-new.azure.defra.cloud" $.Values.environment }}
     {{- end -}}
   {{- else -}}
-    {{- printf "http://proxy-%s.aks.imp.%s.azure.defra.cloud" $.Release.Namespace $.Values.environment }}
+    {{- printf "https://proxy-%s.aks.imp.%s.azure.defra.cloud" $.Release.Namespace $.Values.environment }}
   {{- end -}}
 {{- end }}
 
