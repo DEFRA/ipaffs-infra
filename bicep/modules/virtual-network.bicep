@@ -60,20 +60,6 @@ resource vnet 'Microsoft.Network/virtualNetworks@2025-05-01' existing = {
   dependsOn: [virtualNetwork]
 }
 
-resource classicPeering 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2025-05-01' = if (environment != 'PRD') {
-  name: format('{0}-{1}', vnet.name, last(split(vnetParams.classicVnetResourceId, '/')))
-  parent: vnet
-  properties: {
-    allowForwardedTraffic: false
-    allowGatewayTransit: false
-    allowVirtualNetworkAccess: true
-    enableOnlyIPv6Peering: false
-    remoteVirtualNetwork: {
-      id: vnetParams.classicVnetResourceId
-    }
-  }
-}
-
 output subnetIds array = virtualNetwork.outputs.subnetResourceIds
 output subnets array = vnet.properties.subnets
 output vnetName string = virtualNetwork.outputs.name
