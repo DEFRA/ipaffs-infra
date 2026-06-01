@@ -6,6 +6,9 @@ variables:
 
   # SC-cleared admin accounts only!
   higherEnvsAdminsGroupMembers: >
+    a-andrew.hardy@defra.onmicrosoft.com
+    a-jon.shaw@defra.onmicrosoft.com
+    a-marcel.vandenhof@Defra.onmicrosoft.com
     a-tom.bamford@Defra.onmicrosoft.com
     a-suresh.sundaram@defra.onmicrosoft.com
     a-srinivasan.kannan@defra.onmicrosoft.com
