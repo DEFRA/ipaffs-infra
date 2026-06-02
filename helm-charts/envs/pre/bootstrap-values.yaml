@@ -43,7 +43,6 @@ ipaffsConfig:
     EVENT_HUB_NAME: "insights-application-logs"
     EVENT_HUB_NAMESPACE: "PREIMPSOCENS001"
     MONITORING_TYPE: "event-hub"
-    B2B_CUSTOMER_USER_ID: "edee7058-7f46-e911-a95a-000d3ab6488a"
     REMOTE_DEBUG: "false"
     PROTOCOL: "http"
 
