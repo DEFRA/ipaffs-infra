@@ -5,6 +5,10 @@ metadata:
   name: {{ .Values.service }}
   labels:
     {{- include "ipaffs-common.labels" . | nindent 4 }}
+  {{- if (default false .Values.suspend) }}
+  annotations:
+    autoscaling.keda.sh/paused: "true"
+  {{- end }}
 spec:
   pollingInterval: {{ default 30 .Values.keda.pollingInterval }}
   cooldownPeriod: {{ default 300 .Values.keda.cooldownPeriod }}
