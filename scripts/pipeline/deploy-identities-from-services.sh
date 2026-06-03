@@ -13,68 +13,53 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 : "${SERVICES_ROOT:?SERVICES_ROOT is required}"
 
 lower_resource_group_name="$(echo "${RESOURCE_GROUP_NAME}" | tr '[:upper:]' '[:lower:]')"
-wait_pids=()
-wait_descriptions=()
+search_contributor_principal_ids=()
+blob_storage_contributor_principal_ids=()
+sql_admin_principal_ids=()
 
-cleanup_wait_jobs() {
-  local pid
-
-  for pid in "${wait_pids[@]}"; do
-    if kill -0 "${pid}" 2>/dev/null; then
-      kill "${pid}" 2>/dev/null || true
-      wait "${pid}" 2>/dev/null || true
-    fi
-  done
-}
-
-on_exit_cleanup() {
-  local status=$?
-
-  if [[ ${status} -ne 0 ]]; then
-    cleanup_wait_jobs
-  fi
-}
-
-trap on_exit_cleanup EXIT
-
-queue_group_membership_wait() {
-  local group_id="$1"
+add_unique_principal_id() {
+  local -n principal_ids="$1"
   local principal_id="$2"
+  local existing_principal_id
+
+  for existing_principal_id in "${principal_ids[@]}"; do
+    [[ "${existing_principal_id}" == "${principal_id}" ]] && return
+  done
+
+  principal_ids+=("${principal_id}")
+}
+
+bulk_add_group_members() {
+  local group_id="$1"
+  local principal_ids="$2"
   local description="$3"
 
-  (
-    GROUP_ID="${group_id}" \
-    PRINCIPAL_ID="${principal_id}" \
-    "${SCRIPT_DIR}/wait-for-group-membership.sh"
-  ) &
-
-  wait_pids+=("$!")
-  wait_descriptions+=("${description}")
-}
-
-wait_for_all_group_memberships() {
-  local failures=0
-  local idx=0
-
-  if [[ ${#wait_pids[@]} -eq 0 ]]; then
+  if [[ -z "${principal_ids}" ]]; then
+    echo "No principals to add to ${description}"
     return
   fi
 
-  echo "Waiting for ${#wait_pids[@]} group membership checks to complete"
+  echo "Adding principals to ${description}"
+  GROUP_ID="${group_id}" \
+  GROUP_MEMBERS="${principal_ids}" \
+  CHECK_EXISTING_MEMBERS=true \
+  "${SCRIPT_DIR}/add-entra-group-members.sh"
+}
 
-  for idx in "${!wait_pids[@]}"; do
-    if wait "${wait_pids[$idx]}"; then
-      echo "Group membership ready: ${wait_descriptions[$idx]}"
-    else
-      echo "Group membership check failed: ${wait_descriptions[$idx]}" >&2
-      failures=$((failures + 1))
-    fi
-  done
+wait_for_group_members() {
+  local group_id="$1"
+  local principal_ids="$2"
+  local description="$3"
 
-  if [[ ${failures} -gt 0 ]]; then
-    echo "${failures} group membership checks failed" >&2
-    exit 1
+  if [[ -z "${principal_ids}" ]]; then
+    echo "No principals to verify in ${description}"
+    return
   fi
+
+  echo "Verifying principals in ${description}"
+  GROUP_ID="${group_id}" \
+  PRINCIPAL_IDS="${principal_ids}" \
+  "${SCRIPT_DIR}/wait-for-group-memberships.sh"
 }
 
 ensure_identity() {
@@ -84,6 +69,7 @@ ensure_identity() {
   local aks_subject="$4"
   local add_sql_group="$5"
   local managed_identity_name="${lower_resource_group_name}-${NAMESPACE}-${service_name}-${role_suffix}"
+  local identity_output_file=""
   local principal_id=""
 
   export MANAGED_IDENTITY_NAME="${managed_identity_name}"
@@ -91,23 +77,21 @@ ensure_identity() {
   export AKS_AUDIENCES="api://AzureADTokenExchange"
   export AKS_SUBJECT="${aks_subject}"
 
+  identity_output_file="$(mktemp)"
+  export CREATE_IDENTITY_OUTPUT_FILE="${identity_output_file}"
   "${SCRIPT_DIR}/create-identity.sh"
+  unset CREATE_IDENTITY_OUTPUT_FILE
 
-  principal_id="$(az identity show --subscription "${SUBSCRIPTION_NAME}" --name "${managed_identity_name}" --resource-group "${RESOURCE_GROUP_NAME}" --query principalId -o tsv)"
+  # shellcheck disable=SC1090
+  source "${identity_output_file}"
+  rm -f "${identity_output_file}"
+  principal_id="${PRINCIPAL_ID}"
 
-  export GROUP_ID="${SEARCH_CONTRIBUTORS_GROUP_ID}"
-  export PRINCIPAL_ID="${principal_id}"
-  "${SCRIPT_DIR}/add-principal-to-group.sh"
-  queue_group_membership_wait "${SEARCH_CONTRIBUTORS_GROUP_ID}" "${principal_id}" "${managed_identity_name} in search contributors"
-
-  export GROUP_ID="${BLOB_STORAGE_CONTRIBUTORS_GROUP_ID}"
-  "${SCRIPT_DIR}/add-principal-to-group.sh"
-  queue_group_membership_wait "${BLOB_STORAGE_CONTRIBUTORS_GROUP_ID}" "${principal_id}" "${managed_identity_name} in blob storage contributors"
+  add_unique_principal_id search_contributor_principal_ids "${principal_id}"
+  add_unique_principal_id blob_storage_contributor_principal_ids "${principal_id}"
 
   if [[ "${add_sql_group}" == "true" ]]; then
-    export GROUP_ID="${SQL_ADMIN_GROUP_ID}"
-    "${SCRIPT_DIR}/add-principal-to-group.sh"
-    queue_group_membership_wait "${SQL_ADMIN_GROUP_ID}" "${principal_id}" "${managed_identity_name} in sql admins"
+    add_unique_principal_id sql_admin_principal_ids "${principal_id}"
   fi
 }
 
@@ -162,6 +146,16 @@ for service_dir in "${service_dirs[@]}"; do
   fi
 done
 
-wait_for_all_group_memberships
+search_contributor_principals="${search_contributor_principal_ids[*]}"
+blob_storage_contributor_principals="${blob_storage_contributor_principal_ids[*]}"
+sql_admin_principals="${sql_admin_principal_ids[*]}"
+
+bulk_add_group_members "${SEARCH_CONTRIBUTORS_GROUP_ID}" "${search_contributor_principals}" "search contributors group"
+bulk_add_group_members "${BLOB_STORAGE_CONTRIBUTORS_GROUP_ID}" "${blob_storage_contributor_principals}" "blob storage contributors group"
+bulk_add_group_members "${SQL_ADMIN_GROUP_ID}" "${sql_admin_principals}" "SQL admins group"
+
+wait_for_group_members "${SEARCH_CONTRIBUTORS_GROUP_ID}" "${search_contributor_principals}" "search contributors group"
+wait_for_group_members "${BLOB_STORAGE_CONTRIBUTORS_GROUP_ID}" "${blob_storage_contributor_principals}" "blob storage contributors group"
+wait_for_group_members "${SQL_ADMIN_GROUP_ID}" "${sql_admin_principals}" "SQL admins group"
 
 # vim: set ts=2 sts=2 sw=2 et:

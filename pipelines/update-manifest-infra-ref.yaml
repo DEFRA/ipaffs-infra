@@ -9,11 +9,13 @@ trigger:
       - pipelines/vars/**
       - pipelines/update-manifest-infra-ref.yaml
       - scripts/pipeline/add-principal-to-group.sh
+      - scripts/pipeline/add-entra-group-members.sh
       - scripts/pipeline/create-identity.sh
       - scripts/pipeline/deploy-identities-from-services.sh
       - scripts/pipeline/update-manifest-infra-ref.sh
       - scripts/pipeline/wait-for-aso-identities-from-services.sh
       - scripts/pipeline/wait-for-group-membership.sh
+      - scripts/pipeline/wait-for-group-memberships.sh
 
 pr: none
 
