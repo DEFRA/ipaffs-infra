@@ -17,7 +17,6 @@ lower_resource_group_name="$(echo "${RESOURCE_GROUP_NAME}" | tr '[:upper:]' '[:l
 search_contributor_principal_ids=()
 blob_storage_contributor_principal_ids=()
 sql_admin_principal_ids=()
-managed_identity_limit=800
 
 add_unique_principal_id() {
   local -n principal_ids="$1"
@@ -63,24 +62,15 @@ wait_for_group_members() {
   "${SCRIPT_DIR}/wait-for-group-memberships.sh"
 }
 
-identity_name_for() {
-  local service_name="$1"
-  local role_suffix="$2"
-
-  echo "${lower_resource_group_name}-${NAMESPACE}-${service_name}-${role_suffix}"
-}
-
 ensure_identity() {
   local service_name="$1"
   local role_suffix="$2"
   local aks_credential="$3"
   local aks_subject="$4"
   local add_sql_group="$5"
-  local managed_identity_name
+  local managed_identity_name="${lower_resource_group_name}-${NAMESPACE}-${service_name}-${role_suffix}"
   local identity_output_file=""
   local principal_id=""
-
-  managed_identity_name="$(identity_name_for "${service_name}" "${role_suffix}")"
 
   export MANAGED_IDENTITY_NAME="${managed_identity_name}"
   export AKS_CREDENTIAL="${aks_credential}"
@@ -132,48 +122,6 @@ service_has_migrations_enabled() {
   ' "${base_file}")" == "true" ]]
 }
 
-preflight_identity_quota() {
-  local identity_list_json
-  local current_count
-  local missing_count=0
-  local service_dir
-  local service_name
-  local identity_name
-  local projected_count
-
-  echo "Checking managed identity quota for ${RESOURCE_GROUP_NAME}"
-
-  identity_list_json="$(az identity list --subscription "${SUBSCRIPTION_NAME}" --resource-group "${RESOURCE_GROUP_NAME}" -o json)"
-  current_count="$(jq 'length' <<<"${identity_list_json}")"
-
-  declare -A existing_identity_names=()
-  while IFS= read -r identity_name; do
-    [[ -n "${identity_name}" ]] && existing_identity_names["${identity_name}"]=1
-  done < <(jq -r '.[].name' <<<"${identity_list_json}")
-
-  for service_dir in "${service_dirs[@]}"; do
-    [[ -d "${service_dir}" ]] || continue
-
-    service_name="$(basename "${service_dir}")"
-    identity_name="$(identity_name_for "${service_name}" "service")"
-    [[ -z "${existing_identity_names[${identity_name}]+x}" ]] && missing_count=$((missing_count + 1))
-
-    if service_has_migrations_enabled "${service_name}"; then
-      identity_name="$(identity_name_for "${service_name}" "migrations")"
-      [[ -z "${existing_identity_names[${identity_name}]+x}" ]] && missing_count=$((missing_count + 1))
-    fi
-  done
-
-  projected_count=$((current_count + missing_count))
-  echo "Managed identities in resource group: ${current_count}; missing for namespace '${NAMESPACE}': ${missing_count}; projected count: ${projected_count}/${managed_identity_limit}"
-
-  if (( projected_count > managed_identity_limit )); then
-    echo "Creating identities for namespace '${NAMESPACE}' would exceed the managed identity quota for resource group '${RESOURCE_GROUP_NAME}'." >&2
-    echo "Delete unused branch namespace identities first, for example with scripts/pipeline/delete-namespace-identities.sh, or reuse an existing namespace." >&2
-    exit 1
-  fi
-}
-
 shopt -s nullglob
 service_dirs=("${SERVICES_ROOT}"/*)
 shopt -u nullglob
@@ -182,8 +130,6 @@ if [[ ${#service_dirs[@]} -eq 0 ]]; then
   echo "No service folders found under ${SERVICES_ROOT}"
   exit 1
 fi
-
-preflight_identity_quota
 
 for service_dir in "${service_dirs[@]}"; do
   [[ -d "${service_dir}" ]] || continue

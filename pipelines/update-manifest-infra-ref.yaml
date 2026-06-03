@@ -11,7 +11,6 @@ trigger:
       - scripts/pipeline/add-principal-to-group.sh
       - scripts/pipeline/add-entra-group-members.sh
       - scripts/pipeline/create-identity.sh
-      - scripts/pipeline/delete-namespace-identities.sh
       - scripts/pipeline/deploy-identities-from-services.sh
       - scripts/pipeline/update-manifest-infra-ref.sh
       - scripts/pipeline/wait-for-aso-identities-from-services.sh
