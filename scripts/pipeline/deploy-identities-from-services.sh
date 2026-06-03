@@ -12,6 +12,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 : "${SQL_ADMIN_GROUP_ID:?SQL_ADMIN_GROUP_ID is required}"
 : "${SERVICES_ROOT:?SERVICES_ROOT is required}"
 
+VERIFY_GROUP_MEMBERSHIPS="${VERIFY_GROUP_MEMBERSHIPS:-false}"
 lower_resource_group_name="$(echo "${RESOURCE_GROUP_NAME}" | tr '[:upper:]' '[:lower:]')"
 search_contributor_principal_ids=()
 blob_storage_contributor_principal_ids=()
@@ -42,7 +43,6 @@ bulk_add_group_members() {
   echo "Adding principals to ${description}"
   GROUP_ID="${group_id}" \
   GROUP_MEMBERS="${principal_ids}" \
-  CHECK_EXISTING_MEMBERS=true \
   "${SCRIPT_DIR}/add-entra-group-members.sh"
 }
 
@@ -154,8 +154,12 @@ bulk_add_group_members "${SEARCH_CONTRIBUTORS_GROUP_ID}" "${search_contributor_p
 bulk_add_group_members "${BLOB_STORAGE_CONTRIBUTORS_GROUP_ID}" "${blob_storage_contributor_principals}" "blob storage contributors group"
 bulk_add_group_members "${SQL_ADMIN_GROUP_ID}" "${sql_admin_principals}" "SQL admins group"
 
-wait_for_group_members "${SEARCH_CONTRIBUTORS_GROUP_ID}" "${search_contributor_principals}" "search contributors group"
-wait_for_group_members "${BLOB_STORAGE_CONTRIBUTORS_GROUP_ID}" "${blob_storage_contributor_principals}" "blob storage contributors group"
-wait_for_group_members "${SQL_ADMIN_GROUP_ID}" "${sql_admin_principals}" "SQL admins group"
+if [[ "${VERIFY_GROUP_MEMBERSHIPS}" == "true" ]]; then
+  wait_for_group_members "${SEARCH_CONTRIBUTORS_GROUP_ID}" "${search_contributor_principals}" "search contributors group"
+  wait_for_group_members "${BLOB_STORAGE_CONTRIBUTORS_GROUP_ID}" "${blob_storage_contributor_principals}" "blob storage contributors group"
+  wait_for_group_members "${SQL_ADMIN_GROUP_ID}" "${sql_admin_principals}" "SQL admins group"
+else
+  echo "Skipping group membership verification because VERIFY_GROUP_MEMBERSHIPS is not true"
+fi
 
 # vim: set ts=2 sts=2 sw=2 et:

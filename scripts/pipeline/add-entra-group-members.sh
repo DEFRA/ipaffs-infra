@@ -133,6 +133,16 @@ for (( start=0; start<${#missingMemberIds[@]}; start+=chunk_size )); do
   rm -f "${responseFile}"
 
   if [[ "${statusCode}" != "204" ]]; then
+    if [[ "${groupResult}" =~ "One or more added object references already exist" ]]; then
+      logInfo "Bulk group update for group '${groupObjectId}' included existing members; falling back to idempotent per-member adds for this chunk"
+      for memberId in "${chunk[@]}"; do
+        GROUP_ID="${groupObjectId}" \
+        PRINCIPAL_ID="${memberId}" \
+        "${SCRIPTS_DIR}/pipeline/add-principal-to-group.sh"
+      done
+      continue
+    fi
+
     if [[ -n "${groupResult}" ]] && jq -e '.error' >/dev/null 2>&1 <<<"${groupResult}"; then
       logInfo "Group update failed with HTTP ${statusCode}: $(jq -c '.error' <<<"${groupResult}")"
     else
