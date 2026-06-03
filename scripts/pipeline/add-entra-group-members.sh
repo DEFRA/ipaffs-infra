@@ -133,8 +133,8 @@ for (( start=0; start<${#missingMemberIds[@]}; start+=chunk_size )); do
   rm -f "${responseFile}"
 
   if [[ "${statusCode}" != "204" ]]; then
-    if [[ "${groupResult}" =~ "One or more added object references already exist" ]]; then
-      logInfo "Bulk group update for group '${groupObjectId}' included existing members; falling back to idempotent per-member adds for this chunk"
+    if [[ "${groupResult}" =~ "One or more added object references already exist" || "${statusCode}" == "403" || "${groupResult}" =~ "Authorization_RequestDenied" ]]; then
+      logInfo "Bulk group update for group '${groupObjectId}' could not complete; falling back to idempotent per-member adds for this chunk"
       for memberId in "${chunk[@]}"; do
         GROUP_ID="${groupObjectId}" \
         PRINCIPAL_ID="${memberId}" \
