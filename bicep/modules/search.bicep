@@ -29,6 +29,10 @@ module sqlServerContributor './sql-server-role-assignment.bicep' = {
   }
 }
 
+resource sqlServer 'Microsoft.Sql/servers@2023-08-01' existing = {
+  name: sqlServerName
+}
+
 resource searchService 'Microsoft.Search/searchServices@2025-05-01' = {
   name: searchParams.name
   location: location
@@ -61,6 +65,16 @@ resource searchService 'Microsoft.Search/searchServices@2025-05-01' = {
     networkRuleSet: {
       bypass: 'AzureServices'
     }
+  }
+}
+
+resource searchSqlSharedPrivateLink 'Microsoft.Search/searchServices/sharedPrivateLinkResources@2025-05-01' = {
+  parent: searchService
+  name: 'sql-${sqlServerName}'
+  properties: {
+    groupId: 'sqlServer'
+    privateLinkResourceId: sqlServer.id
+    requestMessage: 'Allow Azure AI Search indexers to access SQL Server over private link.'
   }
 }
 
