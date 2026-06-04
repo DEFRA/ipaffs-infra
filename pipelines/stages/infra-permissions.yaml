@@ -2,6 +2,13 @@ parameters:
   - name: environmentName
     type: string
 
+resources:
+  repositories:
+    - repository: PipelineCommon
+      name: DEFRA-DEVOPS-COMMON/Defra.Pipeline.Common
+      type: git
+      ref: feature/v6-optional-subscription-for-private-endpoint-records
+
 stages:
   - stage: InfraPermissions
     displayName: Infrastructure Permissions
@@ -33,8 +40,7 @@ stages:
                     GROUP_ID: $(directoryReadersGroupObjectId)
                     PRINCIPAL_ID: $(sqlServerManagedIdentityObjectId)
                   inputs:
-                    # TODO: Get other service connection SPs added as group owners
-                    azureSubscription: ADO-DefraGovUK-AZR-POC_IMP
+                    azureSubscription: $(serviceConnection)
                     scriptType: bash
                     scriptPath: scripts/pipeline/add-principal-to-group.sh
 
