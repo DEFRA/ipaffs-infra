@@ -115,17 +115,6 @@ resource dbWatcherPrivateEndpointSql 'Microsoft.DatabaseWatcher/watchers/sharedP
   }
 }
 
-resource dbWatcherPrivateEndpointKusto 'Microsoft.DatabaseWatcher/watchers/sharedPrivateLinkResources@2024-10-01-preview' = {
-  parent: dbWatcher
-  name: '${dbwParams.name}-kusto'
-  properties: {
-    privateLinkResourceId: kustoCluster.id
-    groupId: 'cluster'
-    requestMessage: 'please'
-    dnsZone: location
-  }
-}
-
 resource dbWatcherTargetSqlEp 'Microsoft.DatabaseWatcher/watchers/targets@2024-10-01-preview' = {
   parent: dbWatcher
   name: dbwParams.sqlServerElasticPoolName
