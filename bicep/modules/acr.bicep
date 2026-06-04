@@ -73,7 +73,7 @@ module acrContributor './acr-role-assignment.bicep' = [for principalId in acrPar
   }
 }]
 
-output acrName string = acr.name
+output acrName string = toLower(acr.name)
 output acrLoginServer string = acr.properties.loginServer
 output acrResourceId string = acr.id
 
