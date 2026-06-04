@@ -70,7 +70,7 @@ resource searchService 'Microsoft.Search/searchServices@2025-05-01' = {
 
 resource searchSqlSharedPrivateLink 'Microsoft.Search/searchServices/sharedPrivateLinkResources@2025-05-01' = {
   parent: searchService
-  name: 'sql-${sqlServerName}'
+  name: sqlServerName
   properties: {
     groupId: 'sqlServer'
     privateLinkResourceId: sqlServer.id
