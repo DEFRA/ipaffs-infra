@@ -23,7 +23,7 @@ keda:
   enabled: false
   pollingInterval: 30
   cooldownPeriod: 300
-  maxReplicaCount: 10
+  maxReplicaCount: 1
   successfulJobsHistoryLimit: 1
   failedJobsHistoryLimit: 1
   triggers: []
