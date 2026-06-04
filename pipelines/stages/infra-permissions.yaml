@@ -2,13 +2,6 @@ parameters:
   - name: environmentName
     type: string
 
-resources:
-  repositories:
-    - repository: PipelineCommon
-      name: DEFRA-DEVOPS-COMMON/Defra.Pipeline.Common
-      type: git
-      ref: feature/v6-optional-subscription-for-private-endpoint-records
-
 stages:
   - stage: InfraPermissions
     displayName: Infrastructure Permissions
