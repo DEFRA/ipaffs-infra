@@ -13,6 +13,7 @@ variables:
     a-suresh.sundaram@defra.onmicrosoft.com
     a-srinivasan.kannan@defra.onmicrosoft.com
     a-suhas.avula@defra.onmicrosoft.com
+    a-sunil.kumar@defra.onmicrosoft.com
 
   # SC-cleared admin accounts only!
   higherEnvsReadersGroupMembers: >
@@ -24,6 +25,7 @@ variables:
     a-suresh.sundaram@defra.onmicrosoft.com
     a-srinivasan.kannan@defra.onmicrosoft.com
     a-suhas.avula@defra.onmicrosoft.com
+    a-sunil.kumar@defra.onmicrosoft.com
 
   # Note: members of admins group do not also need to be developer group members
   lowerEnvsAdminsGroupMembers: >
@@ -42,6 +44,7 @@ variables:
     a-ranjan.majumdar@defra.onmicrosoft.com
     sunil.kumar@defra.gov.uk
     sunil.kumar@defra.onmicrosoft.com
+    a-sunil.kumar@defra.onmicrosoft.com
     Tom.Bamford@defra.gov.uk
     tom.bamford@defra.onmicrosoft.com
     a-tom.bamford@Defra.onmicrosoft.com
