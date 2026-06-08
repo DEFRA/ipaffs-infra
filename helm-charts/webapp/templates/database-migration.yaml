@@ -110,6 +110,8 @@ spec:
               {{- else }}
                 {{ include "webapp.azure.servicePrincipalName" . | quote }}
               {{- end }}
+            - name: MANAGED_IDENTITY_USERNAME
+              value: {{ include "webapp.azure.servicePrincipalName" . | quote }}
       {{- if gt (len $databaseNames) 0 }}
       initContainers:
         - name: workload-identity-adal-bridge
