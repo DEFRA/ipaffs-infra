@@ -91,7 +91,11 @@ spec:
               value: {{ template "ipaffs-common.azure.searchServicePrincipalName" . }}
             - name: AZURE_SEARCH_USER_ASSIGNED_IDENTITY
               value: "/subscriptions/{{ .Values.search.subscriptionId }}/resourcegroups/{{ template "ipaffs-common.azure.searchServiceResourceGroupName" . }}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/{{ template "ipaffs-common.azure.searchServicePrincipalName" . }}"
+            - name: RUN_AZURE_SEARCH_SETUP
+              value: {{ .Values.search.runSetup | quote }}
           {{- end }}
+            - name: RUN_SQL_DATA_UPLOAD
+              value: {{ .Values.database.migrations.runUpload | quote }}
           {{- if .Values.storage.accountName }}
             - name: AZURE_STORAGE_ACCOUNT_NAME
               value: {{ .Values.storage.accountName | quote }}
