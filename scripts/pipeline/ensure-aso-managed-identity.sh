@@ -10,7 +10,7 @@ set -euo pipefail
 : "${NAMESPACE:?NAMESPACE is required}"
 : "${OWNER_RESOURCE_GROUP_NAME:?OWNER_RESOURCE_GROUP_NAME is required}"
 
-az aks install-cli
+az aks install-cli --client-version v1.36.1 --kubelogin-version v0.2.18
 az aks get-credentials \
   --name "${AKS_NAME}" \
   --resource-group "${AKS_RESOURCE_GROUP_NAME}" \

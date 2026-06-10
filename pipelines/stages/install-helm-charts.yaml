@@ -25,7 +25,7 @@ stages:
                     scriptLocation: inlineScript
                     inlineScript: |
                       set -x
-                      az aks install-cli
+                      az aks install-cli --client-version v1.36.1 --kubelogin-version v0.2.18
                       az aks get-credentials -n "$(kubernetesCluster)" -g "$(resourceGroupName)" --subscription "$(subscriptionName)"
                       kubelogin convert-kubeconfig -l azurecli
                       az acr login --name "$(acrName)" --subscription "$(subscriptionName)" || az acr check-health -n "$(acrName)" --yes
