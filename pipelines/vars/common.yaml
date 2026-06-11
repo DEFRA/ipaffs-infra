@@ -15,6 +15,7 @@ variables:
     a-suhas.avula@defra.onmicrosoft.com
     a-sunil.kumar@defra.onmicrosoft.com
     a-ranjan.majumdar@defra.onmicrosoft.com
+    a-daniel.johansson@defra.onmicrosoft.com
 
   # SC-cleared admin accounts only!
   higherEnvsReadersGroupMembers: >
@@ -53,13 +54,13 @@ variables:
     a-suresh.sundaram@defra.onmicrosoft.com
     a-srinivasan.kannan@defra.onmicrosoft.com
     a-suhas.avula@defra.onmicrosoft.com
-
+    daniel.johansson@defra.onmicrosoft.com
+    a-daniel.johansson@defra.onmicrosoft.com
   lowerEnvsDevelopersGroupMembers: >
     abhishek.desai@Defra.onmicrosoft.com
     a-abhishek.desai@defra.onmicrosoft.com
     aarthy.siddapareddy@Defra.onmicrosoft.com
     a-aarthy.siddapareddy@Defra.onmicrosoft.com
-    Daniel.Johansson@Defra.onmicrosoft.com
     gaurav.seth@Defra.onmicrosoft.com
     a-gaurav.seth@defra.onmicrosoft.com
     hassan.khan@Defra.onmicrosoft.com
