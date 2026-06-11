@@ -51,7 +51,6 @@ variables:
     tom.bamford@defra.onmicrosoft.com
 
   lowerEnvsDevelopersGroupMembers: >
-    Paul.Maguire@defra.onmicrosoft.com
     a-aarthy.siddapareddy@Defra.onmicrosoft.com
     a-abhishek.desai@defra.onmicrosoft.com
     a-gaurav.seth@defra.onmicrosoft.com
@@ -63,6 +62,7 @@ variables:
     abhishek.desai@Defra.onmicrosoft.com
     gaurav.seth@Defra.onmicrosoft.com
     hassan.khan@Defra.onmicrosoft.com
+    paul.maguire@defra.onmicrosoft.com
     raja.sekhar@defra.onmicrosoft.com
     toby.steed@Defra.onmicrosoft.com
 
@@ -70,5 +70,3 @@ variables:
     duncan.cheshire@Defra.onmicrosoft.com
     mayur.rao@defra.onmicrosoft.com
     zach.stratenwerth@Defra.onmicrosoft.com
-
-# vim: set ts=2 sts=2 sw=2 et:
