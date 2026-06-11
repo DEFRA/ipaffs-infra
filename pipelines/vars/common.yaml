@@ -4,81 +4,71 @@ variables:
   upstreamServiceConnection: AZR-SSV5-IPAFFS
   upstreamServiceConnectionPrincipalId: 09b875f4-3dea-4c69-bf36-e6915741d4c4
 
+  # Note: Every group needs to have at least one member.
   # SC-cleared admin accounts only!
   higherEnvsAdminsGroupMembers: >
     a-andrew.hardy@defra.onmicrosoft.com
+    a-daniel.johansson@defra.onmicrosoft.com
     a-jon.shaw@defra.onmicrosoft.com
     a-marcel.vandenhof@Defra.onmicrosoft.com
-    a-tom.bamford@Defra.onmicrosoft.com
-    a-suresh.sundaram@defra.onmicrosoft.com
+    a-ranjan.majumdar@defra.onmicrosoft.com
     a-srinivasan.kannan@defra.onmicrosoft.com
     a-suhas.avula@defra.onmicrosoft.com
     a-sunil.kumar@defra.onmicrosoft.com
-    a-ranjan.majumdar@defra.onmicrosoft.com
-    a-daniel.johansson@defra.onmicrosoft.com
+    a-suresh.sundaram@defra.onmicrosoft.com
+    a-tom.bamford@Defra.onmicrosoft.com
 
   # SC-cleared admin accounts only!
   higherEnvsReadersGroupMembers: >
     a-tom.bamford@Defra.onmicrosoft.com
-    a-marcel.vandenhof@Defra.onmicrosoft.com
-    a-andrew.hardy@defra.onmicrosoft.com
-    a-jon.shaw@defra.onmicrosoft.com
-    a-daniel.johansson@defra.onmicrosoft.com
-    a-suresh.sundaram@defra.onmicrosoft.com
-    a-srinivasan.kannan@defra.onmicrosoft.com
-    a-suhas.avula@defra.onmicrosoft.com
-    a-sunil.kumar@defra.onmicrosoft.com
-    a-ranjan.majumdar@defra.onmicrosoft.com
 
   # Note: members of admins group do not also need to be developer group members
   lowerEnvsAdminsGroupMembers: >
-    Andy.Hardy@defra.gov.uk
-    andrew.hardy@defra.onmicrosoft.com
-    Jon.Shaw@defra.gov.uk
-    jon.shaw@defra.onmicrosoft.com
-    Marcel.vandenHof@defra.gov.uk
-    marcel.vandenhof@defra.onmicrosoft.com
-    a-marcel.vandenhof@Defra.onmicrosoft.com
-    Mat.Lambeth@defra.gov.uk
-    mathew.lambeth@Defra.onmicrosoft.com
-    a-mathew.lambeth@Defra.onmicrosoft.com
-    Ranjan.Majumdar@defra.gov.uk
-    ranjan.majumdar@defra.onmicrosoft.com
+    a-daniel.johansson@defra.onmicrosoft.com
+    a-marcel.vandenhof@defra.onmicrosoft.com
+    a-mathew.lambeth@defra.onmicrosoft.com
     a-ranjan.majumdar@defra.onmicrosoft.com
+    a-srinivasan.kannan@defra.onmicrosoft.com
+    a-suhas.avula@defra.onmicrosoft.com
+    a-sunil.kumar@defra.onmicrosoft.com
+    a-suresh.sundaram@defra.onmicrosoft.com
+    a-tom.bamford@defra.onmicrosoft.com
+    andrew.hardy@defra.onmicrosoft.com
+    andy.hardy@defra.gov.uk
+    daniel.johansson@defra.gov.uk
+    daniel.johansson@defra.onmicrosoft.com
+    jon.shaw@defra.gov.uk
+    jon.shaw@defra.onmicrosoft.com
+    marcel.vandenhof@defra.gov.uk
+    marcel.vandenhof@defra.onmicrosoft.com
+    mat.lambeth@defra.gov.uk
+    mathew.lambeth@defra.onmicrosoft.com
+    ranjan.majumdar@defra.gov.uk
+    ranjan.majumdar@defra.onmicrosoft.com
     sunil.kumar@defra.gov.uk
     sunil.kumar@defra.onmicrosoft.com
-    a-sunil.kumar@defra.onmicrosoft.com
-    Tom.Bamford@defra.gov.uk
+    tom.bamford@defra.gov.uk
     tom.bamford@defra.onmicrosoft.com
-    a-tom.bamford@Defra.onmicrosoft.com
-    a-suresh.sundaram@defra.onmicrosoft.com
-    a-srinivasan.kannan@defra.onmicrosoft.com
-    a-suhas.avula@defra.onmicrosoft.com
-    Daniel.Johansson@defra.gov.uk
-    daniel.johansson@defra.onmicrosoft.com
-    a-daniel.johansson@defra.onmicrosoft.com
+
   lowerEnvsDevelopersGroupMembers: >
-    abhishek.desai@Defra.onmicrosoft.com
-    a-abhishek.desai@defra.onmicrosoft.com
-    aarthy.siddapareddy@Defra.onmicrosoft.com
-    a-aarthy.siddapareddy@Defra.onmicrosoft.com
-    gaurav.seth@Defra.onmicrosoft.com
-    a-gaurav.seth@defra.onmicrosoft.com
-    hassan.khan@Defra.onmicrosoft.com
-    a-hassan.khan@defra.onmicrosoft.com
     Paul.Maguire@defra.onmicrosoft.com
+    a-aarthy.siddapareddy@Defra.onmicrosoft.com
+    a-abhishek.desai@defra.onmicrosoft.com
+    a-gaurav.seth@defra.onmicrosoft.com
+    a-hassan.khan@defra.onmicrosoft.com
     a-paul.maguire@defra.onmicrosoft.com
-    raja.sekhar@defra.onmicrosoft.com
     a-raja.sekhar@Defra.onmicrosoft.com
-    toby.steed@Defra.onmicrosoft.com
     a-toby.steed@defra.onmicrosoft.com
+    aarthy.siddapareddy@Defra.onmicrosoft.com
+    abhishek.desai@Defra.onmicrosoft.com
+    gaurav.seth@Defra.onmicrosoft.com
+    hassan.khan@Defra.onmicrosoft.com
+    raja.sekhar@defra.onmicrosoft.com
+    toby.steed@Defra.onmicrosoft.com
 
   lowerEnvsReadersGroupMembers: >
+    duncan.cheshire@Defra.onmicrosoft.com
     mayur.rao@defra.onmicrosoft.com
     zach.stratenwerth@Defra.onmicrosoft.com
-    duncan.cheshire@Defra.onmicrosoft.com
-    a-suresh.sundaram@defra.onmicrosoft.com
-    a-srinivasan.kannan@defra.onmicrosoft.com
-    a-suhas.avula@defra.onmicrosoft.com
 
 # vim: set ts=2 sts=2 sw=2 et:
