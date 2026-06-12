@@ -25,46 +25,12 @@ param alertsParams = {
         }
       ]
     }
-    noncritical: {
-      name: 'snd-IPAFFS-AMS-TEAM'
+    notifyIpaffs: {
+      name: 'SND-IMP-IPAFFS-TEAM'
       emailRecipients: [
         {
-          name: 'European-TradeSupport'
-          email: 'europeandtradeamssupport@capgemini.com'
-        }
-        {
-          name: 'Accenture Service Management'
-          email: 'defra_acn_servicemgt@accenture.com'
-        }
-      ]
-    }
-    priority2: {
-      name: 'snd-HYPERCARE-TEAM'
-      emailRecipients: [
-        {
-          name: 'Hemanata'
-          email: 'hemanta-dev.sharma@capgemini.com'
-        }
-        {
-          name: 'EqualExperts'
+          name: 'Email: IPAFFS team Notification'
           email: 'cl-defra-ipaffs-notification@equalexperts.com'
-        }
-      ]
-    }
-    priority1: {
-      name: 'snd-IPAFFS-AMS-TEAM-P1'
-      emailRecipients: [
-        {
-          name: 'European-TradeSupport'
-          email: 'europeandtradeamssupport@capgemini.com'
-        }
-        {
-          name: 'IPAFSS Pager Duty'
-          email: 'dummyemail@test.com'
-        }
-        {
-          name: 'Accenture Service Management'
-          email: 'defra_acn_servicemgt@accenture.com'
         }
       ]
     }

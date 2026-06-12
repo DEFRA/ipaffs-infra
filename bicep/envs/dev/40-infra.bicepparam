@@ -62,26 +62,8 @@ param alertsParams = {
         }
       ]
     }
-    noncritical: {
-      name: 'DEV-IPAFFS-AMS-TEAM'  // TODO: Name to be confirmed.Keeping IPAFFS internal ids for testing. Add official emails when ready.
-      emailRecipients: [
-        {
-          name: 'Email: IPAFFS team Notification'
-          email: 'cl-defra-ipaffs-notification@equalexperts.com'
-        }
-      ]
-    }
-    priority2: {
-      name: 'DEV-P2-IPAFFS-AMS-TEAM'  // TODO: Name to be confirmed.Keeping IPAFFS internal ids for testing. Add official emails when ready.
-      emailRecipients: [
-        {
-          name: 'Email: IPAFFS team Notification'
-          email: 'cl-defra-ipaffs-notification@equalexperts.com'
-        }
-      ]
-    }
-    priority1: {
-      name: 'DEV-P1-IPAFFS-AMS-TEAM'  // TODO: Name to be confirmed.Keeping IPAFFS internal ids for testing. Add official emails when ready.
+    notifyIpaffs: {
+      name: 'DEV-IMP-IPAFFS-TEAM'
       emailRecipients: [
         {
           name: 'Email: IPAFFS team Notification'
