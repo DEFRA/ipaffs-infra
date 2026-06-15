@@ -10,5 +10,6 @@ variables:
   serviceConnection: ADO-DefraGovUK-AZR-IMP-DEV1
   serviceConnectionPrincipalId: c5daee65-10cb-4d04-b721-d3da81357568
   subscriptionName: AZR-IMP-DEV1
+  sqlServerClassicManagedIdentityObjectId: 4c300f46-508c-4753-a6b5-7f5c007d4012
 
 # vim: set ts=2 sts=2 sw=2 et:
