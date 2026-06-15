@@ -38,6 +38,17 @@ stages:
                     scriptPath: scripts/pipeline/add-principal-to-group.sh
 
                 - task: AzureCLI@2
+                  name: SQLClassicServerDirectoryReaders
+                  displayName: Add Classic SQL Server Managed Identity to Directory Readers Group
+                  env:
+                    GROUP_ID: $(directoryReadersGroupObjectId)
+                    PRINCIPAL_ID: $(sqlServerClassicManagedIdentityObjectId)
+                  inputs:
+                    azureSubscription: $(serviceConnection)
+                    scriptType: bash
+                    scriptPath: scripts/pipeline/add-principal-to-group.sh
+
+                - task: AzureCLI@2
                   name: SearchServiceSQLAdmins
                   env:
                     GROUP_ID: $(sqlAdminGroupId)
