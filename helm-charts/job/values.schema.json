@@ -15,6 +15,14 @@
     "imageRegistry": {
       "type": "string"
     },
+    "deployment": {
+      "type": "object",
+      "properties": {
+        "manifestTag": {
+          "type": "string"
+        }
+      }
+    },
     "externalSecret": {
       "type": "object",
       "required": [

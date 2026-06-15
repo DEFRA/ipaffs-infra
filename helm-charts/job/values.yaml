@@ -3,6 +3,9 @@ project: ipaffs
 environment: dev
 imageRegistry: ""
 
+deployment:
+  manifestTag: ""
+
 externalSecret:
   enabled: false
 

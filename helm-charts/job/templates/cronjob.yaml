@@ -5,6 +5,9 @@ metadata:
   name: {{ .Values.service }}
   labels:
     {{- include "ipaffs-common.labels" . | nindent 4 }}
+    {{- if .Values.deployment.manifestTag }}
+    defra.gov.uk/manifest-tag: {{ .Values.deployment.manifestTag | quote }}
+    {{- end }}
 spec:
   schedule: {{ required "CronJob schedule is required" .Values.schedule | quote }}
   concurrencyPolicy: {{ default "Forbid" .Values.concurrencyPolicy }}

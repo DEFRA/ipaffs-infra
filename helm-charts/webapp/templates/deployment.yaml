@@ -15,6 +15,9 @@ metadata:
   name: {{ .Values.service }}
   labels:
     {{- include "ipaffs-common.labels" . | nindent 4 }}
+    {{- if .Values.deployment.manifestTag }}
+    defra.gov.uk/manifest-tag: {{ .Values.deployment.manifestTag | quote }}
+    {{- end }}
 spec:
   replicas: {{ .Values.container.replicas }}
   selector:

@@ -10,6 +10,9 @@ container:
   command: ""
   args: []
 
+deployment:
+  manifestTag: ""
+
 ports:
   service: 80
   container: 8000
