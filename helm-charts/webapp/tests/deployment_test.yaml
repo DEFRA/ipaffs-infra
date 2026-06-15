@@ -42,6 +42,20 @@ tests:
           path: spec.replicas
           value: 3
 
+  - it: adds manifest tag to deployment metadata only
+    set:
+      service: test-service
+      azure.clientId: 00000000-0000-0000-0000-000000000001
+      container.image: test/image:1.0.0
+      deployment.manifestTag: 18.4.0
+    documentIndex: 1
+    asserts:
+      - equal:
+          path: metadata.labels["defra.gov.uk/manifest-tag"]
+          value: 18.4.0
+      - notExists:
+          path: spec.template.metadata.labels["defra.gov.uk/manifest-tag"]
+
   - it: adds optional secret refs when redis service bus and external secrets are enabled
     set:
       service: test-service

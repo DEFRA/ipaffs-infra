@@ -38,6 +38,14 @@
     "imageRegistry": {
       "type": "string"
     },
+    "deployment": {
+      "type": "object",
+      "properties": {
+        "manifestTag": {
+          "type": "string"
+        }
+      }
+    },
     "ingress": {
       "type": "object",
       "required": [

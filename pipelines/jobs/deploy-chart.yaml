@@ -106,12 +106,20 @@ jobs:
           MIGRATIONS_IMAGE: "ipaffs/${{ parameters.serviceName }}-configuration:${{ parameters.serviceVersion }}"
           NAMESPACE: ${{ parameters.namespace }}
           HELMFILE_SELECTOR: "${{ parameters.helmfileSelector }}"
+          SOURCE_REF: $(Build.SourceBranch)
         inputs:
           azureSubscription: $(serviceConnection)
           scriptType: bash
           scriptLocation: inlineScript
           inlineScript: |
             set -euo pipefail
+
+            manifest_tag=""
+            if [[ "${SOURCE_REF}" == refs/tags/* ]]; then
+              manifest_tag="${SOURCE_REF#refs/tags/}"
+            fi
+            export MANIFEST_TAG="${manifest_tag}"
+
             printenv
 
             curl -L https://github.com/helmfile/helmfile/releases/download/v1.1.9/helmfile_1.1.9_linux_amd64.tar.gz | tar -xz
