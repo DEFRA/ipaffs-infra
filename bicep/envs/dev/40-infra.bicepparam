@@ -62,6 +62,15 @@ param alertsParams = {
         }
       ]
     }
+    notifyIpaffs: {
+      name: 'DEV-IMP-IPAFFS-TEAM'
+      emailRecipients: [
+        {
+          name: 'Email: IPAFFS team Notification'
+          email: 'cl-defra-ipaffs-notification@equalexperts.com'
+        }
+      ]
+    }
   }
 }
 

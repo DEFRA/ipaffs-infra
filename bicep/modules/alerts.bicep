@@ -27,9 +27,25 @@ resource actionGroupNotifyDba 'Microsoft.Insights/actionGroups@2023-01-01' = {
     groupShortName: length(alertsParams.actionGroups.notifyDba.name) > 12 ? substring(alertsParams.actionGroups.notifyDba.name, 0, 12) : alertsParams.actionGroups.notifyDba.name
   }
 }
+resource actionGroupNotifyIpaffs 'Microsoft.Insights/actionGroups@2023-01-01' = {
+  name: alertsParams.actionGroups.notifyIpaffs.name
+  location: 'global'
+  tags: tags
+
+  properties: {
+    emailReceivers: [for user in alertsParams.actionGroups.notifyIpaffs.emailRecipients: {
+        emailAddress: user.email
+        name: user.name
+      }
+    ]
+    enabled: true
+    groupShortName: length(alertsParams.actionGroups.notifyIpaffs.name) > 12 ? substring(alertsParams.actionGroups.notifyIpaffs.name, 0, 12) : alertsParams.actionGroups.notifyIpaffs.name
+  }
+}
 
 output actionGroups object = {
   notifyDba: actionGroupNotifyDba.id
+  notifyIpaffs: actionGroupNotifyIpaffs.id
 }
 
 // vim: set ts=2 sts=2 sw=2 et:
