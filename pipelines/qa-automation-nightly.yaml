@@ -22,7 +22,7 @@ jobs:
         name: TriggerQAPipeline
         displayName: Trigger QA Pipeline
         env:
-          PIPELINE_ID: 11343
+          PIPELINE_ID: 11345
           ADO_ORG_URL: $(System.CollectionUri)
           ADO_PROJECT: $(System.TeamProject)
           AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
