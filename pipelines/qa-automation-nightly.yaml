@@ -25,6 +25,6 @@ jobs:
           az pipelines run \
             --id 11343
             --parameters "environmentName=new-tst" \
-            --organization "$(System.CollectionUri)" \
+            --org "$(System.CollectionUri)" \
             --project "$(System.TeamProject)"
         displayName: 'Trigger QA Automation Pipeline'
