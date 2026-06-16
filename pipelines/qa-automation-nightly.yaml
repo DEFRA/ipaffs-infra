@@ -1,0 +1,25 @@
+---
+schedules:
+  - cron: "0 0 * * *"
+    displayName: "Run QA automation tests nightly"
+    branches:
+      include: [ main ]
+    always: true
+
+trigger: none
+pr: none
+
+pool:
+  name: DEFRA-COMMON-ubuntu2204-SSV5
+
+jobs:
+  - job: TriggerCorePipeline
+    steps:
+      - script: |
+          export AZURE_DEVOPS_EXT_PAT=$(System.AccessToken)
+          az pipelines run \
+            --id 11343
+            --parameters "environmentName=new-tst" \
+            --organization "$(System.TeamFoundationCollectionUri)" \
+            --project "$(System.TeamProject)"
+        displayName: 'Trigger QA Automation Pipeline'
