@@ -34,6 +34,6 @@ jobs:
           inlineScript: |
             az pipelines run \
               --id ${PIPELINE_ID} \
-              --parameters "environmentName=NEW-TST" \
               --org "${ADO_ORG_URL}" \
-              --project "${ADO_PROJECT}"
+              --project "${ADO_PROJECT}" \
+              --parameters environmentName=NEW-TST
