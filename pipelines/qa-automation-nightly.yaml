@@ -17,6 +17,10 @@ jobs:
     steps:
       - script: |
           export AZURE_DEVOPS_EXT_PAT=$(System.AccessToken)
+
+          echo orgUrl: $(System.CollectionUri)
+          echo orgUrl: $(System.TeamFoundationCollectionUri)
+
           az pipelines run \
             --id 11343
             --parameters "environmentName=new-tst" \
