@@ -15,16 +15,22 @@ pool:
 jobs:
   - job: TriggerCorePipeline
     steps:
-      - script: |
-          export AZURE_DEVOPS_EXT_PAT=$(System.AccessToken)
+      - task: AzureCLI@2
+        name: TriggerQAPipeline
+        displayName: Trigger QA Pipeline
+        env:
+          PIPELINE_ID: 11343
+          ADO_ORG_URL: $(System.CollectionUri)
+          ADO_PROJECT: $(System.TeamProject)
+          AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
 
-          echo orgUrl: $(System.CollectionUri)
-          echo orgUrl: $(System.TeamFoundationCollectionUri)
-          echo teamProject: "$(System.TeamProject)"
-
-          az pipelines run \
-            --id 11343
-            --parameters "environmentName=new-tst" \
-            --org "$(System.CollectionUri)" \
-            --project "$(System.TeamProject)"
-        displayName: 'Trigger QA Automation Pipeline'
+        inputs:
+          azureSubscription: $(serviceConnection)
+          scriptType: bash
+          scriptLocation: inlineScript
+          inlineScript: |
+            az pipelines run \
+              --id ${PIPELINE_ID} \
+              --parameters "environmentName=new-tst" \
+              --org "${ADO_ORG_URL}" \
+              --project "${ADO_PROJECT}"
