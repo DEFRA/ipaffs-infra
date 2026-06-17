@@ -36,5 +36,5 @@ jobs:
               --id ${PIPELINE_ID} \
               --org "${ADO_ORG_URL}" \
               --project "${ADO_PROJECT}" \
-              --parameters environmentName="NEW-TST" playwrightTag="@smoke"
+              --parameters environmentName="NEW-TST" playwrightTag="@smoke" \
               --branch "imta-21344"
