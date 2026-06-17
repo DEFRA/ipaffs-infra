@@ -26,15 +26,22 @@ jobs:
           ADO_ORG_URL: $(System.CollectionUri)
           ADO_PROJECT: $(System.TeamProject)
           AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
-
+          IPAFFS_ENGINEERING_WEBHOOK_URL: $(ipaffsEngineeringChannelHook)
         inputs:
           azureSubscription: $(serviceConnection)
           scriptType: bash
           scriptLocation: inlineScript
           inlineScript: |
-            az pipelines run \
-              --id ${PIPELINE_ID} \
-              --org "${ADO_ORG_URL}" \
-              --project "${ADO_PROJECT}" \
-              --parameters environmentName="NEW-TST" \
-              --branch "imta-21344"
+#            az pipelines run \
+#              --id ${PIPELINE_ID} \
+#              --org "${ADO_ORG_URL}" \
+#              --project "${ADO_PROJECT}" \
+#              --parameters environmentName="NEW-TST" \
+#              --branch "imta-21344"
+
+            MESSAGE="🔔 QA Automation Update
+            • *Status:* Completed Run
+            • *Pipeline:* $(Build.DefinitionName)
+            • *Triggered By:* $(Build.RequestedFor)"
+            JSON_PAYLOAD="{\"text\":\"Hello world\"}"
+            curl -X POST -H 'Content-type: application/json' --data "${JSON_PAYLOAD}" "${IPAFFS_ENGINEERING_WEBHOOK_URL}"
