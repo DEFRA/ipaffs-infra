@@ -33,12 +33,12 @@ jobs:
           scriptType: bash
           scriptLocation: inlineScript
           inlineScript: |
-#            az pipelines run \
-#              --id ${PIPELINE_ID} \
-#              --org "${ADO_ORG_URL}" \
-#              --project "${ADO_PROJECT}" \
-#              --parameters environmentName="NEW-TST" \
-#              --branch "imta-21344"
+            #az pipelines run \
+            #  --id ${PIPELINE_ID} \
+            #  --org "${ADO_ORG_URL}" \
+            #  --project "${ADO_PROJECT}" \
+            #  --parameters environmentName="NEW-TST" \
+            #  --branch "imta-21344"
 
             JSON_PAYLOAD="{\"text\":\"Hello world\"}"
             curl -X POST -H 'Content-type: application/json' --data "${JSON_PAYLOAD}" "${IPAFFS_ENGINEERING_WEBHOOK_URL}"
