@@ -13,6 +13,7 @@ pool:
   name: DEFRA-COMMON-ubuntu2204-SSV5
 
 variables:
+  - template: "/pipelines/vars/common.yaml"
   - template: "/pipelines/vars/dev.yaml"
 
 jobs:
