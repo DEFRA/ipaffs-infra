@@ -42,7 +42,7 @@ jobs:
 
             RUN_URL="${SYSTEM_COLLECTIONURI}${SYSTEM_TEAMPROJECT}/_build/results?buildId=${BUILD_BUILDID}"
             LINK_TEXT="${BUILD_DEFINITIONNAME} #${BUILD_BUILDNUMBER}"
-            MESSAGE="U+2139 QA Automation Pipeline tests have been completed for <${RUN_URL}|${LINK_TEXT}>"
+            MESSAGE="QA Automation Pipeline tests have been completed for <${RUN_URL}|${LINK_TEXT}>"
 
             JSON_PAYLOAD="{\"text\":\"${MESSAGE}\"}"
             curl -X POST -H 'Content-type: application/json' --data "${JSON_PAYLOAD}" "${IPAFFS_ENGINEERING_WEBHOOK_URL}"
