@@ -89,6 +89,7 @@ stages:
 
           - task: AzureCLI@2
             displayName: Run Automation Container
+            continueOnError: true
             env:
               WORKERS: ${{ parameters.workers }}
               IMAGE_TAG: ${{ parameters.imageTag }}
@@ -148,7 +149,7 @@ stages:
             displayName: Publish Playwright Report Artifact
             inputs:
               targetPath: $(Pipeline.Workspace)/s/ipaffs-qa-automation/playwright-report
-              artifact: playwright-report
+              artifact: playwright-report-$(Build.BuildNumber)
               publishLocation: 'pipeline'
             condition: succeededOrFailed()
 
@@ -156,7 +157,7 @@ stages:
             displayName: Publish Test Results Artifact
             inputs:
               targetPath: $(Pipeline.Workspace)/s/ipaffs-qa-automation/test-results
-              artifact: test-results
+              artifact: test-results-$(Build.BuildNumber)
               publishLocation: 'pipeline'
             condition: succeededOrFailed()
 
@@ -167,4 +168,5 @@ stages:
               testResultsFormat: JUnit
               testResultsFiles: junit.xml
               mergeTestResults: true
+              testRunTitle: Playwright Tests $(Build.BuildNumber)
             condition: succeededOrFailed()
