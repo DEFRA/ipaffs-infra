@@ -39,9 +39,5 @@ jobs:
 #              --parameters environmentName="NEW-TST" \
 #              --branch "imta-21344"
 
-            MESSAGE="🔔 QA Automation Update
-            • *Status:* Completed Run
-            • *Pipeline:* $(Build.DefinitionName)
-            • *Triggered By:* $(Build.RequestedFor)"
             JSON_PAYLOAD="{\"text\":\"Hello world\"}"
             curl -X POST -H 'Content-type: application/json' --data "${JSON_PAYLOAD}" "${IPAFFS_ENGINEERING_WEBHOOK_URL}"
