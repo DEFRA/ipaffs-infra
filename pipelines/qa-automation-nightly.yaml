@@ -3,7 +3,7 @@ schedules:
   - cron: "0 0 * * *"
     displayName: "Run QA automation tests nightly"
     branches:
-      include: [ main ]
+      include: [ main, imta-21344 ]
     always: true
 
 trigger: none
@@ -36,4 +36,5 @@ jobs:
               --id ${PIPELINE_ID} \
               --org "${ADO_ORG_URL}" \
               --project "${ADO_PROJECT}" \
-              --parameters environmentName="NEW-TST"
+              --parameters environmentName="NEW-TST" playwrightTag="@smoke"
+              --branch "imta-21344"
