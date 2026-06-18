@@ -179,7 +179,7 @@ stages:
           - task: AzureCLI@2
             displayName: Send notification
             env:
-              IPAFFS_ENGINEERING_WEBHOOK_URL: $(ipaffsEngineeringChannelHook)
+              SLACK_QA_CHANNEL_WEBHOOK_URL: $(slackQAChannelWebhookUrl)
               PLAYWRIGHT_DASHBOARD: $(System.CollectionUri)$(System.TeamProject)/_build/results?buildId=$(Build.BuildId)&view=ms.vss-test-web.build-test-results-tab
             inputs:
               azureSubscription: $(serviceConnection)
@@ -190,5 +190,5 @@ stages:
                 $(Pipeline.Workspace)/s/ipaffs-infra/scripts/pipeline/parse-playwright-results.sh "$(Pipeline.Workspace)/s/ipaffs-qa-automation/test-results/results.json" "${PLAYWRIGHT_DASHBOARD}"
                 MESSAGE=$(<slack_payload.json)
 
-                curl -X POST -H 'Content-type: application/json' --data "${MESSAGE}" "${IPAFFS_ENGINEERING_WEBHOOK_URL}"
+                curl -X POST -H 'Content-type: application/json' --data "${MESSAGE}" "${SLACK_QA_CHANNEL_WEBHOOK_URL}"
             condition: eq('${{ parameters.notification }}', true)
