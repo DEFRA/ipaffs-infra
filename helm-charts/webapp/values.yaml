@@ -9,6 +9,13 @@ container:
   replicas: 1
   command: ""
   args: []
+  securityContext:
+    allowPrivilegeEscalation: false
+
+initContainers:
+  workloadIdentityAdalBridge:
+    securityContext:
+      allowPrivilegeEscalation: false
 
 deployment:
   manifestTag: ""

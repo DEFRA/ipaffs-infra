@@ -39,6 +39,10 @@ spec:
                 {{ end }}
               {{ end }}
               imagePullPolicy: {{ .Values.container.imagePullPolicy }}
+              {{- with .Values.container.securityContext }}
+              securityContext:
+                {{- toYaml . | nindent 16 }}
+              {{- end }}
               envFrom:
                 - configMapRef:
                     name: ipaffs-config
@@ -67,6 +71,10 @@ spec:
             - name: {{ .Chart.Name }}-init
               image: "{{ include "job.image.resolve" (dict "root" . "image" .Values.initContainer.image) }}"
               command: {{ .Values.initContainer.command }}
+              {{- with .Values.initContainer.securityContext }}
+              securityContext:
+                {{- toYaml . | nindent 16 }}
+              {{- end }}
 {{- end }}
 {{- end }}
 

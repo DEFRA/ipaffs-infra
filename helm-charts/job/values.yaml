@@ -36,9 +36,13 @@ container:
   imagePullPolicy: Always
   command: ""
   args: []
+  securityContext:
+    allowPrivilegeEscalation: false
 
 initContainer:
   enabled: false
+  securityContext:
+    allowPrivilegeEscalation: false
 
 env: []
 

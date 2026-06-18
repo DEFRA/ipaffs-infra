@@ -57,6 +57,10 @@ spec:
             {{- end }}
           {{- end }}
           imagePullPolicy: {{ .Values.container.imagePullPolicy }}
+          {{- with .Values.container.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           envFrom:
             - configMapRef:
                 name: ipaffs-config
@@ -108,6 +112,10 @@ spec:
         - name: workload-identity-adal-bridge
           image: "manicminer/workload-identity-adal-bridge:0.4.1"
           restartPolicy: Always
+          {{- with .Values.initContainers.workloadIdentityAdalBridge.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           env:
             - name: LOG_LEVEL
               value: "info"

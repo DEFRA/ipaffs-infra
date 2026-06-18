@@ -4,6 +4,8 @@ replicas: 3
 container:
   image: manicminer/ms-identity-redirect-handler:v0.1.1
   imagePullPolicy: Always
+  securityContext:
+    allowPrivilegeEscalation: false
 
 secretStore:
   name: "external-secrets-azure-ccoe"

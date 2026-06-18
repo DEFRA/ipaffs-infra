@@ -42,6 +42,10 @@ spec:
               {{ end }}
             {{ end }}
             imagePullPolicy: {{ .Values.container.imagePullPolicy }}
+            {{- with .Values.container.securityContext }}
+            securityContext:
+              {{- toYaml . | nindent 14 }}
+            {{- end }}
             envFrom:
               - configMapRef:
                   name: ipaffs-config
@@ -70,6 +74,10 @@ spec:
           - name: {{ .Chart.Name }}-init
             image: "{{ include "job.image.resolve" (dict "root" . "image" .Values.initContainer.image) }}"
             command: {{ .Values.initContainer.command }}
+            {{- with .Values.initContainer.securityContext }}
+            securityContext:
+              {{- toYaml . | nindent 14 }}
+            {{- end }}
 {{- end }}
   triggers:
     {{- required "keda.triggers must contain at least one trigger when keda.enabled is true" .Values.keda.triggers | toYaml | nindent 4 }}

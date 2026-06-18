@@ -42,6 +42,17 @@ tests:
           path: spec.replicas
           value: 3
 
+  - it: disables privilege escalation on the app container
+    set:
+      service: test-service
+      azure.clientId: 00000000-0000-0000-0000-000000000001
+      container.image: test/image:1.0.0
+    documentIndex: 1
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.allowPrivilegeEscalation
+          value: false
+
   - it: adds manifest tag to deployment metadata only
     set:
       service: test-service
@@ -110,6 +121,9 @@ tests:
       - equal:
           path: spec.template.spec.initContainers[0].name
           value: workload-identity-adal-bridge
+      - equal:
+          path: spec.template.spec.initContainers[0].securityContext.allowPrivilegeEscalation
+          value: false
 
   - it: renders the adal bridge init container when managed and referenced databases are configured
     set:
