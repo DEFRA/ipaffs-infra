@@ -180,14 +180,14 @@ stages:
             displayName: Send notification
             env:
               IPAFFS_ENGINEERING_WEBHOOK_URL: $(ipaffsEngineeringChannelHook)
+              PLAYWRIGHT_DASHBOARD: $(System.CollectionUri)$(System.TeamProject)/_build/results?buildId=$(Build.BuildId)&view=ms.vss-playwright.playwright-report-view
             inputs:
               azureSubscription: $(serviceConnection)
               scriptType: bash
               scriptLocation: inlineScript
               workingDirectory: $(Pipeline.Workspace)/s/ipaffs-qa-automation
               inlineScript: |
-                set -x
-                $(Pipeline.Workspace)/s/ipaffs-infra/scripts/pipeline/parse-playwright-results.sh "$(Pipeline.Workspace)/s/ipaffs-qa-automation/test-results/results.json"
+                $(Pipeline.Workspace)/s/ipaffs-infra/scripts/pipeline/parse-playwright-results.sh "$(Pipeline.Workspace)/s/ipaffs-qa-automation/test-results/results.json" "${PLAYWRIGHT_DASHBOARD}"
                 MESSAGE=$(<slack_payload.json)
 
                 curl -X POST -H 'Content-type: application/json' --data "${MESSAGE}" "${IPAFFS_ENGINEERING_WEBHOOK_URL}"

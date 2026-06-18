@@ -3,6 +3,7 @@
 set -euo pipefail
 
 REPORT_FILE="${1:-results.json}"
+DASHBOARD_URL="$2"
 OUTPUT_PAYLOAD="slack_payload.json"
 
 # Check if the report file exists
@@ -47,10 +48,10 @@ cat <<EOF > "$OUTPUT_PAYLOAD"
           "type": "section",
           "fields": [
             { "type": "mrkdwn", "text": "Total Tests : $TOTAL_TESTS" },
-            { "type": "mrkdwn", "text": "Passed : $PASSED ✅" },
-            { "type": "mrkdwn", "text": "Failed : $FAILED ❌" },
-            { "type": "mrkdwn", "text": "Flaky : $FLAKY ⚠️" },
-            { "type": "mrkdwn", "text": "Skipped : $SKIPPED ⏭️" }
+            { "type": "mrkdwn", "text": "Passed : $PASSED" },
+            { "type": "mrkdwn", "text": "Failed : $FAILED" },
+            { "type": "mrkdwn", "text": "Flaky : $FLAKY" },
+            { "type": "mrkdwn", "text": "Skipped : $SKIPPED" }
           ]
         },
         {
@@ -58,7 +59,7 @@ cat <<EOF > "$OUTPUT_PAYLOAD"
           "elements": [
             {
               "type": "mrkdwn",
-              "text": "Generated QA Automation CI | $(date '+%Y-%m-%d %H:%M:%S %Z')"
+              "text": "Generated QA Automation CI | <${DASHBOARD_URL}|View Playwright HTML Report> | $(date '+%Y-%m-%d %H:%M:%S %Z')"
             }
           ]
         }
