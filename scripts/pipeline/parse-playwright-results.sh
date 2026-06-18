@@ -23,10 +23,10 @@ SKIPPED=$(jq '[.. | objects | select(has("status")) | select(.status == "skipped
 TOTAL_TESTS=$((PASSED + FAILED + FLAKY + SKIPPED))
 
 if [ "$FAILED" -gt 0 ]; then
-    STATUS_TEXT="🔴QA Test Suite Completed"
+    STATUS_TEXT="🔴- QA Test Suite Completed"
     COLOR="#FF0000"
 else
-    STATUS_TEXT="🟢QA Test Suite Completed"
+    STATUS_TEXT="🟢- QA Test Suite Completed"
     COLOR="#36A64F"
 fi
 
@@ -59,7 +59,7 @@ cat <<EOF > "$OUTPUT_PAYLOAD"
           "elements": [
             {
               "type": "mrkdwn",
-              "text": "Generated QA Automation CI | <${DASHBOARD_URL}|View Playwright HTML Report> | $(date '+%Y-%m-%d %H:%M:%S %Z')"
+              "text": "Generated QA Automation CI | <${DASHBOARD_URL}|View Playwright Report> | $(date '+%Y-%m-%d %H:%M:%S %Z')"
             }
           ]
         }
