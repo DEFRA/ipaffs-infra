@@ -187,7 +187,8 @@ stages:
               workingDirectory: $(Pipeline.Workspace)/s/ipaffs-qa-automation
               inlineScript: |
                 set -x
-                $(Pipeline.Workspace)/s/ipaffs-infra/scripts/pipeline/parse-playwright-results.sh "$(Pipeline.Workspace)/test-results-$(Build.BuildNumber)/results.json"
+                ls -laR "$(Pipeline.Workspace)/s/ipaffs-qa-automation/test-results"
+                $(Pipeline.Workspace)/s/ipaffs-infra/scripts/pipeline/parse-playwright-results.sh $(Pipeline.Workspace)/s/ipaffs-qa-automation/test-results/test-results/results.json"
                 MESSAGE=$(<slack_payload.json)
 
 
