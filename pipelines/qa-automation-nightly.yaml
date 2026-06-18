@@ -27,7 +27,6 @@ jobs:
           ADO_ORG_URL: $(System.CollectionUri)
           ADO_PROJECT: $(System.TeamProject)
           AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
-          IPAFFS_ENGINEERING_WEBHOOK_URL: $(ipaffsEngineeringChannelHook)
         inputs:
           azureSubscription: $(serviceConnection)
           scriptType: bash
