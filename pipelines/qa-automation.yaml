@@ -180,7 +180,7 @@ stages:
             displayName: Send notification
             env:
               IPAFFS_ENGINEERING_WEBHOOK_URL: $(ipaffsEngineeringChannelHook)
-              PLAYWRIGHT_DASHBOARD: $(System.CollectionUri)$(System.TeamProject)/_build/results?buildId=$(Build.BuildId)&view=ms.vss-playwright.playwright-report-view
+              PLAYWRIGHT_DASHBOARD: $(System.CollectionUri)$(System.TeamProject)/_build/results?buildId=$(Build.BuildId)&view=ms.vss-test-web.build-test-results-tab
             inputs:
               azureSubscription: $(serviceConnection)
               scriptType: bash
