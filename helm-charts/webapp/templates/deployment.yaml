@@ -77,6 +77,8 @@ spec:
                 optional: true
             {{- end }}
           env:
+            - name: OTEL_SERVICE_NAME
+              value: {{ .Values.service }}
             - name: MANAGED_IDENTITY_USER
               value: {{ include "webapp.azure.servicePrincipalName" . | quote }}
           {{- with .Values.env }}
