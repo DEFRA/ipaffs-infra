@@ -187,10 +187,9 @@ stages:
               workingDirectory: $(Pipeline.Workspace)/s/ipaffs-qa-automation
               inlineScript: |
                 set -x
-                ls -laR "$(Pipeline.Workspace)/s/ipaffs-qa-automation/test-results"
-                $(Pipeline.Workspace)/s/ipaffs-infra/scripts/pipeline/parse-playwright-results.sh $(Pipeline.Workspace)/s/ipaffs-qa-automation/test-results/test-results/results.json"
+                # ls -laR "$(Pipeline.Workspace)/s/ipaffs-qa-automation/test-results
+                $(Pipeline.Workspace)/s/ipaffs-infra/scripts/pipeline/parse-playwright-results.sh "$(Pipeline.Workspace)/s/ipaffs-qa-automation/test-results/test-results/results.json"
                 MESSAGE=$(<slack_payload.json)
-
 
                 curl -X POST -H 'Content-type: application/json' --data "${MESSAGE}" "${IPAFFS_ENGINEERING_WEBHOOK_URL}"
             condition: eq('${{ parameters.notification }}', true)
