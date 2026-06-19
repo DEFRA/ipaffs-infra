@@ -1,0 +1,73 @@
+name: Pipeline syntax
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/pipeline-syntax.yaml"
+      - "pipelines/*.yaml"
+      - "pipelines/*.yml"
+      - "pipelines/**/*.yaml"
+      - "pipelines/**/*.yml"
+      - "scripts/**/*.sh"
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/pipeline-syntax.yaml"
+      - "pipelines/*.yaml"
+      - "pipelines/*.yml"
+      - "pipelines/**/*.yaml"
+      - "pipelines/**/*.yml"
+      - "scripts/**/*.sh"
+
+jobs:
+  ado-pipeline-yaml:
+    name: ADO pipeline YAML
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Parse pipeline YAML
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          files=()
+          while IFS= read -r file; do
+            files+=("${file}")
+          done < <(git ls-files "pipelines/*.yaml" "pipelines/*.yml" "pipelines/**/*.yaml" "pipelines/**/*.yml" | sort)
+
+          if [[ ${#files[@]} -eq 0 ]]; then
+            echo "No Azure DevOps pipeline YAML files found."
+            exit 0
+          fi
+
+          ruby -e 'require "psych"; ARGV.each { |file| Psych.load_file(file); puts "Parsed #{file}" }' "${files[@]}"
+
+  shell-scripts:
+    name: Shell scripts
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check Bash syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          files=()
+          while IFS= read -r file; do
+            files+=("${file}")
+          done < <(git ls-files "scripts/**/*.sh" | sort)
+
+          if [[ ${#files[@]} -eq 0 ]]; then
+            echo "No shell scripts found."
+            exit 0
+          fi
+
+          for file in "${files[@]}"; do
+            echo "Checking ${file}"
+            bash -n "${file}"
+          done
