@@ -1,27 +1,12 @@
 ---
-trigger:
-  branches:
-    include:
-      - permissions
-  paths:
-    include:
-      - bicep/permissions.bicep
-      - bicep/**/permissions.parameters.json
-      - pipelines/permissions.yaml
-
 pool:
   name: DEFRA-COMMON-ubuntu2204-SSV5
-
-variables:
-  - group: "${{ parameters.environmentName }}"
 
 parameters:
   - name: environmentName
     type: string
-    default: POC
+    default: PRE
     values:
-      - POC
-      - TST
       - PRE
 
 stages:
