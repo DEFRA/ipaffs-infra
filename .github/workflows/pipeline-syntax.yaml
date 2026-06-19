@@ -1,0 +1,177 @@
+name: Pipeline syntax
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/pipeline-syntax.yaml"
+      - "pipelines/*.yaml"
+      - "pipelines/*.yml"
+      - "pipelines/**/*.yaml"
+      - "pipelines/**/*.yml"
+      - "scripts/**/*.sh"
+      - "bicep/*.bicep"
+      - "bicep/*.bicepparam"
+      - "bicep/**/*.bicep"
+      - "bicep/**/*.bicepparam"
+      - "helm-charts/**"
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/pipeline-syntax.yaml"
+      - "pipelines/*.yaml"
+      - "pipelines/*.yml"
+      - "pipelines/**/*.yaml"
+      - "pipelines/**/*.yml"
+      - "scripts/**/*.sh"
+      - "bicep/*.bicep"
+      - "bicep/*.bicepparam"
+      - "bicep/**/*.bicep"
+      - "bicep/**/*.bicepparam"
+      - "helm-charts/**"
+
+jobs:
+  ado-pipeline-yaml:
+    name: ADO pipeline YAML
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Parse pipeline YAML
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          files=()
+          while IFS= read -r file; do
+            files+=("${file}")
+          done < <(git ls-files "pipelines/*.yaml" "pipelines/*.yml" "pipelines/**/*.yaml" "pipelines/**/*.yml" | sort)
+
+          if [[ ${#files[@]} -eq 0 ]]; then
+            echo "No Azure DevOps pipeline YAML files found."
+            exit 0
+          fi
+
+          ruby -e 'require "psych"; ARGV.each { |file| Psych.load_file(file); puts "Parsed #{file}" }' "${files[@]}"
+
+  shell-scripts:
+    name: Shell scripts
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check Bash syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          files=()
+          while IFS= read -r file; do
+            files+=("${file}")
+          done < <(git ls-files "scripts/**/*.sh" | sort)
+
+          if [[ ${#files[@]} -eq 0 ]]; then
+            echo "No shell scripts found."
+            exit 0
+          fi
+
+          for file in "${files[@]}"; do
+            echo "Checking ${file}"
+            bash -n "${file}"
+          done
+
+  bicep:
+    name: Bicep
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build Bicep files
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          export AZURE_CONFIG_DIR="${RUNNER_TEMP}/azure"
+
+          files=()
+          while IFS= read -r file; do
+            files+=("${file}")
+          done < <(git ls-files "bicep/*.bicep" "bicep/**/*.bicep" | sort)
+
+          if [[ ${#files[@]} -eq 0 ]]; then
+            echo "No Bicep files found."
+            exit 0
+          fi
+
+          for file in "${files[@]}"; do
+            echo "Building ${file}"
+            az bicep build --file "${file}" --stdout --only-show-errors > /dev/null
+          done
+
+      - name: Build Bicep parameter files
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          export AZURE_CONFIG_DIR="${RUNNER_TEMP}/azure"
+
+          files=()
+          while IFS= read -r file; do
+            files+=("${file}")
+          done < <(git ls-files "bicep/*.bicepparam" "bicep/**/*.bicepparam" | sort)
+
+          if [[ ${#files[@]} -eq 0 ]]; then
+            echo "No Bicep parameter files found."
+            exit 0
+          fi
+
+          for file in "${files[@]}"; do
+            echo "Building ${file}"
+            az bicep build-params --file "${file}" --stdout --only-show-errors > /dev/null
+          done
+
+  helm:
+    name: Helm
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Lint Helm charts
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          charts=()
+          while IFS= read -r chart; do
+            charts+=("${chart}")
+          done < <(find helm-charts -mindepth 2 -maxdepth 2 -name Chart.yaml -exec dirname {} \; | sort)
+
+          if [[ ${#charts[@]} -eq 0 ]]; then
+            echo "No Helm charts found."
+            exit 0
+          fi
+
+          for chart in "${charts[@]}"; do
+            echo "Linting ${chart}"
+            helm dependency update --skip-refresh "${chart}"
+
+            if [[ "${chart}" == "helm-charts/bootstrap" ]]; then
+              helm lint "${chart}" --values helm-charts/envs/dev/bootstrap-values.yaml
+            elif [[ "${chart}" == "helm-charts/job" ]]; then
+              helm lint "${chart}" \
+                --set service=test-job \
+                --set container.image=test/image:1.0.0 \
+                --set schedule="0 0 * * *" \
+                --set azure.clientId=00000000-0000-0000-0000-000000000001
+            elif [[ "${chart}" == "helm-charts/proxy-to-local" ]]; then
+              helm lint "${chart}" --set application.name=proxy-to-local --set local.port=8080
+            elif [[ "${chart}" == "helm-charts/webapp" ]]; then
+              helm lint "${chart}" --values helm-charts/webapp/tests/ci-values.yaml
+            else
+              helm lint "${chart}"
+            fi
+          done
