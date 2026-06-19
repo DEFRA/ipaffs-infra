@@ -1,5 +1,14 @@
 #!/usr/bin/env bash
 
+## parse-playwright-results.sh
+##
+## Parse Playwright results.json file
+##
+## usage $0 [Playwright results file] [Link to Playwright report view]
+## Required arguments
+## [$1] - Playwright results file
+## [$2] - Playwright report view URL
+
 set -euo pipefail
 
 REPORT_FILE="${1:-results.json}"
