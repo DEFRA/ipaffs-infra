@@ -154,7 +154,7 @@ stages:
             displayName: Publish Playwright Report Artifact
             inputs:
               targetPath: $(Pipeline.Workspace)/s/ipaffs-qa-automation/playwright-report
-              artifact: playwright-report-$(Build.BuildNumber)
+              artifact: playwright-report
               publishLocation: 'pipeline'
             condition: succeededOrFailed()
 
@@ -162,8 +162,18 @@ stages:
             displayName: Publish Test Results Artifact
             inputs:
               targetPath: $(Pipeline.Workspace)/s/ipaffs-qa-automation/test-results
-              artifact: test-results-$(Build.BuildNumber)
+              artifact: test-results
               publishLocation: 'pipeline'
+            condition: succeededOrFailed()
+
+          - task: DownloadPipelineArtifact@2
+            displayName: Download previous test results artifact
+            continueOnError: true
+            inputs:
+              buildType: 'latestFromBranch'
+              branchName: '$(Build.SourceBranch)'
+              artifact: 'test-results'
+              path: '$(Pipeline.Workspace)/previous-test-results'
             condition: succeededOrFailed()
 
           - task: PublishTestResults@2
@@ -187,7 +197,17 @@ stages:
               scriptLocation: inlineScript
               workingDirectory: $(Pipeline.Workspace)/s/ipaffs-qa-automation
               inlineScript: |
-                $(Pipeline.Workspace)/s/ipaffs-infra/scripts/pipeline/parse-playwright-results.sh $(Pipeline.Workspace)/s/ipaffs-qa-automation/test-results/results.json "${PLAYWRIGHT_DASHBOARD}"
+                PREVIOUS_RESULTS_PATH="$(Pipeline.Workspace)/previous-test-results/results.json"
+                if [ ! -f "$PREVIOUS_RESULTS_PATH" ] && [ -f "$(Pipeline.Workspace)/previous-test-results/test-results/results.json" ]; then
+                  PREVIOUS_RESULTS_PATH="$(Pipeline.Workspace)/previous-test-results/test-results/results.json"
+                fi
+
+                if [ -f "$PREVIOUS_RESULTS_PATH" ]; then
+                  $(Pipeline.Workspace)/s/ipaffs-infra/scripts/pipeline/parse-playwright-results.sh "$(Pipeline.Workspace)/s/ipaffs-qa-automation/test-results/results.json" "${PLAYWRIGHT_DASHBOARD}" "$PREVIOUS_RESULTS_PATH"
+                else
+                  echo ":: Previous results file not found; running current report only."
+                  $(Pipeline.Workspace)/s/ipaffs-infra/scripts/pipeline/parse-playwright-results.sh "$(Pipeline.Workspace)/s/ipaffs-qa-automation/test-results/results.json" "${PLAYWRIGHT_DASHBOARD}"
+                fi
                 MESSAGE=$(<slack_payload.json)
 
                 curl -X POST -H 'Content-type: application/json' --data "${MESSAGE}" "${SLACK_QA_CHANNEL_WEBHOOK_URL}"
