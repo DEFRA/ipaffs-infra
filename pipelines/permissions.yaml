@@ -24,6 +24,7 @@ parameters:
     values:
       - POC
       - TST
+      - PRE
 
 stages:
   - stage: Deploy
