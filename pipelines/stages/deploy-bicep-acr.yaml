@@ -139,9 +139,11 @@ stages:
       - group: "${{ parameters.environmentName }}"
       - template: "/pipelines/vars/common.yaml"
       - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
+
+      # Lower environments all use the DEV ACR, but higher environments each have their own ACR
       - name: adoGroupName
         ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
-          value: HigherEnvs
+          value: ${{ parameters.environmentName }}
         ${{ else }}:
           value: LowerEnvs
     jobs:
