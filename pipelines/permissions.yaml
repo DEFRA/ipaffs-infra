@@ -40,14 +40,14 @@ stages:
                 - task: AzureCLI@2
                   displayName: Deploy
                   inputs:
-                    azureSubscription: $(serviceConnection)
+                    azureSubscription: ADO-DefraGovUK-AZR-PRE_IMP
                     scriptType: bash
                     scriptLocation: inlineScript
                     inlineScript: |
                       az role assignment create \
-                        --role Owner \
-                        --assignee-object-id 199e9bba-b7cc-47ff-935b-1ca4d964b048 \
-                        --assignee-principal-type User \
-                        --scope /subscriptions/cfa4ccd1-5a5e-420c-9bca-03218a43e46d/resourceGroups/POCIMPNETNS1401
+                        --role Contributor \
+                        --assignee-object-id 80a5fda0-7d36-4c3a-a5de-44a6a525fd2d \
+                        --assignee-principal-type Group \
+                        --scope /subscriptions/81ca326e-6270-418a-b764-e02a4ca60457/resourceGroups/PREIMPINFRGP001
 
 # vim: set ts=2 sts=2 sw=2 et:
