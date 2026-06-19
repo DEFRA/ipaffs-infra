@@ -68,8 +68,7 @@ module additionalContributors './modules/resource-group-role-assignment.bicep' =
   }
 }]
 
-// TODO: move this to infra module and lift to new subscription
-module alerts './modules/alerts.bicep' = {
+module alerts './modules/alerts-classic.bicep' = {
   name: 'alerts-${deploymentId}'
   scope: resourceGroup()
   params: {
@@ -80,7 +79,6 @@ module alerts './modules/alerts.bicep' = {
   }
 }
 
-// TODO: move this to infra module and lift to new subscription
 module dbw './modules/database-watcher.bicep' = {
   name: 'dbw-${deploymentId}'
   scope: resourceGroup()
@@ -116,7 +114,6 @@ module search './modules/search-classic.bicep' = {
   }
 }
 
-// TODO: move this to infra module and lift to new subscription
 module sej './modules/sql-elastic-jobs.bicep' = {
   name: 'sej-${deploymentId}'
   scope: resourceGroup()

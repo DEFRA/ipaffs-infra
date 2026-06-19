@@ -47,18 +47,12 @@ param aksParams = {
 
 param alertsParams = {
   actionGroups: {
-    notifyDba: {
-      name: 'PRD-IMP-DBA-Team'
-      appRecipients: [
-        {
-          name: 'AppPush: Paul Maguire (Admin)'
-          upn: 'a-paul.maguire@defra.onmicrosoft.com'
-        }
-      ]
+    notifyIpaffs: {
+      name: 'PRD-IMP-IPAFFS-TEAM'
       emailRecipients: [
         {
-          name: 'Email: Paul Maguire'
-          email: 'paul.maguire@esynergy.co.uk'
+          name: 'Email: IPAFFS team Notification'
+          email: 'cl-defra-ipaffs-notification@equalexperts.com'
         }
       ]
     }
