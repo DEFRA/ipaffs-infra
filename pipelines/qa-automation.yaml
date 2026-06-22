@@ -69,9 +69,8 @@ resources:
       type: github
       endpoint: DEFRA
       name: DEFRA/ipaffs-qa-automation
-      # TEST ONLY: pinned to the 'pre' branch to validate the PRE environment option.
       # Revert to refs/heads/main before merging.
-      ref: refs/heads/pre
+      ref: refs/heads/feature/IMTA-21473-add-PRE-option
 
 stages:
   - stage: RunTests
