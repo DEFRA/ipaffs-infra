@@ -14,6 +14,7 @@ parameters:
       - NEW-DEV
       - NEW-TST
       - NEW-PRD
+      - PRE
 
   - name: workers
     displayName: Workers
