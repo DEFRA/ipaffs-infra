@@ -97,7 +97,7 @@ stages:
             inputs:
               azureSubscription: ${{ variables.upstreamServiceConnection }}
               scriptType: bash
-              scriptPath: scripts/pipeline/add-principal-to-group.sh
+              scriptPath: scripts/pipeline/remove-principal-from-group.sh
 
 
 
