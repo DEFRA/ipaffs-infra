@@ -2,6 +2,10 @@ parameters:
   - name: environmentName
     type: string
 
+  - name: serviceConnection
+    type: string
+    default: ""
+
   - name: migrationsClientId
     type: string
     default: ""
@@ -69,7 +73,7 @@ jobs:
           ${{ else }}:
             ACR_NAME: $(acrName)
         inputs:
-          azureSubscription: $(serviceConnection)
+          azureSubscription: ${{ coalesce(parameters.serviceConnection, variables.serviceConnection) }}
           scriptType: bash
           scriptLocation: inlineScript
           inlineScript: |
@@ -108,7 +112,7 @@ jobs:
           HELMFILE_SELECTOR: "${{ parameters.helmfileSelector }}"
           SOURCE_REF: $(Build.SourceBranch)
         inputs:
-          azureSubscription: $(serviceConnection)
+          azureSubscription: ${{ coalesce(parameters.serviceConnection, variables.serviceConnection) }}
           scriptType: bash
           scriptLocation: inlineScript
           inlineScript: |
