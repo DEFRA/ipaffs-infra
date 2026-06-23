@@ -25,15 +25,6 @@ param alertsParams = {
         }
       ]
     }
-    notifyIpaffs: {
-      name: 'TST-IMP-IPAFFS-TEAM'
-      emailRecipients: [
-        {
-          name: 'Email: IPAFFS team Notification'
-          email: 'cl-defra-ipaffs-notification@equalexperts.com'
-        }
-      ]
-    }
   }
 }
 
