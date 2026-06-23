@@ -1,0 +1,104 @@
+---
+trigger: none
+pr: none
+
+pool:
+  name: DEFRA-COMMON-ubuntu2204-SSV5
+
+parameters:
+  - name: groupObjectName
+    displayName: Group Object Name
+    type: string
+    default: AAG-Azure-AZR_IMP_TST1-SQLAdmins
+    values:
+      - AAG-Azure-AZR_IMP_TST1-SQLAdmins
+
+  - name: memberObjectName
+    displayName: Member Object Name
+    type: string
+
+
+stages:
+  - stage: EntraGroupCleanup
+    displayName: Entra Group Cleanup
+    variables:
+        - template: "/pipelines/vars/common.yaml"
+    jobs:
+      - job: FindGroupID
+        displayName: FindGroupID
+        steps:
+          - checkout: self
+
+          - task: AzureCLI@2
+            name: LookupGroup
+            env:
+              OBJECT_NAME: "${{ parameters.groupObjectName }}"
+              OBJECT_TYPE: "group"
+            inputs:
+              azureSubscription: ${{ variables.upstreamServiceConnection }}
+              scriptType: bash
+              scriptPath: scripts/pipeline/lookup-directory-object.sh
+              scriptArguments: "-o ado"
+          - task: Bash@3
+            inputs:
+              targetType: inline
+              script: |
+                echo "objectId: $(LookupGroup.objectId)"
+                echo "odataUri: $(LookupGroup.odataUri)"
+
+      - job: FindMemberID
+        displayName: FindMemberID
+        steps:
+          - checkout: self
+
+          - task: AzureCLI@2
+            name: LookupMember
+            env:
+              OBJECT_NAME: "${{ parameters.memberObjectName }}"
+              OBJECT_TYPE: "servicePrincipal"
+            inputs:
+              azureSubscription: ${{ variables.upstreamServiceConnection }}
+              scriptType: bash
+              scriptPath: scripts/pipeline/lookup-directory-object.sh
+              scriptArguments: "-o ado"
+          - task: Bash@3
+            inputs:
+              targetType: inline
+              script: |
+                echo "objectId: $(LookupMember.objectId)"
+                echo "odataUri: $(LookupMember.odataUri)"
+
+
+      - job: RemoveGroupMember
+        dependsOn:
+          - FindGroupID
+          - FindMemberID
+        variables:
+          groupObjectId: $[ dependencies.FindGroupID.outputs['LookupGroup.objectId'] ]
+          groupOdataUri: $[ dependencies.FindGroupID.outputs['LookupGroup.odataUri'] ]
+          memberObjectId: $[ dependencies.FindMemberID.outputs['LookupMember.objectId'] ]
+          memberOdataUri: $[ dependencies.FindMemberID.outputs['LookupMember.odataUri'] ]
+
+        steps:
+          - checkout: self
+
+          - bash: |
+              echo "groupObjectId=$(groupObjectId)"
+              echo "groupOdataUri=$(groupOdataUri)"
+              echo "memberObjectId=$(memberObjectId)"
+              echo "memberOdataUri=$(memberOdataUri)"
+
+          - task: AzureCLI@2
+            name: ExecuteRemoveGroupMember
+            displayName: Execute Remove Group Member
+            env:
+              GROUP_NAME: "${{ parameters.groupObjectName }}"
+              GROUP_ID: $(groupObjectId)
+              GROUP_MEMBERS: $(memberObjectId)
+            inputs:
+              azureSubscription: ${{ variables.upstreamServiceConnection }}
+              scriptType: bash
+              scriptPath: scripts/pipeline/remove-entra-group-members.sh
+
+
+
