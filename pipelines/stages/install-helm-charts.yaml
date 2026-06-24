@@ -265,4 +265,22 @@ stages:
                         --set environment="${{ lower(parameters.environmentName) }}" \
                         ms-identity-redirect-handler ./helm-charts/ms-identity-redirect-handler
 
+                - task: AzureCLI@2
+                  displayName: Helm Install - ama-metrics-settings
+                  inputs:
+                    azureSubscription: $(serviceConnection)
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      set -x
+                      helm upgrade \
+                        --install \
+                        --debug \
+                        --namespace kube-system \
+                        --create-namespace \
+                        --dependency-update \
+                        --timeout 2m \
+                        $(helmDryRun) \
+                        ama-metrics-settings ./helm-charts/ama-metrics-settings
+
 # vim: set ts=2 sts=2 sw=2 et:
