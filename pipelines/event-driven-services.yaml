@@ -1,0 +1,101 @@
+---
+name: event-driven-services-$(Date:yyyyMMdd)$(Rev:.r)
+
+trigger: none
+pr: none
+
+pool:
+  name: DEFRA-COMMON-ubuntu2204-SSV5
+
+parameters:
+  - name: environmentName
+    displayName: Environment
+    type: string
+    default: TST
+    values:
+      - TST
+      - PRE
+      - PRD
+
+  - name: dryRun
+    displayName: Dry Run
+    type: boolean
+    default: true
+
+  - name: stopOldStack
+    displayName: Stop old stack
+    type: boolean
+    default: true
+
+  - name: unsuspendK8s
+    displayName: Unsuspend K8s
+    type: boolean
+    default: true
+
+variables:
+  - group: Common
+  - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
+    - group: HigherEnvs
+  - ${{ else }}:
+    - group: LowerEnvs
+  - group: "${{ parameters.environmentName }}"
+  - template: "/pipelines/vars/common.yaml"
+  - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
+
+stages:
+  - template: stages/tag-build.yaml
+    parameters:
+      tags:
+        - Environment-${{ parameters.environmentName }}
+        - ServiceGroup-event-driven-services
+        - Operation-switch
+
+  - stage: SwitchEventDrivenServices
+    displayName: Switch event-driven services to K8s
+    jobs:
+      - deployment: SwitchEventDrivenServices
+        displayName: Stop old stack and unsuspend K8s
+        environment:
+          name: "${{ parameters.environmentName }}"
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+
+                - ${{ if parameters.stopOldStack }}:
+                  - task: AzureCLI@2
+                    displayName: Stop old-stack event-driven services
+                    env:
+                      ENVIRONMENT: ${{ lower(parameters.environmentName) }}
+                      SERVICE_GROUP: event-driven-services
+                      CLASSIC_SUBSCRIPTION_NAME: $(classicSubscriptionName)
+                      DRY_RUN: "${{ parameters.dryRun }}"
+                    inputs:
+                      azureSubscription: $(classicServiceConnection)
+                      scriptType: bash
+                      scriptLocation: inlineScript
+                      inlineScript: |
+                        set -euo pipefail
+                        bash scripts/pipeline/toggle-service-stack.sh stop-old-stack
+
+                - ${{ if parameters.unsuspendK8s }}:
+                  - task: AzureCLI@2
+                    displayName: Unsuspend K8s event-driven services
+                    env:
+                      ENVIRONMENT: ${{ lower(parameters.environmentName) }}
+                      NAMESPACE: ${{ lower(parameters.environmentName) }}
+                      SERVICE_GROUP: event-driven-services
+                      DRY_RUN: "${{ parameters.dryRun }}"
+                    inputs:
+                      azureSubscription: $(serviceConnection)
+                      scriptType: bash
+                      scriptLocation: inlineScript
+                      inlineScript: |
+                        set -euo pipefail
+                        az aks install-cli --client-version v1.36.1 --kubelogin-version v0.2.18
+                        az aks get-credentials -n "$(kubernetesCluster)" -g "$(resourceGroupName)" --subscription "$(subscriptionName)"
+                        kubelogin convert-kubeconfig -l azurecli
+                        bash scripts/pipeline/toggle-service-stack.sh unsuspend-k8s
+
+# vim: set ts=2 sts=2 sw=2 et:
