@@ -118,9 +118,14 @@ jobs:
           inlineScript: |
             set -euo pipefail
 
-            manifest_tag=""
             if [[ "${SOURCE_REF}" == refs/tags/* ]]; then
               manifest_tag="${SOURCE_REF#refs/tags/}"
+            elif [[ "${SOURCE_REF}" == refs/heads/RELEASE/* ]]; then
+              manifest_tag="${SOURCE_REF#refs/heads/RELEASE/}"
+            elif [[ "${SOURCE_REF}" == refs/heads/* ]]; then
+              manifest_tag="${SOURCE_REF#refs/heads/}"
+            else
+              manifest_tag="${SOURCE_REF}"
             fi
             export MANIFEST_TAG="${manifest_tag}"
 
