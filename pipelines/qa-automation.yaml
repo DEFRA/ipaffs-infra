@@ -188,7 +188,7 @@ stages:
               scriptLocation: inlineScript
               workingDirectory: $(Pipeline.Workspace)/s/ipaffs-qa-automation
               inlineScript: |
-                $(Pipeline.Workspace)/s/ipaffs-infra/scripts/pipeline/parse-playwright-results.sh $(Pipeline.Workspace)/s/ipaffs-qa-automation/test-results/results.json "${PLAYWRIGHT_DASHBOARD}" "${K8S_ENVIRONMENT}
+                $(Pipeline.Workspace)/s/ipaffs-infra/scripts/pipeline/parse-playwright-results.sh $(Pipeline.Workspace)/s/ipaffs-qa-automation/test-results/results.json "${PLAYWRIGHT_DASHBOARD}" "${K8S_ENVIRONMENT}"
                 MESSAGE=$(<slack_payload.json)
 
                 curl -X POST -H 'Content-type: application/json' --data "${MESSAGE}" "${SLACK_QA_CHANNEL_WEBHOOK_URL}"
