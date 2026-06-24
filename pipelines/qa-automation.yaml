@@ -179,6 +179,7 @@ stages:
           - task: AzureCLI@2
             displayName: Send notification
             env:
+              K8S_ENVIRONMENT: ${{ parameters.environmentName }}
               SLACK_QA_CHANNEL_WEBHOOK_URL: $(slackQAChannelWebhookUrl)
               PLAYWRIGHT_DASHBOARD: $(System.CollectionUri)$(System.TeamProject)/_build/results?buildId=$(Build.BuildId)&view=ms.vss-test-web.build-test-results-tab
             inputs:
@@ -187,7 +188,7 @@ stages:
               scriptLocation: inlineScript
               workingDirectory: $(Pipeline.Workspace)/s/ipaffs-qa-automation
               inlineScript: |
-                $(Pipeline.Workspace)/s/ipaffs-infra/scripts/pipeline/parse-playwright-results.sh $(Pipeline.Workspace)/s/ipaffs-qa-automation/test-results/results.json "${PLAYWRIGHT_DASHBOARD}" $(environmentName)
+                $(Pipeline.Workspace)/s/ipaffs-infra/scripts/pipeline/parse-playwright-results.sh $(Pipeline.Workspace)/s/ipaffs-qa-automation/test-results/results.json "${PLAYWRIGHT_DASHBOARD}" "${K8S_ENVIRONMENT}"
                 MESSAGE=$(<slack_payload.json)
 
                 curl -X POST -H 'Content-type: application/json' --data "${MESSAGE}" "${SLACK_QA_CHANNEL_WEBHOOK_URL}"
