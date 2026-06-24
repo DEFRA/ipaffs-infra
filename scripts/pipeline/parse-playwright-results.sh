@@ -8,11 +8,12 @@
 ## Required arguments
 ## [$1] - Playwright results file
 ## [$2] - Playwright report view URL
-
+## [$3] - K8s Environment
 set -euo pipefail
 
 REPORT_FILE="${1:-results.json}"
 DASHBOARD_URL="$2"
+ENVIRONMENT="$3"
 OUTPUT_PAYLOAD="slack_payload.json"
 
 # Check if the report file exists
@@ -32,10 +33,10 @@ SKIPPED=$(jq '[.. | objects | select(has("status")) | select(.status == "skipped
 TOTAL_TESTS=$((PASSED + FAILED + FLAKY + SKIPPED))
 
 if [ "$FAILED" -gt 0 ]; then
-    STATUS_TEXT="🔴- QA Test Suite Completed"
+    STATUS_TEXT="🔴- QA Test Suite Completed for ${ENVIRONMENT}"
     COLOR="#FF0000"
 else
-    STATUS_TEXT="🟢- QA Test Suite Completed"
+    STATUS_TEXT="🟢- QA Test Suite Completed for ${ENVIRONMENT}"
     COLOR="#36A64F"
 fi
 
@@ -56,6 +57,7 @@ cat <<EOF > "$OUTPUT_PAYLOAD"
         {
           "type": "section",
           "fields": [
+            { "type": "mrkdwn", "text": "Environment : $ENVIRONMENT" },
             { "type": "mrkdwn", "text": "Total Tests : $TOTAL_TESTS" },
             { "type": "mrkdwn", "text": "Passed : $PASSED" },
             { "type": "mrkdwn", "text": "Failed : $FAILED" },
