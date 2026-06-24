@@ -76,20 +76,20 @@ target_mappings() {
   case "${SERVICE_GROUP_NAME}" in
     event-driven-services)
       cat <<'TARGETS'
-gvms-service|gvms-microservice
-notify-service|notify-microservice
-dmpintegration-service|dmp-integration-microservice
-enotificationeventlistener-service|enotification-event-listener-microservice
-enotificationprocessing-service|enotification-processing-microservice
-bulkupload-service|bulk-upload-microservice
+gvms-service|gvms-microservice|functionapp
+notify-service|notify-microservice|functionapp
+dmpintegration-service|dmp-integration-microservice|functionapp
+enotificationeventlistener-service|enotification-event-listener-microservice|functionapp
+enotificationprocessing-service|enotification-processing-microservice|webapp
+bulkupload-service|bulk-upload-microservice|webapp
 TARGETS
       ;;
     time-triggered-services)
       cat <<'TARGETS'
-archivenotifications-job|archive-notifications-microservice
-autoclearance-job|auto-clearance-microservice
-riskinterface-job|risk-interface-microservice
-risklocking-job|risk-locking-microservice
+archivenotifications-job|archive-notifications-microservice|functionapp
+autoclearance-job|auto-clearance-microservice|functionapp
+riskinterface-job|risk-interface-microservice|functionapp
+risklocking-job|risk-locking-microservice|functionapp
 TARGETS
       ;;
     *)
@@ -118,64 +118,73 @@ old_stack_resource_name() {
   printf "%s-%s\n" "${old_base}" "${ENVIRONMENT_NAME}"
 }
 
-lookup_old_stack_resource() {
+lookup_old_stack_resource_id() {
   local resource_name="${1}"
 
   az resource list \
     --subscription "${CLASSIC_SUBSCRIPTION_NAME}" \
     --resource-type "Microsoft.Web/sites" \
-    --query "[?name=='${resource_name}'] | [0].[name,resourceGroup,kind,properties.state]" \
+    --query "[?name=='${resource_name}'].id | [0]" \
     --output tsv
+}
+
+resource_group_from_id() {
+  local resource_id="${1}"
+  local -a segments
+
+  IFS='/' read -r -a segments <<<"${resource_id}"
+  for ((i = 0; i < ${#segments[@]}; i++)); do
+    if [[ "$(lowercase "${segments[$i]}")" == "resourcegroups" ]]; then
+      [[ $((i + 1)) -lt ${#segments[@]} ]] || fail "Could not parse resource group from resource ID '${resource_id}'"
+      echo "${segments[$((i + 1))]}"
+      return 0
+    fi
+  done
+
+  fail "Could not parse resource group from resource ID '${resource_id}'"
+}
+
+old_stack_cli_for_kind() {
+  case "${1}" in
+    functionapp)
+      echo "az functionapp"
+      ;;
+    webapp)
+      echo "az webapp"
+      ;;
+    *)
+      fail "Old-stack kind must be functionapp or webapp; got '${1}'"
+      ;;
+  esac
 }
 
 run_old_stack_action() {
   local action="${1}"
-  local k8s_name old_base resource_name details app_name resource_group kind state kind_lc state_lc
+  local k8s_name old_base old_stack_kind resource_name resource_id resource_group
   local -a app_cli
 
   [[ -n "${CLASSIC_SUBSCRIPTION_NAME:-}" ]] || fail "CLASSIC_SUBSCRIPTION_NAME is required for ${action}"
 
-  while IFS='|' read -r k8s_name old_base; do
-    [[ -n "${k8s_name}" && -n "${old_base}" ]] || continue
+  while IFS='|' read -r k8s_name old_base old_stack_kind; do
+    [[ -n "${k8s_name}" && -n "${old_base}" && -n "${old_stack_kind}" ]] || continue
 
     resource_name="$(old_stack_resource_name "${old_base}")"
     log "Resolving old-stack resource '${resource_name}' for K8s service '${k8s_name}'"
 
-    details="$(lookup_old_stack_resource "${resource_name}")"
-    [[ -n "${details}" ]] || fail "Could not find old-stack App Service or Function App '${resource_name}' in subscription '${CLASSIC_SUBSCRIPTION_NAME}'"
+    resource_id="$(lookup_old_stack_resource_id "${resource_name}")"
+    [[ -n "${resource_id}" ]] || fail "Could not find old-stack App Service or Function App '${resource_name}' in subscription '${CLASSIC_SUBSCRIPTION_NAME}'"
 
-    IFS=$'\t' read -r app_name resource_group kind state <<<"${details}"
-    kind_lc="$(lowercase "${kind}")"
-    state_lc="$(lowercase "${state:-unknown}")"
-
-    if [[ "${kind_lc}" == *functionapp* ]]; then
-      app_cli=(az functionapp)
-    else
-      app_cli=(az webapp)
-    fi
+    resource_group="$(resource_group_from_id "${resource_id}")"
+    read -r -a app_cli <<<"$(old_stack_cli_for_kind "${old_stack_kind}")"
 
     case "${action}" in
       stop-old-stack)
-        if [[ "${state_lc}" == "stopped" ]]; then
-          log "Old-stack resource '${app_name}' is already stopped"
-        else
-          log "Stopping old-stack resource '${app_name}' in resource group '${resource_group}'"
-          run_cmd "${app_cli[@]}" stop \
-            --name "${app_name}" \
-            --resource-group "${resource_group}" \
-            --subscription "${CLASSIC_SUBSCRIPTION_NAME}"
-        fi
+        log "Stopping old-stack resource '${resource_name}' in resource group '${resource_group}'"
+        run_cmd "${app_cli[@]}" stop --ids "${resource_id}"
         ;;
       start-old-stack)
-        if [[ "${state_lc}" == "running" ]]; then
-          log "Old-stack resource '${app_name}' is already running"
-        else
-          log "Starting old-stack resource '${app_name}' in resource group '${resource_group}'"
-          run_cmd "${app_cli[@]}" start \
-            --name "${app_name}" \
-            --resource-group "${resource_group}" \
-            --subscription "${CLASSIC_SUBSCRIPTION_NAME}"
-        fi
+        log "Starting old-stack resource '${resource_name}' in resource group '${resource_group}'"
+        run_cmd "${app_cli[@]}" start --ids "${resource_id}"
         ;;
       *)
         fail "Unsupported old-stack action '${action}'"
@@ -207,9 +216,9 @@ k8s_workload_kind() {
 
 run_k8s_action() {
   local action="${1}"
-  local k8s_name old_base workload_kind
+  local k8s_name old_base old_stack_kind workload_kind
 
-  while IFS='|' read -r k8s_name old_base; do
+  while IFS='|' read -r k8s_name old_base old_stack_kind; do
     [[ -n "${k8s_name}" && -n "${old_base}" ]] || continue
 
     workload_kind="$(k8s_workload_kind "${k8s_name}")"
