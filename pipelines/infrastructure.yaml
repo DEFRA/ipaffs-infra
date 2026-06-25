@@ -68,14 +68,14 @@ stages:
       environmentName: ${{ parameters.environmentName }}
 
   - ${{ if parameters.establishPeering }}:
-      - template: stages/establish-peering.yaml
-        parameters:
-          environmentName: ${{ parameters.environmentName }}
+    - template: stages/establish-peering.yaml
+      parameters:
+        environmentName: ${{ parameters.environmentName }}
 
   - ${{ if or(eq(parameters.environmentName, 'DEV'), eq(parameters.environmentName, 'PRE'), eq(parameters.environmentName, 'PRD')) }}:
-      - template: stages/deploy-bicep-acr.yaml
-        parameters:
-          environmentName: ${{ parameters.environmentName }}
+    - template: stages/deploy-bicep-acr.yaml
+      parameters:
+        environmentName: ${{ parameters.environmentName }}
 
   - template: stages/deploy-bicep-classic.yaml
     parameters:
@@ -97,9 +97,10 @@ stages:
     parameters:
       environmentName: ${{ parameters.environmentName }}
 
-  - template: stages/import-acr-artifacts.yaml
-    parameters:
-      environmentName: ${{ parameters.environmentName }}
+  - ${{ if or(eq(parameters.environmentName, 'DEV'), eq(parameters.environmentName, 'PRE'), eq(parameters.environmentName, 'PRD')) }}:
+    - template: stages/import-acr-artifacts.yaml
+      parameters:
+        environmentName: ${{ parameters.environmentName }}
 
   - template: stages/install-helm-charts.yaml
     parameters:
