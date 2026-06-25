@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ama-metrics-settings-configmap
+  namespace: kube-system
+data:
+  schema-version: v1
+  config-version: ver1
+  settings: |-
+    {
+      "default-targets-metrics-keep-list": {
+        "kube-state-metrics": "kube_deployment_labels|kube_pod_container_info|kube_deployment_created|kube_deployment_spec_replicas|kube_deployment_status_replicas|kube_deployment_status_replicas_available|kube_deployment_status_replicas_ready|kube_pod_container_status_ready|kube_pod_container_status_restarts_total|kube_pod_status_phase|kube_pod_status_ready|kube_node_status_condition|kube_node_status_allocatable"
+      }
+    }
+  ksm-config: |-
+    labels_allow_list:
+      deployments:
+        - "defra.gov.uk/manifest-tag"
+        - "app.kubernetes.io/name"

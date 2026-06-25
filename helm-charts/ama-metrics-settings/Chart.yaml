@@ -1,0 +1,5 @@
+apiVersion: v2
+name: ama-metrics-settings
+description: AMA metrics settings for Azure Managed Prometheus
+type: application
+version: 0.1.0
