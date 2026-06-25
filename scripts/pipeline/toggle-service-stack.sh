@@ -8,8 +8,8 @@ Usage: toggle-service-stack.sh <action>
 Actions:
   stop-old-stack   Stop matching old-stack Azure App Services / Function Apps.
   start-old-stack  Start matching old-stack Azure App Services / Function Apps.
-  suspend-k8s      Suspend matching K8s CronJobs / KEDA ScaledJobs.
-  unsuspend-k8s    Unsuspend matching K8s CronJobs / KEDA ScaledJobs.
+  suspend-k8s      Suspend matching K8s CronJobs / KEDA ScaledJobs, or scale configured Deployments down.
+  unsuspend-k8s    Unsuspend matching K8s CronJobs / KEDA ScaledJobs, or scale configured Deployments up.
 
 Environment:
   ENVIRONMENT                 tst, pre or prd.
@@ -90,6 +90,7 @@ archivenotifications-job|archive-notifications-microservice|functionapp
 autoclearance-job|auto-clearance-microservice|functionapp
 riskinterface-job|risk-interface-microservice|functionapp
 risklocking-job|risk-locking-microservice|functionapp
+referencedataloader-service|referencedataloader-microservice-blue|webapp|3|0
 TARGETS
       ;;
     *)
@@ -160,12 +161,12 @@ old_stack_cli_for_kind() {
 
 run_old_stack_action() {
   local action="${1}"
-  local k8s_name old_base old_stack_kind resource_name resource_id resource_group
+  local k8s_name old_base old_stack_kind unsuspend_replicas suspend_replicas resource_name resource_id resource_group
   local -a app_cli
 
   [[ -n "${CLASSIC_SUBSCRIPTION_NAME:-}" ]] || fail "CLASSIC_SUBSCRIPTION_NAME is required for ${action}"
 
-  while IFS='|' read -r k8s_name old_base old_stack_kind; do
+  while IFS='|' read -r k8s_name old_base old_stack_kind unsuspend_replicas suspend_replicas; do
     [[ -n "${k8s_name}" && -n "${old_base}" && -n "${old_stack_kind}" ]] || continue
 
     resource_name="$(old_stack_resource_name "${old_base}")"
@@ -216,9 +217,9 @@ k8s_workload_kind() {
 
 run_k8s_action() {
   local action="${1}"
-  local k8s_name old_base old_stack_kind workload_kind
+  local k8s_name old_base old_stack_kind unsuspend_replicas suspend_replicas workload_kind
 
-  while IFS='|' read -r k8s_name old_base old_stack_kind; do
+  while IFS='|' read -r k8s_name old_base old_stack_kind unsuspend_replicas suspend_replicas; do
     [[ -n "${k8s_name}" && -n "${old_base}" ]] || continue
 
     workload_kind="$(k8s_workload_kind "${k8s_name}")"
@@ -246,10 +247,16 @@ run_k8s_action() {
           --patch '{"spec":{"suspend":false}}'
         ;;
       suspend-k8s:deployment.apps)
-        fail "Refusing to suspend Deployment '${k8s_name}' because the previous replica count cannot be restored safely"
+        [[ -n "${suspend_replicas}" ]] || fail "No suspend replica count configured for Deployment '${k8s_name}'"
+        log "Scaling Deployment '${k8s_name}' to ${suspend_replicas} replicas"
+        run_cmd kubectl --namespace "${NAMESPACE_NAME}" scale deployment.apps "${k8s_name}" \
+          --replicas="${suspend_replicas}"
         ;;
       unsuspend-k8s:deployment.apps)
-        log "Deployment '${k8s_name}' has no suspend flag; leaving it unchanged"
+        [[ -n "${unsuspend_replicas}" ]] || fail "No unsuspend replica count configured for Deployment '${k8s_name}'"
+        log "Scaling Deployment '${k8s_name}' to ${unsuspend_replicas} replicas"
+        run_cmd kubectl --namespace "${NAMESPACE_NAME}" scale deployment.apps "${k8s_name}" \
+          --replicas="${unsuspend_replicas}"
         ;;
       *)
         fail "Unsupported K8s action '${action}' for workload kind '${workload_kind}'"
