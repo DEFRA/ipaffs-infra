@@ -17,6 +17,8 @@ Environment:
   NAMESPACE                   K8s namespace; defaults to ENVIRONMENT.
   CLASSIC_SUBSCRIPTION_NAME   Required for old-stack actions.
   DRY_RUN                     true or false; defaults to true.
+
+Configured K8s env var toggles are applied during suspend-k8s and unsuspend-k8s.
 USAGE
 }
 
@@ -95,6 +97,19 @@ TARGETS
       ;;
     *)
       fail "Unsupported service group '${SERVICE_GROUP_NAME}'"
+      ;;
+  esac
+}
+
+k8s_config_mappings() {
+  case "${SERVICE_GROUP_NAME}" in
+    time-triggered-services)
+      cat <<'TARGETS'
+notification-service|ARCHIVE_NOTIFICATIONS_SCHEDULER_ENABLED|true|false
+bip-service|MDM_DOWNLOAD_SCHEDULER_ENABLED|true|false
+TARGETS
+      ;;
+    *)
       ;;
   esac
 }
@@ -265,6 +280,37 @@ run_k8s_action() {
   done < <(target_mappings)
 }
 
+run_k8s_config_action() {
+  local action="${1}"
+  local service_name config_key enabled_value disabled_value desired_value patch
+
+  while IFS='|' read -r service_name config_key enabled_value disabled_value; do
+    [[ -n "${service_name}" && -n "${config_key}" ]] || continue
+
+    case "${action}" in
+      unsuspend-k8s)
+        desired_value="${enabled_value}"
+        ;;
+      suspend-k8s)
+        desired_value="${disabled_value}"
+        ;;
+      *)
+        fail "Unsupported K8s config action '${action}'"
+        ;;
+    esac
+
+    patch="{\"data\":{\"${config_key}\":\"${desired_value}\"}}"
+    log "Setting '${config_key}' to '${desired_value}' on ConfigMap '${service_name}' in namespace '${NAMESPACE_NAME}'"
+    run_cmd kubectl --namespace "${NAMESPACE_NAME}" patch configmap "${service_name}" \
+      --type merge \
+      --patch "${patch}"
+
+    log "Restarting Deployment '${service_name}' to load '${config_key}=${desired_value}'"
+    run_cmd kubectl --namespace "${NAMESPACE_NAME}" rollout restart deployment.apps "${service_name}"
+    run_cmd kubectl --namespace "${NAMESPACE_NAME}" rollout status deployment.apps "${service_name}" --timeout=10m
+  done < <(k8s_config_mappings)
+}
+
 ACTION="${1:-}"
 case "${ACTION}" in
   -h|--help)
@@ -295,6 +341,7 @@ case "${ACTION}" in
     run_old_stack_action "${ACTION}"
     ;;
   suspend-k8s|unsuspend-k8s)
+    run_k8s_config_action "${ACTION}"
     run_k8s_action "${ACTION}"
     ;;
 esac
