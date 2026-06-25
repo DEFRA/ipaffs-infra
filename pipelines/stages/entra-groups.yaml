@@ -186,7 +186,7 @@ stages:
                 scriptPath: scripts/pipeline/remove-entra-group-members.sh
 
         - job: SaveTeamGroups
-          displayName: Update group variables
+          displayName: Update library variables
           condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
           dependsOn:
             - TeamGroups
@@ -357,7 +357,7 @@ stages:
                 scriptPath: scripts/pipeline/remove-entra-group-members.sh
 
         - job: SaveTeamGroups
-          displayName: Update group variables
+          displayName: Update library variables
           condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
           dependsOn:
             - TeamGroups
@@ -393,9 +393,10 @@ stages:
                   scripts/pipeline/update-group-variable.sh teamReadersGroupName '$(teamReadersDisplayName)'
 
 
-  - ${{ if or(eq(parameters.environmentName, 'DEV'), eq(parameters.environmentName, 'PRD')) }}:
-    - stage: CreateCommonAccessGroups
-      displayName: Create Common Entra Access Groups
+  # Note: TST and DEV share an access group for the ACR, since the ACR is shared between those environments
+  - ${{ if or(eq(parameters.environmentName, 'DEV'), eq(parameters.environmentName, 'PRE'), eq(parameters.environmentName, 'PRD')) }}:
+    - stage: CreateACRAccessGroups
+      displayName: Create ACR Entra Access Groups
       condition: and(not(failed()), not(canceled()))
       variables:
         - group: Common
@@ -457,17 +458,17 @@ stages:
                 scriptType: bash
                 scriptPath: scripts/pipeline/add-principal-to-group.sh
 
-        - job: SaveCommonGroups
-          displayName: Update group variables
+        - job: SaveACRAccessGroups
+          displayName: Update library variables
           condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
           dependsOn:
             - ACRGroups
           variables:
             - name: adoGroupName
-              ${{ if eq(parameters.environmentName, 'PRD') }}:
-                value: 'HigherEnvs'
+              ${{ if eq(parameters.environmentName, 'DEV') }}:
+                value: LowerEnvs
               ${{ else }}:
-                value: 'LowerEnvs'
+                value: ${{ parameters.environmentName }}
             - name: acrPullDisplayName
               value: $[dependencies.ACRGroups.outputs['AcrPull.displayName']]
             - name: acrPullObjectId
@@ -862,7 +863,7 @@ stages:
 
 
       - job: SaveAccessGroups
-        displayName: Update group variables
+        displayName: Update library variables
         condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
         dependsOn:
           - DefraGroups
