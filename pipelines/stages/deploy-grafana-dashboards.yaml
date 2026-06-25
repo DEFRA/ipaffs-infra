@@ -1,0 +1,190 @@
+---
+# deploy-grafana-dashboards.yaml
+#
+# Deploys Grafana dashboard JSON files to the SELECTED environment's own Azure
+# Managed Grafana instance, using that env's service connection so dashboards
+# land in the correct subscription. One environment per pipeline run.
+#
+# Dashboard directory layout:
+#   dashboards/*.json -> all deployed to the selected environment
+# (Per-env dashboards are not supported yet.)
+#
+# Each dashboard's template variables (the namespace / datasource dropdowns) are
+# stored inside its JSON and travel with it. Each env's Grafana holds its own
+# Prometheus and Azure Monitor datasources (created by the ConfigureGrafana
+# stage as "Prometheus" / "Azure Monitor"). At deploy time we
+# point the dashboard's datasource template variables at this env's datasources
+# (by resolved UID) in-memory; the repo source file is never modified.
+#
+# Branch gating:
+#   By default the env deploys only when the pipeline runs on 'main'.
+#   allowDevBranchDeploy lets DEV deploy from the branch you queued on (for
+#   testing). It ONLY affects DEV.
+#
+# Approval:
+#   Every env EXCEPT DEV requires manual approval before deploying. A server
+#   (agentless) job pauses for an approver; it is gated to main so PR/branch
+#   preview builds are never blocked.
+
+parameters:
+  - name: targetEnvironment
+    type: string   # single env, e.g. DEV
+
+  - name: environmentServiceConnections
+    type: object   # env -> service connection. Not shown in the Run dialog;
+                   # keep in sync with pipelines/vars/<env>.yaml.
+    default:
+      DEV: ADO-DefraGovUK-AZR-IMP-DEV1
+      TST: ADO-DefraGovUK-AZR-IMP-TST1
+      PRE: ADO-DefraGovUK-AZR-IMP-PRE1
+      PRD: ADO-DefraGovUK-AZR-IMP-PRD1
+
+  - name: environmentGrafanaNames
+    type: object   # env -> Azure Managed Grafana resource name.
+                   # Keep in sync with bicep/envs/<env>/40-infra.bicepparam.
+    default:
+      DEV: DEVIMPINFGA1401
+      TST: TSTIMPINFGA1401
+      PRE: PREIMPINFGA1401
+      PRD: PRDIMPINFGA1401
+
+  - name: environmentResourceGroups
+    type: object   # env -> resource group name.
+                   # Keep in sync with bicep/envs/<env>/10-resource-group.bicepparam.
+    default:
+      DEV: DEVIMPINFRG1401
+      TST: TSTIMPINFRG1401
+      PRE: PREIMPINFRG1401
+      PRD: PRDIMPINFRG1401
+
+  - name: allowDevBranchDeploy
+    type: boolean  # true => DEV deploys from the current branch (not just main)
+    default: false
+
+stages:
+  - stage: DeployGrafanaDashboards_${{ parameters.targetEnvironment }}
+    displayName: Deploy Dashboards -> ${{ parameters.targetEnvironment }} Grafana
+    variables:
+      - group: Common
+
+    jobs:
+      # Manual approval gate for every env EXCEPT DEV. A server (agentless) job
+      # pauses for a human to approve before the deploy job runs. Gated to main
+      # so PR/branch preview builds are never blocked by an approval prompt.
+      - ${{ if ne(parameters.targetEnvironment, 'DEV') }}:
+        - job: Approve_${{ parameters.targetEnvironment }}
+          displayName: Approve deploy to ${{ parameters.targetEnvironment }}
+          pool: server
+          condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+          timeoutInMinutes: 4320   # overall wait window for an approver (3 days)
+          steps:
+            - task: ManualValidation@0
+              displayName: Wait for approval to deploy ${{ parameters.targetEnvironment }}
+              timeoutInMinutes: 4320
+              inputs:
+                # No approver list yet — anyone with permission on the environment
+                # can approve. Add notifyUsers here later to notify specific people.
+                instructions: "Approve deploying Grafana dashboards to ${{ parameters.targetEnvironment }} Grafana."
+                onTimeout: reject
+
+      - deployment: Deploy_${{ parameters.targetEnvironment }}
+        displayName: Deploy dashboards to ${{ parameters.targetEnvironment }} Grafana
+        ${{ if ne(parameters.targetEnvironment, 'DEV') }}:
+          dependsOn: Approve_${{ parameters.targetEnvironment }}
+          # Proceed when approval Succeeded, or when it was Skipped (non-main
+          # builds, where the deploy tasks are gated off and only preview runs).
+          condition: in(dependencies.Approve_${{ parameters.targetEnvironment }}.result, 'Succeeded', 'Skipped')
+        environment:
+          name: "${{ parameters.targetEnvironment }}"
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+
+                - task: AzureCLI@2
+                  displayName: Install Azure Managed Grafana CLI extension
+                  inputs:
+                    azureSubscription: ${{ parameters.environmentServiceConnections[parameters.targetEnvironment] }}
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      az extension add --name amg --yes --upgrade --only-show-errors
+
+                - task: Bash@3
+                  displayName: Preview dashboards to deploy (${{ parameters.targetEnvironment }})
+                  inputs:
+                    targetType: inline
+                    script: |
+                      set -euo pipefail
+
+                      echo "=== Dashboards to deploy ==="
+                      find grafana-dashboards/dashboards -name "*.json" 2>/dev/null \
+                        | while read -r f; do
+                            uid=$(jq -r '.uid' "${f}")
+                            echo "  ${f}  uid=${uid}  datasources: Prometheus / Azure Monitor"
+                          done
+
+                - task: AzureCLI@2
+                  displayName: Deploy dashboards to ${{ parameters.targetEnvironment }} Grafana
+                  # DEV may deploy from any branch when allowDevBranchDeploy is set;
+                  # every other env (and DEV by default) deploys only on main.
+                  ${{ if and(eq(parameters.targetEnvironment, 'DEV'), eq(parameters.allowDevBranchDeploy, true)) }}:
+                    condition: and(not(failed()), not(canceled()))
+                  ${{ else }}:
+                    condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+                  inputs:
+                    azureSubscription: ${{ parameters.environmentServiceConnections[parameters.targetEnvironment] }}
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      set -euo pipefail
+                      # Single source of truth for the deploy + datasource-injection
+                      # logic; the same script can be run locally to test a dashboard.
+                      GRAFANA_NAME="${{ parameters.environmentGrafanaNames[parameters.targetEnvironment] }}" \
+                      RESOURCE_GROUP="${{ parameters.environmentResourceGroups[parameters.targetEnvironment] }}" \
+                      ENVIRONMENT="${{ parameters.targetEnvironment }}" \
+                      bash grafana-dashboards/scripts/deploy-dashboards.sh
+
+                - task: AzureCLI@2
+                  displayName: Verify deployed dashboards (${{ parameters.targetEnvironment }})
+                  # Verify runs whenever the deploy ran (same gate).
+                  ${{ if and(eq(parameters.targetEnvironment, 'DEV'), eq(parameters.allowDevBranchDeploy, true)) }}:
+                    condition: and(not(failed()), not(canceled()))
+                  ${{ else }}:
+                    condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+                  inputs:
+                    azureSubscription: ${{ parameters.environmentServiceConnections[parameters.targetEnvironment] }}
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      set -euo pipefail
+                      GRAFANA_NAME="${{ parameters.environmentGrafanaNames[parameters.targetEnvironment] }}"
+                      RESOURCE_GROUP="${{ parameters.environmentResourceGroups[parameters.targetEnvironment] }}"
+                      ERRORS=0
+
+                      check_file() {
+                        local f="$1"
+                        local uid title
+                        uid=$(jq -r '.uid' "${f}")
+                        title=$(jq -r '.title' "${f}")
+
+                        if az grafana dashboard show \
+                             --name "${GRAFANA_NAME}" \
+                             --resource-group "${RESOURCE_GROUP}" \
+                             --dashboard "${uid}" \
+                             --output none 2>/dev/null; then
+                          echo "  OK ${title} (uid=${uid})"
+                        else
+                          echo "  NOT FOUND: ${title} (uid=${uid})" >&2
+                          ERRORS=$((ERRORS + 1))
+                        fi
+                      }
+
+                      find grafana-dashboards/dashboards -name "*.json" 2>/dev/null \
+                        | while read -r f; do check_file "${f}"; done
+
+                      if [[ "${ERRORS}" -gt 0 ]]; then exit 1; fi
+                      echo "All dashboards verified."
+
+# vim: set ts=2 sts=2

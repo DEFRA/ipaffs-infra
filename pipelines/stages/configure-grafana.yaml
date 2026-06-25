@@ -1,0 +1,129 @@
+---
+# configure-grafana.yaml
+#
+# Creates / updates the datasources that the dashboards' template variables
+# query, in the SELECTED environment's Grafana instance.
+#
+# One job (using that env's service connection):
+#   1. Queries the env's Azure Monitor workspace Prometheus query endpoint.
+#   2. Queries the env's subscription ID.
+#   3. Runs configure-grafana.sh against that env's Grafana to upsert:
+#        • a Prometheus datasource (MSI auth)
+#        • an Azure Monitor datasource (MSI auth, for Log Analytics queries)
+#
+# Grafana and its monitoring stack live in the same subscription for an
+# environment, so a single service connection is sufficient.
+#
+# This stage is idempotent: existing datasources are updated, not duplicated.
+#
+# Branch gating: DEV may configure from the current branch when
+# allowDevBranchDeploy is set; every other env configures only on main.
+#
+# NOTE: the Grafana managed identity is assumed to already hold the data-read
+# roles needed for these datasources to return data (granted manually).
+
+parameters:
+  - name: targetEnvironment
+    type: string   # single env, e.g. DEV
+
+  - name: environmentServiceConnections
+    type: object   # env -> service connection. Not shown in the Run dialog;
+                   # keep in sync with pipelines/vars/<env>.yaml.
+    default:
+      DEV: ADO-DefraGovUK-AZR-IMP-DEV1
+      TST: ADO-DefraGovUK-AZR-IMP-TST1
+      PRE: ADO-DefraGovUK-AZR-IMP-PRE1
+      PRD: ADO-DefraGovUK-AZR-IMP-PRD1
+
+  - name: environmentGrafanaNames
+    type: object   # env -> Azure Managed Grafana resource name.
+                   # Keep in sync with bicep/envs/<env>/40-infra.bicepparam.
+    default:
+      DEV: DEVIMPINFGA1401
+      TST: TSTIMPINFGA1401
+      PRE: PREIMPINFGA1401
+      PRD: PRDIMPINFGA1401
+
+  - name: environmentResourceGroups
+    type: object   # env -> resource group name.
+                   # Keep in sync with bicep/envs/<env>/10-resource-group.bicepparam.
+    default:
+      DEV: DEVIMPINFRG1401
+      TST: TSTIMPINFRG1401
+      PRE: PREIMPINFRG1401
+      PRD: PRDIMPINFRG1401
+
+  - name: environmentPrometheusNames
+    type: object   # env -> Azure Monitor workspace (Prometheus) name.
+                   # Keep in sync with bicep/envs/<env>/40-infra.bicepparam.
+    default:
+      DEV: DEVIMPINFPR1401
+      TST: TSTIMPINFPR1401
+      PRE: PREIMPINFPR1401
+      PRD: PRDIMPINFPR1401
+
+  - name: allowDevBranchDeploy
+    type: boolean  # true => DEV configures from the current branch (not just main)
+    default: false
+
+stages:
+  - stage: ConfigureGrafana
+    displayName: Configure Grafana Datasources (${{ parameters.targetEnvironment }})
+    variables:
+      - group: Common
+
+    jobs:
+      - deployment: ConfigureDatasources_${{ parameters.targetEnvironment }}
+        displayName: Configure datasources in ${{ parameters.targetEnvironment }} Grafana
+        environment:
+          name: "${{ parameters.targetEnvironment }}"
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+
+                - task: AzureCLI@2
+                  displayName: Configure datasources (${{ parameters.targetEnvironment }})
+                  # DEV may configure from any branch when allowDevBranchDeploy is set;
+                  # every other env (and DEV by default) configures only on main.
+                  ${{ if and(eq(parameters.targetEnvironment, 'DEV'), eq(parameters.allowDevBranchDeploy, true)) }}:
+                    condition: and(not(failed()), not(canceled()))
+                  ${{ else }}:
+                    condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+                  inputs:
+                    azureSubscription: ${{ parameters.environmentServiceConnections[parameters.targetEnvironment] }}
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      set -euo pipefail
+                      az extension add --name amg --yes --upgrade --only-show-errors
+
+                      PROMETHEUS_NAME="${{ parameters.environmentPrometheusNames[parameters.targetEnvironment] }}"
+                      RESOURCE_GROUP="${{ parameters.environmentResourceGroups[parameters.targetEnvironment] }}"
+
+                      # Prometheus query endpoint for this env's Azure Monitor workspace
+                      endpoint=$(az monitor account show \
+                        --name "${PROMETHEUS_NAME}" \
+                        --resource-group "${RESOURCE_GROUP}" \
+                        --query "metrics.prometheusQueryEndpoint" \
+                        --output tsv)
+
+                      if [[ -z "${endpoint}" ]]; then
+                        echo "ERROR: Could not retrieve Prometheus endpoint for ${PROMETHEUS_NAME}" >&2
+                        exit 1
+                      fi
+
+                      subscription_id=$(az account show --query id --output tsv)
+
+                      echo "Prometheus endpoint (${{ parameters.targetEnvironment }}): ${endpoint}"
+                      echo "Subscription ID (${{ parameters.targetEnvironment }}): ${subscription_id}"
+
+                      GRAFANA_NAME="${{ parameters.environmentGrafanaNames[parameters.targetEnvironment] }}" \
+                      RESOURCE_GROUP="${RESOURCE_GROUP}" \
+                      ENVIRONMENT="${{ parameters.targetEnvironment }}" \
+                      PROMETHEUS_ENDPOINT="${endpoint}" \
+                      SUBSCRIPTION_ID="${subscription_id}" \
+                      bash grafana-dashboards/scripts/configure-grafana.sh
+
+# vim: set ts=2 sts=2 sw=2 et:
