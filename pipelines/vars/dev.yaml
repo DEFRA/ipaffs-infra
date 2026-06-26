@@ -1,9 +1,9 @@
 ---
 variables:
+  acrGroupsServiceConnection: ADO-DefraGovUK-AZR-IMP-DEV1
   classicServiceConnection: ADO-DefraGovUK-AZR-IMP-SND1
   classicSqlAdminUserPrincipalObjectId: aaf71566-6255-442e-a51d-1633b56a01c2
   classicSubscriptionName: AZR-SND
-  commonGroupsServiceConnection: ADO-DefraGovUK-AZR-IMP-DEV1
   dnsResourceGroupName: DEVIMPZONRGP001
   dnsSubscriptionId: 20168d22-67f1-4cd0-bb56-3db91aec16ff # AZR-DEV
   entraAccessGroupBaseName: AAG-Azure-AZR_IMP_DEV1

@@ -1,9 +1,9 @@
 ---
 variables:
+  acrGroupsServiceConnection: ADO-DefraGovUK-AZR-IMP-PRD1
   classicServiceConnection: ADO-DefraGovUK-AZR-PRD_IMP
   classicSqlAdminUserPrincipalObjectId: 1ad67fa9-a8aa-4b60-85ab-e6b684750c5a
   classicSubscriptionName: AZR-PRD
-  commonGroupsServiceConnection: ADO-DefraGovUK-AZR-IMP-PRD1
   dnsResourceGroupName: opsinfrgpzon001
   dnsSubscriptionId: fa6d4701-12be-41be-9c4d-ba3daf88ed8e # AZR-OPS
   entraAccessGroupBaseName: AAG-Azure-AZR_IMP_PRD1
