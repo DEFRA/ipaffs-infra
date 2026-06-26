@@ -27,6 +27,7 @@ resource prometheus 'Microsoft.Monitor/accounts@2025-10-03' = {
     metrics: {
       enableAccessUsingResourcePermissions: true
     }
+  }
 }
 
 resource grafanaDashboard 'Microsoft.Dashboard/grafana@2025-08-01' = {
