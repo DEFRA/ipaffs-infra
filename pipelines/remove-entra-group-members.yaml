@@ -12,6 +12,7 @@ parameters:
     default: AAG-Azure-AZR_IMP_TST1-SQLAdmins
     values:
       - AAG-Azure-AZR_IMP_TST1-SQLAdmins
+      - AAG-Azure-AZR_IMP_PRE1-SQLAdmins
 
   - name: memberObjectName
     displayName: Member Object Name
