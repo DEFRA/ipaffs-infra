@@ -19,7 +19,7 @@ resource logAnalytics 'Microsoft.OperationalInsights/workspaces@2025-07-01' = {
   }
 }
 
-resource prometheus 'Microsoft.Monitor/accounts@2023-04-03' = {
+resource prometheus 'Microsoft.Monitor/accounts@2025-10-03' = {
   name: monitoringParams.prometheusName
   location: location
   tags: tags
