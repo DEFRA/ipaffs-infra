@@ -23,6 +23,10 @@ resource prometheus 'Microsoft.Monitor/accounts@2025-10-03' = {
   name: monitoringParams.prometheusName
   location: location
   tags: tags
+  properties: {
+    metrics: {
+      enableAccessUsingResourcePermissions: true
+    }
 }
 
 resource grafanaDashboard 'Microsoft.Dashboard/grafana@2025-08-01' = {
