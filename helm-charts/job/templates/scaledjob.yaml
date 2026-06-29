@@ -1,4 +1,6 @@
 {{- if (default false .Values.keda.enabled) }}
+{{- $database := default (dict) .Values.database }}
+{{- $databaseNames := get $database "databaseNames" | default (list) }}
 apiVersion: keda.sh/v1alpha1
 kind: ScaledJob
 metadata:
@@ -24,10 +26,12 @@ spec:
       metadata:
         labels:
           {{- include "ipaffs-common.labels" . | nindent 10 }}
-        annotations:
           azure.workload.identity/use: "true"
       spec:
         serviceAccountName: {{ .Values.service }}-service
+{{- if gt (len $databaseNames) 0 }}
+        shareProcessNamespace: true
+{{- end }}
         restartPolicy: OnFailure
         containers:
           - name: {{ .Chart.Name }}
@@ -69,8 +73,17 @@ spec:
             resources:
               {{- toYaml . | nindent 14 }}
             {{- end }}
-{{- if .Values.initContainer.enabled }}
+{{- if or (gt (len $databaseNames) 0) .Values.initContainer.enabled }}
         initContainers:
+{{- if gt (len $databaseNames) 0 }}
+          - name: workload-identity-adal-bridge
+            image: "manicminer/workload-identity-adal-bridge:0.4.1"
+            restartPolicy: Always
+            env:
+              - name: LOG_LEVEL
+                value: "info"
+{{- end }}
+{{- if .Values.initContainer.enabled }}
           - name: {{ .Chart.Name }}-init
             image: "{{ include "job.image.resolve" (dict "root" . "image" .Values.initContainer.image) }}"
             command: {{ .Values.initContainer.command }}
@@ -78,6 +91,7 @@ spec:
             securityContext:
               {{- toYaml . | nindent 14 }}
             {{- end }}
+{{- end }}
 {{- end }}
   triggers:
     {{- required "keda.triggers must contain at least one trigger when keda.enabled is true" .Values.keda.triggers | toYaml | nindent 4 }}
