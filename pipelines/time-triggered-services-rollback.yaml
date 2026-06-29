@@ -98,4 +98,3 @@ stages:
                         set -euo pipefail
                         bash scripts/pipeline/toggle-service-stack.sh start-old-stack
 
-# vim: set ts=2 sts=2 sw=2 et:

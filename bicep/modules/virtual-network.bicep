@@ -65,4 +65,3 @@ output subnets array = vnet.properties.subnets
 output vnetName string = virtualNetwork.outputs.name
 output vnetResourceId string = virtualNetwork.outputs.resourceId
 
-// vim: set ts=2 sts=2 sw=2 et:

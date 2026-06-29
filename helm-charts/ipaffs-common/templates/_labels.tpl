@@ -21,4 +21,3 @@ app.kubernetes.io/name: {{ .Values.service }}
 app.kubernetes.io/part-of: {{ .Values.project }}
 {{- end }}
 
-{{/* vim: set ts=2 sts=2 sw=2 et: */}}

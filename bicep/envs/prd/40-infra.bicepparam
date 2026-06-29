@@ -104,4 +104,3 @@ param storageParams = {
   name: 'prdimpinfst1401' // note: must be lowercase
 }
 
-// vim: set ts=2 sts=2 sw=2 et:

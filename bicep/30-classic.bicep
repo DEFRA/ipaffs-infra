@@ -162,4 +162,3 @@ output serviceBusNamespaceResourceId string = serviceBus.outputs.serviceBusNames
 output sqlServerName string = sql.outputs.sqlServerName
 output sqlServerResourceId string = sql.outputs.sqlServerResourceId
 
-// vim: set ts=2 sts=2 sw=2 et:

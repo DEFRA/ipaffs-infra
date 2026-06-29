@@ -201,4 +201,3 @@ output insightsInstrumentationKey string = insights.outputs.insightsInstrumentat
 output insightsConnectionString string = insights.outputs.insightsConnectionString
 output grafanaManagedIdentityPrincipalId string = monitoring.outputs.grafanaManagedIdentityPrincipalId
 
-// vim: set ts=2 sts=2 sw=2 et:

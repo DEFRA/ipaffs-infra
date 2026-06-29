@@ -40,4 +40,3 @@ module rgContributor './rg-role-assignment.bicep' = {
 output clientId string = managedIdentity.properties.clientId
 output principalObjectId string = managedIdentity.properties.principalId
 
-// vim: set ts=2 sts=2 sw=2 et:

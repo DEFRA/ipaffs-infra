@@ -310,4 +310,3 @@ stages:
                   git pull --rebase origin "${MANIFEST_BRANCH}"
                   git push origin "HEAD:${MANIFEST_BRANCH}"
 
-# vim: set ts=2 sts=2 sw=2 et:

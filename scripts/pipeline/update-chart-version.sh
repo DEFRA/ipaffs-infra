@@ -17,4 +17,3 @@ git diff --cached
 git commit -m "[skip ci] build(deps): Bumping Chart version from \`${CURRENT_VERSION}\` to \`${NEW_VERSION}\`"
 git push
 
-# vim: set ts=2 sts=2 sw=2 et:

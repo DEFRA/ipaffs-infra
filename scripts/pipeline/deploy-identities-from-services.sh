@@ -162,4 +162,3 @@ else
   echo "Skipping group membership verification because VERIFY_GROUP_MEMBERSHIPS is not true"
 fi
 
-# vim: set ts=2 sts=2 sw=2 et:

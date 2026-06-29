@@ -12,4 +12,3 @@ param dnsParams = {
   zoneName: 'imp.azure.defra.cloud'
 }
 
-// vim: set ts=2 sts=2 sw=2 et:

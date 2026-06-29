@@ -77,4 +77,3 @@ output acrName string = toLower(acr.name)
 output acrLoginServer string = acr.properties.loginServer
 output acrResourceId string = acr.id
 
-// vim: set ts=2 sts=2 sw=2 et:

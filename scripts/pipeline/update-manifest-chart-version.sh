@@ -53,4 +53,3 @@ fi
 
 mv "${tmp_file}" "${helmfile_path}"
 
-# vim: set ts=2 sts=2 sw=2 et:

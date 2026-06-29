@@ -33,4 +33,3 @@ resource loadBalancerWildcardARecord 'Microsoft.Network/dnsZones/CNAME@2018-05-0
   }
 }
 
-// vim: set ts=2 sts=2 sw=2 et:

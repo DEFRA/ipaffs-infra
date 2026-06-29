@@ -51,4 +51,3 @@ done
 logInfo "Unable to add principal '${PRINCIPAL_ID}' to group '${GROUP_ID}' after ${max_attempts} attempts. Last error: ${last_error}"
 exit 1
 
-# vim: set ts=2 sts=2 sw=2 et:

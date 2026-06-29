@@ -30,4 +30,3 @@ jobs:
           targetPath: '$(Build.SourcesDirectory)/service_artifact'
         displayName: Install dependencies and build
 
-# vim: set ts=2 sts=2 sw=2 et:

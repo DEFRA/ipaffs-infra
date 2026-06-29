@@ -83,4 +83,3 @@ resource sqlPrivateEndpoint 'Microsoft.Network/privateEndpoints@2024-10-01' = {
 output sqlServerName string = sqlServer.name
 output sqlServerManagedIdentityObjectId string = sqlServer.identity.principalId
 
-// vim: set ts=2 sts=2 sw=2 et:

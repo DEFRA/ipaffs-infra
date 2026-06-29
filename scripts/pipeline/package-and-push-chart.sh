@@ -16,4 +16,3 @@ helm package "${CHART_PATH}" --version "${CHART_VERSION}"
 echo Pushing Helm chart to ACR...
 helm push "${CHART_NAME}-${CHART_VERSION}.tgz" "oci://${REGISTRY_HOST}/helm/v1/repo"
 
-# vim: set ts=2 sts=2 sw=2 et:

@@ -286,4 +286,3 @@ stages:
                       kubectl rollout status deployment ama-metrics-ksm -n kube-system --timeout=2m
 
 
-# vim: set ts=2 sts=2 sw=2 et:
