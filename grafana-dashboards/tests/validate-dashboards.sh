@@ -1,7 +1,6 @@
 #!/bin/bash
 # validate-dashboards.sh
 #
-# Validates all Grafana dashboard JSON files under DASHBOARDS_DIR recursively.
 # Validates all dashboard JSON under grafana-dashboards/dashboards/.
 #
 # Checks per file:
@@ -12,11 +11,11 @@
 #
 # Usage:
 #   bash grafana-dashboards/tests/validate-dashboards.sh
-#   DASHBOARDS_DIR=grafana-dashboards/dashboards bash grafana-dashboards/tests/validate-dashboards.sh
 
 set -euo pipefail
 
-DASHBOARDS_DIR="${DASHBOARDS_DIR:-grafana-dashboards/dashboards}"
+SCRIPTS_DIR="$(cd "$(dirname "$0")"/.. && pwd)"
+DASHBOARDS_DIR="${SCRIPTS_DIR}"/../grafana-dashboards/dashboards
 REQUIRED_FIELDS=("title" "uid" "schemaVersion" "panels")
 
 if [[ ! -d "${DASHBOARDS_DIR}" ]]; then

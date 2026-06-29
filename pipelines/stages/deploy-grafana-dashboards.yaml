@@ -30,33 +30,6 @@ parameters:
   - name: targetEnvironment
     type: string   # single env, e.g. DEV
 
-  - name: environmentServiceConnections
-    type: object   # env -> service connection. Not shown in the Run dialog;
-                   # keep in sync with pipelines/vars/<env>.yaml.
-    default:
-      DEV: ADO-DefraGovUK-AZR-IMP-DEV1
-      TST: ADO-DefraGovUK-AZR-IMP-TST1
-      PRE: ADO-DefraGovUK-AZR-IMP-PRE1
-      PRD: ADO-DefraGovUK-AZR-IMP-PRD1
-
-  - name: environmentGrafanaNames
-    type: object   # env -> Azure Managed Grafana resource name.
-                   # Keep in sync with bicep/envs/<env>/40-infra.bicepparam.
-    default:
-      DEV: DEVIMPINFGA1401
-      TST: TSTIMPINFGA1401
-      PRE: PREIMPINFGA1401
-      PRD: PRDIMPINFGA1401
-
-  - name: environmentResourceGroups
-    type: object   # env -> resource group name.
-                   # Keep in sync with bicep/envs/<env>/10-resource-group.bicepparam.
-    default:
-      DEV: DEVIMPINFRG1401
-      TST: TSTIMPINFRG1401
-      PRE: PREIMPINFRG1401
-      PRD: PRDIMPINFRG1401
-
   - name: allowDevBranchDeploy
     type: boolean  # true => DEV deploys from the current branch (not just main)
     default: false
@@ -105,7 +78,7 @@ stages:
                 - task: AzureCLI@2
                   displayName: Install Azure Managed Grafana CLI extension
                   inputs:
-                    azureSubscription: ${{ parameters.environmentServiceConnections[parameters.targetEnvironment] }}
+                    azureSubscription: $(serviceConnection)
                     scriptType: bash
                     scriptLocation: inlineScript
                     inlineScript: |
@@ -134,15 +107,15 @@ stages:
                   ${{ else }}:
                     condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
                   inputs:
-                    azureSubscription: ${{ parameters.environmentServiceConnections[parameters.targetEnvironment] }}
+                    azureSubscription: $(serviceConnection)
                     scriptType: bash
                     scriptLocation: inlineScript
                     inlineScript: |
                       set -euo pipefail
                       # Single source of truth for the deploy + datasource-injection
                       # logic; the same script can be run locally to test a dashboard.
-                      GRAFANA_NAME="${{ parameters.environmentGrafanaNames[parameters.targetEnvironment] }}" \
-                      RESOURCE_GROUP="${{ parameters.environmentResourceGroups[parameters.targetEnvironment] }}" \
+                      GRAFANA_NAME="$(grafanaName)" \
+                      RESOURCE_GROUP="$(resourceGroupName)" \
                       ENVIRONMENT="${{ parameters.targetEnvironment }}" \
                       bash grafana-dashboards/scripts/deploy-dashboards.sh
 
@@ -154,13 +127,13 @@ stages:
                   ${{ else }}:
                     condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
                   inputs:
-                    azureSubscription: ${{ parameters.environmentServiceConnections[parameters.targetEnvironment] }}
+                    azureSubscription: $(serviceConnection)
                     scriptType: bash
                     scriptLocation: inlineScript
                     inlineScript: |
                       set -euo pipefail
-                      GRAFANA_NAME="${{ parameters.environmentGrafanaNames[parameters.targetEnvironment] }}"
-                      RESOURCE_GROUP="${{ parameters.environmentResourceGroups[parameters.targetEnvironment] }}"
+                      GRAFANA_NAME="$(grafanaName)"
+                      RESOURCE_GROUP="$(resourceGroupName)"
                       ERRORS=0
 
                       check_file() {
@@ -187,4 +160,4 @@ stages:
                       if [[ "${ERRORS}" -gt 0 ]]; then exit 1; fi
                       echo "All dashboards verified."
 
-# vim: set ts=2 sts=2
+# vim: set ts=2 sts=2 sw=2 et:

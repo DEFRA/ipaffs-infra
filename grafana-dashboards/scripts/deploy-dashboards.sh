@@ -37,7 +37,8 @@ RESOURCE_GROUP="${RESOURCE_GROUP:?RESOURCE_GROUP must be set}"
 ENVIRONMENT="${ENVIRONMENT:?ENVIRONMENT must be set}"
 
 ENV_UPPER="${ENVIRONMENT^^}"
-DASHBOARDS_ROOT="${DASHBOARDS_ROOT:-grafana-dashboards/dashboards}"
+SCRIPTS_DIR="$(cd "$(dirname "$0")"/.. && pwd)"
+DASHBOARDS_ROOT="${SCRIPTS_DIR}"/../grafana-dashboards/dashboards
 PROM_DS_NAME="${PROM_DS_NAME:-Prometheus}"
 AZMON_DS_NAME="${AZMON_DS_NAME:-Azure Monitor}"
 DRY_RUN="${DRY_RUN:-false}"

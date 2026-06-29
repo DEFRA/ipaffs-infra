@@ -8,6 +8,8 @@ variables:
   dnsSubscriptionId: 00f1225e-37c2-4c7b-bc71-634164b667c6 # AZR-TST
   entraAccessGroupBaseName: AAG-Azure-AZR_IMP_TST1
   serviceConnection: ADO-DefraGovUK-AZR-IMP-TST1
+  grafanaName: TSTIMPINFGA1401
+  prometheusName: TSTIMPINFPR1401
   serviceConnectionPrincipalId: 7b097afb-e281-4bc4-8086-c1ff4f47964b
   subscriptionName: AZR-IMP-TST1
   sqlServerClassicManagedIdentityObjectId: b4495d5f-d34f-4748-b428-e50f71f8ebe2

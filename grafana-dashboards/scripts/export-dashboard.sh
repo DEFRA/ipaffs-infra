@@ -34,7 +34,8 @@ set -euo pipefail
 
 GRAFANA_NAME="${GRAFANA_NAME:?GRAFANA_NAME must be set}"
 RESOURCE_GROUP="${RESOURCE_GROUP:?RESOURCE_GROUP must be set}"
-OUTPUT_DIR="${OUTPUT_DIR:-grafana-dashboards/dashboards}"
+SCRIPTS_DIR="$(cd "$(dirname "$0")"/.. && pwd)"
+OUTPUT_DIR="${SCRIPTS_DIR}"/../grafana-dashboards/dashboards
 DASHBOARD_UID="${DASHBOARD_UID:-}"      # export this uid; empty + no title => export all
 DASHBOARD_TITLE="${DASHBOARD_TITLE:-}"  # resolve uid from this title (ignored if UID set)
 

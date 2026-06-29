@@ -11,7 +11,7 @@
 #  2. Export it with the helper script (run locally or as a one-off):
 #       GRAFANA_NAME=DEVIMPINFGA1401 \
 #       RESOURCE_GROUP=DEVIMPINFRG1401 \
-#       DASHBOARD_UID=<uid> \
+#       DASHBOARD_TITLE=<title> \
 #       bash grafana-dashboards/scripts/export-dashboard.sh
 #     The exported JSON keeps the dashboard's template variables (the
 #     namespace / datasource dropdowns), so they travel with it.
@@ -89,6 +89,8 @@ parameters:
 
 variables:
   - group: Common
+  - group: "${{ replace(parameters.targetEnvironment, ' (this branch)', '') }}"
+  - template: /pipelines/vars/${{ lower(replace(parameters.targetEnvironment, ' (this branch)', '')) }}.yaml
 
 # ── Stages ────────────────────────────────────────────────────────────────
 #
@@ -117,8 +119,6 @@ stages:
 
           - task: Bash@3
             displayName: Validate dashboard JSON files
-            env:
-              DASHBOARDS_DIR: grafana-dashboards/dashboards
             inputs:
               targetType: filePath
               filePath: grafana-dashboards/tests/validate-dashboards.sh

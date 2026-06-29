@@ -26,42 +26,6 @@ parameters:
   - name: targetEnvironment
     type: string   # single env, e.g. DEV
 
-  - name: environmentServiceConnections
-    type: object   # env -> service connection. Not shown in the Run dialog;
-                   # keep in sync with pipelines/vars/<env>.yaml.
-    default:
-      DEV: ADO-DefraGovUK-AZR-IMP-DEV1
-      TST: ADO-DefraGovUK-AZR-IMP-TST1
-      PRE: ADO-DefraGovUK-AZR-IMP-PRE1
-      PRD: ADO-DefraGovUK-AZR-IMP-PRD1
-
-  - name: environmentGrafanaNames
-    type: object   # env -> Azure Managed Grafana resource name.
-                   # Keep in sync with bicep/envs/<env>/40-infra.bicepparam.
-    default:
-      DEV: DEVIMPINFGA1401
-      TST: TSTIMPINFGA1401
-      PRE: PREIMPINFGA1401
-      PRD: PRDIMPINFGA1401
-
-  - name: environmentResourceGroups
-    type: object   # env -> resource group name.
-                   # Keep in sync with bicep/envs/<env>/10-resource-group.bicepparam.
-    default:
-      DEV: DEVIMPINFRG1401
-      TST: TSTIMPINFRG1401
-      PRE: PREIMPINFRG1401
-      PRD: PRDIMPINFRG1401
-
-  - name: environmentPrometheusNames
-    type: object   # env -> Azure Monitor workspace (Prometheus) name.
-                   # Keep in sync with bicep/envs/<env>/40-infra.bicepparam.
-    default:
-      DEV: DEVIMPINFPR1401
-      TST: TSTIMPINFPR1401
-      PRE: PREIMPINFPR1401
-      PRD: PRDIMPINFPR1401
-
   - name: allowDevBranchDeploy
     type: boolean  # true => DEV configures from the current branch (not just main)
     default: false
@@ -92,15 +56,15 @@ stages:
                   ${{ else }}:
                     condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
                   inputs:
-                    azureSubscription: ${{ parameters.environmentServiceConnections[parameters.targetEnvironment] }}
+                    azureSubscription: $(serviceConnection)
                     scriptType: bash
                     scriptLocation: inlineScript
                     inlineScript: |
                       set -euo pipefail
                       az extension add --name amg --yes --upgrade --only-show-errors
 
-                      PROMETHEUS_NAME="${{ parameters.environmentPrometheusNames[parameters.targetEnvironment] }}"
-                      RESOURCE_GROUP="${{ parameters.environmentResourceGroups[parameters.targetEnvironment] }}"
+                      PROMETHEUS_NAME="$(prometheusName)"
+                      RESOURCE_GROUP="$(resourceGroupName)"
 
                       # Prometheus query endpoint for this env's Azure Monitor workspace
                       endpoint=$(az monitor account show \
@@ -114,12 +78,12 @@ stages:
                         exit 1
                       fi
 
-                      subscription_id=$(az account show --query id --output tsv)
+                      subscription_id="$(subscriptionId)"
 
                       echo "Prometheus endpoint (${{ parameters.targetEnvironment }}): ${endpoint}"
                       echo "Subscription ID (${{ parameters.targetEnvironment }}): ${subscription_id}"
 
-                      GRAFANA_NAME="${{ parameters.environmentGrafanaNames[parameters.targetEnvironment] }}" \
+                      GRAFANA_NAME="$(grafanaName)" \
                       RESOURCE_GROUP="${RESOURCE_GROUP}" \
                       ENVIRONMENT="${{ parameters.targetEnvironment }}" \
                       PROMETHEUS_ENDPOINT="${endpoint}" \
