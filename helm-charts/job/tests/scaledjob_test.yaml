@@ -1,0 +1,52 @@
+suite: scaledjob template
+templates:
+  - templates/scaledjob.yaml
+tests:
+  - it: renders workload identity bridge when databases are configured
+    set:
+      service: test-job
+      environment: dev
+      azure.clientId: 00000000-0000-0000-0000-000000000001
+      keda:
+        enabled: true
+        triggers:
+          - type: azure-servicebus
+            metadata:
+              queueName: test-queue
+      container.image: test/image:1.0.0
+      database.databaseNames[0]: imports
+    asserts:
+      - isKind:
+          of: ScaledJob
+      - equal:
+          path: spec.jobTargetRef.template.spec.shareProcessNamespace
+          value: true
+      - equal:
+          path: spec.jobTargetRef.template.metadata.labels["azure.workload.identity/use"]
+          value: "true"
+      - notExists:
+          path: spec.jobTargetRef.template.metadata.annotations["azure.workload.identity/use"]
+      - equal:
+          path: spec.jobTargetRef.template.spec.initContainers[0].name
+          value: workload-identity-adal-bridge
+      - equal:
+          path: spec.jobTargetRef.template.spec.initContainers[0].image
+          value: manicminer/workload-identity-adal-bridge:0.4.1
+
+  - it: does not render workload identity bridge when no databases are configured
+    set:
+      service: test-job
+      environment: dev
+      azure.clientId: 00000000-0000-0000-0000-000000000001
+      keda:
+        enabled: true
+        triggers:
+          - type: azure-servicebus
+            metadata:
+              queueName: test-queue
+      container.image: test/image:1.0.0
+    asserts:
+      - notExists:
+          path: spec.jobTargetRef.template.spec.initContainers
+      - notExists:
+          path: spec.jobTargetRef.template.spec.shareProcessNamespace
