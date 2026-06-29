@@ -25,4 +25,3 @@ Canonical base URL to use for B2C clients, for use when the host cannot be infer
 {{- end }}
 
 
-{{/* vim: set ts=2 sts=2 sw=2 et: */}}

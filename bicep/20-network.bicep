@@ -57,4 +57,3 @@ output privateEndpointsSubnetName string = first(filter(vnet.outputs.subnets, su
 output vnetName string = vnet.outputs.vnetName
 output vnetResourceId string = vnet.outputs.vnetResourceId
 
-// vim: set ts=2 sts=2 sw=2 et:

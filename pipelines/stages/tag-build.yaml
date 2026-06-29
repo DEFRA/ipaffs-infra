@@ -21,4 +21,3 @@ stages:
                   {"Content-Type": "application/json", "Authorization": "Bearer $(System.AccessToken)"}
                 urlSuffix: "/DEFRA-EUTD-IPAFFS/_apis/build/builds/$(Build.BuildId)/tags/${{ tag }}?api-version=6.0"
 
-# vim: set ts=2 sts=2 sw=2 et:

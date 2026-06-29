@@ -45,4 +45,3 @@ echo "Timed out waiting for ASO clientId on ${MANAGED_IDENTITY_NAME}" >&2
 kubectl get userassignedidentity.managedidentity.azure.com "${MANAGED_IDENTITY_NAME}" --namespace "${NAMESPACE}" --output yaml || true
 exit 1
 
-# vim: set ts=2 sts=2 sw=2 et:

@@ -30,4 +30,3 @@ Ingress hosts for Azure Front Door origins
   {{- $hosts | join "\n" -}}
 {{- end }}
 
-{{/* vim: set ts=2 sts=2 sw=2 et: */}}

@@ -12,4 +12,3 @@ variables:
   subscriptionName: AZR-IMP-PRE1
   sqlServerClassicManagedIdentityObjectId: ea26367b-2092-430d-844c-e9d8042c2485
 
-# vim: set ts=2 sts=2 sw=2 et:

@@ -120,4 +120,3 @@ stages:
                         --resource-group $(resourceGroupName) \
                         --created
 
-# vim: set ts=2 sts=2 sw=2 et:

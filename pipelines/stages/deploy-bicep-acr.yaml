@@ -174,4 +174,3 @@ stages:
                 scripts/pipeline/update-group-variable-from-deployment.sh acrName acrName
                 scripts/pipeline/update-group-variable-from-deployment.sh acrResourceId acrResourceId
 
-# vim: set ts=2 sts=2 sw=2 et:

@@ -98,4 +98,3 @@ stages:
                         kubelogin convert-kubeconfig -l azurecli
                         bash scripts/pipeline/toggle-service-stack.sh unsuspend-k8s
 
-# vim: set ts=2 sts=2 sw=2 et:

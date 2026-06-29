@@ -209,4 +209,3 @@ output aksClusterName string = aksCluster.name
 output kubeletPrincipalId string = aksCluster.properties.identityProfile.kubeletIdentity.objectId
 output oidcIssuerUrl string = aksCluster.properties.oidcIssuerProfile.issuerURL
 
-// vim: set ts=2 sts=2 sw=2 et:

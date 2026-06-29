@@ -13,4 +13,3 @@ variables:
   # TODO: Temporarily substituting the MI for the new SQL server, until we have enabled MI on classic SQL server
   sqlServerClassicManagedIdentityObjectId: 9058b744-694e-4f6e-8888-6effcbbdef27
 
-# vim: set ts=2 sts=2 sw=2 et:

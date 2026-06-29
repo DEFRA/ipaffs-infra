@@ -40,4 +40,3 @@ module additionalReaders './modules/resource-group-role-assignment.bicep' = [for
 
 output resourceGroupId string = rg.id
 
-// vim: set ts=2 sts=2 sw=2 et:

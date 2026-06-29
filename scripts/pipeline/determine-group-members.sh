@@ -75,4 +75,3 @@ set +x
 echo "##vso[task.setvariable variable=membersToAdd;isOutput=true]${membersToAdd}"
 echo "##vso[task.setvariable variable=membersToRemove;isOutput=true]${membersToRemove}"
 
-# vim: set ts=2 sts=2 sw=2 et:

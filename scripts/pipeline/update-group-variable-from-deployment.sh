@@ -16,4 +16,3 @@ deploymentOutput() {
 valueToSet="$(deploymentOutput "${2}")"
 "${DIR}"/update-group-variable.sh "${1}" "${valueToSet}"
 
-# vim: set ts=2 sts=2 sw=2 et:

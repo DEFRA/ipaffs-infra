@@ -94,4 +94,3 @@ stages:
               scriptType: bash
               scriptPath: scripts/pipeline/package-and-push-chart.sh
 
-# vim: set ts=2 sts=2 sw=2 et:

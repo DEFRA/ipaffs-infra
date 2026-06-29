@@ -245,4 +245,3 @@ stages:
                 scripts/pipeline/update-group-variable-from-deployment.sh insightsInstrumentationKey insightsInstrumentationKey
                 scripts/pipeline/update-group-variable-from-deployment.sh grafanaManagedIdentityPrincipalId grafanaManagedIdentityPrincipalId
 
-# vim: set ts=2 sts=2 sw=2 et:

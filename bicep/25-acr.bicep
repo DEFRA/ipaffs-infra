@@ -34,4 +34,3 @@ output acrName string = acr.outputs.acrName
 output acrLoginServer string = acr.outputs.acrLoginServer
 output acrResourceId string = acr.outputs.acrResourceId
 
-// vim: set ts=2 sts=2 sw=2 et:

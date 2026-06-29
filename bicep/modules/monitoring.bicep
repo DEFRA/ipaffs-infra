@@ -89,4 +89,3 @@ module grafanaMonitoringDataReader './prometheus-role-assignment.bicep' = {
 output logAnalyticsId string = logAnalytics.id
 output grafanaManagedIdentityPrincipalId string = grafanaDashboard.identity.principalId
 
-// vim: set ts=2 sts=2 sw=2 et:

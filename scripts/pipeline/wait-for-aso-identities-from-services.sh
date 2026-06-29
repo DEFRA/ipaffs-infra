@@ -76,4 +76,3 @@ for service_dir in "${service_dirs[@]}"; do
   fi
 done
 
-# vim: set ts=2 sts=2 sw=2 et:

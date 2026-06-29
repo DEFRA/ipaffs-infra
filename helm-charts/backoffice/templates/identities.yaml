@@ -27,4 +27,3 @@ spec:
     name: {{ template "ipaffs-common.azure.resourceGroup" . }}
 {{ end }}
 
-# vim: set ts=2 sts=2 sw=2 et:

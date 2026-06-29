@@ -108,4 +108,3 @@ done
 logInfo "Timed out waiting for group '${GROUP_ID}' memberships"
 exit 1
 
-# vim: set ts=2 sts=2 sw=2 et:

@@ -65,4 +65,3 @@ for manifest_file in "${manifest_files[@]}"; do
   update_manifest_file "${MANIFEST_ROOT}/${manifest_file}"
 done
 
-# vim: set ts=2 sts=2 sw=2 et:

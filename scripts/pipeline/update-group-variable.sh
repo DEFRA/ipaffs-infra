@@ -50,4 +50,3 @@ else
   createGroupVariable "${1}" "${2}"
 fi
 
-# vim: set ts=2 sts=2 sw=2 et:
