@@ -5,6 +5,9 @@ param deploymentId string
 param location string
 param tags object
 
+var monitoringReaderRoleId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '43d0d8ad-25c7-4714-9337-8ba259a9fe05')
+var monitoringDataReaderRoleId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b0d8363b-8ddd-447d-831f-62ca05bff136')
+
 resource logAnalytics 'Microsoft.OperationalInsights/workspaces@2025-07-01' = {
   name: monitoringParams.logAnalyticsName
   location: location
@@ -61,6 +64,29 @@ resource grafanaAdminRole 'Microsoft.Authorization/roleAssignments@2022-04-01' =
   }
 }
 
+module grafanaMonitoringReader './rg-role-assignment.bicep' = {
+  name: 'grafanaMonitoringReader-${deploymentId}'
+  scope: resourceGroup()
+  params: {
+    deploymentId: deploymentId
+    principalObjectId: grafanaDashboard.identity.principalId
+    roleDefinitionId: monitoringReaderRoleId
+  }
+}
+
+module grafanaMonitoringDataReader './prometheus-role-assignment.bicep' = {
+  name: 'grafanaMonitoringDataReader-${deploymentId}'
+  scope: resourceGroup()
+  params: {
+    prometheusName: monitoringParams.prometheusName
+    deploymentId: deploymentId
+    principalObjectId: grafanaDashboard.identity.principalId
+    principalType: 'ServicePrincipal'
+    roleDefinitionId: monitoringDataReaderRoleId
+  }
+}
+
 output logAnalyticsId string = logAnalytics.id
+output grafanaManagedIdentityPrincipalId string = grafanaDashboard.identity.principalId
 
 // vim: set ts=2 sts=2 sw=2 et:
