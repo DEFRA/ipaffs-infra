@@ -82,7 +82,7 @@ gvms-service|gvms-microservice|functionapp
 notify-service|notify-microservice|functionapp
 dmpintegration-service|dmp-integration-microservice|functionapp
 enotificationeventlistener-service|enotification-event-listener-microservice|functionapp
-enotificationprocessing-service|enotification-processing-microservice|webapp
+enotificationprocessing-service|enotification-processing-microservice|webapp|3|0
 bulkupload-service|bulk-upload-microservice|webapp
 TARGETS
       ;;
