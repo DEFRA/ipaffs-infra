@@ -1,5 +1,5 @@
 ---
-name: ${{ parameters.environmentName }}-${{ parameters.imageTag }}-${{ replace(parameters.playwrightTag, '@', '') }}-$(Date:yyyyMMdd)$(Rev:.r)
+name: ${{ parameters.environmentName }}-${{ replace(replace(parameters.playwrightTag, '@', ''), ' ', '') }}-$(Date:yyyyMMdd)$(Rev:.r)
 
 trigger: none
 pr: none
