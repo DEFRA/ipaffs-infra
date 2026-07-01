@@ -1,4 +1,6 @@
 ---
+name: ${{ parameters.environmentName }}-${{ replace(replace(parameters.playwrightTag, '@', ''), ' ', '') }}-$(Date:yyyyMMdd)$(Rev:.r)
+
 trigger: none
 pr: none
 
@@ -14,6 +16,7 @@ parameters:
       - NEW-DEV
       - NEW-TST
       - NEW-PRD
+      - PRE
 
   - name: workers
     displayName: Workers
@@ -91,6 +94,22 @@ stages:
               workingDirectory: $(Pipeline.Workspace)/s/ipaffs-qa-automation
               inlineScript: |
                 $(Pipeline.Workspace)/s/ipaffs-infra/scripts/pipeline/substitute-environment-variables.sh .env-kv $(qaAutomationKeyvaultName) .env-substituted
+
+          - task: AzureCLI@2
+            displayName: Log IPAFFS service status (AKS)
+            continueOnError: true
+            inputs:
+              azureSubscription: ADO-DefraGovUK-AZR-IMP-${{ replace(upper(parameters.environmentName), 'NEW-', '') }}1
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                ENV="${{ replace(upper(parameters.environmentName), 'NEW-', '') }}"
+                az aks install-cli --client-version v1.36.1 --kubelogin-version v0.2.18
+                az aks get-credentials -n "${ENV}IMPINFAK1401" -g "${ENV}IMPINFRG1401" --subscription "AZR-IMP-${ENV}1" --overwrite-existing
+                kubelogin convert-kubeconfig -l azurecli
+                kubectl get deployments,cronjobs,scaledjobs -n "${ENV,,}" -L defra.gov.uk/manifest-tag
+                echo "--- Recent warnings ---"
+                kubectl get events -n "${ENV,,}" --field-selector type=Warning --sort-by=.lastTimestamp 2>/dev/null | tail -20
 
           - task: AzureCLI@2
             displayName: Run Automation Container
