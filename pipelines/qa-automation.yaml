@@ -14,6 +14,7 @@ parameters:
       - NEW-DEV
       - NEW-TST
       - NEW-PRD
+      - PRE
 
   - name: workers
     displayName: Workers
@@ -68,7 +69,8 @@ resources:
       type: github
       endpoint: DEFRA
       name: DEFRA/ipaffs-qa-automation
-      ref: refs/heads/main
+      # Revert to refs/heads/main before merging.
+      ref: refs/heads/feature/IMTA-21473-add-PRE-option
 
 stages:
   - stage: RunTests
