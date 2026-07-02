@@ -8,8 +8,6 @@ variables:
   dnsSubscriptionId: fa6d4701-12be-41be-9c4d-ba3daf88ed8e # AZR-OPS
   entraAccessGroupBaseName: AAG-Azure-AZR_IMP_PRE1
   serviceConnection: ADO-DefraGovUK-AZR-IMP-PRE1
-  grafanaName: PREIMPINFGA1401
-  prometheusName: PREIMPINFPR1401
   serviceConnectionPrincipalId: 53a47ce7-dbaa-494e-8a87-54b13248ccd8
   subscriptionName: AZR-IMP-PRE1
   sqlServerClassicManagedIdentityObjectId: ea26367b-2092-430d-844c-e9d8042c2485

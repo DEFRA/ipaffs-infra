@@ -244,4 +244,6 @@ stages:
                 scripts/pipeline/update-group-variable-from-deployment.sh insightsConnectionString insightsConnectionString
                 scripts/pipeline/update-group-variable-from-deployment.sh insightsInstrumentationKey insightsInstrumentationKey
                 scripts/pipeline/update-group-variable-from-deployment.sh grafanaManagedIdentityPrincipalId grafanaManagedIdentityPrincipalId
+                scripts/pipeline/update-group-variable-from-deployment.sh grafanaName grafanaName
+                scripts/pipeline/update-group-variable-from-deployment.sh prometheusName prometheusName
 

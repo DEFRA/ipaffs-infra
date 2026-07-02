@@ -8,8 +8,6 @@ variables:
   dnsSubscriptionId: 20168d22-67f1-4cd0-bb56-3db91aec16ff # AZR-DEV
   entraAccessGroupBaseName: AAG-Azure-AZR_IMP_DEV1
   serviceConnection: ADO-DefraGovUK-AZR-IMP-DEV1
-  grafanaName: DEVIMPINFGA1401
-  prometheusName: DEVIMPINFPR1401
   serviceConnectionPrincipalId: c5daee65-10cb-4d04-b721-d3da81357568
   subscriptionName: AZR-IMP-DEV1
   sqlServerClassicManagedIdentityObjectId: 4c300f46-508c-4753-a6b5-7f5c007d4012

@@ -88,4 +88,6 @@ module grafanaMonitoringDataReader './prometheus-role-assignment.bicep' = {
 
 output logAnalyticsId string = logAnalytics.id
 output grafanaManagedIdentityPrincipalId string = grafanaDashboard.identity.principalId
+output grafanaName string = grafanaDashboard.name
+output prometheusName string = prometheus.name
 
