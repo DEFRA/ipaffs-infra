@@ -200,4 +200,6 @@ output storageAccountName string = storage.outputs.storageAccountName
 output insightsInstrumentationKey string = insights.outputs.insightsInstrumentationKey
 output insightsConnectionString string = insights.outputs.insightsConnectionString
 output grafanaManagedIdentityPrincipalId string = monitoring.outputs.grafanaManagedIdentityPrincipalId
+output grafanaName string = monitoring.outputs.grafanaName
+output prometheusName string = monitoring.outputs.prometheusName
 

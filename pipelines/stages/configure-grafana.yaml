@@ -1,0 +1,93 @@
+---
+# configure-grafana.yaml
+#
+# Creates / updates the datasources that the dashboards' template variables
+# query, in the SELECTED environment's Grafana instance.
+#
+# One job (using that env's service connection):
+#   1. Queries the env's Azure Monitor workspace Prometheus query endpoint.
+#   2. Queries the env's subscription ID.
+#   3. Runs configure-grafana.sh against that env's Grafana to upsert:
+#        • a Prometheus datasource (MSI auth)
+#        • an Azure Monitor datasource (MSI auth, for Log Analytics queries)
+#
+# Grafana and its monitoring stack live in the same subscription for an
+# environment, so a single service connection is sufficient.
+#
+# This stage is idempotent: existing datasources are updated, not duplicated.
+#
+# Branch gating: DEV may configure from the current branch when
+# allowDevBranchDeploy is set; every other env configures only on main.
+#
+# NOTE: the Grafana managed identity is assumed to already hold the data-read
+# roles needed for these datasources to return data (granted manually).
+
+parameters:
+  - name: targetEnvironment
+    type: string   # single env, e.g. DEV
+
+  - name: allowDevBranchDeploy
+    type: boolean  # true => DEV configures from the current branch (not just main)
+    default: false
+
+stages:
+  - stage: ConfigureGrafana
+    displayName: Configure Grafana Datasources (${{ parameters.targetEnvironment }})
+    variables:
+      - group: Common
+
+    jobs:
+      - deployment: ConfigureDatasources_${{ parameters.targetEnvironment }}
+        displayName: Configure datasources in ${{ parameters.targetEnvironment }} Grafana
+        environment:
+          name: "${{ parameters.targetEnvironment }}"
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+
+                - task: AzureCLI@2
+                  displayName: Configure datasources (${{ parameters.targetEnvironment }})
+                  # DEV may configure from any branch when allowDevBranchDeploy is set;
+                  # every other env (and DEV by default) configures only on main.
+                  ${{ if and(eq(parameters.targetEnvironment, 'DEV'), eq(parameters.allowDevBranchDeploy, true)) }}:
+                    condition: and(not(failed()), not(canceled()))
+                  ${{ else }}:
+                    condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+                  inputs:
+                    azureSubscription: $(serviceConnection)
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      set -euo pipefail
+                      az extension add --name amg --yes --upgrade --only-show-errors
+
+                      PROMETHEUS_NAME="$(prometheusName)"
+                      RESOURCE_GROUP="$(resourceGroupName)"
+
+                      # Prometheus query endpoint for this env's Azure Monitor workspace
+                      endpoint=$(az monitor account show \
+                        --name "${PROMETHEUS_NAME}" \
+                        --resource-group "${RESOURCE_GROUP}" \
+                        --query "metrics.prometheusQueryEndpoint" \
+                        --output tsv)
+
+                      if [[ -z "${endpoint}" ]]; then
+                        echo "ERROR: Could not retrieve Prometheus endpoint for ${PROMETHEUS_NAME}" >&2
+                        exit 1
+                      fi
+
+                      subscription_id="$(subscriptionId)"
+
+                      echo "Prometheus endpoint (${{ parameters.targetEnvironment }}): ${endpoint}"
+                      echo "Subscription ID (${{ parameters.targetEnvironment }}): ${subscription_id}"
+
+                      GRAFANA_NAME="$(grafanaName)" \
+                      RESOURCE_GROUP="${RESOURCE_GROUP}" \
+                      ENVIRONMENT="${{ parameters.targetEnvironment }}" \
+                      PROMETHEUS_ENDPOINT="${endpoint}" \
+                      SUBSCRIPTION_ID="${subscription_id}" \
+                      bash grafana-dashboards/scripts/configure-grafana.sh
+
+# vim: set ts=2 sts=2 sw=2 et:

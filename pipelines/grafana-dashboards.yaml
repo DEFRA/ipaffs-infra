@@ -1,0 +1,146 @@
+---
+# grafana-dashboards.yaml
+#
+# Independent pipeline for deploying Grafana dashboards to per-environment
+# Azure Managed Grafana instances.
+#
+# ── Dashboard lifecycle ────────────────────────────────────────────────────
+#
+#  1. Author a dashboard manually in an environment's Grafana instance
+#     (e.g. "IPAFFS_stack" in DEV).
+#  2. Export it with the helper script (run locally or as a one-off):
+#       GRAFANA_NAME=DEVIMPINFGA1401 \
+#       RESOURCE_GROUP=DEVIMPINFRG1401 \
+#       DASHBOARD_TITLE=<title> \
+#       bash grafana-dashboards/scripts/export-dashboard.sh
+#     The exported JSON keeps the dashboard's template variables (the
+#     namespace / datasource dropdowns), so they travel with it.
+#  3. Commit the JSON under grafana-dashboards/dashboards/
+#     (deployed to the selected env's Grafana). Per-env dashboards are not
+#     supported yet and can be added later.
+#  4. Push; the pipeline validates and (on main) deploys.
+#
+# ── Deployment model ───────────────────────────────────────────────────────
+#
+#  One environment is selected per run (targetEnvironment). The deploy stage
+#  targets that env's OWN Grafana instance, using its service connection, so
+#  dashboards land in the right subscription:
+#    • dashboards/*.json → deployed to the selected env's Grafana
+#  Every env EXCEPT DEV requires manual approval before deploying.
+#  Tick "allowDevBranchDeploy" to deploy DEV from the branch you queued on
+#  (for testing before merging). It ONLY affects DEV; for TST/PRE/PRD the
+#  checkbox is ignored and deploys still happen only on main.
+#
+# ── Optional one-off stage ─────────────────────────────────────────────────
+#
+#  configureDatasources (default: false)
+#    Creates / updates the Prometheus and Azure Monitor datasources that the
+#    dashboard variables query, in each target env's own Grafana instance.
+#    Idempotent. Run once when first setting up an env (or adding a new one).
+#
+#  NOTE: the Grafana managed identity is assumed to already hold the data-read
+#  roles (Monitoring Data Reader / Log Analytics Reader); those are granted
+#  manually for now and are out of scope for this pipeline.
+
+trigger:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - grafana-dashboards/**
+      - pipelines/grafana-dashboards.yaml
+      - pipelines/stages/configure-grafana.yaml
+      - pipelines/stages/deploy-grafana-dashboards.yaml
+
+pr:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - grafana-dashboards/**
+      - pipelines/grafana-dashboards.yaml
+      - pipelines/stages/configure-grafana.yaml
+      - pipelines/stages/deploy-grafana-dashboards.yaml
+
+pool:
+  name: DEFRA-COMMON-ubuntu2204-SSV5
+
+# ── Parameters ────────────────────────────────────────────────────────────
+
+parameters:
+  - name: targetEnvironment
+    displayName: "Target environment"
+    type: string
+    default: DEV
+    values:
+      - DEV
+      - TST
+      - PRE
+      - PRD
+
+  - name: allowDevBranchDeploy
+    displayName: "Deploy DEV from this branch (testing; ignored for other envs)"
+    type: boolean
+    default: false
+
+  - name: configureDatasources
+    displayName: "Configure datasources in the selected env's Grafana (run once per env)"
+    type: boolean
+    default: false
+
+# ── Variables ─────────────────────────────────────────────────────────────
+
+variables:
+  - group: Common
+  - group: "${{ parameters.targetEnvironment }}"
+  - template: /pipelines/vars/${{ lower(parameters.targetEnvironment) }}.yaml
+
+# ── Stages ────────────────────────────────────────────────────────────────
+
+stages:
+  # Tag the build. A DEV branch-deploy (allowDevBranchDeploy on DEV) also gets a
+  # branch-deploy marker tag. Conditional STAGE insertion so ADO expands it.
+  - ${{ if and(eq(parameters.targetEnvironment, 'DEV'), eq(parameters.allowDevBranchDeploy, true)) }}:
+    - template: stages/tag-build.yaml
+      parameters:
+        tags:
+          - GrafanaDashboards-DEV
+          - GrafanaDashboards-branch-deploy
+  - ${{ else }}:
+    - template: stages/tag-build.yaml
+      parameters:
+        tags:
+          - GrafanaDashboards-${{ parameters.targetEnvironment }}
+
+  # 1. Validate dashboard JSON (always; no Azure connection needed)
+  - stage: ValidateDashboards
+    displayName: Validate Dashboard JSON
+    jobs:
+      - job: Validate
+        displayName: Lint and validate dashboard files
+        steps:
+          - checkout: self
+
+          - task: Bash@3
+            displayName: Validate dashboard JSON files
+            inputs:
+              targetType: filePath
+              filePath: grafana-dashboards/tests/validate-dashboards.sh
+
+  # 2. Configure datasources in the selected env's Grafana (optional)
+  - ${{ if eq(parameters.configureDatasources, true) }}:
+    - template: stages/configure-grafana.yaml
+      parameters:
+        targetEnvironment: ${{ parameters.targetEnvironment }}
+        allowDevBranchDeploy: ${{ parameters.allowDevBranchDeploy }}
+
+  # 3. Deploy dashboards to the selected env's Grafana (preview on PRs, deploy
+  #    on main; DEV optionally from the current branch via allowDevBranchDeploy)
+  - template: stages/deploy-grafana-dashboards.yaml
+    parameters:
+      targetEnvironment: ${{ parameters.targetEnvironment }}
+      allowDevBranchDeploy: ${{ parameters.allowDevBranchDeploy }}
+
+# vim: set ts=2 sts=2 sw=2 et:
