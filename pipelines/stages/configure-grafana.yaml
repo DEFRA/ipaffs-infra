@@ -61,6 +61,10 @@ stages:
                     scriptLocation: inlineScript
                     inlineScript: |
                       set -euo pipefail
+                      # The service connection may default to a different subscription,
+                      # so pin the active subscription to this env's before any az call.
+                      az account set --subscription "$(subscriptionId)"
+                      az account show --query id -o tsv   # fail-fast: prove the sub
                       az extension add --name amg --yes --upgrade --only-show-errors
 
                       PROMETHEUS_NAME="$(prometheusName)"
