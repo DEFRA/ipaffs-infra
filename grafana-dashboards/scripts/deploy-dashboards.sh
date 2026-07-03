@@ -35,6 +35,8 @@ set -euo pipefail
 GRAFANA_NAME="${GRAFANA_NAME:?GRAFANA_NAME must be set}"
 RESOURCE_GROUP="${RESOURCE_GROUP:?RESOURCE_GROUP must be set}"
 ENVIRONMENT="${ENVIRONMENT:?ENVIRONMENT must be set}"
+SUBSCRIPTION_ID="${SUBSCRIPTION_ID:?SUBSCRIPTION_ID must be set}"
+SUBSCRIPTION_NAME="${SUBSCRIPTION_NAME:?SUBSCRIPTION_NAME must be set}"
 
 ENV_UPPER="${ENVIRONMENT^^}"
 SCRIPTS_DIR="$(cd "$(dirname "$0")"/.. && pwd)"
@@ -78,12 +80,16 @@ deploy_dashboard() {
   definition=$(jq \
     --arg promName "${PROM_DS_NAME}" --arg promUid "${PROM_DS_UID}" \
     --arg azName "${AZMON_DS_NAME}"  --arg azUid "${AZMON_DS_UID}" \
+    --arg subId "${SUBSCRIPTION_ID}" \
+    --arg subName "${SUBSCRIPTION_NAME}" \
     '(.templating.list[]
         | select(.type == "datasource" and .query == "prometheus")) |=
         (.current = {selected: true, text: $promName, value: $promUid})
      | (.templating.list[]
         | select(.type == "datasource" and .query == "grafana-azure-monitor-datasource")) |=
-        (.current = {selected: true, text: $azName, value: $azUid})' \
+        (.current = {selected: true, text: $azName, value: $azUid})
+     | (.templating.list[] | select(.name == "subscription")) |=
+        (.current = {selected: true, text: $subName, value: $subId})' \
     "${file}")
 
   echo "Deploying: ${title} (uid=${uid})"
