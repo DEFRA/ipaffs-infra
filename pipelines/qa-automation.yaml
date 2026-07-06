@@ -60,18 +60,22 @@ parameters:
 
 variables:
   - group: Common
-  - ${{ if eq(parameters.environmentName, 'NEW-PRD') }}:
+  - ${{ if or(eq(parameters.environmentName, 'NEW-PRD'), eq(parameters.environmentName, 'NEW-PRE')) }}:
     - group: HigherEnvs
   - ${{ else }}:
     - group: LowerEnvs
   - ${{ if eq(parameters.environmentName, 'NEW-DEV') }}:
-    - group: DEV
+    - group: Dev
+    - template: "/pipelines/vars/dev.yaml"
   - ${{ elseif eq(parameters.environmentName, 'NEW-TST') }}:
     - group: TST
+    - template: "/pipelines/vars/tst.yaml"
   - ${{ elseif eq(parameters.environmentName, 'NEW-PRE') }}:
     - group: PRE
+    - template: "/pipelines/vars/pre.yaml"
   - ${{ elseif eq(parameters.environmentName, 'NEW-PRD') }}:
     - group: PRD
+    - template: "/pipelines/vars/prd.yaml"
   - template: "/pipelines/vars/common.yaml"
   - group: Testing
 
