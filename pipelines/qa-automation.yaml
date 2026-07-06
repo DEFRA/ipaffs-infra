@@ -118,7 +118,7 @@ stages:
               AKS_SUBSCRIPTION_NAME: $(subscriptionName)
               ENVIRONMENT_NAME: ${{ lower(parameters.environmentName) }}
             inputs:
-              azureSubscription: $(qaAutomationServiceConnection)
+              azureSubscription: $(serviceConnection)
               scriptType: bash
               scriptLocation: inlineScript
               inlineScript: |
