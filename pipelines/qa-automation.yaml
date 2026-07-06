@@ -64,6 +64,14 @@ variables:
     - group: HigherEnvs
   - ${{ else }}:
     - group: LowerEnvs
+  - ${{ if eq(parameters.environmentName, 'NEW-DEV') }}:
+    - group: DEV
+  - ${{ elseif eq(parameters.environmentName, 'NEW-TST') }}:
+    - group: TST
+  - ${{ elseif eq(parameters.environmentName, 'NEW-PRE') }}:
+    - group: PRE
+  - ${{ elseif eq(parameters.environmentName, 'NEW-PRD') }}:
+    - group: PRD
   - template: "/pipelines/vars/common.yaml"
   - group: Testing
 
