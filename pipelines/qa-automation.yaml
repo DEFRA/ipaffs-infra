@@ -15,6 +15,7 @@ parameters:
     values:
       - NEW-DEV
       - NEW-TST
+      - NEW-PRE
       - NEW-PRD
       - VNET
       - TST
@@ -96,21 +97,31 @@ stages:
               inlineScript: |
                 $(Pipeline.Workspace)/s/ipaffs-infra/scripts/pipeline/substitute-environment-variables.sh .env-kv $(qaAutomationKeyvaultName) .env-substituted
 
-#          - task: AzureCLI@2
-#            displayName: Log IPAFFS service status (AKS)
-#            continueOnError: true
-#            inputs:
-#              azureSubscription: ADO-DefraGovUK-AZR-IMP-${{ replace(upper(parameters.environmentName), 'NEW-', '') }}1
-#              scriptType: bash
-#              scriptLocation: inlineScript
-#              inlineScript: |
-#                ENV="${{ replace(upper(parameters.environmentName), 'NEW-', '') }}"
-#                az aks install-cli --client-version v1.36.1 --kubelogin-version v0.2.18
-#                az aks get-credentials -n "${ENV}IMPINFAK1401" -g "${ENV}IMPINFRG1401" --subscription "AZR-IMP-${ENV}1" --overwrite-existing
-#                kubelogin convert-kubeconfig -l azurecli
-#                kubectl get deployments,cronjobs,scaledjobs -n "${ENV,,}" -L defra.gov.uk/manifest-tag
-#                echo "--- Recent warnings ---"
-#                kubectl get events -n "${ENV,,}" --field-selector type=Warning --sort-by=.lastTimestamp 2>/dev/null | tail -20
+          - task: AzureCLI@2
+            displayName: Log AKS Service Status
+            continueOnError: true
+            env:
+              AKS_NAME: $(kubernetesCluster)
+              AKS_RESOURCE_GROUP_NAME: $(resourceGroupName)
+              AKS_SUBSCRIPTION_NAME: $(subscriptionName)
+              ENVIRONMENT_NAME: ${{ lower(parameters.environmentName) }}
+            inputs:
+              azureSubscription: $(qaAutomationServiceConnection)
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                K8S_ENV="${ENVIRONMENT_NAME#new-}"
+                az aks install-cli --client-version v1.36.1 --kubelogin-version v0.2.18
+                az aks get-credentials \
+                  --name "${AKS_NAME}" \
+                  --resource-group "${AKS_RESOURCE_GROUP_NAME}" \
+                  --subscription "${AKS_SUBSCRIPTION_NAME}" \
+                  --overwrite-existing
+                kubelogin convert-kubeconfig -l azurecli
+                kubectl get deployments,cronjobs,scaledjobs -n "${K8S_ENV}" -L defra.gov.uk/manifest-tag
+                echo "--- Recent warnings ---"
+                kubectl get events -n "${K8S_ENV}" --field-selector type=Warning --sort-by=.lastTimestamp 2>/dev/null | tail -20
+            condition: and(succeededOrFailed(), in('${{ parameters.environment }}', 'new-dev', 'new-tst', 'new-pre', 'new-prd'))
 
           - task: AzureCLI@2
             displayName: Run Automation Container
