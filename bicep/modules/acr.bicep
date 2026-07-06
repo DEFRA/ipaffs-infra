@@ -18,6 +18,7 @@ resource acr 'Microsoft.ContainerRegistry/registries@2025-04-01' = {
 
   properties: {
     adminUserEnabled: acrParams.adminEnabled
+    publicNetworkAccess: 'Disabled'
   }
 }
 
