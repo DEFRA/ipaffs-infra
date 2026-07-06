@@ -121,7 +121,7 @@ stages:
                 kubectl get deployments,cronjobs,scaledjobs -n "${K8S_ENV}" -L defra.gov.uk/manifest-tag
                 echo "--- Recent warnings ---"
                 kubectl get events -n "${K8S_ENV}" --field-selector type=Warning --sort-by=.lastTimestamp 2>/dev/null | tail -20
-            condition: and(succeededOrFailed(), in('${{ parameters.environment }}', 'new-dev', 'new-tst', 'new-pre', 'new-prd'))
+            condition: and(succeededOrFailed(), in('${{ lower(parameters.environmentName) }}', 'new-dev', 'new-tst', 'new-pre', 'new-prd'))
 
           - task: AzureCLI@2
             displayName: Run Automation Container
