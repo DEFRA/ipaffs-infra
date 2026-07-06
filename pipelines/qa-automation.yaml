@@ -64,8 +64,7 @@ variables:
   - ${{ else }}:
     - group: LowerEnvs
   - template: "/pipelines/vars/common.yaml"
-#  - group: DEV
-#  - template: "/pipelines/vars/dev.yaml"
+  - group: Testing
 
 resources:
   repositories:
