@@ -69,8 +69,18 @@ variables:
   - ${{ else }}:
     - group: LowerEnvs
 
-  - group: "${{ replace(parameters.environmentName, 'NEW-', '') }}"
-  - template: "/pipelines/vars/${{ lower(replace(parameters.environmentName, 'NEW-', '')) }}.yaml"
+  - ${{ if eq(parameters.environmentName, 'NEW-DEV') }}:
+    - group: Dev
+    - template: "/pipelines/vars/dev.yaml"
+  - ${{ elseif eq(parameters.environmentName, 'NEW-TST') }}:
+    - group: TST
+    - template: "/pipelines/vars/tst.yaml"
+  - ${{ elseif eq(parameters.environmentName, 'NEW-PRE') }}:
+    - group: PRE
+    - template: "/pipelines/vars/pre.yaml"
+  - ${{ elseif eq(parameters.environmentName, 'NEW-PRD') }}:
+    - group: PRD
+    - template: "/pipelines/vars/prd.yaml"
 
 resources:
   repositories:
