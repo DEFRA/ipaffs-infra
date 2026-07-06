@@ -122,6 +122,7 @@ stages:
               scriptType: bash
               scriptLocation: inlineScript
               inlineScript: |
+                set -x
                 K8S_ENV="${ENVIRONMENT_NAME#new-}"
                 az aks install-cli --client-version v1.36.1 --kubelogin-version v0.2.18
                 az aks get-credentials \
