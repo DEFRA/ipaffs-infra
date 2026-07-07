@@ -264,9 +264,6 @@ param vnetParams = {
       ]
       serviceEndpoints: [
         {
-          service: 'Microsoft.KeyVault'
-        }
-        {
           service: 'Microsoft.ServiceBus'
         }
       ]
@@ -279,9 +276,6 @@ param vnetParams = {
       addressPrefix: '10.179.144.16/28'
       delegations: []
       serviceEndpoints: [
-        {
-          service: 'Microsoft.KeyVault'
-        }
         {
           service: 'Microsoft.ServiceBus'
         }
@@ -325,9 +319,6 @@ param vnetParams = {
       addressPrefix: '10.179.146.0/24'
       delegations: []
       serviceEndpoints: [
-        {
-          service: 'Microsoft.KeyVault'
-        }
         {
           service: 'Microsoft.ServiceBus'
         }
