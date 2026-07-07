@@ -17,12 +17,14 @@ variables:
     a-sunil.kumar@defra.onmicrosoft.com
     a-suresh.sundaram@defra.onmicrosoft.com
     a-tom.bamford@Defra.onmicrosoft.com
+    a-toby.steed@Defra.onmicrosoft.com
 
   # SC-cleared admin accounts only!
   higherEnvsReadersGroupMembers: >
     a-gaurav.seth@defra.onmicrosoft.com
     a-raja.sekhar@Defra.onmicrosoft.com
     a-tom.bamford@Defra.onmicrosoft.com
+    a-aarthy.siddapareddy@Defra.onmicrosoft.com
 
   # Note: members of admins group do not also need to be developer group members
   lowerEnvsAdminsGroupMembers: >
