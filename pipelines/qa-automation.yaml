@@ -15,7 +15,10 @@ parameters:
     values:
       - NEW-DEV
       - NEW-TST
+      - NEW-PRE
       - NEW-PRD
+      - VNET
+      - TST
       - PRE
 
   - name: workers
@@ -57,13 +60,18 @@ parameters:
 
 variables:
   - group: Common
-  - ${{ if eq(parameters.environmentName, 'NEW-PRD') }}:
+  - template: "/pipelines/vars/common.yaml"
+
+  - group: Testing
+
+  - ${{ if or(eq(parameters.environmentName, 'NEW-PRD'), eq(parameters.environmentName, 'NEW-PRE')) }}:
     - group: HigherEnvs
   - ${{ else }}:
     - group: LowerEnvs
-  - template: "/pipelines/vars/common.yaml"
-  - group: DEV
-  - template: "/pipelines/vars/dev.yaml"
+
+  - ${{ if in(parameters.environmentName, 'NEW-DEV', 'NEW-TST', 'NEW-PRE', 'NEW-PRD') }}:
+    - group: "${{ replace(parameters.environmentName, 'NEW-', '') }}"
+    - template: "/pipelines/vars/${{ lower(replace(parameters.environmentName, 'NEW-', '')) }}.yaml"
 
 resources:
   repositories:
@@ -88,28 +96,39 @@ stages:
           - task: AzureCLI@2
             displayName: Update QA Automation environment file
             inputs:
-              azureSubscription: $(serviceConnection)
+              azureSubscription: $(qaAutomationServiceConnection)
               scriptType: bash
               scriptLocation: inlineScript
               workingDirectory: $(Pipeline.Workspace)/s/ipaffs-qa-automation
               inlineScript: |
                 $(Pipeline.Workspace)/s/ipaffs-infra/scripts/pipeline/substitute-environment-variables.sh .env-kv $(qaAutomationKeyvaultName) .env-substituted
 
-          - task: AzureCLI@2
-            displayName: Log IPAFFS service status (AKS)
-            continueOnError: true
-            inputs:
-              azureSubscription: ADO-DefraGovUK-AZR-IMP-${{ replace(upper(parameters.environmentName), 'NEW-', '') }}1
-              scriptType: bash
-              scriptLocation: inlineScript
-              inlineScript: |
-                ENV="${{ replace(upper(parameters.environmentName), 'NEW-', '') }}"
-                az aks install-cli --client-version v1.36.1 --kubelogin-version v0.2.18
-                az aks get-credentials -n "${ENV}IMPINFAK1401" -g "${ENV}IMPINFRG1401" --subscription "AZR-IMP-${ENV}1" --overwrite-existing
-                kubelogin convert-kubeconfig -l azurecli
-                kubectl get deployments,cronjobs,scaledjobs -n "${ENV,,}" -L defra.gov.uk/manifest-tag
-                echo "--- Recent warnings ---"
-                kubectl get events -n "${ENV,,}" --field-selector type=Warning --sort-by=.lastTimestamp 2>/dev/null | tail -20
+          - ${{ if in(parameters.environmentName, 'NEW-DEV', 'NEW-TST', 'NEW-PRE', 'NEW-PRD') }}:
+            - task: AzureCLI@2
+              displayName: Log AKS Service Status
+              continueOnError: true
+              env:
+                AKS_NAME: $(kubernetesCluster)
+                AKS_RESOURCE_GROUP_NAME: $(resourceGroupName)
+                AKS_SUBSCRIPTION_NAME: $(subscriptionName)
+                ENVIRONMENT_NAME: ${{ lower(parameters.environmentName) }}
+              inputs:
+                azureSubscription: $(serviceConnection)
+                scriptType: bash
+                scriptLocation: inlineScript
+                inlineScript: |
+                  set -x
+                  K8S_ENV="${ENVIRONMENT_NAME#new-}"
+                  az aks install-cli --client-version v1.36.1 --kubelogin-version v0.2.18
+                  az aks get-credentials \
+                    --name "${AKS_NAME}" \
+                    --resource-group "${AKS_RESOURCE_GROUP_NAME}" \
+                    --subscription "${AKS_SUBSCRIPTION_NAME}" \
+                    --overwrite-existing
+                  kubelogin convert-kubeconfig -l azurecli
+                  kubectl get deployments,cronjobs,scaledjobs -n "${K8S_ENV}" -L defra.gov.uk/manifest-tag
+                  echo "--- Recent warnings ---"
+                  kubectl get events -n "${K8S_ENV}" --field-selector type=Warning --sort-by=.lastTimestamp 2>/dev/null | tail -20
 
           - task: AzureCLI@2
             displayName: Run Automation Container
@@ -121,7 +140,7 @@ stages:
               TEST_SUITE: ${{ parameters.testSuite }}
               QA_AUTOMATION_ENV: ${{ lower(parameters.environmentName) }}
             inputs:
-              azureSubscription: $(serviceConnection)
+              azureSubscription: $(qaAutomationServiceConnection)
               scriptType: bash
               scriptLocation: inlineScript
               workingDirectory: $(Pipeline.Workspace)/s/ipaffs-qa-automation
@@ -159,7 +178,7 @@ stages:
               IMAGE_TAG: ${{ parameters.imageTag }}
               QA_AUTOMATION_ENV: ${{ lower(parameters.environmentName) }}
             inputs:
-              azureSubscription: $(serviceConnection)
+              azureSubscription: $(qaAutomationServiceConnection)
               scriptType: bash
               scriptLocation: inlineScript
               workingDirectory: $(Pipeline.Workspace)/s/ipaffs-qa-automation
@@ -202,7 +221,7 @@ stages:
               PLAYWRIGHT_DASHBOARD: $(System.CollectionUri)$(System.TeamProject)/_build/results?buildId=$(Build.BuildId)&view=ms.vss-test-web.build-test-results-tab
               K8S_ENVIRONMENT: ${{ parameters.environmentName }}
             inputs:
-              azureSubscription: $(serviceConnection)
+              azureSubscription: $(qaAutomationServiceConnection)
               scriptType: bash
               scriptLocation: inlineScript
               workingDirectory: $(Pipeline.Workspace)/s/ipaffs-qa-automation
