@@ -11,6 +11,7 @@ param entraGroups = {}
 param environment = 'TST'
 param subnets = {}
 param tenantId = ''
+param deployServicePrincipalObjectId = ''
 param vnetName = 'TSTIMPNETVN1401'
 
 param aksParams = {
