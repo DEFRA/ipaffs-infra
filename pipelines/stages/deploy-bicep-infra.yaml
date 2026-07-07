@@ -65,6 +65,18 @@ stages:
                     id: '$(searchReadersGroupId)'
                     name: '$(searchReadersGroupName)'
                   }
+                  grafanaAdmins: {
+                    id: '$(grafanaAdminsGroupId)'
+                    name: '$(grafanaAdminsGroupName)'
+                  }
+                  grafanaEditors: {
+                    id: '$(grafanaEditorsGroupId)'
+                    name: '$(grafanaEditorsGroupName)'
+                  }
+                  grafanaViewers: {
+                    id: '$(grafanaViewersGroupId)'
+                    name: '$(grafanaViewersGroupName)'
+                  }
                   blobStorageContributors: {
                     id: '$(blobStorageContributorsGroupId)'
                     name: '$(blobStorageContributorsGroupName)'
@@ -153,7 +165,8 @@ stages:
                         --resource-group $(resourceGroupName) \
                         --template-file bicep/40-infra.bicep \
                         --parameters bicep/40-infra-runtime.bicepparam \
-                        --parameters tenantId="$(tenantId)"
+                        --parameters tenantId="$(tenantId)" \
+                        --parameters deployServicePrincipalObjectId="$(serviceConnectionPrincipalId)"
 
                 - task: AzureCLI@2
                   displayName: Deploy - Infrastructure
@@ -170,7 +183,8 @@ stages:
                         --resource-group $(resourceGroupName) \
                         --template-file bicep/40-infra.bicep \
                         --parameters bicep/40-infra-runtime.bicepparam \
-                        --parameters tenantId="$(tenantId)"
+                        --parameters tenantId="$(tenantId)" \
+                        --parameters deployServicePrincipalObjectId="$(serviceConnectionPrincipalId)"
 
                 - task: AzureCLI@2
                   displayName: Wait for Deployment - Infrastructure
