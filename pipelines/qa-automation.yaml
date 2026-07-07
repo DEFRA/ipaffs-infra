@@ -15,8 +15,6 @@ parameters:
     values:
       - NEW-DEV
       - NEW-TST
-      - NEW-PRE
-      - NEW-PRD
       - VNET
       - TST
       - PRE
