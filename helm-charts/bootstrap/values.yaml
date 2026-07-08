@@ -9,6 +9,9 @@ serviceBus:
   queues: []
   topics: []
 
+ipaffsUrls:
+  useLiveUrls: false
+
 ipaffsConfig:
   data: {}
 
