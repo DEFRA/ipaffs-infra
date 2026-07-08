@@ -97,7 +97,7 @@
           "disableTextWrap": false,
           "editorMode": "code",
           "exemplar": false,
-          "expr": "kube_deployment_labels{namespace=\"dev\"}",
+          "expr": "kube_deployment_labels{namespace=\"$environment\"}",
           "format": "table",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
@@ -1344,7 +1344,7 @@
     "list": [
       {
         "current": {
-          "text": "Prometheus - DEV",
+          "text": "Prometheus",
           "value": "bfq876mzxyfi8b"
         },
         "hide": 2,
@@ -1353,7 +1353,7 @@
         "options": [],
         "query": "prometheus",
         "refresh": 1,
-        "regex": "/.*AKS.*/",
+        "regex": "/.*Prometheus.*/",
         "type": "datasource"
       },
       {
@@ -1387,21 +1387,17 @@
           "text": "",
           "value": ""
         },
+        "datasource": {
+          "type": "prometheus",
+          "uid": "${datasource}"
+        },
         "definition": "",
         "description": "",
         "hide": 2,
         "label": "Resource Group",
         "name": "resourceGroup",
         "options": [],
-        "query": {
-          "azureLogAnalytics": {
-            "query": "",
-            "resources": []
-          },
-          "queryType": "Azure Resource Groups",
-          "refId": "A",
-          "subscription": "$subscription"
-        },
+        "query": "",
         "refresh": 1,
         "regex": "/.*IMPINFRG1401.*/",
         "type": "query"
@@ -1413,7 +1409,7 @@
         },
         "datasource": {
           "type": "prometheus",
-          "uid": "bfq876mzxyfi8b"
+          "uid": "${datasource}"
         },
         "definition": "label_values(kube_pod_info, cluster)",
         "label": "Cluster",
@@ -1435,13 +1431,17 @@
         },
         "datasource": {
           "type": "prometheus",
-          "uid": "bfq876mzxyfi8b"
+          "uid": "${datasource}"
         },
-        "definition": "",
+        "definition": "label_values(kube_pod_info, namespace)",
         "hide": 2,
         "name": "Namespace",
         "options": [],
-        "query": "",
+        "query": {
+          "qryType": 5,
+          "query": "label_values(kube_pod_info, namespace)",
+          "refId": "PrometheusVariableQueryEditor-VariableQuery"
+        },
         "refresh": 1,
         "regex": "",
         "type": "query"
@@ -1480,37 +1480,9 @@
           "text": "f27f4f47-2766-40c8-8450-f585675f76a2",
           "value": "f27f4f47-2766-40c8-8450-f585675f76a2"
         },
-        "hide": 2,
-        "label": "subscription_c",
-        "name": "subscription_c",
-        "options": [
-          {
-            "selected": true,
-            "text": "DEV",
-            "value": "f27f4f47-2766-40c8-8450-f585675f76a2"
-          },
-          {
-            "selected": false,
-            "text": "TST",
-            "value": "0022ef8e-d44e-49c5-8cfd-5e8e9c6e913e"
-          },
-          {
-            "selected": false,
-            "text": "PRE",
-            "value": "3978eb4f-add1-415d-839b-db398e65a7d9"
-          }
-        ],
-        "query": "DEV : f27f4f47-2766-40c8-8450-f585675f76a2 , TST :  0022ef8e-d44e-49c5-8cfd-5e8e9c6e913e, PRE :  3978eb4f-add1-415d-839b-db398e65a7d9",
-        "type": "custom"
-      },
-      {
-        "current": {
-          "text": "f27f4f47-2766-40c8-8450-f585675f76a2",
-          "value": "f27f4f47-2766-40c8-8450-f585675f76a2"
-        },
         "datasource": {
           "type": "prometheus",
-          "uid": "bfq876mzxyfi8b"
+          "uid": "${datasource}"
         },
         "definition": "label_values(kube_pod_info, microsoft.subscriptionid)",
         "hide": 2,
@@ -1524,6 +1496,28 @@
         },
         "refresh": 1,
         "regex": "",
+        "type": "query"
+      },
+      {
+        "current": {
+          "text": "dev",
+          "value": "dev"
+        },
+        "datasource": {
+          "type": "prometheus",
+          "uid": "${datasource}"
+        },
+        "definition": "label_values(kube_pod_info, cluster)",
+        "hide": 2,
+        "name": "environment",
+        "options": [],
+        "query": {
+          "qryType": 5,
+          "query": "label_values(kube_pod_info, cluster)",
+          "refId": "PrometheusVariableQueryEditor-VariableQuery"
+        },
+        "refresh": 1,
+        "regex": "^(.{3}).*",
         "type": "query"
       }
     ]
