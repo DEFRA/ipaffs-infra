@@ -23,7 +23,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "bfq876mzxyfi8b"
+        "uid": "${datasource}"
       },
       "description": "Deployed Services with versions",
       "fieldConfig": {
@@ -92,7 +92,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "bfq876mzxyfi8b"
+            "uid": "${datasource}"
           },
           "disableTextWrap": false,
           "editorMode": "code",
