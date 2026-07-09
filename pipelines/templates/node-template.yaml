@@ -168,7 +168,7 @@ stages:
     dependsOn:
       - DetectContainerBuild
       - BuildService
-      ${{ if eq(parameters.runPlaywrightTests, true) }}:
+      - ${{ if eq(parameters.runPlaywrightTests, true) }}:
         - PlaywrightTests
     condition: and(
       not(failed()), not(canceled()),
