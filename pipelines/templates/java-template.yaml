@@ -36,10 +36,72 @@ parameters:
     type: string
     default: master
 
+  - name: runDependabotSync
+    type: boolean
+    default: false
+
 
 stages:
+  - ${{ if eq(parameters.runDependabotSync, true) }}:
+    - stage: SyncDependabot
+      displayName: Sync Dependabot config from ipaffs-infra template
+      dependsOn: []
+      condition: startsWith(variables['Build.SourceBranch'], 'refs/heads/')
+      jobs:
+        - job: SyncDependabot
+          displayName: Regenerate and commit .github/dependabot.yml from the canonical template
+          steps:
+            - checkout: self
+              path: s/self
+              persistCredentials: true
+
+            - checkout: ipaffs-infra
+              path: s/ipaffs-infra
+
+            - task: Bash@3
+              displayName: Generate and commit dependabot.yml
+              env:
+                SOURCE_BRANCH: $(Build.SourceBranch)
+              inputs:
+                targetType: inline
+                workingDirectory: $(Pipeline.Workspace)/s/self
+                script: |
+                  set -euo pipefail
+
+                  yq_version="v4.45.1"
+                  infra="$(Pipeline.Workspace)/s/ipaffs-infra"
+                  source_branch="${SOURCE_BRANCH#refs/heads/}"
+
+                  if ! command -v yq >/dev/null 2>&1; then
+                    echo "Installing yq ${yq_version}..."
+                    sudo wget -qO /usr/local/bin/yq \
+                      "https://github.com/mikefarah/yq/releases/download/${yq_version}/yq_linux_amd64"
+                    sudo chmod +x /usr/local/bin/yq
+                  fi
+
+                  bash "${infra}/scripts/tools/sync-dependabot.sh" \
+                    --template "${infra}/dependabot-templates/java.yml" \
+                    "$(Pipeline.Workspace)/s/self"
+
+                  git add .github/dependabot.yml
+                  if git diff --cached --quiet; then
+                    echo "dependabot.yml already up to date; nothing to commit."
+                    exit 0
+                  fi
+
+                  echo "----- changes to commit -----"
+                  git --no-pager diff --cached -- .github/dependabot.yml
+
+                  git config user.name "IPAFFS CI Bot"
+                  git config user.email "ipaffs-ci-bot@defra.gov.uk"
+                  git commit -m "IMTA-21519: sync Dependabot config from ipaffs-infra template"
+                  git pull --rebase origin "${source_branch}"
+                  git push origin "HEAD:refs/heads/${source_branch}"
+                  echo "Pushed updated dependabot.yml to ${source_branch}."
+
   - stage: DetectContainerBuild
     displayName: Detect Container Build Requirement
+    dependsOn: []
     variables:
       - group: Common
       - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:

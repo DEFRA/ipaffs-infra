@@ -1,0 +1,171 @@
+# Canonical Dependabot config for IPAFFS Java microservices — source of truth.
+# Regenerate per-repo copies with scripts/tools/sync-dependabot.sh (prunes blocks
+# whose manifest/Dockerfile is absent); do not hand-edit the generated copies.
+#
+# BLOCKER: Maven resolves through private Artifactory, unreachable by
+# Dependabot's runners until this registries block + its secrets exist.
+# Uncomment it and add `registries: "*"` to every maven block once they do.
+# registries:
+#   defra-artifactory:
+#     type: maven-repository
+#     url: https://artifactoryv2.azure.defra.cloud/artifactory/<virtual-repo>
+#     username: ${{secrets.DEPENDABOT_ARTIFACTORY_USER}}
+#     password: ${{secrets.DEPENDABOT_ARTIFACTORY_TOKEN}}
+#     replaces-base: true   # route ALL maven deps via Artifactory, not just private ones
+
+version: 2
+updates:
+  # Java (Maven) — main service module
+  - package-ecosystem: maven
+    directory: /service
+    schedule:
+      interval: weekly
+      day: monday
+      time: "07:00"
+      timezone: Europe/London
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+      - java
+    assignees:
+      - ardesai
+      - DannyJo
+      - khanhassan
+      - marcelvdh
+    commit-message:
+      prefix: IMTA-21519
+    # registries: "*"
+    groups:
+      minor-and-patch:
+        update-types:
+          - minor
+          - patch
+    ignore:
+      # TracesX parent is version-locked across all IPAFFS services.
+      # Major bumps are a coordinated estate-wide migration, not a per-repo PR.
+      - dependency-name: uk.gov.defra.tracesx:TracesX-SpringBoot-Common-Parent
+        update-types:
+          - version-update:semver-major
+
+  # Docker — service image
+  - package-ecosystem: docker
+    directory: /service
+    schedule:
+      interval: weekly
+      day: monday
+      time: "07:00"
+      timezone: Europe/London
+    open-pull-requests-limit: 3
+    labels:
+      - dependencies
+      - docker
+    assignees:
+      - ardesai
+      - DannyJo
+      - khanhassan
+      - marcelvdh
+    commit-message:
+      prefix: IMTA-21519
+    groups:
+      docker:
+        patterns:
+          - "*"
+
+  # Docker — migration/configuration image (pruned if configuration/Dockerfile* absent)
+  - package-ecosystem: docker
+    directory: /configuration
+    schedule:
+      interval: weekly
+      day: monday
+      time: "07:00"
+      timezone: Europe/London
+    open-pull-requests-limit: 3
+    labels:
+      - dependencies
+      - docker
+    assignees:
+      - ardesai
+      - DannyJo
+      - khanhassan
+      - marcelvdh
+    commit-message:
+      prefix: IMTA-21519
+    groups:
+      docker:
+        patterns:
+          - "*"
+
+  # Java (Maven) — integration-test module (pruned if integration/pom.xml absent)
+  - package-ecosystem: maven
+    directory: /integration
+    schedule:
+      interval: weekly
+      day: monday
+      time: "07:00"
+      timezone: Europe/London
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+      - java
+    assignees:
+      - ardesai
+      - DannyJo
+      - khanhassan
+      - marcelvdh
+    commit-message:
+      prefix: IMTA-21519
+    groups:
+      minor-and-patch:
+        update-types:
+          - minor
+          - patch
+
+  # Java (Maven) — data-importer module (pruned if dataimporter/pom.xml absent)
+  - package-ecosystem: maven
+    directory: /dataimporter
+    schedule:
+      interval: weekly
+      day: monday
+      time: "07:00"
+      timezone: Europe/London
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+      - java
+    assignees:
+      - ardesai
+      - DannyJo
+      - khanhassan
+      - marcelvdh
+    commit-message:
+      prefix: IMTA-21519
+    groups:
+      minor-and-patch:
+        update-types:
+          - minor
+          - patch
+
+  # Java (Maven) — configuration/database migration module (pruned if configuration/database/pom.xml absent)
+  - package-ecosystem: maven
+    directory: /configuration/database
+    schedule:
+      interval: weekly
+      day: monday
+      time: "07:00"
+      timezone: Europe/London
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+      - java
+    assignees:
+      - ardesai
+      - DannyJo
+      - khanhassan
+      - marcelvdh
+    commit-message:
+      prefix: IMTA-21519
+    groups:
+      minor-and-patch:
+        update-types:
+          - minor
+          - patch
