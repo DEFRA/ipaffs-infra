@@ -746,6 +746,84 @@ stages:
               scriptType: bash
               scriptPath: scripts/pipeline/add-principal-to-group.sh
 
+      - job: GrafanaGroups
+        displayName: Grafana Groups
+        condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+        steps:
+          - checkout: self
+
+          - task: AzureCLI@2
+            name: GrafanaAdmins
+            env:
+              GROUP_NAME: $(entraAccessGroupBaseName)-GrafanaAdmin
+              GROUP_DESCRIPTION: Entra access group for IPAFFS Grafana Admins in ${{ parameters.environmentName }} environment
+              GROUP_OWNER_OBJECT_IDS: >
+                $(serviceConnectionPrincipalId)
+                $(upstreamServiceConnectionPrincipalId)
+            inputs:
+              azureSubscription: $(upstreamServiceConnection)
+              scriptType: bash
+              scriptPath: scripts/pipeline/create-entra-group.sh
+
+          - task: AzureCLI@2
+            name: GrafanaAdminsMembersAdmins
+            env:
+              GROUP_ID: $(GrafanaAdmins.objectId)
+              PRINCIPAL_ID: $(teamAdminsGroupId)
+            inputs:
+              azureSubscription: $(serviceConnection)
+              scriptType: bash
+              scriptPath: scripts/pipeline/add-principal-to-group.sh
+
+          - task: AzureCLI@2
+            name: GrafanaEditors
+            env:
+              GROUP_NAME: $(entraAccessGroupBaseName)-GrafanaEditor
+              GROUP_DESCRIPTION: Entra access group for IPAFFS Grafana Editors in ${{ parameters.environmentName }} environment
+              GROUP_OWNER_OBJECT_IDS: >
+                $(serviceConnectionPrincipalId)
+                $(upstreamServiceConnectionPrincipalId)
+            inputs:
+              azureSubscription: $(upstreamServiceConnection)
+              scriptType: bash
+              scriptPath: scripts/pipeline/create-entra-group.sh
+
+          # Developers map to Grafana Editor in lower environments only (mirrors
+          # Search Contributors); higher envs get no Developer nesting.
+          - ${{ if and(ne(parameters.environmentName, 'PRE'), ne(parameters.environmentName, 'PRD')) }}:
+            - task: AzureCLI@2
+              name: GrafanaEditorsMembersDevelopers
+              env:
+                GROUP_ID: $(GrafanaEditors.objectId)
+                PRINCIPAL_ID: $(teamDevelopersGroupId)
+              inputs:
+                azureSubscription: $(serviceConnection)
+                scriptType: bash
+                scriptPath: scripts/pipeline/add-principal-to-group.sh
+
+          - task: AzureCLI@2
+            name: GrafanaViewers
+            env:
+              GROUP_NAME: $(entraAccessGroupBaseName)-GrafanaViewer
+              GROUP_DESCRIPTION: Entra access group for IPAFFS Grafana Viewers in ${{ parameters.environmentName }} environment
+              GROUP_OWNER_OBJECT_IDS: >
+                $(serviceConnectionPrincipalId)
+                $(upstreamServiceConnectionPrincipalId)
+            inputs:
+              azureSubscription: $(upstreamServiceConnection)
+              scriptType: bash
+              scriptPath: scripts/pipeline/create-entra-group.sh
+
+          - task: AzureCLI@2
+            name: GrafanaViewersMembersReaders
+            env:
+              GROUP_ID: $(GrafanaViewers.objectId)
+              PRINCIPAL_ID: $(teamReadersGroupId)
+            inputs:
+              azureSubscription: $(serviceConnection)
+              scriptType: bash
+              scriptPath: scripts/pipeline/add-principal-to-group.sh
+
       - job: StorageGroups
         displayName: Storage Account Groups
         condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
@@ -870,6 +948,7 @@ stages:
           - AksGroups
           - KeyVaultGroups
           - SearchGroups
+          - GrafanaGroups
           - StorageGroups
           - SQLGroups
         variables:
@@ -913,6 +992,18 @@ stages:
             value: $[dependencies.SearchGroups.outputs['SearchReaders.displayName']]
           - name: searchReadersObjectId
             value: $[dependencies.SearchGroups.outputs['SearchReaders.objectId']]
+          - name: grafanaAdminsDisplayName
+            value: $[dependencies.GrafanaGroups.outputs['GrafanaAdmins.displayName']]
+          - name: grafanaAdminsObjectId
+            value: $[dependencies.GrafanaGroups.outputs['GrafanaAdmins.objectId']]
+          - name: grafanaEditorsDisplayName
+            value: $[dependencies.GrafanaGroups.outputs['GrafanaEditors.displayName']]
+          - name: grafanaEditorsObjectId
+            value: $[dependencies.GrafanaGroups.outputs['GrafanaEditors.objectId']]
+          - name: grafanaViewersDisplayName
+            value: $[dependencies.GrafanaGroups.outputs['GrafanaViewers.displayName']]
+          - name: grafanaViewersObjectId
+            value: $[dependencies.GrafanaGroups.outputs['GrafanaViewers.objectId']]
           - name: blobStorageContributorsDisplayName
             value: $[dependencies.StorageGroups.outputs['BlobStorageContributors.displayName']]
           - name: blobStorageContributorsObjectId
@@ -957,6 +1048,12 @@ stages:
                 scripts/pipeline/update-group-variable.sh searchContributorsGroupName '$(searchContributorsDisplayName)'
                 scripts/pipeline/update-group-variable.sh searchReadersGroupId '$(searchReadersObjectId)'
                 scripts/pipeline/update-group-variable.sh searchReadersGroupName '$(searchReadersDisplayName)'
+                scripts/pipeline/update-group-variable.sh grafanaAdminsGroupId '$(grafanaAdminsObjectId)'
+                scripts/pipeline/update-group-variable.sh grafanaAdminsGroupName '$(grafanaAdminsDisplayName)'
+                scripts/pipeline/update-group-variable.sh grafanaEditorsGroupId '$(grafanaEditorsObjectId)'
+                scripts/pipeline/update-group-variable.sh grafanaEditorsGroupName '$(grafanaEditorsDisplayName)'
+                scripts/pipeline/update-group-variable.sh grafanaViewersGroupId '$(grafanaViewersObjectId)'
+                scripts/pipeline/update-group-variable.sh grafanaViewersGroupName '$(grafanaViewersDisplayName)'
                 scripts/pipeline/update-group-variable.sh blobStorageContributorsGroupId '$(blobStorageContributorsObjectId)'
                 scripts/pipeline/update-group-variable.sh blobStorageContributorsGroupName '$(blobStorageContributorsDisplayName)'
                 scripts/pipeline/update-group-variable.sh blobStorageReadersGroupId '$(blobStorageReadersObjectId)'

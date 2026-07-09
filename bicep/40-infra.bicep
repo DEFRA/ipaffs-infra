@@ -9,6 +9,7 @@ param classicResourceIds object
 param entraGroups object
 param subnets object
 param tenantId string
+param deployServicePrincipalObjectId string
 param vnetName string
 
 param createdDate string = utcNow('yyyy-MM-dd')
@@ -152,6 +153,8 @@ module monitoring './modules/monitoring.bicep' = {
     location: location
     tags: tags
     monitoringParams: monitoringParams
+    entraGroups: entraGroups
+    deployServicePrincipalObjectId: deployServicePrincipalObjectId
   }
 }
 

@@ -11,6 +11,7 @@ param entraGroups = {}
 param environment = 'PRD'
 param subnets = {}
 param tenantId = ''
+param deployServicePrincipalObjectId = ''
 param vnetName = 'PRDIMPNETVN1401'
 
 param aksParams = {
