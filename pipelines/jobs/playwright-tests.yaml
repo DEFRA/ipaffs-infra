@@ -1,0 +1,35 @@
+parameters:
+  - name: nodeVersion
+    type: string
+
+jobs:
+  - job: PlaywrightTests
+    displayName: Playwright Tests
+    steps:
+      - task: NodeTool@0
+        displayName: Install Node
+        inputs:
+          versionSpec: ${{ parameters.nodeVersion }}
+          addToPath: true
+
+      - script: npm ci
+        displayName: Install dependencies
+        workingDirectory: service
+
+      - script: npx playwright install --with-deps chromium
+        displayName: Install Playwright browsers
+        workingDirectory: service
+
+      - script: npm run test:playwright
+        displayName: Run Playwright tests
+        workingDirectory: service
+        env:
+          CI: true
+
+      - task: PublishTestResults@2
+        displayName: Publish test results
+        condition: always()
+        inputs:
+          testResultsFormat: JUnit
+          testResultsFiles: 'service/playwright-report/results.xml'
+          failTaskOnFailedTests: true

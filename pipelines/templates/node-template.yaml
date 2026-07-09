@@ -27,6 +27,10 @@ parameters:
     type: string
     default: master
 
+  - name: runPlaywrightTests
+    type: boolean
+    default: false
+
 stages:
   - stage: DetectContainerBuild
     displayName: Detect Container Build Requirement
@@ -122,6 +126,33 @@ stages:
         parameters:
           nodeVersion: "${{ parameters.nodeVersion }}"
 
+  - ${{ if eq(parameters.runPlaywrightTests, true) }}:
+    - stage: PlaywrightTests
+      displayName: Playwright Tests
+      variables:
+        - group: Common
+        - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
+            - group: HigherEnvs
+        - ${{ else }}:
+            - group: LowerEnvs
+        - group: "${{ parameters.environmentName }}"
+        - template: "/pipelines/vars/common.yaml"
+        - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
+
+      dependsOn:
+        - DetectContainerBuild
+        - BuildService
+      condition: and(
+        not(failed()), not(canceled()),
+        eq(dependencies.DetectContainerBuild.result, 'Succeeded'),
+        ne(dependencies.DetectContainerBuild.outputs['DetermineBuildMode.SetBuildMode.skipContainerBuild'], 'true'),
+        eq(dependencies.BuildService.result, 'Succeeded')
+        )
+      jobs:
+        - template: /pipelines/jobs/playwright-tests.yaml@ipaffs-infra
+          parameters:
+            nodeVersion: "${{ parameters.nodeVersion }}"
+
   - stage: PackageService
     displayName: Package Service Image
     variables:
@@ -137,6 +168,8 @@ stages:
     dependsOn:
       - DetectContainerBuild
       - BuildService
+      ${{ if eq(parameters.runPlaywrightTests, true) }}:
+        - PlaywrightTests
     condition: and(
       not(failed()), not(canceled()),
       eq(dependencies.DetectContainerBuild.result, 'Succeeded'),
