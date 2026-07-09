@@ -159,10 +159,10 @@ stages:
                       ${DOCKER_RUN} npm test -- --workers="${WORKERS}"
                       ;;
                     "test:a11y")
-                      ${DOCKER_RUN} npm test:a11y -- --workers="${WORKERS}"
+                      ${DOCKER_RUN} npm run test:a11y -- --workers="${WORKERS}"
                       ;;
                     "test:cross-browser")
-                      ${DOCKER_RUN} npm test:browserstack -- --workers="${WORKERS}"
+                      ${DOCKER_RUN} npm run test:browserstack -- --workers="${WORKERS}"
                       ;;
                     *)
                       echo "Unknown test suite tag: ${TEST_SUITE}"
