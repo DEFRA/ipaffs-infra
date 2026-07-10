@@ -25,6 +25,8 @@ jobs:
         workingDirectory: service
         env:
           CI: true
+          PLAYWRIGHT_TEST_OUTPUT_DIR: $(Build.SourcesDirectory)/service/test-results
+          PLAYWRIGHT_HTML_REPORT_DIR: $(Build.SourcesDirectory)/service/playwright-report
 
       - task: PublishPipelineArtifact@1
         displayName: Publish Playwright report artifact
