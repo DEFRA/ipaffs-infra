@@ -1344,6 +1344,7 @@
     "list": [
       {
         "current": {
+          "selected": true,
           "text": "Prometheus",
           "value": "bfq876mzxyfi8b"
         },
