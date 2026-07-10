@@ -5,8 +5,8 @@
 #   ./validator.sh [--hide-unresolved] [config-file]
 #   --hide-unresolved - suppress per-service "UNRESOLVED" lines
 #
-# Config: pass a per-environment file to source (e.g. tst.env, see
-# config.env.example), or omit it to use the current environment.
+# Config: pass a per-environment file to source (e.g. tst.env), or omit it to use
+# the current environment.
 #
 # Requires: az (logged in), jq, yq. Targets bash 3.2 and Git Bash.
 
@@ -81,7 +81,7 @@ while [[ $# -gt 0 ]]; do
   case "${1}" in
     --hide-unresolved) HIDE_UNRESOLVED=1; shift ;;
     --) shift; break ;;
-    -*) fail "Unknown option '${1}' (usage: check-secret-drift.sh [--hide-unresolved] [config-file])" ;;
+    -*) fail "Unknown option '${1}' (usage: validator.sh [--hide-unresolved] [config-file])" ;;
     *) CONFIG_FILE="${1}"; shift ;;
   esac
 done
@@ -102,9 +102,13 @@ fi
 : "${TARGET_VAULT_SUBSCRIPTION:?TARGET_VAULT_SUBSCRIPTION is required}"
 : "${APP_SERVICE_SUBSCRIPTION:?APP_SERVICE_SUBSCRIPTION is required}"
 : "${SERVICES_DIR:?SERVICES_DIR is required}"
+: "${ENVIRONMENTS_DIR:?ENVIRONMENTS_DIR is required}"
+: "${ENVIRONMENT:?ENVIRONMENT is required}"
 : "${SERVICE_MAPPING_FILE:?SERVICE_MAPPING_FILE is required}"
 
+ENVIRONMENT_DIR="${ENVIRONMENTS_DIR}/${ENVIRONMENT}"
 [[ -d "${SERVICES_DIR}" ]] || fail "SERVICES_DIR '${SERVICES_DIR}' is not a directory"
+[[ -d "${ENVIRONMENT_DIR}" ]] || fail "ENVIRONMENT_DIR '${ENVIRONMENT_DIR}' is not a directory"
 [[ -f "${SERVICE_MAPPING_FILE}" ]] || fail "SERVICE_MAPPING_FILE '${SERVICE_MAPPING_FILE}' not found"
 
 is_prd_vault "${SOURCE_VAULT_NAME}" && fail "Refusing to run: SOURCE_VAULT_NAME '${SOURCE_VAULT_NAME}' looks like a production vault"
@@ -140,14 +144,25 @@ resource_group_for() {
   printf '%s\n' "${app_sites_tsv}" | awk -F'\t' -v n="${1}" '$1 == n { print $2; exit }'
 }
 
-for base_yaml in "${SERVICES_DIR}"/*/base.yaml; do
-  [[ -f "${base_yaml}" ]] || continue
+for env_yaml in "${ENVIRONMENT_DIR}"/*.yaml; do
+  [[ -f "${env_yaml}" ]] || continue
 
-  service="$(yq e '.service' "${base_yaml}")"
-  [[ -n "${service}" && "${service}" != "null" ]] || { log "SKIP: no .service in ${base_yaml}"; count_skipped=$((count_skipped + 1)); continue; }
+  service="$(basename "${env_yaml}" .yaml)"
+  base_yaml="${SERVICES_DIR}/${service}/base.yaml"
 
-  secrets_present="$(yq e '.externalSecret.secrets // "" | length' "${base_yaml}")"
-  if [[ -z "${secrets_present}" || "${secrets_present}" == "0" ]]; then
+  # helmfile merges base first, environment last; a list in the environment file
+  # replaces base's list outright. So the override wins whenever it defines one.
+  if [[ "$(yq e '.externalSecret // {} | has("secrets")' "${env_yaml}")" == "true" ]]; then
+    secrets_yaml="${env_yaml}"
+  elif [[ -f "${base_yaml}" ]]; then
+    secrets_yaml="${base_yaml}"
+  else
+    record_error "${service}: no externalSecret.secrets override and no base.yaml at ${base_yaml}"
+    continue
+  fi
+
+  secrets_present="$(yq e '[.externalSecret.secrets // [] | .[]] | length' "${secrets_yaml}")"
+  if [[ "${secrets_present}" == "0" ]]; then
     log "SKIP: ${service} has no externalSecret.secrets"
     count_skipped=$((count_skipped + 1))
     continue
@@ -216,7 +231,7 @@ for base_yaml in "${SERVICES_DIR}"/*/base.yaml; do
       fi
 
       unset target_value source_value
-    done < <(yq e '.externalSecret.secrets[] | .secretKey + "|" + .remoteKey' "${base_yaml}")
+    done < <(yq e '.externalSecret.secrets[] | .secretKey + "|" + .remoteKey' "${secrets_yaml}")
 
   done
 done
