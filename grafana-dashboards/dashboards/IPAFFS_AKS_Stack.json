@@ -1344,7 +1344,6 @@
     "list": [
       {
         "current": {
-          "selected": true,
           "text": "Prometheus",
           "value": "bfq876mzxyfi8b"
         },
@@ -1393,7 +1392,7 @@
           "uid": "${datasource}"
         },
         "definition": "",
-        "description": "",
+        "description": "AKS Resource Group",
         "hide": 2,
         "label": "Resource Group",
         "name": "resourceGroup",
