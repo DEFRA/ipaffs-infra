@@ -13,9 +13,9 @@ variables:
 parameters:
   - name: environmentName
     type: string
-    default: TST
+    default: PRE
     values:
-      - TST
+      - PRE
 
 stages:
   - stage: Deploy
@@ -31,12 +31,25 @@ stages:
 
                 - task: AzureCLI@2
                   displayName: Deploy
+                  env:
+                    AZURE_CONFIG_DIR: $(Pipeline.Workspace)/.azure
                   inputs:
                     azureSubscription: $(serviceConnection)
                     scriptType: bash
                     scriptLocation: inlineScript
                     inlineScript: |
-                      az keyvault secret list --vault-name SECIMPTSTKVT001
+                      az account show
+
+                - task: AzureCLI@2
+                  displayName: Deploy
+                  env:
+                    AZURE_CONFIG_DIR: $(Pipeline.Workspace)/.azure2
+                  inputs:
+                    azureSubscription: $(classicServiceConnection)
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      az account show
 
                 - task: AzureCLI@2
                   displayName: Deploy
@@ -45,6 +58,7 @@ stages:
                     scriptType: bash
                     scriptLocation: inlineScript
                     inlineScript: |
-                      az keyvault secret list --vault-name TSTIMPINFKV1401
+                      AZURE_CONFIG_DIR=$(Pipeline.Workspace)/.azure2 az keyvault secret list --vault-name SECIMPPREKVT001
+                      AZURE_CONFIG_DIR=$(Pipeline.Workspace)/.azure az keyvault secret list --vault-name PREIMPINFKV1401
 
 # vim: set ts=2 sts=2 sw=2 et:
