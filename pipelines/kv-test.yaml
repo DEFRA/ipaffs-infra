@@ -38,25 +38,23 @@ stages:
 
                 - task: AzureCLI@2
                   displayName: Deploy
-                  env:
-                    AZURE_CONFIG_DIR: $(Pipeline.Workspace)/.azure
                   inputs:
                     azureSubscription: $(serviceConnection)
                     scriptType: bash
                     scriptLocation: inlineScript
                     inlineScript: |
                       az account show
+                      rsync -av "${AZURE_CONFIG_DIR}"/ "$(Pipeline.Workspace)/.azure/"
 
                 - task: AzureCLI@2
                   displayName: Deploy
-                  env:
-                    AZURE_CONFIG_DIR: $(Pipeline.Workspace)/.azure2
                   inputs:
                     azureSubscription: $(classicServiceConnection)
                     scriptType: bash
                     scriptLocation: inlineScript
                     inlineScript: |
                       az account show
+                      rsync -av "${AZURE_CONFIG_DIR}"/ "$(Pipeline.Workspace)/.azure2/"
 
                 - task: AzureCLI@2
                   displayName: Deploy
