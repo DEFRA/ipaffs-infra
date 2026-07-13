@@ -63,7 +63,18 @@ stages:
                     scriptType: bash
                     scriptLocation: inlineScript
                     inlineScript: |
-                      AZURE_CONFIG_DIR=$(Pipeline.Workspace)/.azure2 az keyvault secret list --vault-name SECIMPPREKVT001
-                      AZURE_CONFIG_DIR=$(Pipeline.Workspace)/.azure az keyvault secret list --vault-name PREIMPINFKV1401
+                      cat >my-config-file <<EOF
+                      SOURCE_VAULT_NAME=$(keyVaultName)
+                      SOURCE_VAULT_AZCLI_DIR=$(Pipeline.Workspace)/.azure
+                      TARGET_VAULT_NAME=$(classicKeyVaultName)
+                      TARGET_VAULT_AZCLI_DIR=$(Pipeline.Workspace)/.azure2
+                      APP_SERVICE_SUBSCRIPTION=$(classicSubscriptionName)
+                      ENVIRONMENT=${{ lower(parameters.environmentName) }}
+                      SERVICES_DIR=../../../../ipaffs-manifest/services
+                      ENVIRONMENTS_DIR=../../../../ipaffs-manifest/environments
+                      SERVICE_MAPPING_FILE=./service-mapping-tst.txt
+                      EOF
+
+                      # scripts/pipeline/configuration-validator/validator.sh ... my-config-file
 
 # vim: set ts=2 sts=2 sw=2 et:

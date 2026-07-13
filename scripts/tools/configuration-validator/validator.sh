@@ -49,14 +49,13 @@ is_prd_vault() {
 }
 
 read_secret() {
-  local vault="${1}" name="${2}" subscription="${3}"
+  local vault="${1}" name="${2}" azcli_dir="${3}"
   if is_prd_vault "${vault}"; then
     return 1
   fi
-  az keyvault secret show \
+  AZURE_CONFIG_DIR="${azcli_dir}" az keyvault secret show \
     --vault-name "${vault}" \
     --name "${name}" \
-    --subscription "${subscription}" \
     --query value --output tsv 2>/dev/null
 }
 
@@ -107,9 +106,9 @@ if [[ -n "${CONFIG_FILE}" ]]; then
 fi
 
 : "${SOURCE_VAULT_NAME:?SOURCE_VAULT_NAME is required}"
-: "${SOURCE_VAULT_SUBSCRIPTION:?SOURCE_VAULT_SUBSCRIPTION is required}"
+: "${SOURCE_VAULT_AZCLI_DIR:?SOURCE_VAULT_AZCLI_DIR is required}"
 : "${TARGET_VAULT_NAME:?TARGET_VAULT_NAME is required}"
-: "${TARGET_VAULT_SUBSCRIPTION:?TARGET_VAULT_SUBSCRIPTION is required}"
+: "${TARGET_VAULT_AZCLI_DIR:?TARGET_VAULT_AZCLI_DIR is required}"
 : "${APP_SERVICE_SUBSCRIPTION:?APP_SERVICE_SUBSCRIPTION is required}"
 : "${SERVICES_DIR:?SERVICES_DIR is required}"
 : "${ENVIRONMENTS_DIR:?ENVIRONMENTS_DIR is required}"
@@ -233,12 +232,12 @@ for env_yaml in "${ENVIRONMENT_DIR}"/*.yaml; do
       target="${parsed_vault}/${parsed_secret}"
       source="${SOURCE_VAULT_NAME}/${remote_key}"
 
-      if ! target_value="$(read_secret "${parsed_vault}" "${parsed_secret}" "${TARGET_VAULT_SUBSCRIPTION}")"; then
+      if ! target_value="$(read_secret "${parsed_vault}" "${parsed_secret}" "${TARGET_VAULT_AZCLI_DIR}")"; then
         record_error "${service}/${app_service} could not read target secret '${parsed_secret}' from vault '${parsed_vault}'"
         csv_row ERROR_READ_TARGET "${service}" "${app_service}" "${secret_key}" "${target}" "${source}"
         continue
       fi
-      if ! source_value="$(read_secret "${SOURCE_VAULT_NAME}" "${remote_key}" "${SOURCE_VAULT_SUBSCRIPTION}")"; then
+      if ! source_value="$(read_secret "${SOURCE_VAULT_NAME}" "${remote_key}" "${SOURCE_VAULT_AZCLI_DIR}")"; then
         record_error "${service}/${app_service} could not read source secret '${remote_key}' from vault '${SOURCE_VAULT_NAME}'"
         csv_row ERROR_READ_SOURCE "${service}" "${app_service}" "${secret_key}" "${target}" "${source}"
         unset target_value
