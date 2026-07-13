@@ -1,0 +1,48 @@
+parameters:
+  - name: nodeVersion
+    type: string
+
+jobs:
+  - job: PlaywrightTests
+    displayName: Playwright Tests
+    steps:
+      - task: NodeTool@0
+        displayName: Install Node
+        inputs:
+          versionSpec: ${{ parameters.nodeVersion }}
+          addToPath: true
+
+      - script: npm ci
+        displayName: Install dependencies
+        workingDirectory: service
+
+      - script: npx playwright install --with-deps chromium
+        displayName: Install Playwright browsers
+        workingDirectory: service
+
+      - script: npm run test:playwright
+        displayName: Run Playwright tests
+        workingDirectory: service
+        env:
+          CI: true
+          PLAYWRIGHT_TEST_OUTPUT_DIR: $(Build.SourcesDirectory)/service/test-results
+          PLAYWRIGHT_HTML_REPORT_DIR: $(Build.SourcesDirectory)/service/playwright-report
+
+      - task: PublishPipelineArtifact@1
+        displayName: Publish Playwright report artifact
+        condition: succeededOrFailed()
+        inputs:
+          targetPath: $(Build.SourcesDirectory)/service/playwright-report
+          artifact: playwright-report-$(Build.BuildNumber)
+          publishLocation: pipeline
+
+      - task: PublishTestResults@2
+        displayName: Publish test results
+        condition: succeededOrFailed()
+        inputs:
+          searchFolder: $(Build.SourcesDirectory)/service/test-results
+          testResultsFormat: JUnit
+          testResultsFiles: junit.xml
+          mergeTestResults: true
+          testRunTitle: Playwright Tests $(Build.BuildNumber)
+          failTaskOnFailedTests: true
