@@ -20,9 +20,11 @@ variables:
 parameters:
   - name: environmentName
     type: string
-    default: PRE
+    default: TST
     values:
+      - TST
       - PRE
+      - PRD
 
 stages:
   - stage: Deploy
