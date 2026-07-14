@@ -105,4 +105,12 @@ stages:
                       set -x
                       cat config.env
                       pwd
-                      ./validator.sh --hide-unresolved config.env
+                      ./validator.sh --hide-unresolved --csv results.csv config.env
+
+                - task: PublishPipelineArtifact@1
+                  displayName: Publish Test Results
+                  inputs:
+                    targetPath: $(Pipeline.Workspace)/s/ipaffs-infra/scripts/tools/configuration-validator/results.csv
+                    artifact: validator-results-$(Build.BuildNumber)
+                    publishLocation: 'pipeline'
+                  condition: succeededOrFailed()
