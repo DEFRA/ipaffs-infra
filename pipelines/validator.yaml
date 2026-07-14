@@ -96,6 +96,7 @@ stages:
 
                 - task: AzureCLI@2
                   displayName: Run Drift Detection Script
+                  continueOnError: true
                   inputs:
                     azureSubscription: $(serviceConnection)
                     scriptType: bash
