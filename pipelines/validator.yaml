@@ -75,7 +75,7 @@ stages:
                     azureSubscription: $(serviceConnection)
                     scriptType: bash
                     scriptLocation: inlineScript
-                    workingDirectory: $(Pipeline.Workspace)/s/ipaffs-infra/configuration-validator
+                    workingDirectory: $(Pipeline.Workspace)/s/ipaffs-infra/scripts/tools/configuration-validator
                     inlineScript: |
                       cat >config.env <<EOF
                       SOURCE_VAULT_NAME=TSTIMPINFKV1401
@@ -100,8 +100,9 @@ stages:
                     azureSubscription: $(serviceConnection)
                     scriptType: bash
                     scriptLocation: inlineScript
-                    workingDirectory: $(Pipeline.Workspace)/s/ipaffs-infra/configuration-validator
+                    workingDirectory: $(Pipeline.Workspace)/s/ipaffs-infra/scripts/tools/configuration-validator
                     inlineScript: |
                       set -x
                       cat config.env
+                      pwd
                       ./validator.sh --hide-unresolved config.env
