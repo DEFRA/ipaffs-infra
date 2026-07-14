@@ -78,15 +78,15 @@ stages:
                     workingDirectory: $(Pipeline.Workspace)/s/ipaffs-infra/scripts/tools/configuration-validator
                     inlineScript: |
                       cat >config.env <<EOF
-                      SOURCE_VAULT_NAME=TSTIMPINFKV1401
+                      SOURCE_VAULT_NAME=$(validatorSrcVault)
                       SOURCE_VAULT_AZCLI_DIR=$(Pipeline.Workspace)/.azure
-                      SOURCE_VAULT_SUBSCRIPTION=AZR-IMP-TST1
+                      SOURCE_VAULT_SUBSCRIPTION=$(validatorSrcSubscription)
 
-                      TARGET_VAULT_NAME=SECIMPTSTKVT001
+                      TARGET_VAULT_NAME=$(validatorTgtVault)
                       TARGET_VAULT_AZCLI_DIR=$(Pipeline.Workspace)/.azure2
-                      TARGET_VAULT_SUBSCRIPTION=AZR-SEC
+                      TARGET_VAULT_SUBSCRIPTION=$(validatorTgtSubscription)
 
-                      APP_SERVICE_SUBSCRIPTION=$(classicSubscriptionName)
+                      APP_SERVICE_SUBSCRIPTION=$(validatorAppServiceSubscription)
                       ENVIRONMENT=${{ lower(parameters.environmentName) }}
 
                       SERVICES_DIR=$(Pipeline.Workspace)/s/ipaffs-manifest/services
@@ -104,7 +104,6 @@ stages:
                     inlineScript: |
                       set -x
                       cat config.env
-                      pwd
                       ./validator.sh --hide-unresolved --csv results.csv config.env
 
                 - task: PublishPipelineArtifact@1
