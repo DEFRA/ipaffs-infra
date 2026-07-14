@@ -14,4 +14,13 @@ spec:
   loadBalancerAnnotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
+  customHTTPErrors:
+    - 403
+    - 502
+
+  defaultBackendService:
+    name: error-page
+    namespace: ingress-system
+
+
 
