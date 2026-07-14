@@ -26,6 +26,14 @@ parameters:
       - PRE
       - PRD
 
+resources:
+  repositories:
+    - repository: ipaffs-manifest
+      type: github
+      endpoint: DEFRA
+      name: DEFRA/ipaffs-manifest
+      ref: refs/heads/main
+
 stages:
   - stage: Deploy
     jobs:
