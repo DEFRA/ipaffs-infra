@@ -36,6 +36,9 @@ stages:
               steps:
                 - checkout: self
 
+                - checkout: ipaffs-manifest
+                  path: s/ipaffs-manifest
+
                 - task: AzureCLI@2
                   displayName: Deploy
                   inputs:
@@ -57,24 +60,40 @@ stages:
                       rsync -av "${AZURE_CONFIG_DIR}"/ "$(Pipeline.Workspace)/.azure2/"
 
                 - task: AzureCLI@2
-                  displayName: Deploy
+                  displayName: Setup Environment Configuration
                   inputs:
                     azureSubscription: $(serviceConnection)
                     scriptType: bash
                     scriptLocation: inlineScript
+                    workingDirectory: $(Pipeline.Workspace)/s/ipaffs-infra/configuration-validator
                     inlineScript: |
-                      cat >my-config-file <<EOF
+                      cat >config.env <<EOF
                       SOURCE_VAULT_NAME=$(keyVaultName)
                       SOURCE_VAULT_AZCLI_DIR=$(Pipeline.Workspace)/.azure
+                      SOURCE_VAULT_SUBSCRIPTION=AZR-IMP-TST1
+
                       TARGET_VAULT_NAME=$(classicKeyVaultName)
                       TARGET_VAULT_AZCLI_DIR=$(Pipeline.Workspace)/.azure2
+                      TARGET_VAULT_SUBSCRIPTION=AZR-SEC
+
                       APP_SERVICE_SUBSCRIPTION=$(classicSubscriptionName)
                       ENVIRONMENT=${{ lower(parameters.environmentName) }}
-                      SERVICES_DIR=../../../../ipaffs-manifest/services
-                      ENVIRONMENTS_DIR=../../../../ipaffs-manifest/environments
-                      SERVICE_MAPPING_FILE=./service-mapping-tst.txt
+
+                      SERVICES_DIR=$(Pipeline.Workspace)/s/ipaffs-manifest/services
+                      ENVIRONMENTS_DIR=$(Pipeline.Workspace)/s/ipaffs-manifest/environments
+                      SERVICE_MAPPING_FILE=$(Pipeline.Workspace)/s/ipaffs-infra/scripts/tools/configuration-validator/service-mappings-tst.txt
                       EOF
 
-                      # scripts/pipeline/configuration-validator/validator.sh ... my-config-file
-
-# vim: set ts=2 sts=2 sw=2 et:
+                - task: AzureCLI@2
+                  displayName: Run Drift Detection Script
+                  env:
+                    IMAGE_TAG: ${{ parameters.imageTag }}
+                    QA_AUTOMATION_ENV: ${{ lower(parameters.environmentName) }}
+                  inputs:
+                    azureSubscription: $(serviceConnection)
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    workingDirectory: $(Pipeline.Workspace)/s/ipaffs-infra/configuration-validator
+                    inlineScript: |
+                      set -x
+                      ./validator.sh --hide-unresolved config.env
