@@ -32,7 +32,7 @@ resources:
       type: github
       endpoint: DEFRA
       name: DEFRA/ipaffs-manifest
-      ref: refs/heads/main
+      ref: refs/heads/master
 
 stages:
   - stage: Deploy
