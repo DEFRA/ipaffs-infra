@@ -1,8 +1,6 @@
 ---
-trigger:
-  branches:
-    include:
-      - imta-21564-drift
+trigger: none
+pr: none
 
 pool:
   name: DEFRA-COMMON-ubuntu2204-SSV5
