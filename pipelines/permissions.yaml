@@ -32,6 +32,6 @@ stages:
                         --role Owner \
                         --assignee-object-id 29224d1d-02b9-40ad-9a06-0f71087233b9 \
                         --assignee-principal-type User \
-                        --scope /subscriptions/81ca326e-6270-418a-b764-e02a4ca60457/resourceGroups/PREIMPINFRGP001
+                        --scope /subscriptions/3978eb4f-add1-415d-839b-db398e65a7d9/resourceGroups/PREIMPINFRG1401
 
 # vim: set ts=2 sts=2 sw=2 et:
