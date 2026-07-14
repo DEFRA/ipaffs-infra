@@ -88,9 +88,6 @@ stages:
 
                 - task: AzureCLI@2
                   displayName: Run Drift Detection Script
-                  env:
-                    IMAGE_TAG: ${{ parameters.imageTag }}
-                    QA_AUTOMATION_ENV: ${{ lower(parameters.environmentName) }}
                   inputs:
                     azureSubscription: $(serviceConnection)
                     scriptType: bash
