@@ -24,7 +24,7 @@ stages:
                 - task: AzureCLI@2
                   displayName: Deploy
                   inputs:
-                    azureSubscription: ADO-DefraGovUK-AZR-PRE_IMP
+                    azureSubscription: ADO-DefraGovUK-AZR-IMP-PRE1
                     scriptType: bash
                     scriptLocation: inlineScript
                     inlineScript: |
