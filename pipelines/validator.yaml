@@ -78,11 +78,11 @@ stages:
                     workingDirectory: $(Pipeline.Workspace)/s/ipaffs-infra/configuration-validator
                     inlineScript: |
                       cat >config.env <<EOF
-                      SOURCE_VAULT_NAME=$(keyVaultName)
+                      SOURCE_VAULT_NAME=TSTIMPINFKV1401
                       SOURCE_VAULT_AZCLI_DIR=$(Pipeline.Workspace)/.azure
                       SOURCE_VAULT_SUBSCRIPTION=AZR-IMP-TST1
 
-                      TARGET_VAULT_NAME=$(classicKeyVaultName)
+                      TARGET_VAULT_NAME=SECIMPTSTKVT001
                       TARGET_VAULT_AZCLI_DIR=$(Pipeline.Workspace)/.azure2
                       TARGET_VAULT_SUBSCRIPTION=AZR-SEC
 
@@ -103,4 +103,5 @@ stages:
                     workingDirectory: $(Pipeline.Workspace)/s/ipaffs-infra/configuration-validator
                     inlineScript: |
                       set -x
+                      cat config.env
                       ./validator.sh --hide-unresolved config.env
