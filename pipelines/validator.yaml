@@ -89,7 +89,7 @@ stages:
 
                       SERVICES_DIR=$(Pipeline.Workspace)/s/ipaffs-manifest/services
                       ENVIRONMENTS_DIR=$(Pipeline.Workspace)/s/ipaffs-manifest/environments
-                      SERVICE_MAPPING_FILE=$(Pipeline.Workspace)/s/ipaffs-infra/scripts/tools/configuration-validator/service-mappings-tst.txt
+                      SERVICE_MAPPING_FILE=$(Pipeline.Workspace)/s/ipaffs-infra/scripts/tools/configuration-validator/service-mappings-${{ lower(parameters.environmentName) }}.txt
                       EOF
 
                 - task: AzureCLI@2
