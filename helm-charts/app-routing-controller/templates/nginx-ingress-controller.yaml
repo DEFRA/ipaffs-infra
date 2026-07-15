@@ -15,8 +15,9 @@ spec:
     {{- toYaml . | nindent 4 }}
   {{- end }}
   customHTTPErrors:
-    - 403
     - 502
+    - 503
+    - 504
 
   defaultBackendService:
     name: error-page
