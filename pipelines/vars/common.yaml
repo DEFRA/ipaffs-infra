@@ -22,7 +22,6 @@ variables:
   # SC-cleared admin accounts only!
   higherEnvsReadersGroupMembers: >
     a-gaurav.seth@defra.onmicrosoft.com
-    a-raja.sekhar@Defra.onmicrosoft.com
     a-tom.bamford@Defra.onmicrosoft.com
     a-aarthy.siddapareddy@Defra.onmicrosoft.com
 
@@ -60,17 +59,14 @@ variables:
     a-gaurav.seth@defra.onmicrosoft.com
     a-hassan.khan@defra.onmicrosoft.com
     a-paul.maguire@defra.onmicrosoft.com
-    a-raja.sekhar@Defra.onmicrosoft.com
     a-toby.steed@defra.onmicrosoft.com
     aarthy.siddapareddy@Defra.onmicrosoft.com
     abhishek.desai@Defra.onmicrosoft.com
     gaurav.seth@Defra.onmicrosoft.com
     hassan.khan@Defra.onmicrosoft.com
     paul.maguire@defra.onmicrosoft.com
-    raja.sekhar@defra.onmicrosoft.com
     toby.steed@Defra.onmicrosoft.com
 
   lowerEnvsReadersGroupMembers: >
     duncan.cheshire@Defra.onmicrosoft.com
-    mayur.rao@defra.onmicrosoft.com
     zach.stratenwerth@Defra.onmicrosoft.com
