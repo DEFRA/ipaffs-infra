@@ -2,6 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: error-page
+  namespace: app-routing-system
 data:
   index.html: |-
 {{ .Files.Get "files/index.html" | nindent 4 }}
@@ -10,6 +11,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: error-page
+  namespace: app-routing-system
 spec:
   replicas: 1
   selector:
@@ -35,6 +37,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: error-page
+  namespace: app-routing-system
 spec:
   selector:
     app: error-page

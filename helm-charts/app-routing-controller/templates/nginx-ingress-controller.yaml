@@ -20,6 +20,7 @@ spec:
 
   defaultBackendService:
     name: error-page
+    namespace: app-routing-system
 
 
 
