@@ -60,6 +60,20 @@ module acrPull './acr-role-assignment.bicep' = {
   }
 }
 
+var dataImporterRoleId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '577a9874-89fd-4f24-9dbd-b5034d0ad23a')
+
+module acrDataImporterServicePrincipal './acr-role-assignment.bicep' = [for principalId in acrParams.principalsNeedingDataImporter: {
+  name: format('acrDataImporterServicePrincipal-{0}-{1}', deploymentId, substring(uniqueString(principalId), 0, 7))
+  scope: resourceGroup()
+  params: {
+    acrName: acr.name
+    deploymentId: deploymentId
+    principalObjectId: principalId
+    principalType: 'ServicePrincipal'
+    roleDefinitionId: dataImporterRoleId
+  }
+}]
+
 var contributorRoleId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b24988ac-6180-42a0-ab88-20f7382dd24c')
 
 module acrContributor './acr-role-assignment.bicep' = [for principalId in acrParams.principalsNeedingContributor: {
@@ -77,4 +91,3 @@ module acrContributor './acr-role-assignment.bicep' = [for principalId in acrPar
 output acrName string = toLower(acr.name)
 output acrLoginServer string = acr.properties.loginServer
 output acrResourceId string = acr.id
-
