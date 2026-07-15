@@ -56,10 +56,10 @@ case "${environment}" in
     url="https://importnotification-dev.azure.defra.cloud/notification/dev/protected/notifications"
     ;;
   tst)
-    url="https://importnotification-dev.azure.defra.cloud/notification/tst/protected/notifications"
+    url="https://importnotification-tst.azure.defra.cloud/notification/tst/protected/notifications"
     ;;
   pre)
-    url="https://importnotification-dev.azure.defra.cloud/notification/pre/protected/notifications"
+    url="https://importnotification-pre.azure.defra.cloud/notification/pre/protected/notifications"
     ;;
   prd)
     url="https://import-products-animals-food-feed.service.gov.uk/notification/prd/protected/notifications"
