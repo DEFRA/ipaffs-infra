@@ -22,7 +22,6 @@ parameters:
     values:
       - TST
       - PRE
-      - PRD
 
 resources:
   repositories:
