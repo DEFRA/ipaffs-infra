@@ -20,7 +20,6 @@ spec:
 
   defaultBackendService:
     name: error-page
-    namespace: ingress-system
 
 
 
