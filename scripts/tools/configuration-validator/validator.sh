@@ -149,7 +149,7 @@ resolve_app_services() {
   done < "${SERVICE_MAPPING_FILE}"
 }
 
-app_sites_tsv="$(az resource list \
+app_sites_tsv="$(AZURE_CONFIG_DIR="${TARGET_VAULT_AZCLI_DIR}" az resource list \
   --subscription "${APP_SERVICE_SUBSCRIPTION}" \
   --resource-type "Microsoft.Web/sites" \
   --query "[].{name:name,rg:resourceGroup}" \
@@ -199,7 +199,7 @@ for env_yaml in "${ENVIRONMENT_DIR}"/*.yaml; do
       continue
     fi
 
-    app_settings_json="$(az webapp config appsettings list \
+    app_settings_json="$(AZURE_CONFIG_DIR="${TARGET_VAULT_AZCLI_DIR}" az webapp config appsettings list \
       --name "${app_service}" \
       --resource-group "${resource_group}" \
       --subscription "${APP_SERVICE_SUBSCRIPTION}" \
