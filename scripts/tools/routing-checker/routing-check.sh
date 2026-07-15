@@ -85,6 +85,9 @@ totalError=0
 declare -A errorCounts
 input=""
 
+read_timeout="${interval}"
+(( interval == 0 )) && read_timeout="0.001"
+
 pct() {
   awk -v n="$1" -v t="${total}" 'BEGIN { if (t == 0) { printf "0.00" } else { printf "%.2f", (n / t) * 100 } }'
 }
@@ -117,18 +120,10 @@ while true; do
     echo "${timestamp} Unexpected response: status=${status:-none}"
   fi
 
-  if (( 10#${interval} == 0 )); then
-    if read -r -t 0; then
-      read -r -N 1 input || true
-    fi
-  else
-    read -r -t "${interval}" -N 1 input || true
-  fi
-
+  read -t "${read_timeout}" -N 1 input || true
   if [[ "${input}" == "q" ]] || [[ "${input}" == "Q" ]]; then
     break
   fi
-  input=""
 done
 
 total=$(( totalClassic + totalAks + totalUnknown + totalError ))
