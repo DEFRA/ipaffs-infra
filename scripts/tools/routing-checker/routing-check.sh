@@ -55,18 +55,38 @@ case "${environment}" in
   dev)
     urlB2C="https://importnotification-dev.azure.defra.cloud/notification/dev/protected/notifications"
     urlB2B="https://importnotification-int-dev.azure.defra.cloud/notification/dev/protected/notifications"
+    classicPrefixB2C="https://dcidmtest.b2clogin.com"
+    classicPrefixB2B="https://login.microsoftonline.com"
+    aksPrefix="https://ipaffs-redirect-dev.azure.defra.cloud"
+    aksLoginUrlB2C="login_url=https%3A%2F%2Fdcidmtest.b2clogin.com"
+    aksLoginUrlB2B="login_url=https%3A%2F%2Flogin.microsoftonline.com"
     ;;
   tst)
     urlB2C="https://importnotification-tst.azure.defra.cloud/notification/tst/protected/notifications"
     urlB2B="https://importnotification-int-tst.azure.defra.cloud/notification/tst/protected/notifications"
+    classicPrefixB2C="https://dcidmtest.b2clogin.com"
+    classicPrefixB2B="https://login.microsoftonline.com"
+    aksPrefix="https://ipaffs-redirect-tst.azure.defra.cloud"
+    aksLoginUrlB2C="login_url=https%3A%2F%2Fdcidmtest.b2clogin.com"
+    aksLoginUrlB2B="login_url=https%3A%2F%2Flogin.microsoftonline.com"
     ;;
   pre)
     urlB2C="https://importnotification-pre.azure.defra.cloud/notification/pre/protected/notifications"
     urlB2B="https://importnotification-int-pre.azure.defra.cloud/notification/pre/protected/notifications"
+    classicPrefixB2C="https://dcidmpreprod.b2clogin.com"
+    classicPrefixB2B="https://login.microsoftonline.com"
+    aksPrefix="https://ipaffs-redirect-pre.azure.defra.cloud"
+    aksLoginUrlB2C="login_url=https%3A%2F%2Fdcidmpreprod.b2clogin.com"
+    aksLoginUrlB2B="login_url=https%3A%2F%2Flogin.microsoftonline.com"
     ;;
   prd)
     urlB2C="https://import-products-animals-food-feed.service.gov.uk/notification/prd/protected/notifications"
     urlB2B="https://importnotification-int-prd.azure.defra.cloud/notification/prd/protected/notifications"
+    classicPrefixB2C="https://dcidm.b2clogin.com"
+    classicPrefixB2B="https://login.microsoftonline.com"
+    aksPrefix="https://ipaffs-redirect-prd.azure.defra.cloud"
+    aksLoginUrlB2C="login_url=https%3A%2F%2Fdcidm.b2clogin.com"
+    aksLoginUrlB2B="login_url=https%3A%2F%2Flogin.microsoftonline.com"
     ;;
   *)
     echo "Unknown environment: ${environment}" >&2
@@ -91,6 +111,7 @@ totalAksB2C=0
 totalAksB2B=0
 totalUnknown=0
 totalError=0
+totalValidationFailures=0
 totalB2C=0
 totalB2B=0
 declare -A errorCounts
@@ -107,8 +128,12 @@ while true; do
   for urlType in B2C B2B; do
     if [[ "${urlType}" == "B2C" ]]; then
       url="${urlB2C}"
+      expectedClassicPrefix="${classicPrefixB2C}"
+      expectedAksLoginUrl="${aksLoginUrlB2C}"
     else
       url="${urlB2B}"
+      expectedClassicPrefix="${classicPrefixB2B}"
+      expectedAksLoginUrl="${aksLoginUrlB2B}"
     fi
 
     timestamp="$(date +"%Y-%m-%dT%H:%M:%S%z")"
@@ -119,8 +144,7 @@ while true; do
     location="${location# }"
 
     if [[ "${status}" == "302" ]] || [[ "${status}" == "303" ]]; then
-      if [[ "${location}" == https://dcidmtest.b2clogin.com* ]] || \
-         [[ "${location}" == https://login.microsoftonline.com* ]]; then
+      if [[ "${location}" == "${expectedClassicPrefix}"* ]]; then
         classification="Classic"
         totalClassic=$((totalClassic + 1))
         if [[ "${urlType}" == "B2C" ]]; then
@@ -128,7 +152,7 @@ while true; do
         else
           totalClassicB2B=$((totalClassicB2B + 1))
         fi
-      elif [[ "${location}" == https://ipaffs-redirect-tst.azure.defra.cloud* ]]; then
+      elif [[ "${location}" == "${aksPrefix}"* ]]; then
         classification="AKS"
         totalAks=$((totalAks + 1))
         if [[ "${urlType}" == "B2C" ]]; then
@@ -137,10 +161,17 @@ while true; do
           totalAksB2B=$((totalAksB2B + 1))
         fi
       else
-        classification="Unknown (location: ${location:-none})"
+        classification="Unknown"
         totalUnknown=$((totalUnknown + 1))
+        totalValidationFailures=$((totalValidationFailures + 1))
       fi
       echo "${timestamp} [${urlType}] ${status} -> ${classification}"
+      if [[ "${classification}" == "AKS" ]] && [[ "${location}" != *"${expectedAksLoginUrl}"* ]]; then
+        totalValidationFailures=$((totalValidationFailures + 1))
+        echo "${timestamp} [${urlType}] Validation failure: AKS Location missing ${expectedAksLoginUrl}"
+      elif [[ "${classification}" == "Unknown" ]]; then
+        echo "${timestamp} [${urlType}] Validation failure: unexpected Location: ${location:-none}"
+      fi
     else
       totalError=$((totalError + 1))
       errorKey="${status:-none}"
@@ -184,4 +215,9 @@ if (( totalError > 0 )); then
     count="${errorCounts[${key}]}"
     echo "  ${key}: ${count} ($(pct ${count} ${total})%)"
   done
+fi
+
+if (( totalValidationFailures > 0 )); then
+  echo
+  echo "Validation failures: ${totalValidationFailures}"
 fi
