@@ -12,7 +12,6 @@
 # Requires: az (logged in), jq, yq. Targets bash 3.2 and Git Bash.
 
 set -euo pipefail
-set -x
 
 fail() {
   echo "ERROR: $*" >&2
