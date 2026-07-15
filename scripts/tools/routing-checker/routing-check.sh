@@ -53,16 +53,20 @@ fi
 
 case "${environment}" in
   dev)
-    url="https://importnotification-dev.azure.defra.cloud/notification/dev/protected/notifications"
+    urlB2C="https://importnotification-dev.azure.defra.cloud/notification/dev/protected/notifications"
+    urlB2B="https://importnotification-int-dev.azure.defra.cloud/notification/dev/protected/notifications"
     ;;
   tst)
-    url="https://importnotification-tst.azure.defra.cloud/notification/tst/protected/notifications"
+    urlB2C="https://importnotification-tst.azure.defra.cloud/notification/tst/protected/notifications"
+    urlB2B="https://importnotification-int-tst.azure.defra.cloud/notification/tst/protected/notifications"
     ;;
   pre)
-    url="https://importnotification-pre.azure.defra.cloud/notification/pre/protected/notifications"
+    urlB2C="https://importnotification-pre.azure.defra.cloud/notification/pre/protected/notifications"
+    urlB2B="https://importnotification-int-pre.azure.defra.cloud/notification/pre/protected/notifications"
     ;;
   prd)
-    url="https://import-products-animals-food-feed.service.gov.uk/notification/prd/protected/notifications"
+    urlB2C="https://import-products-animals-food-feed.service.gov.uk/notification/prd/protected/notifications"
+    urlB2B="https://importnotification-int-prd.azure.defra.cloud/notification/prd/protected/notifications"
     ;;
   *)
     echo "Unknown environment: ${environment}" >&2
@@ -72,16 +76,23 @@ case "${environment}" in
     ;;
 esac
 
-echo "Checking: ${url}"
+echo "Checking B2C: ${urlB2C}"
+echo "Checking B2B: ${urlB2B}"
 echo "Wait between requests: ${interval}s"
 echo
 echo "Press Q to stop..."
 echo
 
 totalClassic=0
+totalClassicB2C=0
+totalClassicB2B=0
 totalAks=0
+totalAksB2C=0
+totalAksB2B=0
 totalUnknown=0
 totalError=0
+totalB2C=0
+totalB2B=0
 declare -A errorCounts
 input=""
 
@@ -89,36 +100,60 @@ read_timeout="${interval}"
 (( interval == 0 )) && read_timeout="0.001"
 
 pct() {
-  awk -v n="$1" -v t="${total}" 'BEGIN { if (t == 0) { printf "0.00" } else { printf "%.2f", (n / t) * 100 } }'
+  awk -v n="$1" -v t="$2" 'BEGIN { if (t == 0) { printf "0.00" } else { printf "%.2f", (n / t) * 100 } }'
 }
 
 while true; do
-  timestamp="$(date +"%Y-%m-%dT%H:%M:%S%z")"
-  result="$(curl -is --connect-timeout 10 --max-time 15 "${url}" 2>&1)" || true
-  status="$(echo "${result}" | grep "^HTTP/" | tail -1 | tr -d '\r' | cut -d' ' -f2)"
-  location="$(echo "${result}" | grep -i "^location:" | tail -1 | tr -d '\r')"
-  location="${location#*:}"
-  location="${location# }"
-
-  if [[ "${status}" == "302" ]] || [[ "${status}" == "303" ]]; then
-    if [[ "${location}" == https://dcidmtest.b2clogin.com* ]] || \
-       [[ "${location}" == https://login.microsoftonline.com* ]]; then
-      classification="Classic"
-      totalClassic=$((totalClassic + 1))
-    elif [[ "${location}" == https://ipaffs-redirect-tst.azure.defra.cloud* ]]; then
-      classification="AKS"
-      totalAks=$((totalAks + 1))
+  for urlType in B2C B2B; do
+    if [[ "${urlType}" == "B2C" ]]; then
+      url="${urlB2C}"
     else
-      classification="Unknown (location: ${location:-none})"
-      totalUnknown=$((totalUnknown + 1))
+      url="${urlB2B}"
     fi
-    echo "${timestamp} ${status} -> ${classification}"
-  else
-    totalError=$((totalError + 1))
-    errorKey="${status:-none}"
-    errorCounts["${errorKey}"]=$(( ${errorCounts["${errorKey}"]:-0} + 1 ))
-    echo "${timestamp} Unexpected response: status=${status:-none}"
-  fi
+
+    timestamp="$(date +"%Y-%m-%dT%H:%M:%S%z")"
+    result="$(curl -is --connect-timeout 10 --max-time 15 "${url}" 2>&1)" || true
+    status="$(echo "${result}" | grep "^HTTP/" | tail -1 | tr -d '\r' | cut -d' ' -f2)"
+    location="$(echo "${result}" | grep -i "^location:" | tail -1 | tr -d '\r')"
+    location="${location#*:}"
+    location="${location# }"
+
+    if [[ "${status}" == "302" ]] || [[ "${status}" == "303" ]]; then
+      if [[ "${location}" == https://dcidmtest.b2clogin.com* ]] || \
+         [[ "${location}" == https://login.microsoftonline.com* ]]; then
+        classification="Classic"
+        totalClassic=$((totalClassic + 1))
+        if [[ "${urlType}" == "B2C" ]]; then
+          totalClassicB2C=$((totalClassicB2C + 1))
+        else
+          totalClassicB2B=$((totalClassicB2B + 1))
+        fi
+      elif [[ "${location}" == https://ipaffs-redirect-tst.azure.defra.cloud* ]]; then
+        classification="AKS"
+        totalAks=$((totalAks + 1))
+        if [[ "${urlType}" == "B2C" ]]; then
+          totalAksB2C=$((totalAksB2C + 1))
+        else
+          totalAksB2B=$((totalAksB2B + 1))
+        fi
+      else
+        classification="Unknown (location: ${location:-none})"
+        totalUnknown=$((totalUnknown + 1))
+      fi
+      echo "${timestamp} [${urlType}] ${status} -> ${classification}"
+    else
+      totalError=$((totalError + 1))
+      errorKey="${status:-none}"
+      errorCounts["${errorKey}"]=$(( ${errorCounts["${errorKey}"]:-0} + 1 ))
+      echo "${timestamp} [${urlType}] Unexpected response: status=${status:-none}"
+    fi
+
+    if [[ "${urlType}" == "B2C" ]]; then
+      totalB2C=$((totalB2C + 1))
+    else
+      totalB2B=$((totalB2B + 1))
+    fi
+  done
 
   read -t "${read_timeout}" -N 1 input || true
   if [[ "${input}" == "q" ]] || [[ "${input}" == "Q" ]]; then
@@ -130,18 +165,23 @@ total=$(( totalClassic + totalAks + totalUnknown + totalError ))
 
 echo
 echo "=== Summary ==="
-echo "Total responses: ${total}"
+echo "Total responses: ${total} (B2C: ${totalB2C}, B2B: ${totalB2B})"
 echo
-echo "Classic: ${totalClassic} ($(pct ${totalClassic})%)"
-echo "AKS:     ${totalAks} ($(pct ${totalAks})%)"
-echo "Unknown: ${totalUnknown} ($(pct ${totalUnknown})%)"
-echo "Errors:  ${totalError} ($(pct ${totalError})%)"
+echo "Classic: ${totalClassic} ($(pct ${totalClassic} ${total})%)"
+echo "  - B2C: ${totalClassicB2C} ($(pct ${totalClassicB2C} ${totalB2C})%)"
+echo "  - B2B: ${totalClassicB2B} ($(pct ${totalClassicB2B} ${totalB2B})%)"
+echo "AKS:     ${totalAks} ($(pct ${totalAks} ${total})%)"
+echo "  - B2C: ${totalAksB2C} ($(pct ${totalAksB2C} ${totalB2C})%)"
+echo "  - B2B: ${totalAksB2B} ($(pct ${totalAksB2B} ${totalB2B})%)"
+echo
+echo "Unknown: ${totalUnknown} ($(pct ${totalUnknown} ${total})%)"
+echo "Errors:  ${totalError} ($(pct ${totalError} ${total})%)"
 
 if (( totalError > 0 )); then
   echo
   echo "Errors by status code:"
   for key in $(printf '%s\n' "${!errorCounts[@]}" | sort -V); do
     count="${errorCounts[${key}]}"
-    echo "  ${key}: ${count} ($(pct ${count})%)"
+    echo "  ${key}: ${count} ($(pct ${count} ${total})%)"
   done
 fi
