@@ -261,11 +261,7 @@ param vnetParams = {
           }
         }
       ]
-      serviceEndpoints: [
-        {
-          service: 'Microsoft.ServiceBus'
-        }
-      ]
+      serviceEndpoints: []
       routeTableId: '/subscriptions/3978eb4f-add1-415d-839b-db398e65a7d9/resourceGroups/PREIMPINFRG1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-PREIMPNETVN1401-01'
       networkSecurityGroupId: '/subscriptions/3978eb4f-add1-415d-839b-db398e65a7d9/resourceGroups/PREIMPINFRG1401/providers/Microsoft.Network/networkSecurityGroups/PREIMPNETNS1401-AKS'
     }
@@ -275,6 +271,9 @@ param vnetParams = {
       addressPrefix: '10.179.136.16/28'
       delegations: []
       serviceEndpoints: [
+        {
+          service: 'Microsoft.KeyVault'
+        }
         {
           service: 'Microsoft.ServiceBus'
         }
@@ -318,6 +317,9 @@ param vnetParams = {
       addressPrefix: '10.179.138.0/24'
       delegations: []
       serviceEndpoints: [
+        {
+          service: 'Microsoft.KeyVault'
+        }
         {
           service: 'Microsoft.ServiceBus'
         }
