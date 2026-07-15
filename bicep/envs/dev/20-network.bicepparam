@@ -262,11 +262,7 @@ param vnetParams = {
           }
         }
       ]
-      serviceEndpoints: [
-        {
-          service: 'Microsoft.ServiceBus'
-        }
-      ]
+      serviceEndpoints: []
       routeTableId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPINFRG1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-DEVIMPNETVN1401-01'
       networkSecurityGroupId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPINFRG1401/providers/Microsoft.Network/networkSecurityGroups/DEVIMPNETNS1401-AKS'
     }
@@ -276,6 +272,9 @@ param vnetParams = {
       addressPrefix: '10.179.144.16/28'
       delegations: []
       serviceEndpoints: [
+        {
+          service: 'Microsoft.KeyVault'
+        }
         {
           service: 'Microsoft.ServiceBus'
         }
@@ -319,6 +318,9 @@ param vnetParams = {
       addressPrefix: '10.179.146.0/24'
       delegations: []
       serviceEndpoints: [
+        {
+          service: 'Microsoft.KeyVault'
+        }
         {
           service: 'Microsoft.ServiceBus'
         }
