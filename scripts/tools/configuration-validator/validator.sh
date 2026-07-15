@@ -164,8 +164,7 @@ for env_yaml in "${ENVIRONMENT_DIR}"/*.yaml; do
   service="$(basename "${env_yaml}" .yaml)"
   base_yaml="${SERVICES_DIR}/${service}/base.yaml"
 
-  # helmfile merges base first, environment last; a list in the environment file
-  # replaces base's list outright. So the override wins whenever it defines one.
+  # helmfile merges base first, environment last
   if [[ "$(yq e '.externalSecret // {} | has("secrets")' "${env_yaml}")" == "true" ]]; then
     secrets_yaml="${env_yaml}"
   elif [[ -f "${base_yaml}" ]]; then
