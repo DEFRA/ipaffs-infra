@@ -96,8 +96,26 @@ case "${environment}" in
     ;;
 esac
 
+dns_lookup() {
+  local domain="$1"
+  local output
+  output="$(nslookup "${domain}" 2>/dev/null)" || true
+  local ips
+  ips="$(printf '%s\n' "${output}" | awk '/^Name:/{found=1} found && /^Address:/{ips=ips (ips?", ":"") $2} END{print ips}')"
+  printf '%s' "${ips:-unresolved}"
+}
+
+domainB2C="${urlB2C#https://}"
+domainB2C="${domainB2C%%/*}"
+domainB2B="${urlB2B#https://}"
+domainB2B="${domainB2B%%/*}"
+
 echo "Checking B2C: ${urlB2C}"
+echo "B2C domain: ${domainB2C}"
+echo "B2C resolved IP address(es): $(dns_lookup "${domainB2C}")"
 echo "Checking B2B: ${urlB2B}"
+echo "B2B domain: ${domainB2B}"
+echo "B2B resolved IP address(es): $(dns_lookup "${domainB2B}")"
 echo "Wait between requests: ${interval}s"
 echo
 echo "Press Q to stop..."
