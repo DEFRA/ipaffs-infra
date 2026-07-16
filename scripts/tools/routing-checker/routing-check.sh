@@ -7,7 +7,7 @@ readonly RED='\033[0;31m'
 readonly GREEN='\033[0;32m'
 readonly BLUE='\033[0;34m'
 readonly NC='\033[0m'
-readonly BOLD='\033[1m'
+readonly BOLD='\033[1;37m'
 
 if [[ "${BASH_VERSINFO:-0}" -lt 4 ]]; then
   echo "Error: this script requires Bash 4.0 or newer"
