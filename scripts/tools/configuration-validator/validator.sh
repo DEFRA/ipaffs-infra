@@ -214,28 +214,34 @@ for env_yaml in "${ENVIRONMENT_DIR}"/*.yaml; do
         continue
       fi
 
-      parsed_vault="$(parse_ref_field "${reference}" VaultName)"
-      parsed_secret="$(parse_ref_field "${reference}" SecretName)"
-      if [[ -z "${parsed_vault}" || -z "${parsed_secret}" ]]; then
-        record_error "${service}/${app_service} env var '${secret_key}' is not a parseable KeyVault reference"
-        csv_row ERROR_UNPARSEABLE_REF "${service}" "${app_service}" "${secret_key}" "" ""
-        continue
-      fi
-
-      if [[ "${parsed_vault}" != "${TARGET_VAULT_NAME}" ]]; then
-        log "WARN: ${service}/${app_service} '${secret_key}' references vault '${parsed_vault}', expected '${TARGET_VAULT_NAME}'"
-      fi
-
-      count_checked=$((count_checked + 1))
-
-      target="${parsed_vault}/${parsed_secret}"
       source="${SOURCE_VAULT_NAME}/${remote_key}"
 
-      if ! target_value="$(read_secret "${parsed_vault}" "${parsed_secret}" "${TARGET_VAULT_AZCLI_DIR}")"; then
-        record_error "${service}/${app_service} could not read target secret '${parsed_secret}' from vault '${parsed_vault}'"
-        csv_row ERROR_READ_TARGET "${service}" "${app_service}" "${secret_key}" "${target}" "${source}"
-        continue
+      # An app setting is either a @Microsoft.KeyVault(...) reference or the literal secret value stored inline.
+      if [[ "${reference}" == *"@Microsoft.KeyVault("* ]]; then
+        parsed_vault="$(parse_ref_field "${reference}" VaultName)"
+        parsed_secret="$(parse_ref_field "${reference}" SecretName)"
+        if [[ -z "${parsed_vault}" || -z "${parsed_secret}" ]]; then
+          record_error "${service}/${app_service} env var '${secret_key}' is not a parseable KeyVault reference"
+          csv_row ERROR_UNPARSEABLE_REF "${service}" "${app_service}" "${secret_key}" "" ""
+          continue
+        fi
+        if [[ "${parsed_vault}" != "${TARGET_VAULT_NAME}" ]]; then
+          log "WARN: ${service}/${app_service} '${secret_key}' references vault '${parsed_vault}', expected '${TARGET_VAULT_NAME}'"
+        fi
+        target="${parsed_vault}/${parsed_secret}"
+        count_checked=$((count_checked + 1))
+        if ! target_value="$(read_secret "${parsed_vault}" "${parsed_secret}" "${TARGET_VAULT_AZCLI_DIR}")"; then
+          record_error "${service}/${app_service} could not read target secret '${parsed_secret}' from vault '${parsed_vault}'"
+          csv_row ERROR_READ_TARGET "${service}" "${app_service}" "${secret_key}" "${target}" "${source}"
+          continue
+        fi
+      else
+        # Literal secret value held inline on the App Service — compare as-is.
+        target="<literal>"
+        count_checked=$((count_checked + 1))
+        target_value="${reference}"
       fi
+
       if ! source_value="$(read_secret "${SOURCE_VAULT_NAME}" "${remote_key}" "${SOURCE_VAULT_AZCLI_DIR}")"; then
         record_error "${service}/${app_service} could not read source secret '${remote_key}' from vault '${SOURCE_VAULT_NAME}'"
         csv_row ERROR_READ_SOURCE "${service}" "${app_service}" "${secret_key}" "${target}" "${source}"
@@ -253,7 +259,7 @@ for env_yaml in "${ENVIRONMENT_DIR}"/*.yaml; do
         count_mismatches=$((count_mismatches + 1))
       fi
 
-      unset target_value source_value
+      unset target_value source_value reference
     done < <(yq e '.externalSecret.secrets[] | .secretKey + "|" + .remoteKey' "${secrets_yaml}")
 
   done
