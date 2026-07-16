@@ -15,22 +15,27 @@ if [[ "${BASH_VERSINFO:-0}" -lt 4 ]]; then
 fi
 
 function usage() {
-  echo "Usage: $0 -e ENV [-w SECONDS]" >&2
+  echo "Usage: $0 -e ENV [-w SECONDS] [-c CHECKS]" >&2
   echo >&2
   echo "  -e  Environment: dev, tst, pre, prd (case-insensitive)" >&2
   echo "  -w  Seconds to wait between requests (default: 5, minimum: 0)" >&2
+  echo "  -c  Number of checks to perform (default: run until Q is pressed)" >&2
   echo >&2
 }
 
 interval=5
+count=""
 
-while getopts "e:w:h" opt; do
+while getopts "e:w:c:h" opt; do
   case $opt in
     e)
       environment="${OPTARG,,}"
       ;;
     w)
       interval="${OPTARG}"
+      ;;
+    c)
+      count="${OPTARG}"
       ;;
     h)
       usage
@@ -55,6 +60,15 @@ if ! [[ "${interval}" =~ ^[0-9]+$ ]]; then
   echo >&2
   usage
   exit 1
+fi
+
+if [[ -n "${count}" ]]; then
+  if ! [[ "${count}" =~ ^[1-9][0-9]*$ ]]; then
+    echo "-c must be a positive whole number" >&2
+    echo >&2
+    usage
+    exit 1
+  fi
 fi
 
 case "${environment}" in
@@ -140,6 +154,7 @@ totalB2C=0
 totalB2B=0
 declare -A errorCounts
 input=""
+checksPerformed=0
 
 read_timeout="${interval}"
 (( interval == 0 )) && read_timeout="0.001"
@@ -215,6 +230,12 @@ while true; do
     fi
   done
 
+  checksPerformed=$(( checksPerformed + 1 ))
+
+  if [[ -n "${count}" ]] && (( checksPerformed >= count )); then
+    break
+  fi
+
   read -t "${read_timeout}" -N 1 input || true
   if [[ "${input}" == "q" ]] || [[ "${input}" == "Q" ]]; then
     break
@@ -224,7 +245,7 @@ done
 total=$(( totalClassic + totalAks + totalUnknown + totalError ))
 
 echo
-echo -e "${BOLD}=== Summary ===${NC}"
+echo -e "${NC}${BOLD}=== Summary ===${NC}"
 echo -e "${BOLD}Total responses: ${total} (B2C: ${totalB2C}, B2B: ${totalB2B})${NC}"
 echo
 echo -e "${BOLD}Classic: ${totalClassic} ($(pct ${totalClassic} ${total})%)${NC}"
