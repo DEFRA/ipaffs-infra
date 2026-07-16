@@ -3,6 +3,12 @@
 set -e
 #set -x
 
+readonly RED='\033[0;31m'
+readonly GREEN='\033[0;32m'
+readonly BLUE='\033[0;34m'
+readonly NC='\033[0m'
+readonly BOLD='\033[1m'
+
 if [[ "${BASH_VERSINFO:-0}" -lt 4 ]]; then
   echo "Error: this script requires Bash 4.0 or newer"
   exit 1
@@ -183,18 +189,23 @@ while true; do
         totalUnknown=$((totalUnknown + 1))
         totalValidationFailures=$((totalValidationFailures + 1))
       fi
-      echo "${timestamp} [${urlType}] ${status} -> ${classification}"
+      case "${classification}" in
+        Classic) classif_colored="${GREEN}${classification}${NC}" ;;
+        AKS)     classif_colored="${BLUE}${classification}${NC}" ;;
+        *)       classif_colored="${classification}" ;;
+      esac
+      echo -e "${timestamp} [${urlType}] ${status} -> ${classif_colored}"
       if [[ "${classification}" == "AKS" ]] && [[ "${location}" != *"${expectedAksLoginUrl}"* ]]; then
         totalValidationFailures=$((totalValidationFailures + 1))
-        echo "${timestamp} [${urlType}] Validation failure: AKS Location missing ${expectedAksLoginUrl}"
+        echo -e "${RED}${timestamp} [${urlType}] Validation failure: AKS Location missing ${expectedAksLoginUrl}${NC}"
       elif [[ "${classification}" == "Unknown" ]]; then
-        echo "${timestamp} [${urlType}] Validation failure: unexpected Location: ${location:-none}"
+        echo -e "${RED}${timestamp} [${urlType}] Validation failure: unexpected Location: ${location:-none}${NC}"
       fi
     else
       totalError=$((totalError + 1))
       errorKey="${status:-none}"
       errorCounts["${errorKey}"]=$(( ${errorCounts["${errorKey}"]:-0} + 1 ))
-      echo "${timestamp} [${urlType}] Unexpected response: status=${status:-none}"
+      echo -e "${RED}${timestamp} [${urlType}] Unexpected response: status=${status:-none}${NC}"
     fi
 
     if [[ "${urlType}" == "B2C" ]]; then
@@ -213,29 +224,29 @@ done
 total=$(( totalClassic + totalAks + totalUnknown + totalError ))
 
 echo
-echo "=== Summary ==="
-echo "Total responses: ${total} (B2C: ${totalB2C}, B2B: ${totalB2B})"
+echo -e "${BOLD}=== Summary ===${NC}"
+echo -e "${BOLD}Total responses: ${total} (B2C: ${totalB2C}, B2B: ${totalB2B})${NC}"
 echo
-echo "Classic: ${totalClassic} ($(pct ${totalClassic} ${total})%)"
-echo "  - B2C: ${totalClassicB2C} ($(pct ${totalClassicB2C} ${totalB2C})%)"
-echo "  - B2B: ${totalClassicB2B} ($(pct ${totalClassicB2B} ${totalB2B})%)"
-echo "AKS:     ${totalAks} ($(pct ${totalAks} ${total})%)"
-echo "  - B2C: ${totalAksB2C} ($(pct ${totalAksB2C} ${totalB2C})%)"
-echo "  - B2B: ${totalAksB2B} ($(pct ${totalAksB2B} ${totalB2B})%)"
+echo -e "${BOLD}Classic: ${totalClassic} ($(pct ${totalClassic} ${total})%)${NC}"
+echo -e "${BOLD}  - B2C: ${totalClassicB2C} ($(pct ${totalClassicB2C} ${totalB2C})%)${NC}"
+echo -e "${BOLD}  - B2B: ${totalClassicB2B} ($(pct ${totalClassicB2B} ${totalB2B})%)${NC}"
+echo -e "${BOLD}AKS:     ${totalAks} ($(pct ${totalAks} ${total})%)${NC}"
+echo -e "${BOLD}  - B2C: ${totalAksB2C} ($(pct ${totalAksB2C} ${totalB2C})%)${NC}"
+echo -e "${BOLD}  - B2B: ${totalAksB2B} ($(pct ${totalAksB2B} ${totalB2B})%)${NC}"
 echo
-echo "Unknown: ${totalUnknown} ($(pct ${totalUnknown} ${total})%)"
-echo "Errors:  ${totalError} ($(pct ${totalError} ${total})%)"
+echo -e "${BOLD}Unknown: ${totalUnknown} ($(pct ${totalUnknown} ${total})%)${NC}"
+echo -e "${BOLD}Errors:  ${totalError} ($(pct ${totalError} ${total})%)${NC}"
 
 if (( totalError > 0 )); then
   echo
-  echo "Errors by status code:"
+  echo -e "${BOLD}Errors by status code:${NC}"
   for key in $(printf '%s\n' "${!errorCounts[@]}" | sort -V); do
     count="${errorCounts[${key}]}"
-    echo "  ${key}: ${count} ($(pct ${count} ${total})%)"
+    echo -e "${BOLD}  ${key}: ${count} ($(pct ${count} ${total})%)${NC}"
   done
 fi
 
 if (( totalValidationFailures > 0 )); then
   echo
-  echo "Validation failures: ${totalValidationFailures}"
+  echo -e "${BOLD}Validation failures: ${totalValidationFailures}${NC}"
 fi
