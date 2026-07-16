@@ -8,6 +8,8 @@ readonly GREEN='\033[0;32m'
 readonly BLUE='\033[0;34m'
 readonly NC='\033[0m'
 readonly BOLD='\033[1;37m'
+readonly YELLOW='\033[1;33m'
+readonly PURPLE='\033[0;35m'
 
 if [[ "${BASH_VERSINFO:-0}" -lt 4 ]]; then
   echo "Error: this script requires Bash 4.0 or newer"
@@ -216,9 +218,13 @@ while true; do
       echo -e "${timestamp} [${urlType}] ${status} -> ${classif_colored}"
       if [[ "${classification}" == "AKS" ]] && [[ "${location}" != *"${expectedAksLoginUrl}"* ]]; then
         totalValidationFailures=$((totalValidationFailures + 1))
-        echo -e "${RED}${timestamp} [${urlType}] Validation failure: AKS Location missing ${expectedAksLoginUrl}${NC}"
+        echo -e "${RED}${timestamp} [${urlType}] Validation failure: AKS Location missing expected login_url${NC}"
+        echo -e "  Received: ${YELLOW}${location}${NC}"
+        echo -e "  Expected: ${PURPLE}${expectedAksLoginUrl}${NC}"
       elif [[ "${classification}" == "Unknown" ]]; then
-        echo -e "${RED}${timestamp} [${urlType}] Validation failure: unexpected Location: ${location:-none}${NC}"
+        echo -e "${RED}${timestamp} [${urlType}] Validation failure: unexpected Location${NC}"
+        echo -e "  Received: ${YELLOW}${location:-none}${NC}"
+        echo -e "  Expected: ${PURPLE}${expectedClassicPrefix}${NC} or ${PURPLE}${aksPrefix}${NC}"
       fi
     else
       totalError=$((totalError + 1))
