@@ -138,6 +138,10 @@ echo "B2B domain: ${domainB2B}"
 echo "B2B resolved IP address(es): $(dns_lookup "${domainB2B}")"
 echo "Wait between requests: ${interval}s"
 echo
+if [[ -n "${count}" ]]; then
+  echo "Performing ${count} checks"
+  echo
+fi
 echo "Press Q to stop..."
 echo
 
