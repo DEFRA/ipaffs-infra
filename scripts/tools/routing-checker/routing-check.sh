@@ -73,8 +73,8 @@ fi
 
 case "${environment}" in
   dev)
-    urlB2C="https://importnotification-dev.azure.defra.cloud/notification/dev/protected/notifications"
-    urlB2B="https://importnotification-int-dev.azure.defra.cloud/notification/dev/protected/notifications"
+    urlB2C="https://importnotification-dev-new.azure.defra.cloud/notification/dev/protected/notifications"
+    urlB2B="https://importnotification-int-dev-new.azure.defra.cloud/notification/dev/protected/notifications"
     classicPrefixB2C="https://dcidmtest.b2clogin.com"
     classicPrefixB2B="https://login.microsoftonline.com"
     aksPrefix="https://ipaffs-redirect-dev.azure.defra.cloud"
