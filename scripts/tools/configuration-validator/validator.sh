@@ -27,11 +27,16 @@ record_error() {
   count_errors=$((count_errors + 1))
 }
 
-# Appends a comma-joined row when --csv is set. Values are names, never secrets.
 csv_row() {
   [[ -n "${CSV_FILE}" ]] || return 0
-  local IFS=,
-  printf '%s\n' "$*" >> "${CSV_FILE}"
+  local out="" f sep=""
+  for f in "$@"; do
+    case "${f}" in
+      *,* | *'"'*) f="\"${f//\"/\"\"}\"" ;;
+    esac
+    out="${out}${sep}${f}"; sep=","
+  done
+  printf '%s\n' "${out}" >> "${CSV_FILE}"
 }
 
 C_GREEN="" C_RED="" C_RESET=""
@@ -95,8 +100,7 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-# configuration: source the given config file, or use the current environment if
-# none is passed (e.g. you exported the vars yourself, or in CI).
+# configuration: source the given config file, or use the current environment if none is passed.
 if [[ -n "${CONFIG_FILE}" ]]; then
   [[ -f "${CONFIG_FILE}" ]] || fail "Config file '${CONFIG_FILE}' not found"
   set -a
@@ -164,19 +168,20 @@ for env_yaml in "${ENVIRONMENT_DIR}"/*.yaml; do
   service="$(basename "${env_yaml}" .yaml)"
   base_yaml="${SERVICES_DIR}/${service}/base.yaml"
 
-  # helmfile merges base first, environment last
+  secrets_yaml=""
   if [[ "$(yq e '.externalSecret // {} | has("secrets")' "${env_yaml}")" == "true" ]]; then
     secrets_yaml="${env_yaml}"
   elif [[ -f "${base_yaml}" ]]; then
     secrets_yaml="${base_yaml}"
-  else
-    record_error "${service}: no externalSecret.secrets override and no base.yaml at ${base_yaml}"
-    continue
   fi
+  secrets_present=0
+  [[ -n "${secrets_yaml}" ]] && secrets_present="$(yq e '[.externalSecret.secrets // [] | .[]] | length' "${secrets_yaml}")"
 
-  secrets_present="$(yq e '[.externalSecret.secrets // [] | .[]] | length' "${secrets_yaml}")"
-  if [[ "${secrets_present}" == "0" ]]; then
-    log "SKIP: ${service} has no externalSecret.secrets"
+  # Config: the environment file's .config map (plain, non-secret env vars).
+  config_present="$(yq e '.config // {} | length' "${env_yaml}")"
+
+  if [[ "${secrets_present}" == "0" && "${config_present}" == "0" ]]; then
+    log "SKIP: ${service} has no secrets or config to check"
     count_skipped=$((count_skipped + 1))
     continue
   fi
@@ -203,7 +208,7 @@ for env_yaml in "${ENVIRONMENT_DIR}"/*.yaml; do
       --subscription "${APP_SERVICE_SUBSCRIPTION}" \
       --output json)"
 
-    while IFS='|' read -r secret_key remote_key; do
+    [[ "${secrets_present}" != "0" ]] && while IFS='|' read -r secret_key remote_key; do
       [[ -n "${secret_key}" && -n "${remote_key}" ]] || continue
 
       reference="$(printf '%s' "${app_settings_json}" | jq -r --arg k "${secret_key}" \
@@ -261,6 +266,30 @@ for env_yaml in "${ENVIRONMENT_DIR}"/*.yaml; do
 
       unset target_value source_value reference
     done < <(yq e '.externalSecret.secrets[] | .secretKey + "|" + .remoteKey' "${secrets_yaml}")
+
+    [[ "${config_present}" != "0" ]] && while IFS= read -r cfg_key; do
+      [[ -n "${cfg_key}" ]] || continue
+      cfg_expected="$(yq e ".config.\"${cfg_key}\" | tostring" "${env_yaml}")"
+
+      if ! printf '%s' "${app_settings_json}" | jq -e --arg k "${cfg_key}" 'any(.[]; .name==$k)' >/dev/null; then
+        record_error "${service}/${app_service} config '${cfg_key}' not set on App Service"
+        csv_row CONFIG_ENV_VAR_MISSING "${service}" "${app_service}" "${cfg_key}" "" "${cfg_expected}"
+        continue
+      fi
+      cfg_actual="$(printf '%s' "${app_settings_json}" | jq -r --arg k "${cfg_key}" \
+        '.[] | select(.name==$k) | .value')"
+      count_checked=$((count_checked + 1))
+
+      if [[ "${cfg_actual}" == "${cfg_expected}" ]]; then
+        log "${C_GREEN}CONFIG_MATCH: ${service}/${app_service} config '${cfg_key}' == '${cfg_expected}'${C_RESET}"
+        csv_row CONFIG_MATCH "${service}" "${app_service}" "${cfg_key}" "${cfg_actual}" "${cfg_expected}"
+        count_matches=$((count_matches + 1))
+      else
+        log "${C_RED}CONFIG_MISMATCH: ${service}/${app_service} config '${cfg_key}' -> app='${cfg_actual}' expected='${cfg_expected}'${C_RESET}"
+        csv_row CONFIG_MISMATCH "${service}" "${app_service}" "${cfg_key}" "${cfg_actual}" "${cfg_expected}"
+        count_mismatches=$((count_mismatches + 1))
+      fi
+    done < <(yq e '.config // {} | keys | .[]' "${env_yaml}")
 
   done
 done
