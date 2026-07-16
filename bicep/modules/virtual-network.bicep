@@ -5,39 +5,35 @@ param environment string
 param location string
 param tags object
 param vnetParams object
+param routeTableId string
 
-module routeTable 'br/SharedDefraRegistry:network.route-table:0.4.2' = {
-  name: 'route-table-aks-${deploymentId}'
-  params: {
-    name: '${vnetParams.routeTable.name}'
-    location: location
-    lock: ''
-    tags: tags
-    disableBgpRoutePropagation: true
-    routes: [
-      {
-        name: 'Default'
-        properties: {
-          addressPrefix: '0.0.0.0/0'
-          nextHopType: 'VirtualAppliance'
-          nextHopIpAddress: vnetParams.routeTable.virtualApplianceIp
+resource virtualNetwork 'Microsoft.Network/virtualNetworks@2025-05-01' = {
+  name: vnetParams.name
+  location: location
+  tags: tags
+  properties: {
+    addressSpace: {
+      addressPrefixes: vnetParams.addressPrefixes
+    }
+    dhcpOptions: {
+      dnsServers: vnetParams.dnsServers
+    }
+    subnets: [for subnet in vnetParams.subnets: {
+      name: subnet.name
+      properties: {
+        addressPrefix: subnet.addressPrefix
+        delegations: subnet.?delegations ?? []
+        serviceEndpoints: subnet.?serviceEndpoints ?? []
+        privateEndpointNetworkPolicies: subnet.?privateEndpointNetworkPolicies ?? 'Enabled'
+        privateLinkServiceNetworkPolicies: subnet.?privateLinkServiceNetworkPolicies ?? 'Enabled'
+        routeTable: {
+          id: subnet.?routeTableId ?? routeTableId
+        }
+        networkSecurityGroup: {
+          id: subnet.networkSecurityGroupId
         }
       }
-    ]
-  }
-}
-
-module virtualNetwork 'br/SharedDefraRegistry:network.virtual-network:0.4.2' = {
-  name: 'virtual-network-${deploymentId}'
-  params: {
-    name: vnetParams.name
-    location: location
-    lock: ''
-    tags: tags
-    enableDefaultTelemetry: true
-    addressPrefixes: vnetParams.addressPrefixes
-    dnsServers: vnetParams.dnsServers
-    subnets: vnetParams.subnets
+    }]
   }
 }
 
@@ -55,13 +51,8 @@ module vnetNetworkContributor './vnet-role-assignment.bicep' = [for principalId 
   dependsOn: [virtualNetwork]
 }]
 
-resource vnet 'Microsoft.Network/virtualNetworks@2025-05-01' existing = {
-  name: vnetParams.name
-  dependsOn: [virtualNetwork]
-}
-
-output subnetIds array = virtualNetwork.outputs.subnetResourceIds
-output subnets array = vnet.properties.subnets
-output vnetName string = virtualNetwork.outputs.name
-output vnetResourceId string = virtualNetwork.outputs.resourceId
+output subnetIds array = [for subnet in virtualNetwork.properties.subnets: subnet.id]
+output subnets array = virtualNetwork.properties.subnets
+output vnetName string = virtualNetwork.name
+output vnetResourceId string = virtualNetwork.id
 

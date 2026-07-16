@@ -29,6 +29,17 @@ module nsg './modules/network-security-groups.bicep' = {
   }
 }
 
+module routeTable './modules/route-table.bicep' = {
+  name: 'route-table-${deploymentId}'
+  scope: resourceGroup()
+  params: {
+    name: vnetParams.routeTable.name
+    location: location
+    tags: tags
+    virtualApplianceIp: vnetParams.routeTable.virtualApplianceIp
+  }
+}
+
 module vnet './modules/virtual-network.bicep' = {
   name: 'vnet-${deploymentId}'
   scope: resourceGroup()
@@ -38,6 +49,7 @@ module vnet './modules/virtual-network.bicep' = {
     location: location
     tags: tags
     vnetParams: vnetParams
+    routeTableId: routeTable.outputs.resourceId
   }
   dependsOn: [
     nsg
