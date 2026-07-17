@@ -1,0 +1,51 @@
+# Maps a manifest service name to its Azure App Service (PRD).
+#
+# Format: <manifest service name>|<Azure App Service name>
+# Blank lines and lines starting with # are ignored.
+#
+# Azure App Services sourced from subscription AZR-PRD, resource group PRDIMPINFRGP002.
+
+approvedestablishment-service|approvedestablishment-microservice-blue-prd
+archivenotifications-job|archive-notifications-microservice-prd
+autoclearance-job|auto-clearance-microservice-prd
+bcpadmin-frontend|frontend-bcpadmin-blue-prd
+bip-service|bip-microservice-blue-prd
+bordernotification-frontend|frontend-bordernotification-blue-prd
+bordernotification-service|bordernotification-microservice-blue-prd
+bordernotificationrefdata-service|bordernotification-refdata-microservice-blue-prd
+bulkupload-service|bulk-upload-microservice-prd
+certificate-service|certificate-microservice-blue-prd
+checks-frontend|frontend-checks-blue-prd
+checks-service|checks-microservice-blue-prd
+cloning-service|cloning-microservice-blue-prd
+commoditycode-service|commoditycode-microservice-blue-prd
+control-frontend|frontend-control-blue-prd
+countries-service|countries-microservice-blue-prd
+customer-service|customer-microservice-blue-prd
+decision-frontend|frontend-decision-blue-prd
+decision-service|decision-microservice-blue-prd
+dmpintegration-service|dmp-integration-microservice-prd
+economicoperator-service|economicoperator-microservice-blue-prd
+enotificationevent-service|enotification-event-microservice-blue-prd
+enotificationeventlistener-service|enotification-event-listener-microservice-prd
+enotificationprocessing-service|enotification-processing-microservice-prd
+enotificationsubmission-service|enotification-submission-microservice-blue-prd
+fieldconfig-service|fieldconfig-microservice-blue-prd
+filecompression-service|file-compression-microservice-blue-prd
+gvms-service|gvms-microservice-prd
+inservicemessaging-service|in-service-messaging-microservice-blue-prd
+laboratories-service|laboratories-microservice-blue-prd
+legacynotifications-service|legacy-notifications-microservice-blue-prd
+notification-frontend|frontend-notification-blue-prd
+notification-service|notification-microservice-blue-prd
+notify-service|notify-microservice-prd
+permissions-service|permissions-blue-prd
+proxy|imports-proxy-blue-prd
+referencedataloader-service|referencedataloader-microservice-blue-prd
+riskassessment-service|risk-assessment-microservice-blue-prd
+riskinterface-job|risk-interface-microservice-prd
+risklocking-job|risk-locking-microservice-prd
+soaprequest-service|soaprequest-microservice-blue-prd
+soapsearch-service|soapsearch-microservice-blue-prd
+upload-frontend|frontend-upload-blue-prd
+upload-service|file-upload-microservice-blue-prd

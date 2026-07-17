@@ -1,0 +1,114 @@
+---
+trigger: none
+pr: none
+
+pool:
+  name: DEFRA-COMMON-ubuntu2204-SSV5
+
+variables:
+  - group: Common
+  - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
+      - group: HigherEnvs
+  - ${{ else }}:
+      - group: LowerEnvs
+  - group: "${{ parameters.environmentName }}"
+  - template: "/pipelines/vars/common.yaml"
+  - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
+
+parameters:
+  - name: environmentName
+    type: string
+    default: TST
+    values:
+      - TST
+      - PRE
+      - PRD
+
+resources:
+  repositories:
+    - repository: ipaffs-manifest
+      type: github
+      endpoint: DEFRA
+      name: DEFRA/ipaffs-manifest
+      ref: refs/heads/master
+
+stages:
+  - stage: Deploy
+    jobs:
+      - deployment: Deploy
+        environment:
+          name: "${{ parameters.environmentName }}"
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+
+                - checkout: ipaffs-manifest
+                  path: s/ipaffs-manifest
+
+                - task: AzureCLI@2
+                  displayName: Deploy
+                  inputs:
+                    azureSubscription: $(serviceConnection)
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      az account show
+                      rsync -av "${AZURE_CONFIG_DIR}"/ "$(Pipeline.Workspace)/.azure/"
+
+                - task: AzureCLI@2
+                  displayName: Deploy
+                  inputs:
+                    azureSubscription: $(classicServiceConnection)
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      az account show
+                      rsync -av "${AZURE_CONFIG_DIR}"/ "$(Pipeline.Workspace)/.azure2/"
+
+                - task: AzureCLI@2
+                  displayName: Setup Environment Configuration
+                  inputs:
+                    azureSubscription: $(serviceConnection)
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    workingDirectory: $(Pipeline.Workspace)/s/ipaffs-infra/scripts/tools/configuration-validator
+                    inlineScript: |
+                      cat >config.env <<EOF
+                      SOURCE_VAULT_NAME=$(validatorSrcVault)
+                      SOURCE_VAULT_AZCLI_DIR=$(Pipeline.Workspace)/.azure
+                      SOURCE_VAULT_SUBSCRIPTION=$(validatorSrcSubscription)
+
+                      TARGET_VAULT_NAME=$(validatorTgtVault)
+                      TARGET_VAULT_AZCLI_DIR=$(Pipeline.Workspace)/.azure2
+                      TARGET_VAULT_SUBSCRIPTION=$(validatorTgtSubscription)
+
+                      APP_SERVICE_SUBSCRIPTION=$(validatorAppServiceSubscription)
+                      ENVIRONMENT=${{ lower(parameters.environmentName) }}
+
+                      SERVICES_DIR=$(Pipeline.Workspace)/s/ipaffs-manifest/services
+                      ENVIRONMENTS_DIR=$(Pipeline.Workspace)/s/ipaffs-manifest/environments
+                      SERVICE_MAPPING_FILE=$(Pipeline.Workspace)/s/ipaffs-infra/scripts/tools/configuration-validator/service-mappings-${{ lower(parameters.environmentName) }}.txt
+                      EOF
+
+                - task: AzureCLI@2
+                  displayName: Run Drift Detection Script
+                  continueOnError: true
+                  inputs:
+                    azureSubscription: $(serviceConnection)
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    workingDirectory: $(Pipeline.Workspace)/s/ipaffs-infra/scripts/tools/configuration-validator
+                    inlineScript: |
+                      set -x
+                      cat config.env
+                      ./validator.sh --hide-unresolved --csv results.csv config.env
+
+                - task: PublishPipelineArtifact@1
+                  displayName: Publish Test Results
+                  inputs:
+                    targetPath: $(Pipeline.Workspace)/s/ipaffs-infra/scripts/tools/configuration-validator/results.csv
+                    artifact: validator-results-$(Build.BuildNumber)
+                    publishLocation: 'pipeline'
+                  condition: succeededOrFailed()
