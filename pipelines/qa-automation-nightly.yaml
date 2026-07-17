@@ -36,4 +36,4 @@ jobs:
               --id ${PIPELINE_ID} \
               --org "${ADO_ORG_URL}" \
               --project "${ADO_PROJECT}" \
-              --parameters environmentName="NEW-TST" notification="true"
+              --parameters environmentName="TST" notification="true"
