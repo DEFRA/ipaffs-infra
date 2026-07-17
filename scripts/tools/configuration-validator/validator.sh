@@ -46,18 +46,8 @@ if [[ -t 1 ]]; then
   C_RESET=$'\033[0m'
 fi
 
-is_prd_vault() {
-  case "$(printf '%s' "${1}" | tr '[:lower:]' '[:upper:]')" in
-    *PRD*) return 0 ;;
-    *) return 1 ;;
-  esac
-}
-
 read_secret() {
   local vault="${1}" name="${2}" azcli_dir="${3}"
-  if is_prd_vault "${vault}"; then
-    return 1
-  fi
   AZURE_CONFIG_DIR="${azcli_dir}" az keyvault secret show \
     --vault-name "${vault}" \
     --name "${name}" \
@@ -123,9 +113,6 @@ ENVIRONMENT_DIR="${ENVIRONMENTS_DIR}/${ENVIRONMENT}"
 [[ -d "${SERVICES_DIR}" ]] || fail "SERVICES_DIR '${SERVICES_DIR}' is not a directory"
 [[ -d "${ENVIRONMENT_DIR}" ]] || fail "ENVIRONMENT_DIR '${ENVIRONMENT_DIR}' is not a directory"
 [[ -f "${SERVICE_MAPPING_FILE}" ]] || fail "SERVICE_MAPPING_FILE '${SERVICE_MAPPING_FILE}' not found"
-
-is_prd_vault "${SOURCE_VAULT_NAME}" && fail "Refusing to run: SOURCE_VAULT_NAME '${SOURCE_VAULT_NAME}' looks like a production vault"
-is_prd_vault "${TARGET_VAULT_NAME}" && fail "Refusing to run: TARGET_VAULT_NAME '${TARGET_VAULT_NAME}' looks like a production vault"
 
 banner
 
