@@ -12,6 +12,7 @@ resource virtualNetwork 'Microsoft.Network/virtualNetworks@2025-05-01' = {
   location: location
   tags: tags
   properties: {
+    privateEndpointVNetPolicies: 'Disabled'
     addressSpace: {
       addressPrefixes: vnetParams.addressPrefixes
     }
@@ -24,7 +25,7 @@ resource virtualNetwork 'Microsoft.Network/virtualNetworks@2025-05-01' = {
         addressPrefix: subnet.addressPrefix
         delegations: subnet.?delegations ?? []
         serviceEndpoints: subnet.?serviceEndpoints ?? []
-        privateEndpointNetworkPolicies: subnet.?privateEndpointNetworkPolicies ?? 'Enabled'
+        privateEndpointNetworkPolicies: subnet.?privateEndpointNetworkPolicies ?? 'Disabled'
         privateLinkServiceNetworkPolicies: subnet.?privateLinkServiceNetworkPolicies ?? 'Enabled'
         routeTable: {
           id: subnet.?routeTableId ?? routeTableId
@@ -51,7 +52,7 @@ module vnetNetworkContributor './vnet-role-assignment.bicep' = [for principalId 
   dependsOn: [virtualNetwork]
 }]
 
-output subnetIds array = [for subnet in virtualNetwork.properties.subnets: subnet.id]
+output subnetIds array = [for subnet in vnetParams.subnets: resourceId('Microsoft.Network/virtualNetworks/subnets', vnetParams.name, subnet.name)]
 output subnets array = virtualNetwork.properties.subnets
 output vnetName string = virtualNetwork.name
 output vnetResourceId string = virtualNetwork.id
