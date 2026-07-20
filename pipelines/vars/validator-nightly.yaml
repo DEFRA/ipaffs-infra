@@ -3,7 +3,7 @@ schedules:
   - cron: "0 6 * * 1-5"
     displayName: "Run Validation scripts nightly"
     branches:
-      include: [ main ]
+      include: [ main, imta-21545 ]
     always: true
 
 trigger: none
