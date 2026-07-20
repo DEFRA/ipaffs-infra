@@ -1,6 +1,6 @@
 ---
 schedules:
-  - cron: "0 6 * * 1-5"
+  - cron: "0 7 * * 1-5"
     displayName: "Run Validation scripts nightly"
     branches:
       include: [ main ]
@@ -36,4 +36,4 @@ jobs:
               --id ${PIPELINE_ID} \
               --org "${ADO_ORG_URL}" \
               --project "${ADO_PROJECT}" \
-              --parameters environmentName="TST"
+              --parameters environmentName="PRD" notification="true"
