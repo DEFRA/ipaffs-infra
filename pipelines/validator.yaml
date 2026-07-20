@@ -7,7 +7,6 @@ pool:
 
 variables:
   - group: Common
-  - group: Testing
   - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
       - group: HigherEnvs
   - ${{ else }}:
