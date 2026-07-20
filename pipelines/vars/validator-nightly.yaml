@@ -3,7 +3,7 @@ schedules:
   - cron: "0 6 * * 1-5"
     displayName: "Run Validation scripts nightly"
     branches:
-      include: [ main, imta-21545 ]
+      include: [ main ]
     always: true
 
 trigger: none
@@ -14,7 +14,7 @@ pool:
 
 variables:
   - group: "Common"
-  - template: "/pipelines/vars/dev.yamlƒ"
+  - template: "/pipelines/vars/dev.yaml"
 
 jobs:
   - job: TriggerCorePipeline
