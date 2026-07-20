@@ -26,7 +26,7 @@ cat <<EOF > "$OUTPUT_PAYLOAD"
           "type": "header",
           "text": {
             "type": "plain_text",
-            "text": "🟢- Configuration Validator Completed for ${ENVIRONMENT}",
+            "text": "Configuration Validator Completed for ${ENVIRONMENT}",
             "emoji": true
           }
         },
