@@ -122,7 +122,7 @@ stages:
                 - task: Bash@3
                   displayName: Send notification
                   env:
-                    SLACK_QA_CHANNEL_WEBHOOK_URL: $(slackQAChannelWebhookUrl)
+                    SLACK_ENGINEEERING_CHANNEL_WEBHOOK_URL: $(slackEngineeringChannelWebhookUrl)
                     ARTIFACT_URL: $(System.CollectionUri)$(System.TeamProject)/_build/results?buildId=$(Build.BuildId)&view=artifacts&pathAsName=false&type=publishedArtifacts
                     ENVIRONMENT_NAME: ${{ parameters.environmentName }}
                     ARTIFACT_NAME: validator-results-$(Build.BuildNumber)
