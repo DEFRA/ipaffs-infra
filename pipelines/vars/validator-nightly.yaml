@@ -14,7 +14,7 @@ pool:
 
 variables:
   - group: "Common"
-  - template: "/pipelines/vars/dev.yaml"
+  - template: "/pipelines/vars/dev.yamlƒ"
 
 jobs:
   - job: TriggerCorePipeline
@@ -36,4 +36,4 @@ jobs:
               --id ${PIPELINE_ID} \
               --org "${ADO_ORG_URL}" \
               --project "${ADO_PROJECT}" \
-              --parameters environmentName="TST" notification="true"
+              --parameters environmentName="TST"
