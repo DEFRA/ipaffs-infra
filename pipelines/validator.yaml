@@ -7,6 +7,7 @@ pool:
 
 variables:
   - group: Common
+  - group: Testing
   - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
       - group: HigherEnvs
   - ${{ else }}:
@@ -23,6 +24,11 @@ parameters:
       - TST
       - PRE
       - PRD
+
+  - name: notification
+    displayName: Send Notification
+    type: boolean
+    default: false
 
 resources:
   repositories:
@@ -112,3 +118,19 @@ stages:
                     artifact: validator-results-$(Build.BuildNumber)
                     publishLocation: 'pipeline'
                   condition: succeededOrFailed()
+
+                - task: Bash@3
+                  displayName: Send notification
+                  env:
+                    SLACK_QA_CHANNEL_WEBHOOK_URL: $(slackQAChannelWebhookUrl)
+                    ARTIFACT_URL: $(System.CollectionUri)$(System.TeamProject)/_build/results?buildId=$(Build.BuildId)&view=artifacts&pathAsName=false&type=publishedArtifacts
+                    ENVIRONMENT_NAME: ${{ parameters.environmentName }}
+                    ARTIFACT_NAME: validator-results-$(Build.BuildNumber)
+                  inputs:
+                    targetType: inline
+                    workingDirectory: $(Pipeline.Workspace)/s/ipaffs-infra/scripts/tools/configuration-validator
+                    script: |
+                      $(Pipeline.Workspace)/s/ipaffs-infra/scripts/pipeline/generate-validator-notification.sh "${ARTIFACT_URL}" "${ARTIFACT_NAME}" "${ENVIRONMENT_NAME}"
+
+                      curl -X POST -H 'Content-type: application/json' --data @slack_payload.json "${SLACK_ENGINEEERING_CHANNEL_WEBHOOK_URL}"
+                  condition: and(succeededOrFailed(), eq('${{ parameters.notification }}', true))
