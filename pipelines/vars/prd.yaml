@@ -10,6 +10,5 @@ variables:
   serviceConnection: ADO-DefraGovUK-AZR-IMP-PRD1
   serviceConnectionPrincipalId: a3e0f04c-827a-4abc-89c2-249e476b3cf2
   subscriptionName: AZR-IMP-PRD1
-  # TODO: Temporarily substituting the MI for the new SQL server, until we have enabled MI on classic SQL server
-  sqlServerClassicManagedIdentityObjectId: 9058b744-694e-4f6e-8888-6effcbbdef27
+  sqlServerClassicManagedIdentityObjectId: 711d08d7-e93d-48e2-b7da-308a09946dde
 
