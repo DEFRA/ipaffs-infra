@@ -1,11 +1,4 @@
 ---
-schedules:
-  - cron: "0 7 * * 1-5"
-    displayName: "Run Validation scripts nightly"
-    branches:
-      include: [ main ]
-    always: true
-
 trigger: none
 pr: none
 
