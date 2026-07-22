@@ -200,16 +200,33 @@ for env_yaml in "${ENVIRONMENT_DIR}"/*.yaml; do
 
       reference="$(printf '%s' "${app_settings_json}" | jq -r --arg k "${secret_key}" \
         '.[] | select(.name==$k) | .value')"
-      if [[ -z "${reference}" || "${reference}" == "null" ]]; then
-        record_error "${service}/${app_service} env var '${secret_key}' not set on App Service"
-        csv_row ERROR_ENV_VAR_MISSING "${service}" "${app_service}" "${secret_key}" "" ""
-        continue
-      fi
 
       source="${SOURCE_VAULT_NAME}/${remote_key}"
 
-      # An app setting is either a @Microsoft.KeyVault(...) reference or the literal secret value stored inline.
-      if [[ "${reference}" == *"@Microsoft.KeyVault("* ]]; then
+      # An app setting is a @Microsoft.KeyVault(...) reference, a literal value, or absent.
+      # When absent, some secrets still live directly in the target (SEC) vault under <app-service-base><suffix> when
+      # the remoteKey is prefixed with the service name; validate those, otherwise it is genuinely missing.
+      if [[ -z "${reference}" || "${reference}" == "null" ]]; then
+        stem="${service%-service}"; stem="${stem%-job}"; stem="${stem%-frontend}"
+        rk_lc="$(printf '%s' "${remote_key}" | tr '[:upper:]' '[:lower:]')"
+        stem_lc="$(printf '%s' "${stem}" | tr '[:upper:]' '[:lower:]')"
+        next="${remote_key:${#stem}:1}"
+        if [[ "${rk_lc}" == "${stem_lc}"* && "${next}" == [A-Z] ]]; then
+          base="${app_service%-${ENVIRONMENT}}"; base="${base%-green}"; base="${base%-blue}"
+          derived="${base}${remote_key:${#stem}}"
+          target="${TARGET_VAULT_NAME}/${derived}"
+          count_checked=$((count_checked + 1))
+          if ! target_value="$(read_secret "${TARGET_VAULT_NAME}" "${derived}" "${TARGET_VAULT_AZCLI_DIR}")"; then
+            record_error "${service}/${app_service} could not read target secret '${derived}' from vault '${TARGET_VAULT_NAME}'"
+            csv_row ERROR_READ_TARGET "${service}" "${app_service}" "${secret_key}" "${target}" "${source}"
+            continue
+          fi
+        else
+          record_error "${service}/${app_service} env var '${secret_key}' not set on App Service"
+          csv_row ERROR_ENV_VAR_MISSING "${service}" "${app_service}" "${secret_key}" "" ""
+          continue
+        fi
+      elif [[ "${reference}" == *"@Microsoft.KeyVault("* ]]; then
         parsed_vault="$(parse_ref_field "${reference}" VaultName)"
         parsed_secret="$(parse_ref_field "${reference}" SecretName)"
         if [[ -z "${parsed_vault}" || -z "${parsed_secret}" ]]; then
