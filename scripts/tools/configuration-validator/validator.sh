@@ -350,7 +350,7 @@ main() {
   APP_SITES_TSV="$(AZURE_CONFIG_DIR="${TARGET_VAULT_AZCLI_DIR}" az resource list \
     --subscription "${APP_SERVICE_SUBSCRIPTION}" \
     --resource-type "Microsoft.Web/sites" \
-    --query "[].{name:name,rg:resourceGroup,kind:kind}}" \
+    --query "[].{name:name,rg:resourceGroup,kind:kind}" \
     --output tsv)"
 
   for env_yaml in "${ENVIRONMENT_DIR}"/*.yaml; do
