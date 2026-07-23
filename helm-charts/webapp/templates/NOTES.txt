@@ -15,4 +15,3 @@ This service can now be accessed inside the cluster at the following URLs:
 
 You can connect a debugger by first forwarding a port:
 $ kubectl port-forward deployment/{{ .Values.service }} 5005
-
