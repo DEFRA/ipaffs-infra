@@ -72,8 +72,8 @@ report() {
     *)                        count_errors=$((count_errors + 1)) ;;
   esac
   count_checked=$((count_checked + 1))
-  log "${colour}${status}: ${service}/${app} '${key}' target=${target} source=${source}${colour:+${C_RESET}}"
-  csv_row "${status}" "${service}" "${app}" "${key}" "${target}" "${source}"
+  log "${colour}${status}: ${service}/${app} '${key}' source=${source} target=${target}${colour:+${C_RESET}}"
+  csv_row "${status}" "${service}" "${app}" "${key}" "${source}" "${target}"
 }
 
 banner() {
@@ -318,7 +318,7 @@ load_configuration() {
 
   if [[ -n "${CSV_FILE}" ]]; then
     : 2>/dev/null > "${CSV_FILE}" || fail "Cannot write CSV file '${CSV_FILE}'"
-    csv_row status service app_service secret_key target source
+    csv_row status service app_service secret_key source target
   fi
 }
 
