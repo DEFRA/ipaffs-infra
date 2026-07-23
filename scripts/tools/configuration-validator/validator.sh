@@ -130,27 +130,26 @@ parse_ref_field() {
   fi
 }
 
-# Some secrets have no App Service setting because their value sits directly in
-# the target (SEC) vault, keyed "<app-service-base><Suffix>". That applies when
-# the remoteKey starts with the service stem on a camelCase boundary; prints the
-# derived key, or nothing when the rule does not apply.
-derive_sec_key() {
-  local service="${1}" app_service="${2}" remote_key="${3}"
-  local stem="${service%-service}"; stem="${stem%-job}"; stem="${stem%-frontend}"
-  local remote_lc stem_lc base
-  remote_lc="$(printf '%s' "${remote_key}" | tr '[:upper:]' '[:lower:]')"
-  stem_lc="$(printf '%s' "${stem}" | tr '[:upper:]' '[:lower:]')"
-  [[ "${remote_lc}" == "${stem_lc}"* && "${remote_key:${#stem}:1}" == [A-Z] ]] || return 0
-  base="${app_service%-${ENVIRONMENT}}"; base="${base%-green}"; base="${base%-blue}"
-  printf '%s' "${base}${remote_key:${#stem}}"
+app_service_base() {
+  local base="${1%-${ENVIRONMENT}}"; base="${base%-green}"; base="${base%-blue}"
+  printf '%s' "${base}"
+}
+
+sec_secret_suffix() {
+  case "${1}" in
+    AZURE_SEARCH_DB_PASSWORD)     printf 'AzureSearchDatabasePassword' ;;
+    BASE_SERVICE_DB_PASSWORD)     printf 'DatabasePassword' ;;
+    NEW_BASE_SERVICE_DB_PASSWORD) printf 'DatabasePassword-%s' "${ENVIRONMENT}" ;;
+    *) return 1 ;;
+  esac
 }
 
 # Work out what the App Service actually uses for this secret. Sets the caller's
 # "target" (a printable label) and "target_value"; reports and returns 1 when the
 # secret cannot be resolved.
 resolve_target() {
-  local service="${1}" app="${2}" key="${3}" remote_key="${4}" setting="${5}" source="${6}"
-  local vault name
+  local service="${1}" app="${2}" key="${3}" setting="${4}" source="${5}"
+  local vault name suffix
 
   if [[ "${setting}" == *"@Microsoft.KeyVault("* ]]; then
     vault="$(parse_ref_field "${setting}" VaultName)"
@@ -167,12 +166,12 @@ resolve_target() {
     target_value="${setting}"
     return 0
   else
-    vault="${TARGET_VAULT_NAME}"
-    name="$(derive_sec_key "${service}" "${app}" "${remote_key}")"
-    if [[ -z "${name}" ]]; then
+    if ! suffix="$(sec_secret_suffix "${key}")"; then
       report ERROR_ENV_VAR_MISSING "${service}" "${app}" "${key}" "" ""
       return 1
     fi
+    vault="${TARGET_VAULT_NAME}"
+    name="$(app_service_base "${app}")${suffix}"
   fi
 
   target="${vault}/${name}"
@@ -188,7 +187,7 @@ check_secret() {
   local setting target target_value source_value status
 
   setting="$(app_setting "${key}")"
-  resolve_target "${service}" "${app}" "${key}" "${remote_key}" "${setting}" "${source}" || return 0
+  resolve_target "${service}" "${app}" "${key}" "${setting}" "${source}" || return 0
 
   if ! source_value="$(read_secret "${SOURCE_VAULT_NAME}" "${remote_key}" "${SOURCE_VAULT_AZCLI_DIR}")"; then
     report ERROR_READ_SOURCE "${service}" "${app}" "${key}" "${target}" "${source}"
