@@ -108,6 +108,11 @@ resource_group_for() {
   printf '%s\n' "${APP_SITES_TSV}" | awk -F'\t' -v n="${1}" '$1 == n { print $2; exit }'
 }
 
+resource_kind_for() {
+    printf '%s\n' "${APP_SITES_TSV}" |
+        awk -F'\t' -v n="${1}" '$1 == n { print $3; exit }'
+}
+
 resolve_app_services() {
   local wanted="${1}" service app_service
   while IFS='|' read -r service app_service; do
@@ -218,9 +223,13 @@ config_keys() {
   yq e '.config // {} | keys | .[]' "${1}"
 }
 
+
 check_app_service() {
   local service="${1}" app="${2}" secrets_yaml="${3}" env_yaml="${4}"
   local resource_group key remote_key
+  local kind
+
+  kind="$(resource_kind_for "${app}")"
 
   resource_group="$(resource_group_for "${app}")"
   if [[ -z "${resource_group}" ]]; then
@@ -228,11 +237,20 @@ check_app_service() {
     return 0
   fi
 
-  APP_SETTINGS_JSON="$(AZURE_CONFIG_DIR="${TARGET_VAULT_AZCLI_DIR}" az webapp config appsettings list \
-    --name "${app}" \
-    --resource-group "${resource_group}" \
-    --subscription "${APP_SERVICE_SUBSCRIPTION}" \
-    --output json)"
+  if [[ "${kind}" == *functionapp* ]]; then
+      APP_SETTINGS_JSON="$(AZURE_CONFIG_DIR="${TARGET_VAULT_AZCLI_DIR}" az functionapp config appsettings list \
+        --name "${app}" \
+        --resource-group "${resource_group}" \
+        --subscription "${APP_SERVICE_SUBSCRIPTION}" \
+        --output json)"
+  else
+      APP_SETTINGS_JSON="$(AZURE_CONFIG_DIR="${TARGET_VAULT_AZCLI_DIR}" az webapp config appsettings list \
+        --name "${app}" \
+        --resource-group "${resource_group}" \
+        --subscription "${APP_SERVICE_SUBSCRIPTION}" \
+        --output json)"
+  fi
+
 
   while IFS='|' read -r key remote_key; do
     [[ -n "${key}" && -n "${remote_key}" ]] || continue
@@ -332,7 +350,7 @@ main() {
   APP_SITES_TSV="$(AZURE_CONFIG_DIR="${TARGET_VAULT_AZCLI_DIR}" az resource list \
     --subscription "${APP_SERVICE_SUBSCRIPTION}" \
     --resource-type "Microsoft.Web/sites" \
-    --query "[].{name:name,rg:resourceGroup}" \
+    --query "[].{name:name,rg:resourceGroup,kind:kind}" \
     --output tsv)"
 
   for env_yaml in "${ENVIRONMENT_DIR}"/*.yaml; do
