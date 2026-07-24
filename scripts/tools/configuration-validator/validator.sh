@@ -67,7 +67,7 @@ report() {
   local status="${1}" service="${2}" app="${3}" key="${4}" target="${5}" source="${6}"
   local colour=""
   case "${status}" in
-    MATCH|CONFIG_MATCH)       colour="${C_GREEN}"; count_matches=$((count_matches + 1)) ;;
+    MATCH|CONFIG_MATCH|MATCH_QUEUE_NAME)       colour="${C_GREEN}"; count_matches=$((count_matches + 1)) ;;
     MISMATCH|CONFIG_MISMATCH) colour="${C_RED}";   count_mismatches=$((count_mismatches + 1)) ;;
     *)                        count_errors=$((count_errors + 1)) ;;
   esac
@@ -224,7 +224,9 @@ check_keda_queue_names() {
       '.env[]? | select(.value == $q) | .name' \
       "${yaml}")"
 
-    if [[ -z "${found}" ]]; then
+    if [[ -n "${found}" ]]; then
+      report MATCH_QUEUE_NAME "${service}" "${app}" "${queue}" "${found}" "${queue}"
+    else
       report ERROR_QUEUE_NAME_MISSING "${service}" "${app}" "${queue}" "" ""
     fi
   done < <(
@@ -271,7 +273,7 @@ check_app_service() {
 
 
   check_keda_queue_names "${service}" "${app}" "${env_yaml}"
-  
+
   while IFS='|' read -r key remote_key; do
     [[ -n "${key}" && -n "${remote_key}" ]] || continue
     check_secret "${service}" "${app}" "${key}" "${remote_key}"
