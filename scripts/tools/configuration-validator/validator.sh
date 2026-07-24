@@ -213,6 +213,25 @@ check_config() {
   report "${status}" "${service}" "${app}" "${key}" "${actual}" "${expected}"
 }
 
+check_keda_queue_names() {
+  local service="${1}" app="${2}" yaml="${3}"
+  local queue found
+
+  while IFS= read -r queue; do
+    [[ -n "${queue}" && "${queue}" != "null" ]] || continue
+
+    found="$(yq e --arg q "${queue}" \
+      '.env[]? | select(.value == $q) | .name' \
+      "${yaml}")"
+
+    if [[ -z "${found}" ]]; then
+      report ERROR_QUEUE_NAME_MISSING "${service}" "${app}" "${queue}" "" ""
+    fi
+  done < <(
+    yq e '.keda.triggers[]? | select(.metadata.queueName) | .metadata.queueName' "${yaml}"
+  )
+}
+
 secret_pairs() {
   [[ -n "${1}" ]] || return 0
   yq e '.externalSecret.secrets // [] | .[] | .secretKey + "|" + .remoteKey' "${1}"
@@ -251,6 +270,8 @@ check_app_service() {
   fi
 
 
+  check_keda_queue_names "${service}" "${app}" "${env_yaml}"
+  
   while IFS='|' read -r key remote_key; do
     [[ -n "${key}" && -n "${remote_key}" ]] || continue
     check_secret "${service}" "${app}" "${key}" "${remote_key}"
