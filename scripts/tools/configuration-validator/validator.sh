@@ -67,7 +67,7 @@ report() {
   local status="${1}" service="${2}" app="${3}" key="${4}" target="${5}" source="${6}"
   local colour=""
   case "${status}" in
-    MATCH|CONFIG_MATCH)       colour="${C_GREEN}"; count_matches=$((count_matches + 1)) ;;
+    MATCH|CONFIG_MATCH|MATCH_QUEUE_NAME)       colour="${C_GREEN}"; count_matches=$((count_matches + 1)) ;;
     MISMATCH|CONFIG_MISMATCH) colour="${C_RED}";   count_mismatches=$((count_mismatches + 1)) ;;
     *)                        count_errors=$((count_errors + 1)) ;;
   esac
@@ -213,6 +213,24 @@ check_config() {
   report "${status}" "${service}" "${app}" "${key}" "${actual}" "${expected}"
 }
 
+check_keda_queue_names() {
+  local service="${1}" app="${2}" yaml="${3}"
+  local queue found
+
+  while IFS= read -r queue; do
+    [[ -n "${queue}" && "${queue}" != "null" ]] || continue
+
+    if found="$(yq e ".env[]? | select(.value == \"${queue}\") | .name" "${yaml}")" \
+      && [[ -n "${found}" && "${found}" != "null" ]]; then
+      report MATCH_QUEUE_NAME "${service}" "${app}" "${queue}" "${found}" "${queue}"
+    else
+      report ERROR_QUEUE_NAME_MISSING "${service}" "${app}" "${queue}" "" ""
+    fi
+  done < <(
+    yq e '.keda.triggers[]? | .metadata.queueName' "${yaml}"
+  )
+}
+
 secret_pairs() {
   [[ -n "${1}" ]] || return 0
   yq e '.externalSecret.secrets // [] | .[] | .secretKey + "|" + .remoteKey' "${1}"
@@ -250,6 +268,8 @@ check_app_service() {
         --output json)"
   fi
 
+
+  check_keda_queue_names "${service}" "${app}" "${env_yaml}"
 
   while IFS='|' read -r key remote_key; do
     [[ -n "${key}" && -n "${remote_key}" ]] || continue
