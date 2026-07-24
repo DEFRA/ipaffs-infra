@@ -220,17 +220,14 @@ check_keda_queue_names() {
   while IFS= read -r queue; do
     [[ -n "${queue}" && "${queue}" != "null" ]] || continue
 
-    found="$(yq e --arg q "${queue}" \
-      '.env[]? | select(.value == $q) | .name' \
-      "${yaml}")"
-
-    if [[ -n "${found}" ]]; then
+    if found="$(yq e ".env[]? | select(.value == \"${queue}\") | .name" "${yaml}")" \
+      && [[ -n "${found}" && "${found}" != "null" ]]; then
       report MATCH_QUEUE_NAME "${service}" "${app}" "${queue}" "${found}" "${queue}"
     else
       report ERROR_QUEUE_NAME_MISSING "${service}" "${app}" "${queue}" "" ""
     fi
   done < <(
-    yq e '.keda.triggers[]? | select(.metadata.queueName) | .metadata.queueName' "${yaml}"
+    yq e '.keda.triggers[]? | .metadata.queueName' "${yaml}"
   )
 }
 
