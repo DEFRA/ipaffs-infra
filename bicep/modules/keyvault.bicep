@@ -16,6 +16,7 @@ resource keyVault 'Microsoft.KeyVault/vaults@2026-02-01' = {
   properties: {
     enableRbacAuthorization: true
     enableSoftDelete: true
+    enablePurgeProtection: true
     publicNetworkAccess: 'Disabled'
     tenantId: tenantId
 
