@@ -734,6 +734,7 @@
         "y": 10
       },
       "id": 12,
+      "maxDataPoints": 250,
       "options": {
         "legend": {
           "calcs": [
@@ -837,6 +838,7 @@
         "y": 10
       },
       "id": 13,
+      "maxDataPoints": 250,
       "options": {
         "legend": {
           "calcs": [
@@ -941,6 +943,7 @@
         "y": 18
       },
       "id": 14,
+      "maxDataPoints": 250,
       "options": {
         "legend": {
           "calcs": [
@@ -1038,6 +1041,7 @@
         "y": 18
       },
       "id": 15,
+      "maxDataPoints": 250,
       "options": {
         "legend": {
           "calcs": [
@@ -1160,6 +1164,7 @@
         "y": 27
       },
       "id": 17,
+      "maxDataPoints": 250,
       "options": {
         "legend": {
           "calcs": [],
@@ -1657,6 +1662,7 @@
         "y": 44
       },
       "id": 22,
+      "maxDataPoints": 250,
       "options": {
         "legend": {
           "calcs": [
@@ -1790,6 +1796,7 @@
         "y": 44
       },
       "id": 23,
+      "maxDataPoints": 250,
       "options": {
         "legend": {
           "calcs": [
@@ -1901,6 +1908,7 @@
         "y": 52
       },
       "id": 24,
+      "maxDataPoints": 250,
       "options": {
         "legend": {
           "calcs": [
@@ -1937,7 +1945,7 @@
     }
   ],
   "preload": false,
-  "refresh": "1m",
+  "refresh": "5m",
   "schemaVersion": 41,
   "tags": [
     "ipaffs",
@@ -2019,7 +2027,13 @@
     "to": "now"
   },
   "timepicker": {
-    "nowDelay": ""
+    "nowDelay": "",
+    "refresh_intervals": [
+      "5m",
+      "15m",
+      "30m",
+      "1h"
+    ]
   },
   "timezone": "",
   "title": "IPAFFS_AKS_Ops",
