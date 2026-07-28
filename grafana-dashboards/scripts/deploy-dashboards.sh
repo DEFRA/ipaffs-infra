@@ -21,18 +21,14 @@
 #                      dashboard). When unset, deploys every *.json under
 #                        <DASHBOARDS_ROOT>
 #   DASHBOARDS_ROOT  – default: grafana-dashboards/dashboards
-#   PROM_DS_NAME     – default: "Prometheus"
-#   AZMON_DS_NAME    – default: "Azure Monitor"
+#   PROM_DS_NAME     – default: "Prometheus - <ENV>"
+#   AZMON_DS_NAME    – default: "Azure Monitor - <ENV>"
 #   DRY_RUN          – "true" to print what would happen without deploying
 #
 # A datasource template variable's *value* is the datasource UID (panels
 # reference it as uid: "${var}"), so the real UID is injected, not the name.
 # UIDs are resolved from the live Grafana; if a datasource does not exist yet
 # (run configure-grafana.sh first) the name is used as a fallback.
-#
-# Query variables named exactly "namespace" get their default selection set to
-# the lowercased environment (dev/tst/pre/prd), the namespace the IPAFFS apps
-# run in on each cluster.
 
 set -euo pipefail
 
@@ -82,16 +78,12 @@ deploy_dashboard() {
   definition=$(jq \
     --arg promName "${PROM_DS_NAME}" --arg promUid "${PROM_DS_UID}" \
     --arg azName "${AZMON_DS_NAME}"  --arg azUid "${AZMON_DS_UID}" \
-    --arg envNs "${ENVIRONMENT,,}" \
     '(.templating.list[]
         | select(.type == "datasource" and .query == "prometheus")) |=
         (.current = {selected: true, text: $promName, value: $promUid})
      | (.templating.list[]
         | select(.type == "datasource" and .query == "grafana-azure-monitor-datasource")) |=
-        (.current = {selected: true, text: $azName, value: $azUid})
-     | (.templating.list[]
-        | select(.type == "query" and .name == "namespace")) |=
-        (.current = {selected: true, text: [$envNs], value: [$envNs]})' \
+        (.current = {selected: true, text: $azName, value: $azUid})' \
     "${file}")
 
   echo "Deploying: ${title} (uid=${uid})"
