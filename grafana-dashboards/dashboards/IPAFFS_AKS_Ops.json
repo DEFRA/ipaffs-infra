@@ -31,7 +31,7 @@
       },
       "id": 1,
       "panels": [],
-      "title": "Cluster at a glance",
+      "title": "Cluster at a glance \u2014 whole cluster",
       "type": "row"
     },
     {
@@ -662,7 +662,7 @@
       },
       "id": 11,
       "panels": [],
-      "title": "Node health",
+      "title": "Node health \u2014 whole cluster",
       "type": "row"
     },
     {
@@ -1093,7 +1093,7 @@
       },
       "id": 16,
       "panels": [],
-      "title": "Workload health",
+      "title": "Workload health \u2014 namespace: $namespace",
       "type": "row"
     },
     {
@@ -1567,7 +1567,7 @@
       },
       "id": 21,
       "panels": [],
-      "title": "Resource usage",
+      "title": "Resource usage \u2014 namespace: $namespace",
       "type": "row"
     },
     {
