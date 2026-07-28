@@ -2003,7 +2003,7 @@
         "name": "namespace",
         "options": [],
         "query": {
-          "qryType": 1,
+          "qryType": 5,
           "query": "label_values(kube_pod_info{cluster=\"$cluster\"}, namespace)",
           "refId": "PrometheusVariableQueryEditor-VariableQuery"
         },
