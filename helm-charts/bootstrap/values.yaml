@@ -31,6 +31,8 @@ originIngress:
     nginx.ingress.kubernetes.io/proxy-buffers-number: "8"
     nginx.ingress.kubernetes.io/proxy-busy-buffers-size: "64k"
     nginx.ingress.kubernetes.io/proxy-body-size: "102m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
     nginx.ingress.kubernetes.io/configuration-snippet: |
       proxy_set_header X-Original-Host $host;
       proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
