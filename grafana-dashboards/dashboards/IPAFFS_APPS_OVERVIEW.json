@@ -698,6 +698,6 @@
     "to": "now"
   },
   "timezone": "browser",
-  "title": "App Overview",
+  "title": "IPAFFS_APPS_OVERVIEW",
   "uid": "app-overview"
 }
