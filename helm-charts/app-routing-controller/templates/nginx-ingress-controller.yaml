@@ -14,14 +14,4 @@ spec:
   loadBalancerAnnotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  customHTTPErrors:
-    - 502
-    - 503
-    - 504
-
-  defaultBackendService:
-    name: error-page
-    namespace: app-routing-system
-
-
 
