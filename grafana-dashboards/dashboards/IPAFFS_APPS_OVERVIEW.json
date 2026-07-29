@@ -414,7 +414,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "label_replace(label_replace(kube_pod_container_info{image=~\".+/ipaffs/.+\"}, \"service\",\"$1\",\"image\",\".*/ipaffs/([^:]+):.*\"), \"version\",\"$1\",\"image\",\".*:(.+)$\")",
+          "expr": "label_replace(label_replace(kube_pod_container_info{image=~\".+/ipaffs/(${service:pipe}):.*\", namespace=~\"${namespace:pipe}\"}, \"service\",\"$1\",\"image\",\".*/ipaffs/([^:]+):.*\"), \"version\",\"$1\",\"image\",\".*:(.+)$\")",
           "format": "table",
           "instant": true,
           "refId": "A"
@@ -525,7 +525,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "count(kube_pod_status_phase{phase=~\"Pending|Failed|Unknown\"} == 1) or vector(0)",
+          "expr": "count((kube_pod_status_phase{phase=~\"Pending|Failed|Unknown\", namespace=~\"${namespace:pipe}\"} == 1) and on(namespace, pod) kube_pod_container_info{image=~\".+/ipaffs/(${service:pipe}):.*\"}) or vector(0)",
           "instant": true,
           "refId": "A"
         }
@@ -694,6 +694,70 @@
           },
           "queryType": "Azure Log Analytics",
           "refId": "A"
+        },
+        "refresh": 1,
+        "regex": "",
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "allValue": ".*",
+        "current": {
+          "selected": true,
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        },
+        "datasource": {
+          "type": "prometheus",
+          "uid": "${datasource}"
+        },
+        "definition": "label_values(kube_pod_container_info{image=~\".+/ipaffs/.+\"}, image)",
+        "hide": 0,
+        "includeAll": true,
+        "label": "Service",
+        "multi": true,
+        "name": "service",
+        "options": [],
+        "query": {
+          "qryType": 5,
+          "query": "label_values(kube_pod_container_info{image=~\".+/ipaffs/.+\"}, image)",
+          "refId": "PrometheusVariableQueryEditor-VariableQuery"
+        },
+        "refresh": 1,
+        "regex": "/\\/ipaffs\\/([^:]+):/",
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "allValue": ".*",
+        "current": {
+          "selected": true,
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        },
+        "datasource": {
+          "type": "prometheus",
+          "uid": "${datasource}"
+        },
+        "definition": "label_values(kube_pod_container_info{image=~\".+/ipaffs/.+\"}, namespace)",
+        "hide": 0,
+        "includeAll": true,
+        "label": "Namespace",
+        "multi": true,
+        "name": "namespace",
+        "options": [],
+        "query": {
+          "qryType": 1,
+          "query": "label_values(kube_pod_container_info{image=~\".+/ipaffs/.+\"}, namespace)",
+          "refId": "PrometheusVariableQueryEditor-VariableQuery"
         },
         "refresh": 1,
         "regex": "",
