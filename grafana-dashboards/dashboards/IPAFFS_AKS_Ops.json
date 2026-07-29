@@ -1309,7 +1309,7 @@
         "type": "prometheus",
         "uid": "${datasource}"
       },
-      "description": "All deployments with desired vs ready replicas. Degraded ones sort to the top with the Missing count highlighted.",
+      "description": "Deployments with fewer ready replicas than desired, and how many are missing. Empty when everything is fully rolled out.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1391,39 +1391,21 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "kube_deployment_spec_replicas{cluster=\"$cluster\",namespace=~\"$namespace\"}",
+          "expr": "kube_deployment_spec_replicas{cluster=\"$cluster\",namespace=~\"$namespace\"} - kube_deployment_status_replicas_ready{cluster=\"$cluster\",namespace=~\"$namespace\"} > 0",
           "format": "table",
           "instant": true,
           "legendFormat": "__auto",
           "range": false,
           "refId": "A"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "editorMode": "code",
-          "expr": "kube_deployment_status_replicas_ready{cluster=\"$cluster\",namespace=~\"$namespace\"}",
-          "format": "table",
-          "instant": true,
-          "legendFormat": "__auto",
-          "range": false,
-          "refId": "B"
         }
       ],
-      "title": "Deployment Replicas (Desired vs Ready)",
+      "title": "Degraded Deployments (missing replicas)",
       "transformations": [
-        {
-          "id": "merge",
-          "options": {}
-        },
         {
           "id": "organize",
           "options": {
             "excludeByName": {
               "Time": true,
-              "__name__": true,
               "cluster": true,
               "instance": true,
               "job": true,
@@ -1435,29 +1417,12 @@
             },
             "includeByName": {},
             "indexByName": {
-              "Value #A": 2,
-              "Value #B": 3,
+              "Value": 2,
               "deployment": 1,
               "namespace": 0
             },
             "renameByName": {
-              "Value #A": "Desired",
-              "Value #B": "Ready"
-            }
-          }
-        },
-        {
-          "id": "calculateField",
-          "options": {
-            "alias": "Missing",
-            "binary": {
-              "left": "Desired",
-              "operator": "-",
-              "right": "Ready"
-            },
-            "mode": "binary",
-            "reduce": {
-              "reducer": "sum"
+              "Value": "Missing"
             }
           }
         },
