@@ -107,7 +107,7 @@
         {
           "azureLogAnalytics": {
             "dashboardTime": false,
-            "query": "requests\n| where cloud_RoleName == \"imports-proxy\"\n| where $__timeFilter(timestamp)\n| summarize Requests=count() by StatusGroup=strcat(substring(tostring(resultCode),0,1),\"xx\"), bin(timestamp, $__interval)\n| order by timestamp asc",
+            "query": "requests\n| where $__contains(cloud_RoleName, $application)\n| where $__timeFilter(timestamp)\n| summarize Requests=count() by StatusGroup=strcat(substring(tostring(resultCode),0,1),\"xx\"), bin(timestamp, $__interval)\n| order by timestamp asc",
             "resources": [
               "/subscriptions/$subscription/resourceGroups/$resourceGroup/providers/Microsoft.Insights/components/$appInsights"
             ],
@@ -121,7 +121,7 @@
           "refId": "A"
         }
       ],
-      "title": "Imports Proxy Requests by status group (2xx vs 5xx)",
+      "title": "Requests by Status Group",
       "type": "timeseries"
     },
     {
@@ -166,7 +166,7 @@
         {
           "azureLogAnalytics": {
             "dashboardTime": false,
-            "query": "requests\n| where cloud_RoleName == \"imports-proxy\"\n| where $__timeFilter(timestamp)\n| summarize p50=percentile(duration,50), p90=percentile(duration,90), p95=percentile(duration,95), p99=percentile(duration,99) by bin(timestamp, $__interval)\n| order by timestamp asc",
+            "query": "requests\n| where $__contains(cloud_RoleName, $application)\n| where $__timeFilter(timestamp)\n| summarize p50=percentile(duration,50), p90=percentile(duration,90), p95=percentile(duration,95), p99=percentile(duration,99) by bin(timestamp, $__interval)\n| order by timestamp asc",
             "resources": [
               "/subscriptions/$subscription/resourceGroups/$resourceGroup/providers/Microsoft.Insights/components/$appInsights"
             ],
@@ -180,7 +180,7 @@
           "refId": "A"
         }
       ],
-      "title": "Request Latency Percentiles (Imports Proxy)",
+      "title": "Request Latency Percentiles",
       "type": "timeseries"
     },
     {
@@ -228,7 +228,7 @@
         {
           "azureLogAnalytics": {
             "dashboardTime": false,
-            "query": "exceptions\n| where $__timeFilter(timestamp)\n| summarize Exceptions=count() by cloud_RoleName, bin(timestamp, $__interval)\n| order by timestamp asc",
+            "query": "exceptions\n| where $__timeFilter(timestamp)\n| where $__contains(cloud_RoleName, $application)\n| summarize Exceptions=count() by cloud_RoleName, bin(timestamp, $__interval)\n| order by timestamp asc",
             "resources": [
               "/subscriptions/$subscription/resourceGroups/$resourceGroup/providers/Microsoft.Insights/components/$appInsights"
             ],
@@ -362,7 +362,7 @@
         {
           "azureLogAnalytics": {
             "dashboardTime": false,
-            "query": "dependencies\n| where type == \"SQL\"\n| where $__timeFilter(timestamp)\n| summarize p50=percentile(duration,50), p95=percentile(duration,95), p99=percentile(duration,99) by bin(timestamp, $__interval)\n| order by timestamp asc",
+            "query": "dependencies\n| where type == \"SQL\"\n| where $__timeFilter(timestamp)\n| where $__contains(cloud_RoleName, $application)\n| summarize p50=percentile(duration,50), p95=percentile(duration,95), p99=percentile(duration,99) by bin(timestamp, $__interval)\n| order by timestamp asc",
             "resources": [
               "/subscriptions/$subscription/resourceGroups/$resourceGroup/providers/Microsoft.Insights/components/$appInsights"
             ],
@@ -545,6 +545,7 @@
     "list": [
       {
         "current": {
+          "selected": true,
           "text": "Prometheus",
           "value": "bfq876mzxyfi8b"
         },
@@ -660,6 +661,43 @@
         },
         "refresh": 1,
         "regex": "",
+        "type": "query"
+      },
+      {
+        "allValue": null,
+        "current": {
+          "selected": true,
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        },
+        "datasource": {
+          "type": "grafana-azure-monitor-datasource",
+          "uid": "azure-monitor-oob"
+        },
+        "definition": "",
+        "hide": 0,
+        "includeAll": true,
+        "label": "Application",
+        "multi": true,
+        "name": "application",
+        "options": [],
+        "query": {
+          "azureLogAnalytics": {
+            "query": "union isfuzzy=true requests, exceptions, dependencies | where isnotempty(cloud_RoleName) | distinct cloud_RoleName | order by cloud_RoleName asc",
+            "resources": [
+              "/subscriptions/$subscription/resourceGroups/$resourceGroup/providers/Microsoft.Insights/components/$appInsights"
+            ]
+          },
+          "queryType": "Azure Log Analytics",
+          "refId": "A"
+        },
+        "refresh": 1,
+        "regex": "",
+        "sort": 1,
         "type": "query"
       },
       {
