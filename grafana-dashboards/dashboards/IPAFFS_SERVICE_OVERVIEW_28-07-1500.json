@@ -117,7 +117,7 @@
         {
           "azureLogAnalytics": {
             "dashboardTime": false,
-            "query": "requests\n| where $__timeFilter(timestamp)\n| where cloud_RoleInstance matches regex @\"^(${pod:pipe})\"\n| summarize Requests=count() by StatusGroup=strcat(substring(tostring(resultCode),0,1),\"xx\"), bin(timestamp, $__interval)\n| order by timestamp asc",
+            "query": "requests\n| where $__timeFilter(timestamp)\n| where cloud_RoleName in (${service:singlequote})\n| summarize Requests=count() by StatusGroup=strcat(substring(tostring(resultCode),0,1),\"xx\"), bin(timestamp, $__interval)\n| order by timestamp asc",
             "resources": [
               "/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPINFRG1401/providers/Microsoft.Insights/components/DEVIMPINFIN1401"
             ],
@@ -219,7 +219,7 @@
         {
           "azureLogAnalytics": {
             "dashboardTime": false,
-            "query": "requests\n| where $__timeFilter(timestamp)\n| where cloud_RoleInstance matches regex @\"^(${pod:pipe})\"\n| summarize RPS = todouble(count())/60 by bin(timestamp, 1m)\n| order by timestamp asc",
+            "query": "requests\n| where $__timeFilter(timestamp)\n| where cloud_RoleName in (${service:singlequote})\n| summarize RPS = todouble(count())/60 by bin(timestamp, 1m)\n| order by timestamp asc",
             "resources": [
               "/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPINFRG1401/providers/Microsoft.Insights/components/DEVIMPINFIN1401"
             ],
@@ -321,7 +321,7 @@
         {
           "azureLogAnalytics": {
             "dashboardTime": false,
-            "query": "requests\n| where $__timeFilter(timestamp)\n| where cloud_RoleInstance matches regex @\"^(${pod:pipe})\"\n| summarize p50=percentile(duration,50), p90=percentile(duration,90), p95=percentile(duration,95), p99=percentile(duration,99) by bin(timestamp, $__interval)\n| order by timestamp asc",
+            "query": "requests\n| where $__timeFilter(timestamp)\n| where cloud_RoleName in (${service:singlequote})\n| summarize p50=percentile(duration,50), p90=percentile(duration,90), p95=percentile(duration,95), p99=percentile(duration,99) by bin(timestamp, $__interval)\n| order by timestamp asc",
             "resources": [
               "/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPINFRG1401/providers/Microsoft.Insights/components/DEVIMPINFIN1401"
             ],
@@ -422,7 +422,7 @@
         {
           "azureLogAnalytics": {
             "dashboardTime": false,
-            "query": "exceptions\n| where $__timeFilter(timestamp)\n| where cloud_RoleInstance matches regex @\"^(${pod:pipe})\"\n| summarize Exceptions=count() by cloud_RoleName, bin(timestamp, $__interval)\n| order by timestamp asc",
+            "query": "exceptions\n| where $__timeFilter(timestamp)\n| where cloud_RoleName in (${service:singlequote})\n| summarize Exceptions=count() by cloud_RoleName, bin(timestamp, $__interval)\n| order by timestamp asc",
             "resources": [
               "/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPINFRG1401/providers/Microsoft.Insights/components/DEVIMPINFIN1401"
             ],
@@ -540,7 +540,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "sum by (pod) (rate(container_cpu_usage_seconds_total{namespace=~\"$namespace\", pod=~\"^$pod.*\", container!=\"\"}[$__rate_interval]))",
+          "expr": "sum by (pod) (rate(container_cpu_usage_seconds_total{namespace=~\"$namespace\", pod=~\"$pod\", container!=\"\"}[$__rate_interval]))",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "legendFormat": "{{pod}}",
@@ -640,7 +640,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "sum by (pod) (container_memory_working_set_bytes{namespace=~\"$namespace\", pod=~\"^$pod.*\", container!=\"\"})",
+          "expr": "sum by (pod) (container_memory_working_set_bytes{namespace=~\"$namespace\", pod=~\"$pod\", container!=\"\"})",
           "legendFormat": "{{pod}}",
           "range": true,
           "refId": "A"
@@ -710,7 +710,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "sum by (deployment) (kube_deployment_status_replicas_available{namespace=~\"$namespace\", deployment=~\"^($pod)$\"})",
+          "expr": "sum by (deployment) (kube_deployment_status_replicas_available{namespace=~\"$namespace\"})",
           "format": "table",
           "instant": true,
           "legendFormat": "__auto",
@@ -724,7 +724,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "sum by (deployment) (kube_deployment_spec_replicas{namespace=~\"$namespace\", deployment=~\"^($pod)$\"})",
+          "expr": "sum by (deployment) (kube_deployment_spec_replicas{namespace=~\"$namespace\"})",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -807,23 +807,61 @@
       {
         "allValue": ".*",
         "current": {
-          "text": "All",
-          "value": "$__all"
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
         },
         "datasource": {
           "type": "prometheus",
           "uid": "${datasource}"
         },
-        "definition": "label_values(kube_deployment_spec_replicas{namespace=~\"$namespace\", namespace!~\"kube-system|kube-node-lease|kube-public|calico-system|calico-apiserver|tigera-operator|cert-manager|external-secrets|keda|reloader|app-routing-namespace|app-routing-system|azureserviceoperator-system|ms-identity-redirect-handler|gatekeeper-system\"},deployment)",
+        "definition": "label_values(kube_pod_info{namespace=~\"$namespace\"},pod)",
         "includeAll": true,
-        "label": "Service",
+        "label": "Service / Pod",
         "multi": true,
         "name": "pod",
         "options": [],
         "query": {
           "qryType": 1,
-          "query": "label_values(kube_deployment_spec_replicas{namespace=~\"$namespace\", namespace!~\"kube-system|kube-node-lease|kube-public|calico-system|calico-apiserver|tigera-operator|cert-manager|external-secrets|keda|reloader|app-routing-namespace|app-routing-system|azureserviceoperator-system|ms-identity-redirect-handler|gatekeeper-system\"},deployment)",
+          "query": "label_values(kube_pod_info{namespace=~\"$namespace\"},pod)",
           "refId": "PrometheusVariableQueryEditor-VariableQuery"
+        },
+        "refresh": 1,
+        "regex": "",
+        "type": "query"
+      },
+      {
+        "current": {
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        },
+        "datasource": {
+          "type": "grafana-azure-monitor-datasource",
+          "uid": "azure-monitor-oob"
+        },
+        "definition": "",
+        "includeAll": true,
+        "label": "App Service",
+        "multi": true,
+        "name": "service",
+        "options": [],
+        "query": {
+          "azureLogAnalytics": {
+            "query": "union requests, exceptions | distinct cloud_RoleName | order by cloud_RoleName asc",
+            "resources": [
+              "/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPINFRG1401/providers/Microsoft.Insights/components/DEVIMPINFIN1401"
+            ]
+          },
+          "queryType": "Azure Log Analytics",
+          "refId": "A",
+          "subscription": "f27f4f47-2766-40c8-8450-f585675f76a2"
         },
         "refresh": 1,
         "regex": "",
