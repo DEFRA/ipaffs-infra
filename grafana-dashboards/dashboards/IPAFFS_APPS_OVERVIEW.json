@@ -774,7 +774,7 @@
           "uid": "azure-monitor-oob"
         },
         "definition": "",
-        "hide": 0,
+        "hide": 2,
         "label": "Service Bus namespace",
         "name": "serviceBus",
         "options": [],
