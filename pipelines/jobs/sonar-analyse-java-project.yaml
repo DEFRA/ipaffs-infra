@@ -1,0 +1,64 @@
+---
+parameters:
+  - name: mvnGoals
+    type: string
+    default: verify jacoco:report package
+
+  - name: referenceBranch
+    type: string
+    default: main
+
+  # Overrides the sonarHostUrl variable from /pipelines/vars/common.yaml.
+  - name: sonarHostUrl
+    type: string
+    default: ' '
+
+jobs:
+  - job: SonarAnalyseJavaProject
+    displayName: SonarQube Analysis
+    variables:
+      MAVEN_CACHE_FOLDER: $(Pipeline.Workspace)/.m2/repository
+      MAVEN_OPTS: '-Dmaven.repo.local=$(MAVEN_CACHE_FOLDER)'
+    steps:
+      # Full history: the scanner needs git blame for new-code attribution.
+      - checkout: self
+        fetchDepth: 0
+
+      - task: Cache@2
+        displayName: Cache Maven local repo
+        inputs:
+          key: 'maven | "$(Agent.OS)" | **/pom.xml'
+          restoreKeys: |
+            maven | "$(Agent.OS)"
+            maven
+          path: $(MAVEN_CACHE_FOLDER)
+
+      - task: DownloadPipelineArtifact@2
+        displayName: Download service build artifacts
+        condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/main'))
+        continueOnError: true
+        inputs:
+          artifact: service
+          path: $(System.DefaultWorkingDirectory)/service/target
+
+      # The build job never runs on main, so build here to produce classes and coverage report the scanner needs.
+      - task: Maven@4
+        displayName: Build for analysis (main branch only)
+        condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+        continueOnError: true
+        inputs:
+          mavenPomFile: 'service/pom.xml'
+          mavenOptions: '-Xmx3072m $(MAVEN_OPTS)'
+          javaHomeOption: 'JDKVersion'
+          jdkVersionOption: '1.21'
+          jdkArchitectureOption: 'x64'
+          publishJUnitResults: false
+          options: '--s settings.xml'
+          goals: ${{ parameters.mvnGoals }}
+
+      - template: /pipelines/steps/sonar-scan.yaml@ipaffs-infra
+        parameters:
+          sonarHostUrl: ${{ parameters.sonarHostUrl }}
+          referenceBranch: ${{ parameters.referenceBranch }}
+          extraDockerArgs: '-v $(MAVEN_CACHE_FOLDER):/usr/.m2:ro'
+          extraProperties: '-Dsonar.java.libraries=/usr/.m2 -Dsonar.java.test.libraries=/usr/.m2'
