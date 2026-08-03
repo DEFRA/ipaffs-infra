@@ -30,7 +30,7 @@
       },
       "id": 500,
       "panels": [],
-      "title": "IPAFFS Service Center",
+      "title": "IPAFFS Service Command Center",
       "type": "row"
     },
     {
@@ -155,7 +155,7 @@
         {
           "azureLogAnalytics": {
             "dashboardTime": false,
-            "query": "requests\n| where $__timeFilter(timestamp)\n| where cloud_RoleInstance matches regex @\"^(${pod:pipe})\"\n| summarize Requests=count() by StatusGroup=strcat(substring(tostring(resultCode),0,1),\"xx\"), bin(timestamp, $__interval)\n| order by timestamp asc",
+            "query": "requests\n| where $__timeFilter(timestamp)\n| where cloud_RoleInstance matches regex @\"^(${pod:pipe})\"\n| where resultCode matches regex @\"^[1-5][0-9][0-9]$\"\n| summarize Requests=count() by StatusGroup=strcat(substring(tostring(resultCode),0,1),\"xx\"), bin(timestamp, $__interval)\n| order by timestamp asc",
             "resources": [
               "/subscriptions/$subscription/resourceGroups/$resourceGroup/providers/Microsoft.Insights/components/$resource"
             ],
@@ -1233,6 +1233,6 @@
   },
   "timepicker": {},
   "timezone": "browser",
-  "title": "IPAFFS_SERVICE_OVERVIEW",
+  "title": "IPAFFS Service Overview",
   "uid": "dfsw5zhr4pjpce"
 }
