@@ -1,0 +1,1238 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "links": [],
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 500,
+      "panels": [],
+      "title": "IPAFFS Service Command Center",
+      "type": "row"
+    },
+    {
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 1
+      },
+      "id": 501,
+      "options": {
+        "code": {
+          "language": "plaintext",
+          "showLineNumbers": false,
+          "showMiniMap": false
+        },
+        "content": "<div style=\"display:flex;justify-content:center;align-items:center;height:100%;width:100%;background:transparent;\">\n  <img src=\"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB2aWV3Qm94PSIwIDAgMTYwMCAzMjAiPgo8ZGVmcz4KICA8bGluZWFyR3JhZGllbnQgaWQ9ImNjQmdHcmFkIiB4MT0iMCIgeTE9IjAiIHgyPSIwIiB5Mj0iMSI+CiAgICA8c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjMEExOTQ0Ii8+CiAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMwNjBFMjIiLz4KICA8L2xpbmVhckdyYWRpZW50PgogIDxwYXR0ZXJuIGlkPSJjY0hleEdyaWQiIHdpZHRoPSI0NiIgaGVpZ2h0PSI4MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+CiAgICA8cGF0aCBkPSJNMjMgMCBMNDYgMTMgTDQ2IDQwIEwyMyA1MyBMMCA0MCBMMCAxMyBaIiBmaWxsPSJub25lIiBzdHJva2U9IiM1QjkzRjAiIHN0cm9rZS13aWR0aD0iMC42IiBvcGFjaXR5PSIwLjE2Ii8+CiAgPC9wYXR0ZXJuPgogIDxyYWRpYWxHcmFkaWVudCBpZD0iY2NDb3JlR2xvdyIgY3g9IjUwJSIgY3k9IjUwJSIgcj0iNTAlIj4KICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiMwOTIwNDIiIHN0b3Atb3BhY2l0eT0iMSIvPgogICAgPHN0b3Agb2Zmc2V0PSI0NSUiIHN0b3AtY29sb3I9IiM1QjkzRjAiIHN0b3Atb3BhY2l0eT0iMC41NSIvPgogICAgPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjNUI5M0YwIiBzdG9wLW9wYWNpdHk9IjAiLz4KICA8L3JhZGlhbEdyYWRpZW50PgogIDxsaW5lYXJHcmFkaWVudCBpZD0iY2NTY2FuSCIgeDE9IjAiIHkxPSIwIiB4Mj0iMSIgeTI9IjAiPgogICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzkyRTZGRiIgc3RvcC1vcGFjaXR5PSIwIi8+CiAgICA8c3RvcCBvZmZzZXQ9IjUwJSIgc3RvcC1jb2xvcj0iIzkyRTZGRiIgc3RvcC1vcGFjaXR5PSIwLjM1Ii8+CiAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiM5MkU2RkYiIHN0b3Atb3BhY2l0eT0iMCIvPgogIDwvbGluZWFyR3JhZGllbnQ+CjwvZGVmcz4KCjxyZWN0IHg9IjAiIHk9IjAiIHdpZHRoPSIxNjAwIiBoZWlnaHQ9IjMyMCIgZmlsbD0idXJsKCNjY0JnR3JhZCkiLz4KPHJlY3QgeD0iMCIgeT0iMCIgd2lkdGg9IjE2MDAiIGhlaWdodD0iMzIwIiBmaWxsPSJ1cmwoI2NjSGV4R3JpZCkiLz4KCjxnIHN0cm9rZT0iIzVCOTNGMCIgc3Ryb2tlLXdpZHRoPSIxIiBmaWxsPSJub25lIiBvcGFjaXR5PSIwLjMiPgogIDxwYXRoIGQ9Ik0wLDEwMCBIMTgwIEwyMTAsMTMwIEg0MjAiLz4KICA8cGF0aCBkPSJNMTYwMCwyMjAgSDE0MjAgTDEzOTAsMTkwIEgxMTgwIi8+CiAgPHBhdGggZD0iTTAsMjQwIEgxNDAgTDE2NSwyMTUgSDM2MCBMMzkwLDI0MCBINTIwIi8+CiAgPHBhdGggZD0iTTE2MDAsODAgSDE0NjAgTDE0MzAsMTEwIEgxMjQwIi8+CjwvZz4KCjxwYXRoIGlkPSJjY0Zsb3dQYXRoIiBkPSJNNjAsMTYwIEMgNDAwLDkwIDY1MCwyNTAgODAwLDE2MCBTIDEyMDAsOTAgMTU0MCwxNjAiCiAgICAgIHN0cm9rZT0iIzJGRTZDOCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGZpbGw9Im5vbmUiIG9wYWNpdHk9IjAuNCIgc3Ryb2tlLWRhc2hhcnJheT0iNiAxMCI+CiAgPGFuaW1hdGUgYXR0cmlidXRlTmFtZT0ic3Ryb2tlLWRhc2hvZmZzZXQiIHZhbHVlcz0iMDstMTYwIiBkdXI9IjZzIiByZXBlYXRDb3VudD0iaW5kZWZpbml0ZSIvPgo8L3BhdGg+CjxjaXJjbGUgcj0iMyIgZmlsbD0iIzkyRTZGRiI+CiAgPGFuaW1hdGVNb3Rpb24gZHVyPSI5cyIgcmVwZWF0Q291bnQ9ImluZGVmaW5pdGUiPjxtcGF0aCB4bGluazpocmVmPSIjY2NGbG93UGF0aCIvPjwvYW5pbWF0ZU1vdGlvbj4KPC9jaXJjbGU+CjxjaXJjbGUgcj0iMi40IiBmaWxsPSIjMkZFNkM4IiBvcGFjaXR5PSIwLjg1Ij4KICA8YW5pbWF0ZU1vdGlvbiBkdXI9IjlzIiBiZWdpbj0iLTNzIiByZXBlYXRDb3VudD0iaW5kZWZpbml0ZSI+PG1wYXRoIHhsaW5rOmhyZWY9IiNjY0Zsb3dQYXRoIi8+PC9hbmltYXRlTW90aW9uPgo8L2NpcmNsZT4KPGNpcmNsZSByPSIyIiBmaWxsPSIjNUI5M0YwIiBvcGFjaXR5PSIwLjgiPgogIDxhbmltYXRlTW90aW9uIGR1cj0iOXMiIGJlZ2luPSItNnMiIHJlcGVhdENvdW50PSJpbmRlZmluaXRlIj48bXBhdGggeGxpbms6aHJlZj0iI2NjRmxvd1BhdGgiLz48L2FuaW1hdGVNb3Rpb24+CjwvY2lyY2xlPgoKPGcgZmlsbD0iIzkyRTZGRiIgb3BhY2l0eT0iMC41Ij4KICA8Y2lyY2xlIGN4PSIxNTAiIGN5PSI5MCIgcj0iMi40Ij48YW5pbWF0ZSBhdHRyaWJ1dGVOYW1lPSJvcGFjaXR5IiB2YWx1ZXM9IjAuMzswLjk7MC4zIiBkdXI9IjMuNHMiIHJlcGVhdENvdW50PSJpbmRlZmluaXRlIi8+PC9jaXJjbGU+CiAgPGNpcmNsZSBjeD0iMzAwIiBjeT0iNjAiIHI9IjIuNCI+PGFuaW1hdGUgYXR0cmlidXRlTmFtZT0ib3BhY2l0eSIgdmFsdWVzPSIwLjg7MC4zOzAuOCIgZHVyPSIyLjZzIiByZXBlYXRDb3VudD0iaW5kZWZpbml0ZSIvPjwvY2lyY2xlPgogIDxjaXJjbGUgY3g9IjE0NTAiIGN5PSIxMDAiIHI9IjIuNCI+PGFuaW1hdGUgYXR0cmlidXRlTmFtZT0ib3BhY2l0eSIgdmFsdWVzPSIwLjM7MC45OzAuMyIgZHVyPSIzLjFzIiByZXBlYXRDb3VudD0iaW5kZWZpbml0ZSIvPjwvY2lyY2xlPgogIDxjaXJjbGUgY3g9IjEzMDAiIGN5PSIyNTAiIHI9IjIuNCI+PGFuaW1hdGUgYXR0cmlidXRlTmFtZT0ib3BhY2l0eSIgdmFsdWVzPSIwLjg7MC4zOzAuOCIgZHVyPSIyLjlzIiByZXBlYXRDb3VudD0iaW5kZWZpbml0ZSIvPjwvY2lyY2xlPgo8L2c+Cgo8cmVjdCB4PSItMTYwIiB5PSIwIiB3aWR0aD0iMTYwIiBoZWlnaHQ9IjMyMCIgZmlsbD0idXJsKCNjY1NjYW5IKSI+CiAgPGFuaW1hdGVUcmFuc2Zvcm0gYXR0cmlidXRlTmFtZT0idHJhbnNmb3JtIiB0eXBlPSJ0cmFuc2xhdGUiIHZhbHVlcz0iMCwwOyAxNzYwLDAiIGR1cj0iN3MiIHJlcGVhdENvdW50PSJpbmRlZmluaXRlIi8+CjwvcmVjdD4KCjxjaXJjbGUgY3g9IjgwMCIgY3k9IjE2MCIgcj0iMTM4IiBmaWxsPSJub25lIiBzdHJva2U9IiMyOTRDQTUiIHN0cm9rZS13aWR0aD0iMSIgb3BhY2l0eT0iMC41Ii8+CjxnPgogIDxhbmltYXRlVHJhbnNmb3JtIGF0dHJpYnV0ZU5hbWU9InRyYW5zZm9ybSIgdHlwZT0icm90YXRlIiBmcm9tPSIwIDgwMCAxNjAiIHRvPSIzNjAgODAwIDE2MCIgZHVyPSI0MHMiIHJlcGVhdENvdW50PSJpbmRlZmluaXRlIi8+CiAgPGcgc3Ryb2tlPSIjNUI5M0YwIiBzdHJva2Utd2lkdGg9IjEuNCIgb3BhY2l0eT0iMC44Ij48bGluZSB4MT0iOTI2LjAwIiB5MT0iMTYwLjAwIiB4Mj0iOTM4LjAwIiB5Mj0iMTYwLjAwIiBzdHJva2U9IiM1QjkzRjAiIHN0cm9rZS13aWR0aD0iMS40Ii8+PGxpbmUgeDE9IjkwOS4xMiIgeTE9IjIyMy4wMCIgeDI9IjkxOS41MSIgeTI9IjIyOS4wMCIgc3Ryb2tlPSIjNUI5M0YwIiBzdHJva2Utd2lkdGg9IjEuNCIvPjxsaW5lIHgxPSI4NjMuMDAiIHkxPSIyNjkuMTIiIHgyPSI4NjkuMDAiIHkyPSIyNzkuNTEiIHN0cm9rZT0iIzVCOTNGMCIgc3Ryb2tlLXdpZHRoPSIxLjQiLz48bGluZSB4MT0iODAwLjAwIiB5MT0iMjg2LjAwIiB4Mj0iODAwLjAwIiB5Mj0iMjk4LjAwIiBzdHJva2U9IiM1QjkzRjAiIHN0cm9rZS13aWR0aD0iMS40Ii8+PGxpbmUgeDE9IjczNy4wMCIgeTE9IjI2OS4xMiIgeDI9IjczMS4wMCIgeTI9IjI3OS41MSIgc3Ryb2tlPSIjNUI5M0YwIiBzdHJva2Utd2lkdGg9IjEuNCIvPjxsaW5lIHgxPSI2OTAuODgiIHkxPSIyMjMuMDAiIHgyPSI2ODAuNDkiIHkyPSIyMjkuMDAiIHN0cm9rZT0iIzVCOTNGMCIgc3Ryb2tlLXdpZHRoPSIxLjQiLz48bGluZSB4MT0iNjc0LjAwIiB5MT0iMTYwLjAwIiB4Mj0iNjYyLjAwIiB5Mj0iMTYwLjAwIiBzdHJva2U9IiM1QjkzRjAiIHN0cm9rZS13aWR0aD0iMS40Ii8+PGxpbmUgeDE9IjY5MC44OCIgeTE9Ijk3LjAwIiB4Mj0iNjgwLjQ5IiB5Mj0iOTEuMDAiIHN0cm9rZT0iIzVCOTNGMCIgc3Ryb2tlLXdpZHRoPSIxLjQiLz48bGluZSB4MT0iNzM3LjAwIiB5MT0iNTAuODgiIHgyPSI3MzEuMDAiIHkyPSI0MC40OSIgc3Ryb2tlPSIjNUI5M0YwIiBzdHJva2Utd2lkdGg9IjEuNCIvPjxsaW5lIHgxPSI4MDAuMDAiIHkxPSIzNC4wMCIgeDI9IjgwMC4wMCIgeTI9IjIyLjAwIiBzdHJva2U9IiM1QjkzRjAiIHN0cm9rZS13aWR0aD0iMS40Ii8+PGxpbmUgeDE9Ijg2My4wMCIgeTE9IjUwLjg4IiB4Mj0iODY5LjAwIiB5Mj0iNDAuNDkiIHN0cm9rZT0iIzVCOTNGMCIgc3Ryb2tlLXdpZHRoPSIxLjQiLz48bGluZSB4MT0iOTA5LjEyIiB5MT0iOTcuMDAiIHgyPSI5MTkuNTEiIHkyPSI5MS4wMCIgc3Ryb2tlPSIjNUI5M0YwIiBzdHJva2Utd2lkdGg9IjEuNCIvPjwvZz4KPC9nPgoKPGc+CiAgPGFuaW1hdGVUcmFuc2Zvcm0gYXR0cmlidXRlTmFtZT0idHJhbnNmb3JtIiB0eXBlPSJyb3RhdGUiIGZyb209IjAgODAwIDE2MCIgdG89IjM2MCA4MDAgMTYwIiBkdXI9IjE4cyIgcmVwZWF0Q291bnQ9ImluZGVmaW5pdGUiLz4KICA8cGF0aCBkPSJNODAwLDE2MCBMODAwLDMwIEExMzAsMTMwIDAgMCwxIDg3Niw1NiBaIiBmaWxsPSIjMkZFNkM4IiBvcGFjaXR5PSIwLjEwIi8+CiAgPGxpbmUgeDE9IjgwMCIgeTE9IjE2MCIgeDI9IjgwMCIgeTI9IjMwIiBzdHJva2U9IiMyRkU2QzgiIHN0cm9rZS13aWR0aD0iMS41IiBvcGFjaXR5PSIwLjciLz4KPC9nPgoKPGNpcmNsZSBjeD0iODAwIiBjeT0iMTYwIiByPSIxMTgiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzI5NENBNSIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtZGFzaGFycmF5PSIxOCAxMCIgb3BhY2l0eT0iMC44Ij4KICA8YW5pbWF0ZVRyYW5zZm9ybSBhdHRyaWJ1dGVOYW1lPSJ0cmFuc2Zvcm0iIHR5cGU9InJvdGF0ZSIgZnJvbT0iMCA4MDAgMTYwIiB0bz0iMzYwIDgwMCAxNjAiIGR1cj0iMjZzIiByZXBlYXRDb3VudD0iaW5kZWZpbml0ZSIvPgo8L2NpcmNsZT4KPGNpcmNsZSBjeD0iODAwIiBjeT0iMTYwIiByPSIxMDAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzVCOTNGMCIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtZGFzaGFycmF5PSI0IDkiIG9wYWNpdHk9IjAuODUiPgogIDxhbmltYXRlVHJhbnNmb3JtIGF0dHJpYnV0ZU5hbWU9InRyYW5zZm9ybSIgdHlwZT0icm90YXRlIiBmcm9tPSIzNjAgODAwIDE2MCIgdG89IjAgODAwIDE2MCIgZHVyPSIxNHMiIHJlcGVhdENvdW50PSJpbmRlZmluaXRlIi8+CjwvY2lyY2xlPgo8Y2lyY2xlIGN4PSI4MDAiIGN5PSIxNjAiIHI9Ijg0IiBmaWxsPSJub25lIiBzdHJva2U9IiM5MkU2RkYiIHN0cm9rZS13aWR0aD0iMS42IiBzdHJva2UtZGFzaGFycmF5PSIxIDYiIG9wYWNpdHk9IjAuOSI+CiAgPGFuaW1hdGVUcmFuc2Zvcm0gYXR0cmlidXRlTmFtZT0idHJhbnNmb3JtIiB0eXBlPSJyb3RhdGUiIGZyb209IjAgODAwIDE2MCIgdG89IjM2MCA4MDAgMTYwIiBkdXI9IjlzIiByZXBlYXRDb3VudD0iaW5kZWZpbml0ZSIvPgo8L2NpcmNsZT4KCjxnPgogIDxhbmltYXRlVHJhbnNmb3JtIGF0dHJpYnV0ZU5hbWU9InRyYW5zZm9ybSIgdHlwZT0icm90YXRlIiBmcm9tPSIwIDgwMCAxNjAiIHRvPSIzNjAgODAwIDE2MCIgZHVyPSIxMXMiIHJlcGVhdENvdW50PSJpbmRlZmluaXRlIi8+CiAgPGNpcmNsZSBjeD0iODAwIiBjeT0iNDIiIHI9IjMuMiIgZmlsbD0iIzkyRTZGRiIvPgo8L2c+CjxnPgogIDxhbmltYXRlVHJhbnNmb3JtIGF0dHJpYnV0ZU5hbWU9InRyYW5zZm9ybSIgdHlwZT0icm90YXRlIiBmcm9tPSIzNjAgODAwIDE2MCIgdG89IjAgODAwIDE2MCIgZHVyPSIxN3MiIHJlcGVhdENvdW50PSJpbmRlZmluaXRlIi8+CiAgPGNpcmNsZSBjeD0iODAwIiBjeT0iNzYiIHI9IjIuNiIgZmlsbD0iIzJGRTZDOCIvPgo8L2c+Cgo8Y2lyY2xlIGN4PSI4MDAiIGN5PSIxNjAiIHI9IjYwIiBmaWxsPSJub25lIiBzdHJva2U9IiM5MkU2RkYiIHN0cm9rZS13aWR0aD0iMS41IiBvcGFjaXR5PSIwIj4KICA8YW5pbWF0ZSBhdHRyaWJ1dGVOYW1lPSJyIiB2YWx1ZXM9IjM0OzcwIiBkdXI9IjRzIiByZXBlYXRDb3VudD0iaW5kZWZpbml0ZSIvPgogIDxhbmltYXRlIGF0dHJpYnV0ZU5hbWU9Im9wYWNpdHkiIHZhbHVlcz0iMC41OzAiIGR1cj0iNHMiIHJlcGVhdENvdW50PSJpbmRlZmluaXRlIi8+CjwvY2lyY2xlPgo8Y2lyY2xlIGN4PSI4MDAiIGN5PSIxNjAiIHI9IjYwIiBmaWxsPSJub25lIiBzdHJva2U9IiMyRkU2QzgiIHN0cm9rZS13aWR0aD0iMS41IiBvcGFjaXR5PSIwIj4KICA8YW5pbWF0ZSBhdHRyaWJ1dGVOYW1lPSJyIiB2YWx1ZXM9IjM0OzcwIiBkdXI9IjRzIiBiZWdpbj0iMnMiIHJlcGVhdENvdW50PSJpbmRlZmluaXRlIi8+CiAgPGFuaW1hdGUgYXR0cmlidXRlTmFtZT0ib3BhY2l0eSIgdmFsdWVzPSIwLjU7MCIgZHVyPSI0cyIgYmVnaW49IjJzIiByZXBlYXRDb3VudD0iaW5kZWZpbml0ZSIvPgo8L2NpcmNsZT4KCjxjaXJjbGUgY3g9IjgwMCIgY3k9IjE2MCIgcj0iNTgiIGZpbGw9InVybCgjY2NDb3JlR2xvdykiPgogIDxhbmltYXRlIGF0dHJpYnV0ZU5hbWU9InIiIHZhbHVlcz0iNTQ7NjI7NTQiIGR1cj0iM3MiIHJlcGVhdENvdW50PSJpbmRlZmluaXRlIi8+CjwvY2lyY2xlPgo8Y2lyY2xlIGN4PSI4MDAiIGN5PSIxNjAiIHI9IjU4IiBmaWxsPSJub25lIiBzdHJva2U9IiM5MkU2RkYiIHN0cm9rZS13aWR0aD0iMS42IiBvcGFjaXR5PSIwLjkiLz4KCjxnIGZpbGw9IiNGMEIxNUIiPjxjaXJjbGUgY3g9IjgwMCIgY3k9IjEwMiIgcj0iMiI+PGFuaW1hdGUgYXR0cmlidXRlTmFtZT0ib3BhY2l0eSIgdmFsdWVzPSIxOzAuMjsxIiBkdXI9IjEuOHMiIHJlcGVhdENvdW50PSJpbmRlZmluaXRlIi8+PC9jaXJjbGU+PC9nPgo8ZyBmaWxsPSIjMkZFNkM4Ij4KICA8Y2lyY2xlIGN4PSI4NDYiIGN5PSIxNjAiIHI9IjIiPjxhbmltYXRlIGF0dHJpYnV0ZU5hbWU9Im9wYWNpdHkiIHZhbHVlcz0iMC4zOzE7MC4zIiBkdXI9IjIuNHMiIHJlcGVhdENvdW50PSJpbmRlZmluaXRlIi8+PC9jaXJjbGU+CiAgPGNpcmNsZSBjeD0iNzU0IiBjeT0iMTYwIiByPSIyIj48YW5pbWF0ZSBhdHRyaWJ1dGVOYW1lPSJvcGFjaXR5IiB2YWx1ZXM9IjE7MC4zOzEiIGR1cj0iMi4xcyIgcmVwZWF0Q291bnQ9ImluZGVmaW5pdGUiLz48L2NpcmNsZT4KPC9nPgoKPHRleHQgeD0iODAwIiB5PSIxNjAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgSGVsdmV0aWNhLCBzYW5zLXNlcmlmIgogICAgICBmb250LXNpemU9IjI2IiBmb250LXdlaWdodD0iNzAwIiBsZXR0ZXItc3BhY2luZz0iMiIgZmlsbD0iI0QzRTVGQyI+SVBBRkZTPC90ZXh0Pgo8L3N2Zz4=\" style=\"height:100%;width:100%;object-fit:cover;border-radius:8px;\"/>\n</div>",
+        "mode": "html"
+      },
+      "pluginVersion": "11.6.9",
+      "title": "",
+      "type": "text"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 11
+      },
+      "id": 8,
+      "panels": [],
+      "title": "Application (Application Insights)",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "azure-monitor-oob"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 12
+      },
+      "id": 4,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "11.6.9",
+      "targets": [
+        {
+          "azureLogAnalytics": {
+            "dashboardTime": false,
+            "query": "requests\n| where $__timeFilter(timestamp)\n| where cloud_RoleInstance matches regex @\"^(${pod:pipe})\"\n| where resultCode matches regex @\"^[1-5][0-9][0-9]$\"\n| summarize Requests=count() by StatusGroup=strcat(substring(tostring(resultCode),0,1),\"xx\"), bin(timestamp, $__interval)\n| order by timestamp asc",
+            "resources": [
+              "/subscriptions/$subscription/resourceGroups/$resourceGroup/providers/Microsoft.Insights/components/$resource"
+            ],
+            "resultFormat": "time_series"
+          },
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "azure-monitor-oob"
+          },
+          "queryType": "Azure Log Analytics",
+          "refId": "A"
+        }
+      ],
+      "title": "Requests by Status Group (2xx vs 5xx)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "azure-monitor-oob"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 12
+      },
+      "id": 7,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "11.6.9",
+      "targets": [
+        {
+          "azureLogAnalytics": {
+            "dashboardTime": false,
+            "query": "requests\n| where $__timeFilter(timestamp)\n| where cloud_RoleInstance matches regex @\"^(${pod:pipe})\"\n| summarize RPS = todouble(count())/60 by bin(timestamp, 1m)\n| order by timestamp asc",
+            "resources": [
+              "/subscriptions/$subscription/resourceGroups/$resourceGroup/providers/Microsoft.Insights/components/$resource"
+            ],
+            "resultFormat": "time_series"
+          },
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "azure-monitor-oob"
+          },
+          "queryType": "Azure Log Analytics",
+          "refId": "A"
+        }
+      ],
+      "title": "Requests per Second",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "azure-monitor-oob"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 20
+      },
+      "id": 6,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "11.6.9",
+      "targets": [
+        {
+          "azureLogAnalytics": {
+            "dashboardTime": false,
+            "query": "requests\n| where $__timeFilter(timestamp)\n| where cloud_RoleInstance matches regex @\"^(${pod:pipe})\"\n| summarize p50=percentile(duration,50), p90=percentile(duration,90), p95=percentile(duration,95), p99=percentile(duration,99) by bin(timestamp, $__interval)\n| order by timestamp asc",
+            "resources": [
+              "/subscriptions/$subscription/resourceGroups/$resourceGroup/providers/Microsoft.Insights/components/$resource"
+            ],
+            "resultFormat": "time_series"
+          },
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "azure-monitor-oob"
+          },
+          "queryType": "Azure Log Analytics",
+          "refId": "A"
+        }
+      ],
+      "title": "Request Latency Percentiles",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "azure-monitor-oob"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 20
+      },
+      "id": 5,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "11.6.9",
+      "targets": [
+        {
+          "azureLogAnalytics": {
+            "dashboardTime": false,
+            "query": "exceptions\n| where $__timeFilter(timestamp)\n| where cloud_RoleInstance matches regex @\"^(${pod:pipe})\"\n| summarize Exceptions=count() by cloud_RoleName, bin(timestamp, $__interval)\n| order by timestamp asc",
+            "resources": [
+              "/subscriptions/$subscription/resourceGroups/$resourceGroup/providers/Microsoft.Insights/components/$resource"
+            ],
+            "resultFormat": "time_series"
+          },
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "azure-monitor-oob"
+          },
+          "queryType": "Azure Log Analytics",
+          "refId": "A"
+        }
+      ],
+      "title": "Exceptions (by service)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "azure-monitor-oob"
+      },
+      "description": "RPS metrics for the currently selected Service.",
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [],
+          "max": 200,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "orange",
+                "value": 25
+              },
+              {
+                "color": "red",
+                "value": 48
+              }
+            ]
+          },
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 28
+      },
+      "id": 10,
+      "options": {
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": true,
+        "showThresholdMarkers": true,
+        "sizing": "auto"
+      },
+      "pluginVersion": "11.6.9",
+      "targets": [
+        {
+          "azureLogAnalytics": {
+            "query": "requests\n| where timestamp > ago(15s)\n| where cloud_RoleInstance matches regex @\"^(${pod:pipe})\"\n| summarize RPS = count() by bin(timestamp, 1s)\n| top 1 by timestamp desc\n| project RPS",
+            "resources": [
+              "/subscriptions/$subscription/resourceGroups/$resourceGroup/providers/Microsoft.Insights/components/$resource"
+            ],
+            "resultFormat": "table"
+          },
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "azure-monitor-oob"
+          },
+          "queryType": "Azure Log Analytics",
+          "refId": "A"
+        }
+      ],
+      "title": "Live RPS",
+      "type": "gauge"
+    },
+    {
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "azure-monitor-oob"
+      },
+      "description": "RPS metrics for the currently selected Service.",
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*RPS"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "reqps"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Seconds"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "none"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 16,
+        "x": 8,
+        "y": 28
+      },
+      "id": 11,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "vertical",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "value_and_name",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.6.9",
+      "targets": [
+        {
+          "azureLogAnalytics": {
+            "query": "requests\n| where $__timeFilter(timestamp)\n| where cloud_RoleInstance matches regex @\"^(${pod:pipe})\"\n| summarize RPS = count() by bin(timestamp, 1s)\n| summarize AvgRPS = round(avg(RPS), 1), P95_RPS = round(percentile(RPS, 95), 0), P99_RPS = round(percentile(RPS, 99), 0), MaxRPS = max(RPS), Seconds = count()",
+            "resources": [
+              "/subscriptions/$subscription/resourceGroups/$resourceGroup/providers/Microsoft.Insights/components/$resource"
+            ],
+            "resultFormat": "table"
+          },
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "azure-monitor-oob"
+          },
+          "queryType": "Azure Log Analytics",
+          "refId": "A"
+        }
+      ],
+      "title": "Summary stats",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "azure-monitor-oob"
+      },
+      "description": "RPS metrics for the currently selected Service.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "line"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "orange",
+                "value": 25
+              },
+              {
+                "color": "red",
+                "value": 48
+              },
+              {
+                "color": "dark-red",
+                "value": 170
+              }
+            ]
+          },
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 36
+      },
+      "id": 12,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "11.6.9",
+      "targets": [
+        {
+          "azureLogAnalytics": {
+            "query": "requests\n| where $__timeFilter(timestamp)\n| where cloud_RoleInstance matches regex @\"^(${pod:pipe})\"\n| summarize RPS = count() by bin(timestamp, 1s)\n| order by timestamp asc",
+            "resources": [
+              "/subscriptions/$subscription/resourceGroups/$resourceGroup/providers/Microsoft.Insights/components/$resource"
+            ],
+            "resultFormat": "time_series"
+          },
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "azure-monitor-oob"
+          },
+          "queryType": "Azure Log Analytics",
+          "refId": "A"
+        }
+      ],
+      "title": "RPS over time",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 44
+      },
+      "id": 9,
+      "panels": [],
+      "title": "Infrastructure (Kubernetes)",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 45
+      },
+      "id": 1,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "11.6.9",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "disableTextWrap": false,
+          "editorMode": "code",
+          "expr": "sum by (pod) (rate(container_cpu_usage_seconds_total{namespace=~\"$namespace\", pod=~\"^$pod.*\", container!=\"\"}[$__rate_interval]))",
+          "fullMetaSearch": false,
+          "includeNullMetadata": true,
+          "legendFormat": "{{pod}}",
+          "range": true,
+          "refId": "A",
+          "useBackend": false
+        }
+      ],
+      "title": "CPU Usage (cores)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "bytes"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 45
+      },
+      "id": 2,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "11.6.9",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "sum by (pod) (container_memory_working_set_bytes{namespace=~\"$namespace\", pod=~\"^$pod.*\", container!=\"\"})",
+          "legendFormat": "{{pod}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Memory Usage (working set)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 53
+      },
+      "id": 3,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true
+      },
+      "pluginVersion": "11.6.9",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "sum by (deployment) (kube_deployment_status_replicas_available{namespace=~\"$namespace\", deployment=~\"^($pod)$\"})",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "__auto",
+          "range": false,
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "sum by (deployment) (kube_deployment_spec_replicas{namespace=~\"$namespace\", deployment=~\"^($pod)$\"})",
+          "format": "table",
+          "hide": false,
+          "instant": true,
+          "legendFormat": "__auto",
+          "range": false,
+          "refId": "B"
+        }
+      ],
+      "title": "Running / Desired Replicas",
+      "transformations": [
+        {
+          "id": "joinByField",
+          "options": {
+            "byField": "deployment",
+            "mode": "outer"
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time 1": true,
+              "Time 2": true
+            },
+            "includeByName": {},
+            "indexByName": {},
+            "renameByName": {
+              "Value #A": "Available",
+              "Value #B": "Desired"
+            }
+          }
+        }
+      ],
+      "type": "table"
+    }
+  ],
+  "preload": false,
+  "schemaVersion": 41,
+  "tags": [],
+  "templating": {
+    "list": [
+      {
+        "current": {},
+        "hide": 2,
+        "label": "Environment",
+        "name": "datasource",
+        "options": [],
+        "query": "prometheus",
+        "refresh": 1,
+        "regex": "/.*Prometheus.*/",
+        "type": "datasource"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "prometheus",
+          "uid": "${datasource}"
+        },
+        "definition": "label_values(kube_pod_info, microsoft.subscriptionid)",
+        "hide": 2,
+        "label": "subscription_id",
+        "name": "subscription_id",
+        "options": [],
+        "query": {
+          "qryType": 5,
+          "query": "label_values(kube_pod_info, microsoft.subscriptionid)",
+          "refId": "PrometheusVariableQueryEditor-VariableQuery"
+        },
+        "refresh": 1,
+        "regex": "",
+        "type": "query"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "grafana-azure-monitor-datasource",
+          "uid": "azure-monitor-oob"
+        },
+        "definition": "",
+        "hide": 2,
+        "label": "Subscription",
+        "name": "subscription",
+        "options": [],
+        "query": {
+          "azureLogAnalytics": {
+            "query": "",
+            "resources": []
+          },
+          "queryType": "Azure Subscriptions",
+          "refId": "A"
+        },
+        "refresh": 1,
+        "regex": "/.*$subscription_id.*/",
+        "type": "query"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "prometheus",
+          "uid": "${datasource}"
+        },
+        "definition": "",
+        "description": "App Insights Resource Group",
+        "hide": 2,
+        "label": "Resource Group",
+        "name": "resourceGroup",
+        "options": [],
+        "query": "",
+        "refresh": 1,
+        "regex": "/.*IMPINFRG1401.*/",
+        "type": "query"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "grafana-azure-monitor-datasource",
+          "uid": "azure-monitor-oob"
+        },
+        "definition": "",
+        "hide": 2,
+        "label": "Resource",
+        "name": "resource",
+        "options": [],
+        "query": {
+          "azureLogAnalytics": {
+            "query": "",
+            "resources": []
+          },
+          "namespace": "microsoft.insights/components",
+          "queryType": "Azure Resource Names",
+          "refId": "A",
+          "resourceGroup": "$resourceGroup",
+          "subscription": "$subscription"
+        },
+        "refresh": 1,
+        "regex": "",
+        "type": "query"
+      },
+      {
+        "allValue": ".*",
+        "current": {
+          "text": "18-8-x",
+          "value": "18-8-x"
+        },
+        "datasource": {
+          "type": "prometheus",
+          "uid": "${datasource}"
+        },
+        "definition": "label_values(kube_pod_info,namespace)",
+        "includeAll": true,
+        "label": "Namespace",
+        "multi": true,
+        "name": "namespace",
+        "options": [],
+        "query": {
+          "qryType": 1,
+          "query": "label_values(kube_pod_info,namespace)",
+          "refId": "PrometheusVariableQueryEditor-VariableQuery"
+        },
+        "refresh": 1,
+        "regex": "",
+        "type": "query"
+      },
+      {
+        "allValue": ".*",
+        "current": {
+          "text": "",
+          "value": ""
+        },
+        "datasource": {
+          "type": "prometheus",
+          "uid": "${datasource}"
+        },
+        "definition": "label_values(kube_deployment_spec_replicas{namespace!~\"kube-system|kube-node-lease|kube-public|calico-system|calico-apiserver|tigera-operator|cert-manager|external-secrets|keda|reloader|app-routing-namespace|app-routing-system|azureserviceoperator-system|ms-identity-redirect-handler|gatekeeper-system\"},deployment)",
+        "includeAll": false,
+        "label": "Service",
+        "name": "pod",
+        "options": [],
+        "query": {
+          "qryType": 1,
+          "query": "label_values(kube_deployment_spec_replicas{namespace!~\"kube-system|kube-node-lease|kube-public|calico-system|calico-apiserver|tigera-operator|cert-manager|external-secrets|keda|reloader|app-routing-namespace|app-routing-system|azureserviceoperator-system|ms-identity-redirect-handler|gatekeeper-system\"},deployment)",
+          "refId": "PrometheusVariableQueryEditor-VariableQuery"
+        },
+        "refresh": 1,
+        "regex": "",
+        "type": "query"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "IPAFFS Service Overview",
+  "uid": "dfsw5zhr4pjpce"
+}
