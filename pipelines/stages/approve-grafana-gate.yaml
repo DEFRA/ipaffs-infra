@@ -1,0 +1,32 @@
+---
+# approve-grafana-gate.yaml
+#
+# Single manual approval gate after the first environment's deploy, so
+# someone looks at it before the rest roll out unattended. Gated to main
+# only, so PR/branch runs never block waiting on an approver - the deploy
+# stage that follows treats a Skipped result here as OK too.
+
+parameters:
+  - name: afterEnvironment
+    type: string   # name of the environment this gate follows, shown to the approver
+
+stages:
+  - stage: ApproveGrafanaGate
+    displayName: Approve ${{ parameters.afterEnvironment }} -> remaining environments
+    # succeeded() is spelled out since a custom condition replaces the default
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+    jobs:
+      - job: Approve
+        displayName: Approve deploy beyond ${{ parameters.afterEnvironment }}
+        pool: server
+        timeoutInMinutes: 4320   # overall wait window for an approver (3 days)
+        steps:
+          - task: ManualValidation@0
+            displayName: Wait for approval to continue past ${{ parameters.afterEnvironment }}
+            timeoutInMinutes: 4320
+            inputs:
+              # No approver list yet - anyone with environment permission can approve.
+              instructions: "Review the ${{ parameters.afterEnvironment }} Grafana dashboards, then approve to continue deploying to the remaining environments."
+              onTimeout: reject
+
+# vim: set ts=2 sts=2 sw=2 et:

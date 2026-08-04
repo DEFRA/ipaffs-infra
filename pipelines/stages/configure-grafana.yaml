@@ -16,8 +16,8 @@
 #
 # This stage is idempotent: existing datasources are updated, not duplicated.
 #
-# Branch gating: DEV may configure from the current branch when
-# allowDevBranchDeploy is set; every other env configures only on main.
+# Branch gating: this env may configure from the current branch when
+# allowBranchDeploy is set, otherwise it configures only on main.
 #
 # NOTE: the Grafana managed identity is assumed to already hold the data-read
 # roles needed for these datasources to return data (granted manually).
@@ -26,8 +26,8 @@ parameters:
   - name: targetEnvironment
     type: string   # single env, e.g. DEV
 
-  - name: allowDevBranchDeploy
-    type: boolean  # true => DEV configures from the current branch (not just main)
+  - name: allowBranchDeploy
+    type: boolean  # true => this env configures from the current branch (not just main)
     default: false
 
 stages:
@@ -35,6 +35,8 @@ stages:
     displayName: Configure Grafana Datasources (${{ parameters.targetEnvironment }})
     variables:
       - group: Common
+      - group: "${{ parameters.targetEnvironment }}"
+      - template: /pipelines/vars/${{ lower(parameters.targetEnvironment) }}.yaml
 
     jobs:
       - deployment: ConfigureDatasources_${{ parameters.targetEnvironment }}
@@ -49,9 +51,9 @@ stages:
 
                 - task: AzureCLI@2
                   displayName: Configure datasources (${{ parameters.targetEnvironment }})
-                  # DEV may configure from any branch when allowDevBranchDeploy is set;
-                  # every other env (and DEV by default) configures only on main.
-                  ${{ if and(eq(parameters.targetEnvironment, 'DEV'), eq(parameters.allowDevBranchDeploy, true)) }}:
+                  # This env may configure from any branch when allowBranchDeploy is set;
+                  # otherwise it configures only on main.
+                  ${{ if eq(parameters.allowBranchDeploy, true) }}:
                     condition: and(not(failed()), not(canceled()))
                   ${{ else }}:
                     condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))

@@ -1,12 +1,14 @@
 ---
 # deploy-grafana-dashboards.yaml
 #
-# Deploys Grafana dashboard JSON files to the SELECTED environment's own Azure
-# Managed Grafana instance, using that env's service connection so dashboards
-# land in the correct subscription. One environment per pipeline run.
+# Deploys Grafana dashboard JSON files to ONE environment's own Azure Managed
+# Grafana instance, using that env's service connection so dashboards land in
+# the correct subscription. Included once per environment, in whatever order
+# the parent pipeline's "environments" list parameter defines, so every
+# environment ends up on the same dashboard version.
 #
 # Dashboard directory layout:
-#   dashboards/*.json -> all deployed to the selected environment
+#   dashboards/*.json -> all deployed to every environment
 # (Per-env dashboards are not supported yet.)
 #
 # Each dashboard's template variables (the namespace / datasource dropdowns) are
@@ -17,56 +19,46 @@
 # (by resolved UID) in-memory; the repo source file is never modified.
 #
 # Branch gating:
-#   By default the env deploys only when the pipeline runs on 'main'.
-#   allowDevBranchDeploy lets DEV deploy from the branch you queued on (for
-#   testing). It ONLY affects DEV.
+#   By default this env deploys only when the pipeline runs on 'main'.
+#   allowBranchDeploy lets it deploy from the branch you queued on (for
+#   testing). The parent pipeline only ever sets this for the first
+#   environment in its list - this template has no notion of which
+#   environment name is "first".
 #
 # Approval:
-#   Every env EXCEPT DEV requires manual approval before deploying. A server
-#   (agentless) job pauses for an approver; it is gated to main so PR/branch
-#   preview builds are never blocked.
+#   There is a single manual approval gate after the first environment (see
+#   approve-grafana-gate.yaml), not one per environment. When this stage
+#   follows that gate, pass gateStageName so the stage still runs (in preview
+#   mode) even if the gate was Skipped (non-main builds).
 
 parameters:
   - name: targetEnvironment
     type: string   # single env, e.g. DEV
 
-  - name: allowDevBranchDeploy
-    type: boolean  # true => DEV deploys from the current branch (not just main)
+  - name: allowBranchDeploy
+    type: boolean  # true => this env deploys from the current branch (not just main)
     default: false
+
+  - name: gateStageName
+    type: string   # name of a preceding approval-gate stage whose 'Skipped' result should still let this stage run; '' = default dependency behaviour
+    default: ''
 
 stages:
   - stage: DeployGrafanaDashboards_${{ parameters.targetEnvironment }}
     displayName: Deploy Dashboards -> ${{ parameters.targetEnvironment }} Grafana
+    ${{ if ne(parameters.gateStageName, '') }}:
+      dependsOn: ${{ parameters.gateStageName }}
+      # Proceed when the gate Succeeded, or when it was Skipped (non-main
+      # builds, where the deploy tasks are gated off and only preview runs).
+      condition: in(dependencies.${{ parameters.gateStageName }}.result, 'Succeeded', 'Skipped')
     variables:
       - group: Common
+      - group: "${{ parameters.targetEnvironment }}"
+      - template: /pipelines/vars/${{ lower(parameters.targetEnvironment) }}.yaml
 
     jobs:
-      # Manual approval gate for every env EXCEPT DEV. A server (agentless) job
-      # pauses for a human to approve before the deploy job runs. Gated to main
-      # so PR/branch preview builds are never blocked by an approval prompt.
-      - ${{ if ne(parameters.targetEnvironment, 'DEV') }}:
-        - job: Approve_${{ parameters.targetEnvironment }}
-          displayName: Approve deploy to ${{ parameters.targetEnvironment }}
-          pool: server
-          condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
-          timeoutInMinutes: 4320   # overall wait window for an approver (3 days)
-          steps:
-            - task: ManualValidation@0
-              displayName: Wait for approval to deploy ${{ parameters.targetEnvironment }}
-              timeoutInMinutes: 4320
-              inputs:
-                # No approver list yet — anyone with permission on the environment
-                # can approve. Add notifyUsers here later to notify specific people.
-                instructions: "Approve deploying Grafana dashboards to ${{ parameters.targetEnvironment }} Grafana."
-                onTimeout: reject
-
       - deployment: Deploy_${{ parameters.targetEnvironment }}
         displayName: Deploy dashboards to ${{ parameters.targetEnvironment }} Grafana
-        ${{ if ne(parameters.targetEnvironment, 'DEV') }}:
-          dependsOn: Approve_${{ parameters.targetEnvironment }}
-          # Proceed when approval Succeeded, or when it was Skipped (non-main
-          # builds, where the deploy tasks are gated off and only preview runs).
-          condition: in(dependencies.Approve_${{ parameters.targetEnvironment }}.result, 'Succeeded', 'Skipped')
         environment:
           name: "${{ parameters.targetEnvironment }}"
         strategy:
@@ -104,9 +96,9 @@ stages:
 
                 - task: AzureCLI@2
                   displayName: Deploy dashboards to ${{ parameters.targetEnvironment }} Grafana
-                  # DEV may deploy from any branch when allowDevBranchDeploy is set;
-                  # every other env (and DEV by default) deploys only on main.
-                  ${{ if and(eq(parameters.targetEnvironment, 'DEV'), eq(parameters.allowDevBranchDeploy, true)) }}:
+                  # This env may deploy from any branch when allowBranchDeploy is set;
+                  # otherwise it deploys only on main.
+                  ${{ if eq(parameters.allowBranchDeploy, true) }}:
                     condition: and(not(failed()), not(canceled()))
                   ${{ else }}:
                     condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
@@ -129,7 +121,7 @@ stages:
                 - task: AzureCLI@2
                   displayName: Verify deployed dashboards (${{ parameters.targetEnvironment }})
                   # Verify runs whenever the deploy ran (same gate).
-                  ${{ if and(eq(parameters.targetEnvironment, 'DEV'), eq(parameters.allowDevBranchDeploy, true)) }}:
+                  ${{ if eq(parameters.allowBranchDeploy, true) }}:
                     condition: and(not(failed()), not(canceled()))
                   ${{ else }}:
                     condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
