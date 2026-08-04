@@ -1,0 +1,50 @@
+---
+parameters:
+  - name: environmentName
+    displayName: Environment
+    type: string
+    default: DEV
+
+  - name: mvnGoals
+    type: string
+    default: verify jacoco:report package
+
+
+stages:
+  - stage: BuildLibrary
+    displayName: Build Library
+    variables:
+      - group: Common
+      - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
+          - group: HigherEnvs
+      - ${{ else }}:
+          - group: LowerEnvs
+      - group: "${{ parameters.environmentName }}"
+      - template: "/pipelines/vars/common.yaml"
+      - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
+
+
+    condition: and(
+      not(failed()), not(canceled()))
+    jobs:
+      - template: /pipelines/jobs/build-java-project.yaml@ipaffs-infra
+        parameters:
+          mvnGoals:  "${{ parameters.mvnGoals }}"
+
+  - stage: ReleaseLibrary
+    displayName: Release Library
+    variables:
+      - group: Common
+      - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
+          - group: HigherEnvs
+      - ${{ else }}:
+          - group: LowerEnvs
+      - group: "${{ parameters.environmentName }}"
+      - template: "/pipelines/vars/common.yaml"
+      - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
+
+
+    condition: and(
+      not(failed()), not(canceled()))
+    jobs:
+      - template: /pipelines/jobs/release-java-project.yaml@ipaffs-infra
