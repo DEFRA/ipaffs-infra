@@ -940,6 +940,39 @@ stages:
               scriptPath: scripts/pipeline/add-principal-to-group.sh
 
 
+      - job: PimGroups
+        displayName: PIM Groups
+        condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+        steps:
+          - checkout: self
+
+          - task: AzureCLI@2
+            name: PimOwners
+            env:
+              GROUP_NAME: AG-Azure-IMP-${{ parameters.environmentName }}1-PIM-Owners
+              GROUP_DESCRIPTION: Entra access group for eligible Owner assignments on the IPAFFS ${{ parameters.environmentName }} subscription
+              GROUP_OWNER_OBJECT_IDS: >
+                $(serviceConnectionPrincipalId)
+                $(upstreamServiceConnectionPrincipalId)
+            inputs:
+              azureSubscription: $(upstreamServiceConnection)
+              scriptType: bash
+              scriptPath: scripts/pipeline/create-entra-group.sh
+
+          - task: AzureCLI@2
+            name: PimContributors
+            env:
+              GROUP_NAME: AG-Azure-IMP-${{ parameters.environmentName }}1-PIM-Contributors
+              GROUP_DESCRIPTION: Entra access group for eligible Contributor assignments on the IPAFFS ${{ parameters.environmentName }} subscription
+              GROUP_OWNER_OBJECT_IDS: >
+                $(serviceConnectionPrincipalId)
+                $(upstreamServiceConnectionPrincipalId)
+            inputs:
+              azureSubscription: $(upstreamServiceConnection)
+              scriptType: bash
+              scriptPath: scripts/pipeline/create-entra-group.sh
+
+
       - job: SaveAccessGroups
         displayName: Update library variables
         condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
@@ -951,6 +984,7 @@ stages:
           - GrafanaGroups
           - StorageGroups
           - SQLGroups
+          - PimGroups
         variables:
           - group: Common
           - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
@@ -1016,6 +1050,14 @@ stages:
             value: $[dependencies.SQLGroups.outputs['SQLAdmins.displayName']]
           - name: sqlAdminsObjectId
             value: $[dependencies.SQLGroups.outputs['SQLAdmins.objectId']]
+          - name: pimOwnersDisplayName
+            value: $[dependencies.PimGroups.outputs['PimOwners.displayName']]
+          - name: pimOwnersObjectId
+            value: $[dependencies.PimGroups.outputs['PimOwners.objectId']]
+          - name: pimContributorsDisplayName
+            value: $[dependencies.PimGroups.outputs['PimContributors.displayName']]
+          - name: pimContributorsObjectId
+            value: $[dependencies.PimGroups.outputs['PimContributors.objectId']]
         steps:
           - checkout: self
 
@@ -1060,4 +1102,8 @@ stages:
                 scripts/pipeline/update-group-variable.sh blobStorageReadersGroupName '$(blobStorageReadersDisplayName)'
                 scripts/pipeline/update-group-variable.sh sqlAdminGroupId '$(sqlAdminsObjectId)'
                 scripts/pipeline/update-group-variable.sh sqlAdminGroupName '$(sqlAdminsDisplayName)'
+                scripts/pipeline/update-group-variable.sh pimOwnersGroupId '$(pimOwnersObjectId)'
+                scripts/pipeline/update-group-variable.sh pimOwnersGroupName '$(pimOwnersDisplayName)'
+                scripts/pipeline/update-group-variable.sh pimContributorsGroupId '$(pimContributorsObjectId)'
+                scripts/pipeline/update-group-variable.sh pimContributorsGroupName '$(pimContributorsDisplayName)'
 
