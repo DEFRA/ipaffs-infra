@@ -23,30 +23,33 @@
 #
 # ── Deployment model ───────────────────────────────────────────────────────
 #
-#  The "environments" parameter is an ORDERED list (default: DEV, TST, PRE,
-#  PRD - the environments this repo defines variable groups and
-#  pipelines/vars/*.yaml templates for). Every run validates the dashboard
-#  JSON once, then deploys to each environment in that order:
+#  Fixed order: DEV, TST, PRE, PRD (the environments this repo defines
+#  variable groups, pipelines/vars/*.yaml templates and Environment resources
+#  for). Not a run-time parameter - reordering it would silently break
+#  promotion order, and adding a new name here wouldn't work anyway without
+#  also adding its vars file, variable group, serviceConnections entry (see
+#  deploy-grafana-dashboards.yaml) and Environment resource, so it's a
+#  deliberate one-time code change, not something to expose as a queue-time
+#  choice. Every run validates the dashboard JSON once, then deploys in
+#  order:
 #
-#    ValidateDashboards -> Deploy environments[0] -> [manual approval]
-#      -> Deploy environments[1] -> Deploy environments[2] -> ...
+#    ValidateDashboards -> Deploy DEV -> [manual approval] -> Deploy TST
+#      -> Deploy PRE -> Deploy PRD
 #
-#  There is a single manual approval gate, always placed right after the
-#  FIRST environment in the list (DEV, by default) - not one per
-#  environment, and not hardcoded to any particular environment name. Its
-#  only job is to make sure a human has looked at that first environment's
-#  dashboards before the pipeline carries on, unattended, through the rest.
-#  This keeps every environment on the same dashboard version instead of
-#  letting them drift from separate, independently-run deploys.
+#  There is a single manual approval gate, after DEV, before TST. Its only
+#  job is to make sure a human has looked at DEV's dashboards before the
+#  pipeline carries on, unattended, through the rest. This keeps every
+#  environment on the same dashboard version instead of letting them drift
+#  from separate, independently-run deploys.
 #
-#  Every environment except the first only ever deploys on main - there is no
-#  override for this. The first environment can ALSO deploy off main, but
-#  only for a manually-queued run, and only after a human approves the
-#  ApproveBranchDeploy gate (see approve-branch-deploy-gate.yaml); on main
-#  that gate is skipped and it deploys immediately. Every stage after the
-#  first only ever proceeds once the stage before it has genuinely Succeeded
-#  (not just Skipped) - so on a non-main run, everything past the first
-#  environment shows as Skipped rather than a misleading "completed".
+#  TST/PRE/PRD only ever deploy on main - there is no override for this. DEV
+#  can ALSO deploy off main, but only for a manually-queued run, and only
+#  after a human approves the ApproveBranchDeploy gate (see
+#  approve-branch-deploy-gate.yaml); on main that gate is skipped and DEV
+#  deploys immediately. Every stage after DEV only ever proceeds once the
+#  stage before it has genuinely Succeeded (not just Skipped) - so on a
+#  non-main run, everything past DEV shows as Skipped rather than a
+#  misleading "completed".
 #
 # ── Optional one-off stage ─────────────────────────────────────────────────
 #
@@ -92,15 +95,6 @@ pool:
 # ── Parameters ────────────────────────────────────────────────────────────
 
 parameters:
-  - name: environments
-    displayName: "Environments to deploy to, in order (a single manual approval gate sits after the first one)"
-    type: object
-    default:
-      - DEV
-      - TST
-      - PRE
-      - PRD
-
   - name: configureDatasources
     displayName: "Configure datasources (one-off; run once per env when first setting it up)"
     type: boolean
@@ -124,16 +118,13 @@ variables:
 # ── Stages ────────────────────────────────────────────────────────────────
 
 stages:
-  # Tag the build. Whether the first environment ends up deploying off-main
-  # is now decided by a runtime approval, not a queue-time parameter, so we
-  # can't tell at compile time which envs this run will really touch - tag
-  # with all of them every time; tags are just for finding builds, not proof
-  # of what deployed.
   - template: stages/tag-build.yaml
     parameters:
       tags:
-        - ${{ each environment in parameters.environments }}:
-          - GrafanaDashboards-${{ environment }}
+        - GrafanaDashboards-DEV
+        - GrafanaDashboards-TST
+        - GrafanaDashboards-PRE
+        - GrafanaDashboards-PRD
 
   # 1. Validate dashboard JSON
   - stage: ValidateDashboards
@@ -156,37 +147,38 @@ stages:
       parameters:
         targetEnvironment: ${{ parameters.configureDatasourcesEnvironment }}
 
-  # 3. Approval gate for deploying the first environment off main (Skipped,
-  #    and not waited on, for main runs and for automatic PR/CI builds)
+  # 3. Approval gate for deploying DEV off main (Skipped, and not waited on,
+  #    for main runs and for automatic PR/CI builds)
   - template: stages/approve-branch-deploy-gate.yaml
     parameters:
-      environment: ${{ parameters.environments[0] }}
+      environment: DEV
 
-  # 4. Deploy to the first environment
+  # 4. Deploy to DEV
   - template: stages/deploy-grafana-dashboards.yaml
     parameters:
-      targetEnvironment: ${{ parameters.environments[0] }}
+      targetEnvironment: DEV
       branchApprovalGate: true
 
-  # 5. Approval gate before continuing past the first environment
+  # 5. Approval gate before continuing past DEV
   - template: stages/approve-grafana-gate.yaml
     parameters:
-      afterEnvironment: ${{ parameters.environments[0] }}
+      afterEnvironment: DEV
 
-  # 6. Deploy the rest, in order. No further gates, but each only proceeds if
-  #    the stage before it genuinely Succeeded - off main, the gate above is
-  #    Skipped, so everything from here on shows Skipped too, not a
-  #    misleading "completed".
-  - ${{ each environment in parameters.environments }}:
-    - ${{ if ne(environment, parameters.environments[0]) }}:
-      - ${{ if eq(environment, parameters.environments[1]) }}:
-        - template: stages/deploy-grafana-dashboards.yaml
-          parameters:
-            targetEnvironment: ${{ environment }}
-            gateStageName: ApproveGrafanaGate
-      - ${{ else }}:
-        - template: stages/deploy-grafana-dashboards.yaml
-          parameters:
-            targetEnvironment: ${{ environment }}
+  # 6. Deploy TST, PRE, PRD in order. No further gates, but each only
+  #    proceeds if the stage before it genuinely Succeeded - off main, the
+  #    gate above is Skipped, so everything from here on shows Skipped too,
+  #    not a misleading "completed".
+  - template: stages/deploy-grafana-dashboards.yaml
+    parameters:
+      targetEnvironment: TST
+      gateStageName: ApproveGrafanaGate
+
+  - template: stages/deploy-grafana-dashboards.yaml
+    parameters:
+      targetEnvironment: PRE
+
+  - template: stages/deploy-grafana-dashboards.yaml
+    parameters:
+      targetEnvironment: PRD
 
 # vim: set ts=2 sts=2 sw=2 et:
