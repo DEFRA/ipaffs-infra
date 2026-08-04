@@ -8,6 +8,15 @@ parameters:
   - name: mavenSettingsFile
     type: string
     default: 'service/pom.xml'
+  - name: jacocoFile
+    type: string
+    default: $(System.DefaultWorkingDirectory)/service/target/site/jacoco/jacoco.xml
+  - name: srcPaths
+    type: string
+    default: $(System.DefaultWorkingDirectory)/service/src/main/java/
+  - name: targetPath
+    type: string
+    default: $(Build.SourcesDirectory)/service/target
 
 jobs:
   - job: BuildJavaProject
@@ -48,12 +57,12 @@ jobs:
       - task: PublishCodeCoverageResults@2
         displayName: 'Publish code coverage'
         inputs:
-          summaryFileLocation: $(System.DefaultWorkingDirectory)/service/target/site/jacoco/jacoco.xml
-          pathToSources: $(System.DefaultWorkingDirectory)/service/src/main/java/
+          summaryFileLocation: ${{ parameters.jacocoFile }}
+          pathToSources: ${{ parameters.srcPaths }}
 
       - task: PublishPipelineArtifact@1
         displayName: Publish service artifact
         inputs:
           artifact: service
-          targetPath: $(Build.SourcesDirectory)/service/target
+          targetPath: ${{ parameters.targetPath }}
 

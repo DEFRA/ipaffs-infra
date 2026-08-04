@@ -13,6 +13,9 @@ parameters:
     type: string
     default: 'pom.xml'
 
+  - name: targetPath
+    type: string
+    default: $(Build.SourcesDirectory)/target
 
 stages:
   - stage: BuildLibrary
@@ -27,7 +30,6 @@ stages:
       - template: "/pipelines/vars/common.yaml"
       - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
 
-
     condition: and(
       not(failed()), not(canceled()))
     jobs:
@@ -35,6 +37,7 @@ stages:
         parameters:
           mvnGoals:  "${{ parameters.mvnGoals }}"
           mavenPomFile:  "${{ parameters.mavenPomFile }}"
+          targetPath:  "${{ parameters.targetPath }}"
 
   - stage: ReleaseLibrary
     displayName: Release Library
