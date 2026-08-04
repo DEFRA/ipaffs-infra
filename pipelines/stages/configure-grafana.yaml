@@ -30,6 +30,14 @@ parameters:
     type: boolean  # true => this env configures from the current branch (not just main)
     default: false
 
+  - name: serviceConnections
+    type: object   # env -> service connection name; azureSubscription needs a compile-time literal (see comment below), so this must mirror serviceConnection in pipelines/vars/<env>.yaml
+    default:
+      DEV: ADO-DefraGovUK-AZR-IMP-DEV1
+      TST: ADO-DefraGovUK-AZR-IMP-TST1
+      PRE: ADO-DefraGovUK-AZR-IMP-PRE1
+      PRD: ADO-DefraGovUK-AZR-IMP-PRD1
+
 stages:
   - stage: ConfigureGrafana
     displayName: Configure Grafana Datasources (${{ parameters.targetEnvironment }})
@@ -58,7 +66,10 @@ stages:
                   ${{ else }}:
                     condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
                   inputs:
-                    azureSubscription: $(serviceConnection)
+                    # A literal, not $(serviceConnection): ADO's pre-run resource-
+                    # authorization check can't resolve a stage-scoped macro when
+                    # each of the 4 stages in this run binds it to a different value.
+                    azureSubscription: ${{ parameters.serviceConnections[parameters.targetEnvironment] }}
                     scriptType: bash
                     scriptLocation: inlineScript
                     inlineScript: |
