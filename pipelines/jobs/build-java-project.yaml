@@ -2,6 +2,9 @@ parameters:
   - name: mvnGoals
     type: string
     default: verify jacoco:report package
+  - name: mavenPomFile
+    type: string
+    default: 'service/pom.xml'
 
 jobs:
   - job: BuildJavaProject
@@ -23,7 +26,7 @@ jobs:
       - task: Maven@4
         displayName: 'Build and Test'
         inputs:
-          mavenPomFile: 'service/pom.xml'
+          mavenPomFile: ${{ parameters.mavenPomFile }}
           mavenOptions: '-Xmx3072m $(MAVEN_OPTS)'
           javaHomeOption: 'JDKVersion'
           jdkVersionOption: '1.21'

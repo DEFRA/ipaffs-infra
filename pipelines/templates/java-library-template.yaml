@@ -9,6 +9,10 @@ parameters:
     type: string
     default: verify jacoco:report package
 
+  - name: mavenPomFile
+    type: string
+    default: 'pom.xml'
+
 
 stages:
   - stage: BuildLibrary
@@ -30,6 +34,7 @@ stages:
       - template: /pipelines/jobs/build-java-project.yaml@ipaffs-infra
         parameters:
           mvnGoals:  "${{ parameters.mvnGoals }}"
+          mavenPomFile:  "${{ parameters.mavenPomFile }}"
 
   - stage: ReleaseLibrary
     displayName: Release Library
