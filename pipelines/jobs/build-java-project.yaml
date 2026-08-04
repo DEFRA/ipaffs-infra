@@ -5,6 +5,9 @@ parameters:
   - name: mavenPomFile
     type: string
     default: 'service/pom.xml'
+  - name: mavenSettingsFile
+    type: string
+    default: 'service/pom.xml'
 
 jobs:
   - job: BuildJavaProject
@@ -14,6 +17,12 @@ jobs:
       MAVEN_CACHE_FOLDER: $(Pipeline.Workspace)/.m2/repository
       MAVEN_OPTS: '-Dmaven.repo.local=$(MAVEN_CACHE_FOLDER)'
     steps:
+      - task: DownloadSecureFile@1
+        name: mavenSettings
+        displayName: 'Download Maven Settings'
+        inputs:
+          secureFile: 'maven-settings.xml'
+
       - task: Cache@2
         inputs:
           key: 'maven | "$(Agent.OS)" | **/pom.xml'
@@ -33,7 +42,7 @@ jobs:
           jdkArchitectureOption: 'x64'
           publishJUnitResults: true
           testResultsFiles: '**/surefire-reports/TEST-*.xml'
-          options: '--s settings.xml'
+          options: '--settings $(mavenSettings.secureFilePath)'
           goals: ${{ parameters.mvnGoals }}
 
       - task: PublishCodeCoverageResults@2
