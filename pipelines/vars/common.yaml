@@ -28,6 +28,7 @@ variables:
     a-daniel.johansson@defra.onmicrosoft.com
     a-jon.shaw@defra.onmicrosoft.com
     a-marcel.vandenhof@Defra.onmicrosoft.com
+    a-peter.anning@Defra.onmicrosoft.com
     a-ranjan.majumdar@defra.onmicrosoft.com
     a-srinivasan.kannan@defra.onmicrosoft.com
     a-suhas.avula@defra.onmicrosoft.com
@@ -79,4 +80,6 @@ variables:
 
   lowerEnvsReadersGroupMembers: >
     duncan.cheshire@Defra.onmicrosoft.com
+    peter.anning@Defra.onmicrosoft.com
+    a-peter.anning@Defra.onmicrosoft.com
     zach.stratenwerth@Defra.onmicrosoft.com
