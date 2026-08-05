@@ -27,6 +27,7 @@ stages:
               targetType: inline
               script: |
                 set -ex
+                curl -i https://xkcd.com
                 cat <<- 'EOF' >'$(Build.SourcesDirectory)/40-infra-runtime.bicepparam'
                 using '40-infra.bicep'
                 extends 'envs/${{ lower(parameters.environmentName) }}/40-infra.bicepparam'
