@@ -19,11 +19,10 @@ stages:
       - job: Approve
         displayName: Approve deploy beyond ${{ parameters.afterEnvironment }}
         pool: server
-        timeoutInMinutes: 4320   # overall wait window for an approver (3 days)
+        timeoutInMinutes: 0
         steps:
           - task: ManualValidation@0
             displayName: Wait for approval to continue past ${{ parameters.afterEnvironment }}
-            timeoutInMinutes: 4320
             inputs:
               # No approver list yet - anyone with environment permission can approve.
               instructions: "Review the ${{ parameters.afterEnvironment }} Grafana dashboards, then approve to continue deploying to the remaining environments."

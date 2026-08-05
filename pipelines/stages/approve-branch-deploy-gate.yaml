@@ -24,7 +24,6 @@ stages:
         steps:
           - task: ManualValidation@0
             displayName: Wait for approval to deploy ${{ parameters.environment }} from this branch
-            timeoutInMinutes: 4320
             inputs:
               instructions: "This run is not on main. Approve to deploy ${{ parameters.environment }} from this branch for testing."
               onTimeout: reject
