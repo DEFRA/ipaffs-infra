@@ -21,7 +21,7 @@ jobs:
   - job: Release
     displayName: Release
     dependsOn: CheckRelease
-    condition: and(not(failed()), not(canceled()), eq(dependencies.CheckRelease.outputs['check.skipRelease'], 'false'), eq(variables['Build.SourceBranch'], 'refs/heads/ado-pipeline'))
+    condition: and(not(failed()), not(canceled()), eq(dependencies.CheckRelease.outputs['check.skipRelease'], 'false'), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'),eq(variables['Build.SourceBranch'], 'refs/heads/master')))
     variables:
       MAVEN_CACHE_FOLDER: $(Pipeline.Workspace)/.m2/repository
       MAVEN_OPTS: '-Xmx512m -Dmaven.repo.local=$(MAVEN_CACHE_FOLDER)'
