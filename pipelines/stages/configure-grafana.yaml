@@ -16,8 +16,7 @@
 #
 # This stage is idempotent: existing datasources are updated, not duplicated.
 #
-# Branch gating: always requires main - this is a rare, one-off admin action,
-# not something worth a branch-testing override.
+# Branch gating: always requires main
 #
 # NOTE: the Grafana managed identity is assumed to already hold the data-read
 # roles needed for these datasources to return data (granted manually).
@@ -27,7 +26,7 @@ parameters:
     type: string   # single env, e.g. DEV
 
   - name: serviceConnections
-    type: object   # env -> service connection name; azureSubscription needs a compile-time literal (see comment below), so this must mirror serviceConnection in pipelines/vars/<env>.yaml
+    type: object   # env -> service connection name, azureSubscription needs compile time values
     default:
       DEV: ADO-DefraGovUK-AZR-IMP-DEV1
       TST: ADO-DefraGovUK-AZR-IMP-TST1
@@ -57,9 +56,6 @@ stages:
                   displayName: Configure datasources (${{ parameters.targetEnvironment }})
                   condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
                   inputs:
-                    # A literal, not $(serviceConnection): ADO's pre-run resource-
-                    # authorization check can't resolve a stage-scoped macro when
-                    # each of the 4 stages in this run binds it to a different value.
                     azureSubscription: ${{ parameters.serviceConnections[parameters.targetEnvironment] }}
                     scriptType: bash
                     scriptLocation: inlineScript

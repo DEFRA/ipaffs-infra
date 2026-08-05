@@ -2,11 +2,10 @@
 # approve-branch-deploy-gate.yaml
 #
 # Manual approval gate before the first environment deploys, only relevant
-# for a manually-queued run off main (testing before merge). On main it's
+# for a manually queued run off main (testing before merge). On main it is
 # Skipped automatically and the first environment deploys immediately. On a
-# PR/CI-triggered build off main it's also Skipped (so PR checks never sit
-# blocked on an approval for days) - only a human-queued run off main
-# actually waits here.
+# PR or CI-triggered build off main it is also skipped (so PR checks never sit
+# blocked on an approval) - only manually triggered pipeline waits here.
 
 parameters:
   - name: environment

@@ -38,15 +38,15 @@ parameters:
     type: string   # single env, e.g. DEV
 
   - name: branchApprovalGate
-    type: boolean  # true => on main, deploy automatically; off main, only after ApproveBranchDeploy is approved
+    type: boolean  # true => on main, deploy automatically from main, only after ApproveBranchDeploy is approved
     default: false
 
   - name: gateStageName
-    type: string   # preceding approval-gate stage that must have genuinely Succeeded; '' = default dependency behaviour
+    type: string   # preceding approval gate stage that must have genuinely Succeeded, set empty as default
     default: ''
 
   - name: serviceConnections
-    type: object   # env -> service connection name; azureSubscription needs a compile-time literal (see comment below), so this must mirror serviceConnection in pipelines/vars/<env>.yaml
+    type: object   # env -> service connection name; azureSubscription needs compile time values
     default:
       DEV: ADO-DefraGovUK-AZR-IMP-DEV1
       TST: ADO-DefraGovUK-AZR-IMP-TST1

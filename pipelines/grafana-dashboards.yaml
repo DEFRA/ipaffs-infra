@@ -1,7 +1,7 @@
 ---
 # grafana-dashboards.yaml
 #
-# Single-run pipeline for deploying Grafana dashboards to all per-environment
+# Single-run pipeline for deploying Grafana dashboards to all environments
 # Azure Managed Grafana instances.
 #
 # ── Dashboard lifecycle ────────────────────────────────────────────────────
@@ -16,9 +16,9 @@
 #     The exported JSON keeps the dashboard's template variables (the
 #     namespace / datasource dropdowns), so they travel with it.
 #  3. Commit the JSON under grafana-dashboards/dashboards/
-#     (deployed to every environment). Per-env dashboards are not
+#     (deployed to individual environment). Per-env dashboards are not
 #     supported yet and can be added later.
-#  4. Push; the pipeline validates and (on main) deploys to every environment
+#  4. The pipeline validates and (on main) deploys to every environment
 #     in turn.
 #
 # ── Deployment model ───────────────────────────────────────────────────────
@@ -37,14 +37,14 @@
 #      -> Deploy PRE -> Deploy PRD
 #
 #  There is a single manual approval gate, after DEV, before TST. Its only
-#  job is to make sure a human has looked at DEV's dashboards before the
+#  job is to make sure someone looked at DEV's dashboards before the
 #  pipeline carries on, unattended, through the rest. This keeps every
 #  environment on the same dashboard version instead of letting them drift
 #  from separate, independently-run deploys.
 #
 #  TST/PRE/PRD only ever deploy on main - there is no override for this. DEV
 #  can ALSO deploy off main, but only for a manually-queued run, and only
-#  after a human approves the ApproveBranchDeploy gate (see
+#  after someone approves the ApproveBranchDeploy gate (see
 #  approve-branch-deploy-gate.yaml); on main that gate is skipped and DEV
 #  deploys immediately. Every stage after DEV only ever proceeds once the
 #  stage before it has genuinely Succeeded (not just Skipped) - so on a
