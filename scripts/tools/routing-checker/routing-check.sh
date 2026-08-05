@@ -6,6 +6,8 @@ set -e
 readonly RED='\033[0;31m'
 readonly GREEN='\033[0;32m'
 readonly BLUE='\033[0;34m'
+readonly CYAN='\033[0;36m'
+readonly WHITE='\033[0;37m'
 readonly NC='\033[0m'
 readonly BOLD='\033[1;37m'
 readonly YELLOW='\033[1;33m'
@@ -127,6 +129,25 @@ dns_lookup() {
   printf '%s' "${ips:-unresolved}"
 }
 
+cookie_value() {
+  local cookie_name="$1"
+  local result="$2"
+  local cookie_line
+  cookie_line="$(printf '%s\n' "${result}" | tr -d '\r' | grep -i "^set-cookie:[[:space:]]*${cookie_name}=" | tail -1)" || true
+  cookie_line="${cookie_line#*:}"
+  cookie_line="${cookie_line# }"
+  cookie_line="${cookie_line#*=}"
+  printf '%s' "${cookie_line%%;*}"
+}
+
+print_cookie_value() {
+  local cookie_name="$1"
+  local result="$2"
+  local value
+  value="$(cookie_value "${cookie_name}" "${result}")"
+  echo -e "${WHITE}Cookie ${cookie_name}: ${CYAN}${value:-not set}${NC}"
+}
+
 domainB2C="${urlB2C#https://}"
 domainB2C="${domainB2C%%/*}"
 domainB2B="${urlB2B#https://}"
@@ -216,6 +237,10 @@ while true; do
         *)       classif_colored="${classification}" ;;
       esac
       echo -e "${timestamp} [${urlType}] ${status} -> ${classif_colored}"
+      if (( checksPerformed == 0 )); then
+        print_cookie_value "ASLBSA" "${result}"
+        print_cookie_value "ASLBSACORS" "${result}"
+      fi
       if [[ "${classification}" == "AKS" ]] && [[ "${location}" != *"${expectedAksLoginUrl}"* ]]; then
         totalValidationFailures=$((totalValidationFailures + 1))
         echo -e "${RED}${timestamp} [${urlType}] Validation failure: AKS Location missing expected login_url${NC}"
