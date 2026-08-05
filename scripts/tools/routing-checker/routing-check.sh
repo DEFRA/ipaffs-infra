@@ -141,11 +141,12 @@ cookie_value() {
 }
 
 print_cookie_value() {
-  local cookie_name="$1"
-  local result="$2"
+  local origin="$1"
+  local cookie_name="$2"
+  local result="$3"
   local value
   value="$(cookie_value "${cookie_name}" "${result}")"
-  echo -e "${WHITE}Cookie ${cookie_name}: ${CYAN}${value:-not set}${NC}"
+  echo -e "${WHITE}Cookie ${cookie_name} (${origin}): ${CYAN}${value:-not set}${NC}"
 }
 
 domainB2C="${urlB2C#https://}"
@@ -180,6 +181,7 @@ totalValidationFailures=0
 totalB2C=0
 totalB2B=0
 declare -A errorCounts
+declare -A cookieOriginsPrinted
 input=""
 checksPerformed=0
 
@@ -237,9 +239,12 @@ while true; do
         *)       classif_colored="${classification}" ;;
       esac
       echo -e "${timestamp} [${urlType}] ${status} -> ${classif_colored}"
-      if (( checksPerformed == 0 )); then
-        print_cookie_value "ASLBSA" "${result}"
-        print_cookie_value "ASLBSACORS" "${result}"
+      if [[ "${classification}" == "Classic" || "${classification}" == "AKS" ]]; then
+        if [[ -z "${cookieOriginsPrinted[${classification}]:-}" ]]; then
+          print_cookie_value "${classification}" "ASLBSA" "${result}"
+          print_cookie_value "${classification}" "ASLBSACORS" "${result}"
+          cookieOriginsPrinted["${classification}"]=1
+        fi
       fi
       if [[ "${classification}" == "AKS" ]] && [[ "${location}" != *"${expectedAksLoginUrl}"* ]]; then
         totalValidationFailures=$((totalValidationFailures + 1))
@@ -271,7 +276,7 @@ while true; do
     break
   fi
 
-  read -t "${read_timeout}" -N 1 input || true
+  read -r -t "${read_timeout}" -N 1 input || true
   if [[ "${input}" == "q" ]] || [[ "${input}" == "Q" ]]; then
     break
   fi
@@ -298,7 +303,7 @@ if (( totalError > 0 )); then
   echo -e "${BOLD}Errors by status code:${NC}"
   for key in $(printf '%s\n' "${!errorCounts[@]}" | sort -V); do
     count="${errorCounts[${key}]}"
-    echo -e "${BOLD}  ${key}: ${count} ($(pct ${count} ${total})%)${NC}"
+    echo -e "${BOLD}  ${key}: ${count} ($(pct "${count}" "${total}")%)${NC}"
   done
 fi
 
