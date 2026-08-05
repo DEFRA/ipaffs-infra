@@ -1,0 +1,68 @@
+jobs:
+  - job: CheckRelease
+    displayName: CheckRelease
+    steps:
+      - checkout: self
+        fetchDepth: 0
+
+      - bash: |
+          LAST_COMMIT_MESSAGE="$(git log -1 --pretty=%B)"
+          echo "Last commit message: $LAST_COMMIT_MESSAGE"
+
+          if [[ "$LAST_COMMIT_MESSAGE" == *"maven-release-plugin"* ]]; then
+            echo "Previous commit was a release commit. Skipping Maven release."
+            echo "##vso[task.setvariable variable=skipRelease;isOutput=true]true"
+          else
+            echo "##vso[task.setvariable variable=skipRelease;isOutput=true]false"
+          fi
+        name: check
+        displayName: 'Check last commit message'
+
+  - job: Release
+    displayName: Release
+    dependsOn: CheckRelease
+    condition: and(not(failed()), not(canceled()), eq(dependencies.CheckRelease.outputs['check.skipRelease'], 'false'), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'),eq(variables['Build.SourceBranch'], 'refs/heads/master')))
+    variables:
+      MAVEN_CACHE_FOLDER: $(Pipeline.Workspace)/.m2/repository
+      MAVEN_OPTS: '-Xmx512m -Dmaven.repo.local=$(MAVEN_CACHE_FOLDER)'
+    steps:
+      - checkout: self
+        persistCredentials: true
+        fetchDepth: 0
+
+      - script: |
+          git checkout $(Build.SourceBranchName)
+        displayName: 'Checkout branch'
+
+      - script: |
+          git config user.name "IPAFFS CI Bot"
+          git config user.email "ipaffs-ci-bot@defra.gov.uk"
+        displayName: 'Git author'
+
+      - task: DownloadSecureFile@1
+        name: mavenSettings
+        displayName: 'Download Maven Settings'
+        inputs:
+          secureFile: 'maven-settings.xml'
+
+      - task: Cache@2
+        displayName: 'Cache Maven local repo'
+        inputs:
+          key: 'maven | "$(Agent.OS)" | **/pom.xml'
+          restoreKeys: |
+            maven | "$(Agent.OS)"
+            maven
+          path: $(MAVEN_CACHE_FOLDER)
+
+      - task: Maven@4
+        displayName: 'Release'
+        env:
+          GIT_HUB_TOKEN: $(gitHubToken)
+        inputs:
+          mavenPomFile: 'pom.xml'
+          mavenOptions: $(MAVEN_OPTS)
+          javaHomeOption: 'JDKVersion'
+          jdkVersionOption: '1.21'
+          jdkArchitectureOption: 'x64'
+          options: '--settings $(mavenSettings.secureFilePath)'
+          goals: '--batch-mode release:prepare release:perform'

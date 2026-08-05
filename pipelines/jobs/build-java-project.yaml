@@ -2,6 +2,21 @@ parameters:
   - name: mvnGoals
     type: string
     default: verify jacoco:report package
+  - name: mavenPomFile
+    type: string
+    default: 'service/pom.xml'
+  - name: mavenSettingsFile
+    type: string
+    default: 'service/pom.xml'
+  - name: jacocoFile
+    type: string
+    default: $(System.DefaultWorkingDirectory)/service/target/site/jacoco/jacoco.xml
+  - name: srcPaths
+    type: string
+    default: $(System.DefaultWorkingDirectory)/service/src/main/java/
+  - name: targetPath
+    type: string
+    default: $(Build.SourcesDirectory)/service/target
 
 jobs:
   - job: BuildJavaProject
@@ -11,6 +26,12 @@ jobs:
       MAVEN_CACHE_FOLDER: $(Pipeline.Workspace)/.m2/repository
       MAVEN_OPTS: '-Dmaven.repo.local=$(MAVEN_CACHE_FOLDER)'
     steps:
+      - task: DownloadSecureFile@1
+        name: mavenSettings
+        displayName: 'Download Maven Settings'
+        inputs:
+          secureFile: 'maven-settings.xml'
+
       - task: Cache@2
         inputs:
           key: 'maven | "$(Agent.OS)" | **/pom.xml'
@@ -23,25 +44,25 @@ jobs:
       - task: Maven@4
         displayName: 'Build and Test'
         inputs:
-          mavenPomFile: 'service/pom.xml'
+          mavenPomFile: ${{ parameters.mavenPomFile }}
           mavenOptions: '-Xmx3072m $(MAVEN_OPTS)'
           javaHomeOption: 'JDKVersion'
           jdkVersionOption: '1.21'
           jdkArchitectureOption: 'x64'
           publishJUnitResults: true
           testResultsFiles: '**/surefire-reports/TEST-*.xml'
-          options: '--s settings.xml'
+          options: '--settings $(mavenSettings.secureFilePath)'
           goals: ${{ parameters.mvnGoals }}
 
       - task: PublishCodeCoverageResults@2
         displayName: 'Publish code coverage'
         inputs:
-          summaryFileLocation: $(System.DefaultWorkingDirectory)/service/target/site/jacoco/jacoco.xml
-          pathToSources: $(System.DefaultWorkingDirectory)/service/src/main/java/
+          summaryFileLocation: ${{ parameters.jacocoFile }}
+          pathToSources: ${{ parameters.srcPaths }}
 
       - task: PublishPipelineArtifact@1
         displayName: Publish service artifact
         inputs:
           artifact: service
-          targetPath: $(Build.SourcesDirectory)/service/target
+          targetPath: ${{ parameters.targetPath }}
 
