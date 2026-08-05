@@ -6,6 +6,8 @@ set -e
 readonly RED='\033[0;31m'
 readonly GREEN='\033[0;32m'
 readonly BLUE='\033[0;34m'
+readonly CYAN='\033[0;36m'
+readonly WHITE='\033[0;37m'
 readonly NC='\033[0m'
 readonly BOLD='\033[1;37m'
 readonly YELLOW='\033[1;33m'
@@ -127,6 +129,26 @@ dns_lookup() {
   printf '%s' "${ips:-unresolved}"
 }
 
+cookie_value() {
+  local cookie_name="$1"
+  local result="$2"
+  local cookie_line
+  cookie_line="$(printf '%s\n' "${result}" | tr -d '\r' | grep -i "^set-cookie:[[:space:]]*${cookie_name}=" | tail -1)" || true
+  cookie_line="${cookie_line#*:}"
+  cookie_line="${cookie_line# }"
+  cookie_line="${cookie_line#*=}"
+  printf '%s' "${cookie_line%%;*}"
+}
+
+print_cookie_value() {
+  local origin="$1"
+  local cookie_name="$2"
+  local result="$3"
+  local value
+  value="$(cookie_value "${cookie_name}" "${result}")"
+  echo -e "${WHITE}Cookie ${cookie_name} (${origin}): ${CYAN}${value:-not set}${NC}"
+}
+
 domainB2C="${urlB2C#https://}"
 domainB2C="${domainB2C%%/*}"
 domainB2B="${urlB2B#https://}"
@@ -159,6 +181,7 @@ totalValidationFailures=0
 totalB2C=0
 totalB2B=0
 declare -A errorCounts
+declare -A cookieOriginsPrinted
 input=""
 checksPerformed=0
 
@@ -216,6 +239,13 @@ while true; do
         *)       classif_colored="${classification}" ;;
       esac
       echo -e "${timestamp} [${urlType}] ${status} -> ${classif_colored}"
+      if [[ "${classification}" == "Classic" || "${classification}" == "AKS" ]]; then
+        if [[ -z "${cookieOriginsPrinted[${classification}]:-}" ]]; then
+          print_cookie_value "${classification}" "ASLBSA" "${result}"
+          print_cookie_value "${classification}" "ASLBSACORS" "${result}"
+          cookieOriginsPrinted["${classification}"]=1
+        fi
+      fi
       if [[ "${classification}" == "AKS" ]] && [[ "${location}" != *"${expectedAksLoginUrl}"* ]]; then
         totalValidationFailures=$((totalValidationFailures + 1))
         echo -e "${RED}${timestamp} [${urlType}] Validation failure: AKS Location missing expected login_url${NC}"
@@ -246,7 +276,7 @@ while true; do
     break
   fi
 
-  read -t "${read_timeout}" -N 1 input || true
+  read -r -t "${read_timeout}" -N 1 input || true
   if [[ "${input}" == "q" ]] || [[ "${input}" == "Q" ]]; then
     break
   fi
@@ -273,7 +303,7 @@ if (( totalError > 0 )); then
   echo -e "${BOLD}Errors by status code:${NC}"
   for key in $(printf '%s\n' "${!errorCounts[@]}" | sort -V); do
     count="${errorCounts[${key}]}"
-    echo -e "${BOLD}  ${key}: ${count} ($(pct ${count} ${total})%)${NC}"
+    echo -e "${BOLD}  ${key}: ${count} ($(pct "${count}" "${total}")%)${NC}"
   done
 fi
 
