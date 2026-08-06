@@ -800,6 +800,6 @@
     "to": "now"
   },
   "timezone": "browser",
-  "title": "IPAFFS_APPS_OVERVIEW",
+  "title": "IPAFFS Application Overview",
   "uid": "app-overview"
 }

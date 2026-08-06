@@ -12,6 +12,20 @@
         "iconColor": "rgba(0, 211, 255, 1)",
         "name": "Annotations & Alerts",
         "type": "dashboard"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "${datasource}"
+        },
+        "enable": true,
+        "expr": "sum by (pod) (changes(kube_pod_container_status_restarts_total{namespace=~\"$namespace\", pod=~\"^$pod.*\"}[$__interval])) > 0",
+        "hide": false,
+        "iconColor": "red",
+        "name": "Pod Restarts",
+        "step": "1m",
+        "textFormat": "{{pod}}",
+        "titleFormat": "Pod Restart"
       }
     ]
   },
@@ -534,7 +548,8 @@
       "targets": [
         {
           "azureLogAnalytics": {
-            "query": "requests\n| where timestamp > ago(15s)\n| where cloud_RoleInstance matches regex @\"^(${pod:pipe})\"\n| summarize RPS = count() by bin(timestamp, 1s)\n| top 1 by timestamp desc\n| project RPS",
+            "dashboardTime": false,
+            "query": "requests\n| where timestamp > ago(5m)\n| where cloud_RoleInstance matches regex @\"^(${pod:pipe})\"\n| summarize RPS = round(count() / 300.0, 2)\n| project RPS",
             "resources": [
               "/subscriptions/$subscription/resourceGroups/$resourceGroup/providers/Microsoft.Insights/components/$resource"
             ],
@@ -548,7 +563,7 @@
           "refId": "A"
         }
       ],
-      "title": "Live RPS",
+      "title": "Live RPS (Last 5 mins)",
       "type": "gauge"
     },
     {
@@ -1080,7 +1095,10 @@
   "templating": {
     "list": [
       {
-        "current": {},
+        "current": {
+          "text": "Prometheus",
+          "value": "bfq876mzxyfi8b"
+        },
         "hide": 2,
         "label": "Environment",
         "name": "datasource",
