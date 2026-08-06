@@ -8,6 +8,17 @@ param environment string
 @allowed(['northeuropa', 'uksouth'])
 param location string
 
+param entraGroups object = {
+  pimOwners: {
+    id: ''
+    name: ''
+  }
+  pimContributors: {
+    id: ''
+    name: ''
+  }
+}
+
 param principalsNeedingReader array
 
 param createdDate string = utcNow('yyyy-MM-dd')
@@ -25,6 +36,8 @@ resource rg 'Microsoft.Resources/resourceGroups@2025-04-01' = {
   tags: tags
 }
 
+var ownerRoleId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '8e3af657-a8ff-443c-a75c-2fe8c4bcb635')
+var contributorRoleId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b24988ac-6180-42a0-ab88-20f7382dd24c')
 var readerRoleId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'acdd72a7-3385-48ef-bd42-f606fba81ae7')
 
 module additionalReaders './modules/resource-group-role-assignment.bicep' = [for principalId in principalsNeedingReader: {
@@ -37,6 +50,26 @@ module additionalReaders './modules/resource-group-role-assignment.bicep' = [for
     roleDefinitionId: readerRoleId
   }
 }]
+
+module pimOwnersEligibility './modules/resource-group-role-eligibility.bicep' = if (!empty(entraGroups.pimOwners.id)) {
+  name: format('pimOwnersEligibility-{0}', deploymentId)
+  scope: rg
+  params: {
+    justification: 'Assign eligible Owner role to ${entraGroups.pimOwners.name}'
+    principalObjectId: entraGroups.pimOwners.id
+    roleDefinitionId: ownerRoleId
+  }
+}
+
+module pimContributorsEligibility './modules/resource-group-role-eligibility.bicep' = if (!empty(entraGroups.pimContributors.id)) {
+  name: format('pimContributorsEligibility-{0}', deploymentId)
+  scope: rg
+  params: {
+    justification: 'Assign eligible Contributor role to ${entraGroups.pimContributors.name}'
+    principalObjectId: entraGroups.pimContributors.id
+    roleDefinitionId: contributorRoleId
+  }
+}
 
 output resourceGroupId string = rg.id
 
