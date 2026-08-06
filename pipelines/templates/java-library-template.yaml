@@ -38,6 +38,7 @@ stages:
           mvnGoals:  "${{ parameters.mvnGoals }}"
           mavenPomFile:  "${{ parameters.mavenPomFile }}"
           targetPath:  "${{ parameters.targetPath }}"
+          publishArtifact: false
 
   - stage: ReleaseLibrary
     displayName: Release Library

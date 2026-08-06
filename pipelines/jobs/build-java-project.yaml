@@ -17,6 +17,9 @@ parameters:
   - name: targetPath
     type: string
     default: $(Build.SourcesDirectory)/service/target
+  - name: publishArtifact
+    type: boolean
+    default: true
 
 jobs:
   - job: BuildJavaProject
@@ -62,7 +65,9 @@ jobs:
 
       - task: PublishPipelineArtifact@1
         displayName: Publish service artifact
+        condition: and(succeeded(), eq(${{ parameters.publishArtifact }}, true))
         inputs:
           artifact: service
           targetPath: ${{ parameters.targetPath }}
+
 
