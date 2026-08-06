@@ -17,6 +17,7 @@
               "mode": "normal"
             }
           },
+          "noValue": "0",
           "unit": "short"
         },
         "overrides": [
@@ -107,7 +108,7 @@
         {
           "azureLogAnalytics": {
             "dashboardTime": false,
-            "query": "requests\n| where $__contains(cloud_RoleName, $application)\n| where $__timeFilter(timestamp)\n| summarize Requests=count() by StatusGroup=strcat(substring(tostring(resultCode),0,1),\"xx\"), bin(timestamp, $__interval)\n| order by timestamp asc",
+            "query": "requests\n| where cloud_RoleName == \"imports-proxy\"\n| where $__timeFilter(timestamp)\n| where resultCode != \"0\"\n| where url !contains \"/admin/health-check\"\n| summarize Requests=count() by StatusGroup=strcat(substring(tostring(resultCode),0,1),\"xx\"), bin(timestamp, $__interval)\n| order by timestamp asc",
             "resources": [
               "/subscriptions/$subscription/resourceGroups/$resourceGroup/providers/Microsoft.Insights/components/$appInsights"
             ],
@@ -121,7 +122,7 @@
           "refId": "A"
         }
       ],
-      "title": "Requests by Status Group",
+      "title": "Requests to Proxy by Status Group",
       "type": "timeseries"
     },
     {
@@ -166,7 +167,7 @@
         {
           "azureLogAnalytics": {
             "dashboardTime": false,
-            "query": "requests\n| where $__contains(cloud_RoleName, $application)\n| where $__timeFilter(timestamp)\n| summarize p50=percentile(duration,50), p90=percentile(duration,90), p95=percentile(duration,95), p99=percentile(duration,99) by bin(timestamp, $__interval)\n| order by timestamp asc",
+            "query": "requests\n| where cloud_RoleName == \"imports-proxy\"\n| where $__timeFilter(timestamp)\n| where resultCode != \"0\"\n| where url !contains \"/admin/health-check\"\n| summarize p50=percentile(duration,50), p90=percentile(duration,90), p95=percentile(duration,95), p99=percentile(duration,99) by bin(timestamp, $__interval)\n| order by timestamp asc",
             "resources": [
               "/subscriptions/$subscription/resourceGroups/$resourceGroup/providers/Microsoft.Insights/components/$appInsights"
             ],
@@ -180,7 +181,7 @@
           "refId": "A"
         }
       ],
-      "title": "Request Latency Percentiles",
+      "title": "Proxy Request Latency Percentiles",
       "type": "timeseries"
     },
     {
@@ -199,6 +200,7 @@
               "mode": "normal"
             }
           },
+          "noValue": "0",
           "unit": "short"
         },
         "overrides": []
@@ -442,11 +444,11 @@
               "microsoft.resourceid": true,
               "microsoft.resourcetype": true,
               "microsoft.subscriptionid": true,
+              "namespace": true,
               "pod": true,
               "uid": true
             },
             "indexByName": {
-              "namespace": 2,
               "service": 0,
               "version": 1
             },
@@ -679,7 +681,7 @@
           "uid": "azure-monitor-oob"
         },
         "definition": "",
-        "hide": 0,
+        "hide": 2,
         "includeAll": true,
         "label": "Application (App Insights)",
         "multi": true,
@@ -716,7 +718,7 @@
           "uid": "${datasource}"
         },
         "definition": "label_values(kube_pod_container_info{image=~\".+/ipaffs/.+\"}, image)",
-        "hide": 0,
+        "hide": 2,
         "includeAll": true,
         "label": "Service (Prometheus)",
         "multi": true,
@@ -736,12 +738,8 @@
         "allValue": ".*",
         "current": {
           "selected": true,
-          "text": [
-            "All"
-          ],
-          "value": [
-            "$__all"
-          ]
+          "text": "18-8-x",
+          "value": "18-8-x"
         },
         "datasource": {
           "type": "prometheus",
@@ -749,9 +747,9 @@
         },
         "definition": "label_values(kube_pod_container_info{image=~\".+/ipaffs/.+\"}, namespace)",
         "hide": 0,
-        "includeAll": true,
+        "includeAll": false,
         "label": "Namespace",
-        "multi": true,
+        "multi": false,
         "name": "namespace",
         "options": [],
         "query": {
