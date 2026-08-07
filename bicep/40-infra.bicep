@@ -129,11 +129,13 @@ module keyVault './modules/keyvault.bicep' = {
       {
         principalObjectId: entraGroups.keyVaultAdmins.id
         principalType: 'Group'
+        roleAssignmentType: 'permanent'
         roleDefinitionId: keyVaultAdministratorRoleId
       }
       {
         principalObjectId: entraGroups.keyVaultSecretsReaders.id
         principalType: 'Group'
+        roleAssignmentType: 'permanent'
         roleDefinitionId: keyVaultSecretsUserRoleId
       }
     ]
@@ -148,6 +150,7 @@ var qaKeyVaultRoleAssignments = concat(
     {
       principalObjectId: entraGroups.keyVaultAdmins.id
       principalType: 'Group'
+      roleAssignmentType: 'permanent'
       roleDefinitionId: keyVaultAdministratorRoleId
     }
   ],
@@ -155,6 +158,7 @@ var qaKeyVaultRoleAssignments = concat(
     {
       principalObjectId: qaSecretsOfficerObjectId
       principalType: 'Group'
+      roleAssignmentType: 'permanent'
       roleDefinitionId: keyVaultSecretsOfficerRoleId
     }
   ],
@@ -162,6 +166,7 @@ var qaKeyVaultRoleAssignments = concat(
     {
       principalObjectId: qaAutomationPrincipalObjectId
       principalType: 'ServicePrincipal'
+      roleAssignmentType: 'permanent'
       roleDefinitionId: keyVaultSecretsUserRoleId
     }
   ]
