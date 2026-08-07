@@ -25,6 +25,7 @@ module sqlServerContributor './sql-server-role-assignment.bicep' = {
     deploymentId: deploymentId
     principalObjectId: userAssignedIdentity.properties.principalId
     principalType: 'ServicePrincipal'
+    roleAssignmentType: 'permanent'
     roleDefinitionId: sqlServerContributorId
     sqlServerName: sqlServerName
   }
