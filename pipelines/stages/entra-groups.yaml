@@ -949,8 +949,8 @@ stages:
           - task: AzureCLI@2
             name: PimOwners
             env:
-              GROUP_NAME: AG-Azure-IMP-${{ parameters.environmentName }}1-PIM-Owners
-              GROUP_DESCRIPTION: Entra access group for eligible Owner assignments on the IPAFFS ${{ parameters.environmentName }} subscription
+              GROUP_NAME: AG-Azure-$(resourceGroupName)-PIM-Owners
+              GROUP_DESCRIPTION: Entra access group for eligible Owner assignments on the IPAFFS $(resourceGroupName) resource group
               GROUP_OWNER_OBJECT_IDS: >
                 $(serviceConnectionPrincipalId)
                 $(upstreamServiceConnectionPrincipalId)
@@ -962,8 +962,8 @@ stages:
           - task: AzureCLI@2
             name: PimContributors
             env:
-              GROUP_NAME: AG-Azure-IMP-${{ parameters.environmentName }}1-PIM-Contributors
-              GROUP_DESCRIPTION: Entra access group for eligible Contributor assignments on the IPAFFS ${{ parameters.environmentName }} subscription
+              GROUP_NAME: AG-Azure-$(resourceGroupName)-PIM-Contributors
+              GROUP_DESCRIPTION: Entra access group for eligible Contributor assignments on the IPAFFS $(resourceGroupName) resource group
               GROUP_OWNER_OBJECT_IDS: >
                 $(serviceConnectionPrincipalId)
                 $(upstreamServiceConnectionPrincipalId)
