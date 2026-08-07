@@ -36,28 +36,31 @@ module additionalReaders './modules/resource-group-role-assignment.bicep' = [for
     deploymentId: deploymentId
     principalObjectId: principalId
     principalType: 'ServicePrincipal'
+    roleAssignmentType: 'permanent'
     roleDefinitionId: readerRoleId
   }
 }]
 
-module pimOwnersEligibility './modules/resource-group-role-eligibility.bicep' = {
+module pimOwners './modules/resource-group-role-assignment.bicep' = {
   name: format('pimOwnersEligibility-{0}', deploymentId)
   scope: rg
   params: {
     deploymentId: deploymentId
-    justification: 'Assign eligible Owner role to ${entraGroups.pimOwners.name}'
     principalObjectId: entraGroups.pimOwners.id
+    principalType: 'Group'
+    roleAssignmentType: 'eligible'
     roleDefinitionId: ownerRoleId
   }
 }
 
-module pimContributorsEligibility './modules/resource-group-role-eligibility.bicep' = {
+module pimContributors './modules/resource-group-role-assignment.bicep' = {
   name: format('pimContributorsEligibility-{0}', deploymentId)
   scope: rg
   params: {
     deploymentId: deploymentId
-    justification: 'Assign eligible Contributor role to ${entraGroups.pimContributors.name}'
     principalObjectId: entraGroups.pimContributors.id
+    principalType: 'Group'
+    roleAssignmentType: 'eligible'
     roleDefinitionId: contributorRoleId
   }
 }
