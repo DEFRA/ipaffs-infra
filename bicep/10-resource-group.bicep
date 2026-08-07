@@ -44,6 +44,7 @@ module pimOwnersEligibility './modules/resource-group-role-eligibility.bicep' = 
   name: format('pimOwnersEligibility-{0}', deploymentId)
   scope: rg
   params: {
+    deploymentId: deploymentId
     justification: 'Assign eligible Owner role to ${entraGroups.pimOwners.name}'
     principalObjectId: entraGroups.pimOwners.id
     roleDefinitionId: ownerRoleId
@@ -54,6 +55,7 @@ module pimContributorsEligibility './modules/resource-group-role-eligibility.bic
   name: format('pimContributorsEligibility-{0}', deploymentId)
   scope: rg
   params: {
+    deploymentId: deploymentId
     justification: 'Assign eligible Contributor role to ${entraGroups.pimContributors.name}'
     principalObjectId: entraGroups.pimContributors.id
     roleDefinitionId: contributorRoleId
