@@ -40,7 +40,7 @@ module additionalReaders './modules/resource-group-role-assignment.bicep' = [for
   }
 }]
 
-module pimOwnersEligibility './modules/resource-group-role-eligibility.bicep' = if (!empty(entraGroups.pimOwners.id)) {
+module pimOwnersEligibility './modules/resource-group-role-eligibility.bicep' = {
   name: format('pimOwnersEligibility-{0}', deploymentId)
   scope: rg
   params: {
@@ -51,7 +51,7 @@ module pimOwnersEligibility './modules/resource-group-role-eligibility.bicep' = 
   }
 }
 
-module pimContributorsEligibility './modules/resource-group-role-eligibility.bicep' = if (!empty(entraGroups.pimContributors.id)) {
+module pimContributorsEligibility './modules/resource-group-role-eligibility.bicep' = {
   name: format('pimContributorsEligibility-{0}', deploymentId)
   scope: rg
   params: {
