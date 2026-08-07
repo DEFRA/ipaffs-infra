@@ -34,6 +34,7 @@ variables:
     a-sunil.kumar@defra.onmicrosoft.com
     a-suresh.sundaram@defra.onmicrosoft.com
     a-toby.steed@Defra.onmicrosoft.com
+    a-abhishek.desai@defra.onmicrosoft.com
 
   # Note: members of admins group do not also need to be developer group members
   lowerEnvsAdminsGroupMembers: >
