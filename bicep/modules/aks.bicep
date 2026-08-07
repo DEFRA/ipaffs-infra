@@ -26,6 +26,8 @@ module vnetNetworkContributor './vnet-role-assignment.bicep' = {
   params: {
     deploymentId: deploymentId
     principalObjectId: userAssignedIdentity.properties.principalId
+    principalType: 'ServicePrincipal'
+    roleAssignmentType: 'permanent'
     roleDefinitionId: networkContributorRoleId
     vnetName: vnetName
   }

@@ -1,11 +1,11 @@
 targetScope = 'resourceGroup'
 
-param storageAccountName string
 param deploymentId string
 param principalObjectId string
 param principalType string
 param roleAssignmentType string
 param roleDefinitionId string
+param storageAccountName string
 
 var justification = format('Assign eligible role {0} to {1} {2}', roleDefinitionId, principalType, principalObjectId)
 
