@@ -539,9 +539,7 @@
   "refresh": "5m",
   "schemaVersion": 39,
   "tags": [
-    "imports",
-    "app-overview",
-    "IMTA-21623"
+    "app-overview"
   ],
   "templating": {
     "list": [
