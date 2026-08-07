@@ -261,6 +261,7 @@ module storage './modules/storage.bicep' = {
     deploymentId: deploymentId
     entraGroups: entraGroups
     location: location
+    roleAssignmentsType: roleAssignmentsType
     storageParams: storageParams
     subnets: subnets
     tags: tags
