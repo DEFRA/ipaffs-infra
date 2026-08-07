@@ -207,6 +207,7 @@ module search './modules/search.bicep' = {
     entraGroups: entraGroups
     searchParams: searchParams
     location: location
+    roleAssignmentsType: roleAssignmentsType
     sqlServerName: sql.outputs.sqlServerName
     subnets: subnets
     tags: tags

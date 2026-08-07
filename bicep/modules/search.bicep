@@ -3,6 +3,7 @@ targetScope = 'resourceGroup'
 param deploymentId string
 param entraGroups object
 param location string
+param roleAssignmentsType string
 param searchParams object
 param sqlServerName string
 param subnets object
@@ -112,6 +113,7 @@ module searchServiceContributor './search-role-assignment.bicep' = {
     deploymentId: deploymentId
     principalObjectId: entraGroups.searchContributors.id
     principalType: 'Group'
+    roleAssignmentType: roleAssignmentsType
     roleDefinitionId: searchServiceContributorRoleId
   }
 }
@@ -124,6 +126,7 @@ module searchContributor './search-role-assignment.bicep' = {
     deploymentId: deploymentId
     principalObjectId: entraGroups.searchContributors.id
     principalType: 'Group'
+    roleAssignmentType: roleAssignmentsType
     roleDefinitionId: searchIndexDataContributorRoleId
   }
 }
@@ -136,6 +139,7 @@ module searchReader './search-role-assignment.bicep' = {
     deploymentId: deploymentId
     principalObjectId: entraGroups.searchReaders.id
     principalType: 'Group'
+    roleAssignmentType: roleAssignmentsType
     roleDefinitionId: searchIndexDataReaderRoleId
   }
 }
