@@ -13,8 +13,11 @@ parameters:
 stages:
   - stage: ApproveGrafanaGate
     displayName: Approve ${{ parameters.afterEnvironment }} -> remaining environments
-    # succeeded() is spelled out since a custom condition replaces the default
-    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+    dependsOn: DeployGrafanaDashboards_${{ parameters.afterEnvironment }}
+    # Not succeeded(): that requires every stage in the whole chain
+    # including ApproveBranchDeploy, which is expected to be Skipped
+    # on every main run, to have Succeeded.
+    condition: and(eq(dependencies.DeployGrafanaDashboards_${{ parameters.afterEnvironment }}.result, 'Succeeded'), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
     jobs:
       - job: Approve
         displayName: Approve deploy beyond ${{ parameters.afterEnvironment }}
