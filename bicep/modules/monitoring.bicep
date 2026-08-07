@@ -141,6 +141,7 @@ module grafanaMonitoringDataReader './prometheus-role-assignment.bicep' = {
     deploymentId: deploymentId
     principalObjectId: grafanaDashboard.identity.principalId
     principalType: 'ServicePrincipal'
+    roleAssignmentType: 'permanent'
     roleDefinitionId: monitoringDataReaderRoleId
   }
 }
