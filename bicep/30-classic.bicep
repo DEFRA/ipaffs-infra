@@ -67,6 +67,7 @@ module additionalContributors './modules/resource-group-role-assignment.bicep' =
     deploymentId: deploymentId
     principalObjectId: principalId
     principalType: 'ServicePrincipal'
+    roleAssignmentType: 'permanent'
     roleDefinitionId: contributorRoleId
   }
 }]
