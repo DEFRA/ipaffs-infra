@@ -1913,9 +1913,7 @@
   "refresh": "5m",
   "schemaVersion": 41,
   "tags": [
-    "ipaffs",
-    "aks",
-    "ops"
+    "platform-overview"
   ],
   "templating": {
     "list": [
@@ -2001,7 +1999,7 @@
     ]
   },
   "timezone": "",
-  "title": "IPAFFS_AKS_Ops",
+  "title": "IPAFFS Platform Overview",
   "uid": "ipaffs-aks-ops-v1",
   "weekStart": "monday"
 }
