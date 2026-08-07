@@ -1,7 +1,7 @@
 ---
 # grafana-dashboards.yaml
 #
-# Independent pipeline for deploying Grafana dashboards to per-environment
+# Single-run pipeline for deploying Grafana dashboards to all environments
 # Azure Managed Grafana instances.
 #
 # ── Dashboard lifecycle ────────────────────────────────────────────────────
@@ -16,27 +16,48 @@
 #     The exported JSON keeps the dashboard's template variables (the
 #     namespace / datasource dropdowns), so they travel with it.
 #  3. Commit the JSON under grafana-dashboards/dashboards/
-#     (deployed to the selected env's Grafana). Per-env dashboards are not
+#     (deployed to individual environment). Per-env dashboards are not
 #     supported yet and can be added later.
-#  4. Push; the pipeline validates and (on main) deploys.
+#  4. The pipeline validates and (on main) deploys to every environment
+#     in turn.
 #
 # ── Deployment model ───────────────────────────────────────────────────────
 #
-#  One environment is selected per run (targetEnvironment). The deploy stage
-#  targets that env's OWN Grafana instance, using its service connection, so
-#  dashboards land in the right subscription:
-#    • dashboards/*.json → deployed to the selected env's Grafana
-#  Every env EXCEPT DEV requires manual approval before deploying.
-#  Tick "allowDevBranchDeploy" to deploy DEV from the branch you queued on
-#  (for testing before merging). It ONLY affects DEV; for TST/PRE/PRD the
-#  checkbox is ignored and deploys still happen only on main.
+#  Fixed order: DEV, TST, PRE, PRD (the environments this repo defines
+#  variable groups, pipelines/vars/*.yaml templates and Environment resources
+#  for). Not a run-time parameter - reordering it would silently break
+#  promotion order, and adding a new name here wouldn't work anyway without
+#  also adding its vars file, variable group, serviceConnections entry (see
+#  deploy-grafana-dashboards.yaml) and Environment resource, so it's a
+#  deliberate one-time code change, not something to expose as a queue-time
+#  choice. Every run validates the dashboard JSON once, then deploys in
+#  order:
+#
+#    ValidateDashboards -> Deploy DEV -> [manual approval] -> Deploy TST
+#      -> Deploy PRE -> Deploy PRD
+#
+#  There is a single manual approval gate, after DEV, before TST. Its only
+#  job is to make sure someone looked at DEV's dashboards before the
+#  pipeline carries on, unattended, through the rest. This keeps every
+#  environment on the same dashboard version instead of letting them drift
+#  from separate, independently-run deploys.
+#
+#  TST/PRE/PRD only ever deploy on main - there is no override for this. DEV
+#  can ALSO deploy off main, but only for a manually-queued run, and only
+#  after someone approves the ApproveBranchDeploy gate (see
+#  approve-branch-deploy-gate.yaml); on main that gate is skipped and DEV
+#  deploys immediately. Every stage after DEV only ever proceeds once the
+#  stage before it has genuinely Succeeded (not just Skipped) - so on a
+#  non-main run, everything past DEV shows as Skipped rather than a
+#  misleading "completed".
 #
 # ── Optional one-off stage ─────────────────────────────────────────────────
 #
 #  configureDatasources (default: false)
 #    Creates / updates the Prometheus and Azure Monitor datasources that the
-#    dashboard variables query, in each target env's own Grafana instance.
-#    Idempotent. Run once when first setting up an env (or adding a new one).
+#    dashboard variables query, in configureDatasourcesEnvironment's own
+#    Grafana instance. Idempotent. Run once when first setting up an env (or
+#    adding a new one). Always requires main.
 #
 #  NOTE: the Grafana managed identity is assumed to already hold the data-read
 #  roles (Monitoring Data Reader / Log Analytics Reader); those are granted
@@ -52,6 +73,8 @@ trigger:
       - pipelines/grafana-dashboards.yaml
       - pipelines/stages/configure-grafana.yaml
       - pipelines/stages/deploy-grafana-dashboards.yaml
+      - pipelines/stages/approve-grafana-gate.yaml
+      - pipelines/stages/approve-branch-deploy-gate.yaml
 
 pr:
   branches:
@@ -63,6 +86,8 @@ pr:
       - pipelines/grafana-dashboards.yaml
       - pipelines/stages/configure-grafana.yaml
       - pipelines/stages/deploy-grafana-dashboards.yaml
+      - pipelines/stages/approve-grafana-gate.yaml
+      - pipelines/stages/approve-branch-deploy-gate.yaml
 
 pool:
   name: DEFRA-COMMON-ubuntu2204-SSV5
@@ -70,8 +95,13 @@ pool:
 # ── Parameters ────────────────────────────────────────────────────────────
 
 parameters:
-  - name: targetEnvironment
-    displayName: "Target environment"
+  - name: configureDatasources
+    displayName: "Configure datasources (one-off; run once per env when first setting it up)"
+    type: boolean
+    default: false
+
+  - name: configureDatasourcesEnvironment
+    displayName: "Environment to configure datasources in (only used when configureDatasources is ticked)"
     type: string
     default: DEV
     values:
@@ -80,41 +110,23 @@ parameters:
       - PRE
       - PRD
 
-  - name: allowDevBranchDeploy
-    displayName: "Deploy DEV from this branch (testing; ignored for other envs)"
-    type: boolean
-    default: false
-
-  - name: configureDatasources
-    displayName: "Configure datasources in the selected env's Grafana (run once per env)"
-    type: boolean
-    default: false
-
 # ── Variables ─────────────────────────────────────────────────────────────
 
 variables:
   - group: Common
-  - group: "${{ parameters.targetEnvironment }}"
-  - template: /pipelines/vars/${{ lower(parameters.targetEnvironment) }}.yaml
 
 # ── Stages ────────────────────────────────────────────────────────────────
 
 stages:
-  # Tag the build. A DEV branch-deploy (allowDevBranchDeploy on DEV) also gets a
-  # branch-deploy marker tag. Conditional STAGE insertion so ADO expands it.
-  - ${{ if and(eq(parameters.targetEnvironment, 'DEV'), eq(parameters.allowDevBranchDeploy, true)) }}:
-    - template: stages/tag-build.yaml
-      parameters:
-        tags:
-          - GrafanaDashboards-DEV
-          - GrafanaDashboards-branch-deploy
-  - ${{ else }}:
-    - template: stages/tag-build.yaml
-      parameters:
-        tags:
-          - GrafanaDashboards-${{ parameters.targetEnvironment }}
+  - template: stages/tag-build.yaml
+    parameters:
+      tags:
+        - GrafanaDashboards-DEV
+        - GrafanaDashboards-TST
+        - GrafanaDashboards-PRE
+        - GrafanaDashboards-PRD
 
-  # 1. Validate dashboard JSON (always; no Azure connection needed)
+  # 1. Validate dashboard JSON
   - stage: ValidateDashboards
     displayName: Validate Dashboard JSON
     jobs:
@@ -129,18 +141,44 @@ stages:
               targetType: filePath
               filePath: grafana-dashboards/tests/validate-dashboards.sh
 
-  # 2. Configure datasources in the selected env's Grafana (optional)
+  # 2. Configure datasources (optional, one-off)
   - ${{ if eq(parameters.configureDatasources, true) }}:
     - template: stages/configure-grafana.yaml
       parameters:
-        targetEnvironment: ${{ parameters.targetEnvironment }}
-        allowDevBranchDeploy: ${{ parameters.allowDevBranchDeploy }}
+        targetEnvironment: ${{ parameters.configureDatasourcesEnvironment }}
 
-  # 3. Deploy dashboards to the selected env's Grafana (preview on PRs, deploy
-  #    on main; DEV optionally from the current branch via allowDevBranchDeploy)
+  # 3. Approval gate for deploying DEV off main (Skipped, and not waited on,
+  #    for main runs and for automatic PR/CI builds)
+  - template: stages/approve-branch-deploy-gate.yaml
+    parameters:
+      environment: DEV
+
+  # 4. Deploy to DEV
   - template: stages/deploy-grafana-dashboards.yaml
     parameters:
-      targetEnvironment: ${{ parameters.targetEnvironment }}
-      allowDevBranchDeploy: ${{ parameters.allowDevBranchDeploy }}
+      targetEnvironment: DEV
+      branchApprovalGate: true
+
+  # 5. Approval gate before continuing past DEV
+  - template: stages/approve-grafana-gate.yaml
+    parameters:
+      afterEnvironment: DEV
+
+  # 6. Deploy TST, PRE, PRD in order. No further gates, but each only
+  #    proceeds if the stage before it genuinely Succeeded - off main, the
+  #    gate above is Skipped, so everything from here on shows Skipped too,
+  #    not a misleading "completed".
+  - template: stages/deploy-grafana-dashboards.yaml
+    parameters:
+      targetEnvironment: TST
+      gateStageName: ApproveGrafanaGate
+
+  - template: stages/deploy-grafana-dashboards.yaml
+    parameters:
+      targetEnvironment: PRE
+
+  - template: stages/deploy-grafana-dashboards.yaml
+    parameters:
+      targetEnvironment: PRD
 
 # vim: set ts=2 sts=2 sw=2 et:

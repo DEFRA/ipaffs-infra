@@ -16,8 +16,7 @@
 #
 # This stage is idempotent: existing datasources are updated, not duplicated.
 #
-# Branch gating: DEV may configure from the current branch when
-# allowDevBranchDeploy is set; every other env configures only on main.
+# Branch gating: always requires main
 #
 # NOTE: the Grafana managed identity is assumed to already hold the data-read
 # roles needed for these datasources to return data (granted manually).
@@ -26,15 +25,21 @@ parameters:
   - name: targetEnvironment
     type: string   # single env, e.g. DEV
 
-  - name: allowDevBranchDeploy
-    type: boolean  # true => DEV configures from the current branch (not just main)
-    default: false
+  - name: serviceConnections
+    type: object   # env -> service connection name, azureSubscription needs compile time values
+    default:
+      DEV: ADO-DefraGovUK-AZR-IMP-DEV1
+      TST: ADO-DefraGovUK-AZR-IMP-TST1
+      PRE: ADO-DefraGovUK-AZR-IMP-PRE1
+      PRD: ADO-DefraGovUK-AZR-IMP-PRD1
 
 stages:
   - stage: ConfigureGrafana
     displayName: Configure Grafana Datasources (${{ parameters.targetEnvironment }})
     variables:
       - group: Common
+      - group: "${{ parameters.targetEnvironment }}"
+      - template: /pipelines/vars/${{ lower(parameters.targetEnvironment) }}.yaml
 
     jobs:
       - deployment: ConfigureDatasources_${{ parameters.targetEnvironment }}
@@ -49,14 +54,9 @@ stages:
 
                 - task: AzureCLI@2
                   displayName: Configure datasources (${{ parameters.targetEnvironment }})
-                  # DEV may configure from any branch when allowDevBranchDeploy is set;
-                  # every other env (and DEV by default) configures only on main.
-                  ${{ if and(eq(parameters.targetEnvironment, 'DEV'), eq(parameters.allowDevBranchDeploy, true)) }}:
-                    condition: and(not(failed()), not(canceled()))
-                  ${{ else }}:
-                    condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+                  condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
                   inputs:
-                    azureSubscription: $(serviceConnection)
+                    azureSubscription: ${{ parameters.serviceConnections[parameters.targetEnvironment] }}
                     scriptType: bash
                     scriptLocation: inlineScript
                     inlineScript: |

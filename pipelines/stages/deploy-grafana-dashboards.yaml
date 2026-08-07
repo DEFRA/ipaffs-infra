@@ -1,12 +1,14 @@
 ---
 # deploy-grafana-dashboards.yaml
 #
-# Deploys Grafana dashboard JSON files to the SELECTED environment's own Azure
-# Managed Grafana instance, using that env's service connection so dashboards
-# land in the correct subscription. One environment per pipeline run.
+# Deploys Grafana dashboard JSON files to ONE environment's own Azure Managed
+# Grafana instance, using that env's service connection so dashboards land in
+# the correct subscription. Included once per environment, in whatever order
+# the parent pipeline's "environments" list parameter defines, so every
+# environment ends up on the same dashboard version.
 #
 # Dashboard directory layout:
-#   dashboards/*.json -> all deployed to the selected environment
+#   dashboards/*.json -> all deployed to every environment
 # (Per-env dashboards are not supported yet.)
 #
 # Each dashboard's template variables (the namespace / datasource dropdowns) are
@@ -16,57 +18,58 @@
 # point the dashboard's datasource template variables at this env's datasources
 # (by resolved UID) in-memory; the repo source file is never modified.
 #
-# Branch gating:
-#   By default the env deploys only when the pipeline runs on 'main'.
-#   allowDevBranchDeploy lets DEV deploy from the branch you queued on (for
-#   testing). It ONLY affects DEV.
-#
-# Approval:
-#   Every env EXCEPT DEV requires manual approval before deploying. A server
-#   (agentless) job pauses for an approver; it is gated to main so PR/branch
-#   preview builds are never blocked.
+# Gating (all at the STAGE level, so a stage that can't do a real deploy shows
+# as Skipped rather than a misleading green "completed"):
+#   branchApprovalGate: true  - this env may deploy on main automatically, OR
+#     off-main once approve-branch-deploy-gate.yaml's ApproveBranchDeploy
+#     stage has been approved. Set only for the first environment.
+#   gateStageName: 'X'        - this env only deploys once stage X has
+#     genuinely Succeeded (not just Skipped) - used for the environment right
+#     after the single approval gate (see approve-grafana-gate.yaml), so it
+#     stays Skipped rather than running a no-op preview when the gate itself
+#     was skipped (off-main, or upstream failure).
+#   neither set               - normal dependency: run once the previous
+#     stage in the file succeeds.
+# Once a stage is running at all, every task in it does a real deploy - there
+# is no more separate "preview-only" mode.
 
 parameters:
   - name: targetEnvironment
     type: string   # single env, e.g. DEV
 
-  - name: allowDevBranchDeploy
-    type: boolean  # true => DEV deploys from the current branch (not just main)
+  - name: branchApprovalGate
+    type: boolean  # true => on main, deploy automatically from main, only after ApproveBranchDeploy is approved
     default: false
+
+  - name: gateStageName
+    type: string   # preceding approval gate stage that must have genuinely Succeeded, set empty as default
+    default: ''
+
+  - name: serviceConnections
+    type: object   # env -> service connection name; azureSubscription needs compile time values
+    default:
+      DEV: ADO-DefraGovUK-AZR-IMP-DEV1
+      TST: ADO-DefraGovUK-AZR-IMP-TST1
+      PRE: ADO-DefraGovUK-AZR-IMP-PRE1
+      PRD: ADO-DefraGovUK-AZR-IMP-PRD1
 
 stages:
   - stage: DeployGrafanaDashboards_${{ parameters.targetEnvironment }}
     displayName: Deploy Dashboards -> ${{ parameters.targetEnvironment }} Grafana
+    ${{ if eq(parameters.branchApprovalGate, true) }}:
+      dependsOn: ApproveBranchDeploy
+      condition: and(not(failed()), not(canceled()), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), eq(dependencies.ApproveBranchDeploy.result, 'Succeeded')))
+    ${{ elseif ne(parameters.gateStageName, '') }}:
+      dependsOn: ${{ parameters.gateStageName }}
+      condition: eq(dependencies.${{ parameters.gateStageName }}.result, 'Succeeded')
     variables:
       - group: Common
+      - group: "${{ parameters.targetEnvironment }}"
+      - template: /pipelines/vars/${{ lower(parameters.targetEnvironment) }}.yaml
 
     jobs:
-      # Manual approval gate for every env EXCEPT DEV. A server (agentless) job
-      # pauses for a human to approve before the deploy job runs. Gated to main
-      # so PR/branch preview builds are never blocked by an approval prompt.
-      - ${{ if ne(parameters.targetEnvironment, 'DEV') }}:
-        - job: Approve_${{ parameters.targetEnvironment }}
-          displayName: Approve deploy to ${{ parameters.targetEnvironment }}
-          pool: server
-          condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
-          timeoutInMinutes: 4320   # overall wait window for an approver (3 days)
-          steps:
-            - task: ManualValidation@0
-              displayName: Wait for approval to deploy ${{ parameters.targetEnvironment }}
-              timeoutInMinutes: 4320
-              inputs:
-                # No approver list yet — anyone with permission on the environment
-                # can approve. Add notifyUsers here later to notify specific people.
-                instructions: "Approve deploying Grafana dashboards to ${{ parameters.targetEnvironment }} Grafana."
-                onTimeout: reject
-
       - deployment: Deploy_${{ parameters.targetEnvironment }}
         displayName: Deploy dashboards to ${{ parameters.targetEnvironment }} Grafana
-        ${{ if ne(parameters.targetEnvironment, 'DEV') }}:
-          dependsOn: Approve_${{ parameters.targetEnvironment }}
-          # Proceed when approval Succeeded, or when it was Skipped (non-main
-          # builds, where the deploy tasks are gated off and only preview runs).
-          condition: in(dependencies.Approve_${{ parameters.targetEnvironment }}.result, 'Succeeded', 'Skipped')
         environment:
           name: "${{ parameters.targetEnvironment }}"
         strategy:
@@ -78,7 +81,10 @@ stages:
                 - task: AzureCLI@2
                   displayName: Install Azure Managed Grafana CLI extension
                   inputs:
-                    azureSubscription: $(serviceConnection)
+                    # A literal, not $(serviceConnection): ADO's pre-run resource-
+                    # authorization check can't resolve a stage-scoped macro when
+                    # each of the 4 stages in this run binds it to a different value.
+                    azureSubscription: ${{ parameters.serviceConnections[parameters.targetEnvironment] }}
                     scriptType: bash
                     scriptLocation: inlineScript
                     inlineScript: |
@@ -89,7 +95,7 @@ stages:
                       az extension add --name amg --yes --upgrade --only-show-errors
 
                 - task: Bash@3
-                  displayName: Preview dashboards to deploy (${{ parameters.targetEnvironment }})
+                  displayName: List dashboards to deploy (${{ parameters.targetEnvironment }})
                   inputs:
                     targetType: inline
                     script: |
@@ -104,14 +110,11 @@ stages:
 
                 - task: AzureCLI@2
                   displayName: Deploy dashboards to ${{ parameters.targetEnvironment }} Grafana
-                  # DEV may deploy from any branch when allowDevBranchDeploy is set;
-                  # every other env (and DEV by default) deploys only on main.
-                  ${{ if and(eq(parameters.targetEnvironment, 'DEV'), eq(parameters.allowDevBranchDeploy, true)) }}:
-                    condition: and(not(failed()), not(canceled()))
-                  ${{ else }}:
-                    condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
                   inputs:
-                    azureSubscription: $(serviceConnection)
+                    # A literal, not $(serviceConnection): ADO's pre-run resource-
+                    # authorization check can't resolve a stage-scoped macro when
+                    # each of the 4 stages in this run binds it to a different value.
+                    azureSubscription: ${{ parameters.serviceConnections[parameters.targetEnvironment] }}
                     scriptType: bash
                     scriptLocation: inlineScript
                     inlineScript: |
@@ -128,13 +131,11 @@ stages:
 
                 - task: AzureCLI@2
                   displayName: Verify deployed dashboards (${{ parameters.targetEnvironment }})
-                  # Verify runs whenever the deploy ran (same gate).
-                  ${{ if and(eq(parameters.targetEnvironment, 'DEV'), eq(parameters.allowDevBranchDeploy, true)) }}:
-                    condition: and(not(failed()), not(canceled()))
-                  ${{ else }}:
-                    condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
                   inputs:
-                    azureSubscription: $(serviceConnection)
+                    # A literal, not $(serviceConnection): ADO's pre-run resource-
+                    # authorization check can't resolve a stage-scoped macro when
+                    # each of the 4 stages in this run binds it to a different value.
+                    azureSubscription: ${{ parameters.serviceConnections[parameters.targetEnvironment] }}
                     scriptType: bash
                     scriptLocation: inlineScript
                     inlineScript: |
