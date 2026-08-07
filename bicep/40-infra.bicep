@@ -3,6 +3,9 @@ targetScope = 'resourceGroup'
 @allowed(['DEV', 'TST', 'PRE', 'PRD'])
 param environment string
 
+@allowed(['permanent', 'eligible'])
+param roleAssignmentsType string
+
 param builtInGroups object
 param classicLocation string
 param classicResourceIds object
@@ -47,6 +50,7 @@ module aks './modules/aks.bicep' = {
     entraGroups: entraGroups
     location: location
     logAnalyticsId: monitoring.outputs.logAnalyticsId
+    roleAssignmentsType: roleAssignmentsType
     subnets: subnets
     tags: tags
     vnetName: vnetName
