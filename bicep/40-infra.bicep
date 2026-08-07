@@ -269,6 +269,7 @@ module storage './modules/storage.bicep' = {
 }
 
 output aksClusterName string = aks.outputs.aksClusterName
+output aksClusterResourceId string = aks.outputs.aksClusterResourceId
 output aksKubeletPrincipalId string = aks.outputs.kubeletPrincipalId
 output aksOidcIssuer string = aks.outputs.oidcIssuerUrl
 output albControllerClientId string = agc.outputs.controllerClientId

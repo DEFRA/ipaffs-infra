@@ -212,6 +212,7 @@ module aksReader './aks-role-assignment.bicep' = {
 }
 
 output aksClusterName string = aksCluster.name
+output aksClusterResourceId string = aksCluster.id
 output kubeletPrincipalId string = aksCluster.properties.identityProfile.kubeletIdentity.objectId
 output oidcIssuerUrl string = aksCluster.properties.oidcIssuerProfile.issuerURL
 
