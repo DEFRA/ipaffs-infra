@@ -13,7 +13,8 @@ resource roleEligibility 'Microsoft.Authorization/roleEligibilityScheduleRequest
     roleDefinitionId: roleDefinitionId
     scheduleInfo: {
       expiration: {
-        type: 'NoExpiration'
+        type: 'AfterDuration'
+        duration: 'P365D'
       }
     }
   }
