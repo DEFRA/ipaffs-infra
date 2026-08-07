@@ -101,6 +101,7 @@ module keyVault './modules/keyvault.bicep' = {
     entraGroups: entraGroups
     keyVaultParams: keyVaultParams
     location: location
+    roleAssignmentsType: roleAssignmentsType
     subnets: subnets
     tags: tags
     tenantId: tenantId
