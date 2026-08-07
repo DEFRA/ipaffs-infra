@@ -415,6 +415,7 @@ stages:
                 scriptType: bash
                 scriptPath: scripts/pipeline/remove-entra-group-members.sh
 
+
         - job: SaveTeamGroups
           displayName: Update library variables
           condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
@@ -517,6 +518,7 @@ stages:
                 scriptType: bash
                 scriptPath: scripts/pipeline/add-principal-to-group.sh
 
+
         - job: SaveACRAccessGroups
           displayName: Update library variables
           condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
@@ -592,6 +594,40 @@ stages:
               azureSubscription: $(serviceConnection)
               scriptType: bash
               scriptPath: scripts/pipeline/add-principal-to-group.sh
+
+
+      - job: PimGroups
+        displayName: PIM Groups
+        condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+        steps:
+          - checkout: self
+
+          - task: AzureCLI@2
+            name: PimOwners
+            env:
+              GROUP_NAME: AG-Azure-$(resourceGroupName)-PIM-Owners
+              GROUP_DESCRIPTION: Entra access group for eligible Owner assignments on the IPAFFS $(resourceGroupName) resource group
+              GROUP_OWNER_OBJECT_IDS: >
+                $(serviceConnectionPrincipalId)
+                $(upstreamServiceConnectionPrincipalId)
+            inputs:
+              azureSubscription: $(upstreamServiceConnection)
+              scriptType: bash
+              scriptPath: scripts/pipeline/create-entra-group.sh
+
+          - task: AzureCLI@2
+            name: PimContributors
+            env:
+              GROUP_NAME: AG-Azure-$(resourceGroupName)-PIM-Contributors
+              GROUP_DESCRIPTION: Entra access group for eligible Contributor assignments on the IPAFFS $(resourceGroupName) resource group
+              GROUP_OWNER_OBJECT_IDS: >
+                $(serviceConnectionPrincipalId)
+                $(upstreamServiceConnectionPrincipalId)
+            inputs:
+              azureSubscription: $(upstreamServiceConnection)
+              scriptType: bash
+              scriptPath: scripts/pipeline/create-entra-group.sh
+
 
       - job: AksGroups
         displayName: AKS Groups
@@ -678,6 +714,7 @@ stages:
               azureSubscription: $(serviceConnection)
               scriptType: bash
               scriptPath: scripts/pipeline/add-principal-to-group.sh
+
 
       - job: KeyVaultGroups
         displayName: KeyVault Groups
@@ -829,6 +866,7 @@ stages:
               scriptType: bash
               scriptPath: scripts/pipeline/add-principal-to-group.sh
 
+
       - job: GrafanaGroups
         displayName: Grafana Groups
         condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
@@ -906,6 +944,7 @@ stages:
               azureSubscription: $(serviceConnection)
               scriptType: bash
               scriptPath: scripts/pipeline/add-principal-to-group.sh
+
 
       - job: StorageGroups
         displayName: Storage Account Groups
@@ -1021,39 +1060,6 @@ stages:
               azureSubscription: $(serviceConnection)
               scriptType: bash
               scriptPath: scripts/pipeline/add-principal-to-group.sh
-
-
-      - job: PimGroups
-        displayName: PIM Groups
-        condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
-        steps:
-          - checkout: self
-
-          - task: AzureCLI@2
-            name: PimOwners
-            env:
-              GROUP_NAME: AG-Azure-$(resourceGroupName)-PIM-Owners
-              GROUP_DESCRIPTION: Entra access group for eligible Owner assignments on the IPAFFS $(resourceGroupName) resource group
-              GROUP_OWNER_OBJECT_IDS: >
-                $(serviceConnectionPrincipalId)
-                $(upstreamServiceConnectionPrincipalId)
-            inputs:
-              azureSubscription: $(upstreamServiceConnection)
-              scriptType: bash
-              scriptPath: scripts/pipeline/create-entra-group.sh
-
-          - task: AzureCLI@2
-            name: PimContributors
-            env:
-              GROUP_NAME: AG-Azure-$(resourceGroupName)-PIM-Contributors
-              GROUP_DESCRIPTION: Entra access group for eligible Contributor assignments on the IPAFFS $(resourceGroupName) resource group
-              GROUP_OWNER_OBJECT_IDS: >
-                $(serviceConnectionPrincipalId)
-                $(upstreamServiceConnectionPrincipalId)
-            inputs:
-              azureSubscription: $(upstreamServiceConnection)
-              scriptType: bash
-              scriptPath: scripts/pipeline/create-entra-group.sh
 
 
       - job: SaveAccessGroups
