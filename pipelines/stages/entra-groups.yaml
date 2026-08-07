@@ -558,6 +558,16 @@ stages:
               scriptPath: scripts/pipeline/create-entra-group.sh
 
           - task: AzureCLI@2
+            name: PimOwnersMembersAdmins
+            env:
+              GROUP_ID: $(PimOwners.objectId)
+              PRINCIPAL_ID: $(teamAdminsGroupId)
+            inputs:
+              azureSubscription: $(serviceConnection)
+              scriptType: bash
+              scriptPath: scripts/pipeline/add-principal-to-group.sh
+
+          - task: AzureCLI@2
             name: PimContributors
             env:
               GROUP_NAME: AG-Azure-$(resourceGroupName)-PIM-Contributors
@@ -569,6 +579,16 @@ stages:
               azureSubscription: $(upstreamServiceConnection)
               scriptType: bash
               scriptPath: scripts/pipeline/create-entra-group.sh
+
+          - task: AzureCLI@2
+            name: PimContributorsMembersDevelopers
+            env:
+              GROUP_ID: $(PimContributors.objectId)
+              PRINCIPAL_ID: $(teamDevelopersGroupId)
+            inputs:
+              azureSubscription: $(serviceConnection)
+              scriptType: bash
+              scriptPath: scripts/pipeline/add-principal-to-group.sh
 
 
       - job: AksGroups
