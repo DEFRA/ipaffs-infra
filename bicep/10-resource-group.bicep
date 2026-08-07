@@ -1,24 +1,14 @@
 targetScope = 'subscription'
 
-param name string
-
 @allowed(['DEV', 'TST', 'PRE', 'PRD'])
 param environment string
 
 @allowed(['northeuropa', 'uksouth'])
 param location string
 
-param entraGroups object = {
-  pimOwners: {
-    id: ''
-    name: ''
-  }
-  pimContributors: {
-    id: ''
-    name: ''
-  }
-}
-
+param name string
+param entraGroups object = {}
+param pimEligibilityEndDateTime string
 param principalsNeedingReader array
 
 param createdDate string = utcNow('yyyy-MM-dd')
@@ -58,6 +48,7 @@ module pimOwnersEligibility './modules/resource-group-role-eligibility.bicep' = 
     justification: 'Assign eligible Owner role to ${entraGroups.pimOwners.name}'
     principalObjectId: entraGroups.pimOwners.id
     roleDefinitionId: ownerRoleId
+    endDateTime: pimEligibilityEndDateTime
   }
 }
 
@@ -68,6 +59,7 @@ module pimContributorsEligibility './modules/resource-group-role-eligibility.bic
     justification: 'Assign eligible Contributor role to ${entraGroups.pimContributors.name}'
     principalObjectId: entraGroups.pimContributors.id
     roleDefinitionId: contributorRoleId
+    endDateTime: pimEligibilityEndDateTime
   }
 }
 
