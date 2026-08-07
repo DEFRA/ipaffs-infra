@@ -5,6 +5,7 @@ param deploymentId string
 param entraGroups object
 param location string
 param logAnalyticsId string
+param roleAssignmentsType string
 param subnets object
 param tags object
 param vnetName string
@@ -177,6 +178,7 @@ module aksAdmin './aks-role-assignment.bicep' = {
     deploymentId: deploymentId
     principalObjectId: entraGroups.aksAdmins.id
     principalType: 'Group'
+    roleAssignmentType: roleAssignmentsType
     roleDefinitionId: aksRbacClusterAdminRoleId
   }
 }
@@ -189,6 +191,7 @@ module aksWriter './aks-role-assignment.bicep' = {
     deploymentId: deploymentId
     principalObjectId: entraGroups.aksContributors.id
     principalType: 'Group'
+    roleAssignmentType: roleAssignmentsType
     roleDefinitionId: aksRbacWriterRoleId
   }
 }
@@ -201,6 +204,7 @@ module aksReader './aks-role-assignment.bicep' = {
     deploymentId: deploymentId
     principalObjectId: entraGroups.aksReaders.id
     principalType: 'Group'
+    roleAssignmentType: roleAssignmentsType
     roleDefinitionId: aksRbacReaderRoleId
   }
 }
