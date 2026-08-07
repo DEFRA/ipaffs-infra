@@ -167,7 +167,8 @@ stages:
   # 6. Deploy TST, PRE, PRD in order. No further gates, but each only
   #    proceeds if the stage before it genuinely Succeeded - off main, the
   #    gate above is Skipped, so everything from here on shows Skipped too,
-  #    not a misleading "completed".
+  #    not a misleading "completed". gateStageName is passed explicitly for
+  #    all three environments and not just TST
   - template: stages/deploy-grafana-dashboards.yaml
     parameters:
       targetEnvironment: TST
@@ -176,9 +177,11 @@ stages:
   - template: stages/deploy-grafana-dashboards.yaml
     parameters:
       targetEnvironment: PRE
+      gateStageName: DeployGrafanaDashboards_TST
 
   - template: stages/deploy-grafana-dashboards.yaml
     parameters:
       targetEnvironment: PRD
+      gateStageName: DeployGrafanaDashboards_PRE
 
 # vim: set ts=2 sts=2 sw=2 et:
