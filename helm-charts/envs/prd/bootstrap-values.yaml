@@ -18,7 +18,7 @@ storageAccount:
 
 ipaffsUrls:
   # Enable when AKS is accessed through AFD in this environment.
-  useLiveUrls: false
+  useLiveUrls: true
 
 ipaffsConfig:
   data:
