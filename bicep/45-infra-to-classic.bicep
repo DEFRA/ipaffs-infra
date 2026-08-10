@@ -11,6 +11,7 @@ var tags = union(loadJsonContent('default-tags.json'), {
   Environment: environment
   Location: location
 })
+param builtInGroups object
 param monitoringParams object
 param entraGroups object
 param deployServicePrincipalObjectId string
