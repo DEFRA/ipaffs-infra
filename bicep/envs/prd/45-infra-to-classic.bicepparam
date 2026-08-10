@@ -1,4 +1,4 @@
-using '../../40-infra.bicep'
+using '../../45-infra-to-classic.bicep'
 
 param builtInGroups = {
   contributors: 'b64aa742-daaf-4b7a-ab71-e7fd9e93905e' // AG-Azure-IMP_PRD1-Contributors
