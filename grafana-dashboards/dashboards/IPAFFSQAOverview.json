@@ -708,7 +708,7 @@
         "type": "grafana-azure-monitor-datasource",
         "uid": "azure-monitor-oob"
       },
-      "description": "Services whose pods restarted within the selected range, with last restart time. Reason shown only when actionable (OOMKilled, BackoffLimitExceeded, Evicted, etc.); blank = restarted but no actionable reason recorded (see Recent errors / logs). Empty table = no restarts.",
+      "description": "Services whose pods restarted within the selected range, with last restart time. Reason shown only when actionable (OOMKilled, BackoffLimitExceeded, Evicted, etc.); blank = restarted but no actionable reason recorded (see Recent errors / logs). Empty table = no restarts. Always shows the last 15 days.",
       "gridPos": {
         "x": 12,
         "y": 28,
@@ -772,7 +772,8 @@
             "resultFormat": "table"
           }
         }
-      ]
+      ],
+      "timeFrom": "15d"
     },
     {
       "datasource": {
