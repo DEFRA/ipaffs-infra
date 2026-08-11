@@ -703,7 +703,7 @@
     {
       "id": 15,
       "type": "table",
-      "title": "Pod restarts by service (in range)",
+      "title": "Pod restarts by service",
       "datasource": {
         "type": "grafana-azure-monitor-datasource",
         "uid": "azure-monitor-oob"
