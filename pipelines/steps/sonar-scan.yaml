@@ -1,9 +1,10 @@
----
 parameters:
   - name: referenceBranch
     type: string
     default: main
 
+  # Both are spliced unquoted into the docker command line: values must be
+  # space-separated arguments free of shell metacharacters.
   - name: extraProperties
     type: string
     default: ''
@@ -27,15 +28,13 @@ steps:
         set -euo pipefail
 
         branch_name="${SOURCE_BRANCH#refs/heads/}"
-        echo "Publishing analysis to ${SONAR_HOST_URL}"
 
         scanner_args=("-Dsonar.branch.name=${branch_name}")
         if [[ "${branch_name}" != "${REFERENCE_BRANCH}" ]]; then
           scanner_args+=("-Dsonar.newCode.referenceBranch=${REFERENCE_BRANCH}")
         fi
 
-        # SONAR_TOKEN is passed through the environment only; it must never
-        # appear in the command line or in a file in the workspace.
+        # SONAR_TOKEN goes through the environment only, never the command line.
         docker run --rm \
           --user "$(id -u):$(id -g)" \
           -e SONAR_HOST_URL \
