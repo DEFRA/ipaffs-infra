@@ -859,7 +859,7 @@
         {
           "azureLogAnalytics": {
             "dashboardTime": false,
-            "query": "exceptions | where $__timeFilter(timestamp) | summarize count=dcount(itemId), lastSeen=max(timestamp) by service=cloud_RoleName, problemId, message=outerMessage | order by count desc, lastSeen desc | project lastSeen, service, count, problemId, message | take 50",
+            "query": "exceptions | where $__timeFilter(timestamp) | summarize count=dcount(itemId), lastSeen=max(timestamp) by service=cloud_RoleName, problemId, message=outerMessage | order by count desc, lastSeen desc | project lastSeen, service, count, message | take 50",
             "resources": [
               "/subscriptions/$subscription/resourceGroups/$resourceGroup/providers/Microsoft.Insights/components/$resource"
             ],
