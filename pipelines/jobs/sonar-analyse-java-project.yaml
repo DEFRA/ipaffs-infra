@@ -33,8 +33,7 @@ jobs:
           artifact: service
           path: service/target
 
-      # build-java-project.yaml skips main, so build here to produce the
-      # classes and coverage report the scanner needs.
+      # build-java-project.yaml skips main, so build here to produce the classes and coverage report the scanner needs.
       - task: Maven@4
         displayName: Build for analysis
         condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
