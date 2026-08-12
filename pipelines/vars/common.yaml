@@ -2,11 +2,8 @@
 variables:
   directoryReadersGroupObjectId: ddc67494-5229-4a73-949b-a90f409fd919
   # The test instance runs Defra's upgraded SonarQube. Publish there until
-  # they are happy and prod is upgraded to match, then point sonarHostUrl
-  # at the prod URL. Individual pipelines can override via the sonarHostUrl
-  # template parameter.
-  sonarHostUrlProd: https://vss-sonarqube.azure.defra.cloud/
-  sonarHostUrlTest: https://vss-sonarqube-test.azure.defra.cloud/
+  # they are happy and prod (https://vss-sonarqube.azure.defra.cloud/) is
+  # upgraded to match, then switch this URL.
   sonarHostUrl: https://vss-sonarqube-test.azure.defra.cloud/
   upstreamServiceConnection: AZR-SSV5-IPAFFS
   upstreamServiceConnectionPrincipalId: 09b875f4-3dea-4c69-bf36-e6915741d4c4
