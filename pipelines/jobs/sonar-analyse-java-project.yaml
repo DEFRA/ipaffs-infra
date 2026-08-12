@@ -6,12 +6,6 @@ parameters:
 
   - name: referenceBranch
     type: string
-    default: main
-
-  # Overrides the sonarHostUrl variable from /pipelines/vars/common.yaml.
-  - name: sonarHostUrl
-    type: string
-    default: ' '
 
 jobs:
   - job: SonarAnalyseJavaProject
@@ -39,9 +33,10 @@ jobs:
         continueOnError: true
         inputs:
           artifact: service
-          path: $(System.DefaultWorkingDirectory)/service/target
+          path: service/target
 
-      # The build job never runs on main, so build here to produce classes and coverage report the scanner needs.
+      # build-java-project.yaml skips main, so build here to produce the
+      # classes and coverage report the scanner needs.
       - task: Maven@4
         displayName: Build for analysis (main branch only)
         condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
@@ -58,7 +53,6 @@ jobs:
 
       - template: /pipelines/steps/sonar-scan.yaml@ipaffs-infra
         parameters:
-          sonarHostUrl: ${{ parameters.sonarHostUrl }}
           referenceBranch: ${{ parameters.referenceBranch }}
           extraDockerArgs: '-v $(MAVEN_CACHE_FOLDER):/usr/.m2:ro'
           extraProperties: '-Dsonar.java.libraries=/usr/.m2 -Dsonar.java.test.libraries=/usr/.m2'
