@@ -18,6 +18,7 @@ steps:
     displayName: Run SonarQube analysis
     continueOnError: true
     env:
+      SCANNER_IMAGE: $(sonarScannerImage)
       SONAR_HOST_URL: $(sonarHostUrl)
       SONAR_TOKEN: $(sonarToken)
       SOURCE_BRANCH: $(Build.SourceBranch)
@@ -48,5 +49,5 @@ steps:
           -e SONAR_USER_HOME=/usr/src/.sonar \
           -v "${PWD}:/usr/src" \
           ${{ parameters.extraDockerArgs }} \
-          sonarsource/sonar-scanner-cli:12.1.0.3233_8.0.1 \
+          "${SCANNER_IMAGE}" \
           "${scanner_args[@]}" ${{ parameters.extraProperties }}
