@@ -161,8 +161,6 @@ stages:
           parameters:
             nodeVersion: "${{ parameters.nodeVersion }}"
 
-  # Independent, non-blocking stage: nothing depends on it, so a failed scan
-  # can never hold up packaging or deployment.
   - ${{ if eq(parameters.sonarAnalysis, true) }}:
     - stage: SonarAnalysis
       displayName: SonarQube Analysis
