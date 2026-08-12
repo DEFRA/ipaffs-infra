@@ -1,25 +1,16 @@
 ---
 parameters:
-  # Overrides the sonarHostUrl variable from /pipelines/vars/common.yaml.
-  - name: sonarHostUrl
-    type: string
-    default: ' '
-
-  - name: scannerImage
-    type: string
-    default: sonarsource/sonar-scanner-cli:12.1.0.3233_8.0.1
-
   - name: referenceBranch
     type: string
     default: main
 
   - name: extraProperties
     type: string
-    default: ' '
+    default: ''
 
   - name: extraDockerArgs
     type: string
-    default: ' '
+    default: ''
 
 steps:
   - task: Bash@3
@@ -27,45 +18,29 @@ steps:
     continueOnError: true
     env:
       SONAR_HOST_URL: $(sonarHostUrl)
-      SONAR_HOST_URL_PARAMETER: ${{ parameters.sonarHostUrl }}
       SONAR_TOKEN: $(sonarToken)
       SOURCE_BRANCH: $(Build.SourceBranch)
       REFERENCE_BRANCH: ${{ parameters.referenceBranch }}
-      SCANNER_IMAGE: ${{ parameters.scannerImage }}
-      EXTRA_PROPERTIES: ${{ parameters.extraProperties }}
-      EXTRA_DOCKER_ARGS: ${{ parameters.extraDockerArgs }}
     inputs:
       targetType: inline
       script: |
         set -euo pipefail
 
-        if [[ -n "${SONAR_HOST_URL_PARAMETER// /}" ]]; then
-          SONAR_HOST_URL="${SONAR_HOST_URL_PARAMETER}"
-        fi
-        echo "Publishing analysis to ${SONAR_HOST_URL}"
-
         branch_name="${SOURCE_BRANCH#refs/heads/}"
+        echo "Publishing analysis to ${SONAR_HOST_URL}"
 
         scanner_args=("-Dsonar.branch.name=${branch_name}")
         if [[ "${branch_name}" != "${REFERENCE_BRANCH}" ]]; then
           scanner_args+=("-Dsonar.newCode.referenceBranch=${REFERENCE_BRANCH}")
         fi
 
-        if [[ -n "${EXTRA_PROPERTIES// /}" ]]; then
-          read -r -a extra_property_args <<< "${EXTRA_PROPERTIES}"
-          scanner_args+=("${extra_property_args[@]}")
-        fi
-
-        docker_args=()
-        if [[ -n "${EXTRA_DOCKER_ARGS// /}" ]]; then
-          read -r -a docker_args <<< "${EXTRA_DOCKER_ARGS}"
-        fi
-
+        # SONAR_TOKEN is passed through the environment only; it must never
+        # appear in the command line or in a file in the workspace.
         docker run --rm \
           --user "$(id -u):$(id -g)" \
           -e SONAR_HOST_URL \
           -e SONAR_TOKEN \
           -v "${PWD}:/usr/src" \
-          "${docker_args[@]}" \
-          "${SCANNER_IMAGE}" \
-          "${scanner_args[@]}"
+          ${{ parameters.extraDockerArgs }} \
+          sonarsource/sonar-scanner-cli:12.1.0.3233_8.0.1 \
+          "${scanner_args[@]}" ${{ parameters.extraProperties }}
