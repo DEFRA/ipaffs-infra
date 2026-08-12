@@ -29,19 +29,23 @@ steps:
 
         branch_name="${SOURCE_BRANCH#refs/heads/}"
 
-        scanner_args=("-Dsonar.branch.name=${branch_name}")
+        # The image's default cache and working directories are not writable
+        # when running as the agent's (non-root) uid, so keep all scanner
+        # state in the mounted workspace.
+        scanner_args=(
+          "-Dsonar.branch.name=${branch_name}"
+          "-Dsonar.working.directory=/usr/src/.scannerwork"
+        )
         if [[ "${branch_name}" != "${REFERENCE_BRANCH}" ]]; then
           scanner_args+=("-Dsonar.newCode.referenceBranch=${REFERENCE_BRANCH}")
         fi
 
         # SONAR_TOKEN goes through the environment only, never the command line.
-        # SONAR_USER_HOME: the image default is not writable when running as
-        # the agent's (non-root) uid.
         docker run --rm \
           --user "$(id -u):$(id -g)" \
           -e SONAR_HOST_URL \
           -e SONAR_TOKEN \
-          -e SONAR_USER_HOME=/tmp/.sonar \
+          -e SONAR_USER_HOME=/usr/src/.sonar \
           -v "${PWD}:/usr/src" \
           ${{ parameters.extraDockerArgs }} \
           sonarsource/sonar-scanner-cli:12.1.0.3233_8.0.1 \
