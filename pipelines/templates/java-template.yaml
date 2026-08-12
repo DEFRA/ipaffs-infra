@@ -44,11 +44,6 @@ parameters:
     type: string
     default: main
 
-  # Overrides the sonarHostUrl variable from /pipelines/vars/common.yaml.
-  - name: sonarHostUrl
-    type: string
-    default: ' '
-
 
 stages:
   - stage: DetectContainerBuild
@@ -172,7 +167,6 @@ stages:
           parameters:
             mvnGoals: "${{ parameters.mvnGoals }}"
             referenceBranch: "${{ parameters.sonarReferenceBranch }}"
-            sonarHostUrl: "${{ parameters.sonarHostUrl }}"
 
   - stage: PackageService
     displayName: Package Service Image
