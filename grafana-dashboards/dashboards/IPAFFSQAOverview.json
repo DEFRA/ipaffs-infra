@@ -875,6 +875,114 @@
       ],
       "title": "Recent errors (logs)",
       "type": "table"
+    },
+    {
+      "type": "row",
+      "collapsed": false,
+      "title": "Risk assessment fallbacks",
+      "gridPos": {
+        "x": 0,
+        "y": 44,
+        "w": 24,
+        "h": 1
+      },
+      "id": 9001,
+      "panels": []
+    },
+    {
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "azure-monitor-oob"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            }
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "chedReference"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 200
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "chedType"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 80
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "lastSeen"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "dateTimeAsLocal"
+              },
+              {
+                "id": "custom.width",
+                "value": 165
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 45,
+        "w": 24,
+        "h": 9
+      },
+      "id": 9002,
+      "options": {
+        "showHeader": true,
+        "sortBy": [
+          {
+            "displayName": "lastSeen",
+            "desc": true
+          }
+        ]
+      },
+      "pluginVersion": "11.6.9",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "azure-monitor-oob"
+          },
+          "queryType": "Azure Log Analytics",
+          "azureLogAnalytics": {
+            "resources": [
+              "/subscriptions/$subscription/resourceGroups/$resourceGroup/providers/Microsoft.Insights/components/$resource"
+            ],
+            "query": "traces\n| where $__timeFilter(timestamp)\n| where cloud_RoleName == \"risk-assessment-microservice\"\n| where message startswith \"Applying fallback risk assessment decision\"\n| extend chedReference = extract(@\"referenceNumber:\\s*(CHED[A-Z]{0,2}\\.GB\\.\\d{4}\\.\\d+)\", 1, message),\n         chedType      = extract(@\"chedType:\\s*([A-Za-z]+)\", 1, message),\n         reason        = extract(@\"errorMessage:\\s*(.+)$\", 1, message)\n| where isnotempty(chedReference)\n| summarize arg_max(timestamp, chedType, reason) by chedReference\n| project chedReference, chedType, reason, lastSeen=timestamp\n| order by lastSeen desc\n| take 200",
+            "resultFormat": "table"
+          }
+        }
+      ],
+      "title": "CHEDs using fallback risk assessment",
+      "type": "table",
+      "description": "CHEDs where the risk engine failed and IPAFFS applied a fallback risk assessment (defaults to inspection Required). Reason shows why the engine failed."
     }
   ],
   "preload": false,
