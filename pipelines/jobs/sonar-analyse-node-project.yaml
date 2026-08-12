@@ -1,0 +1,36 @@
+parameters:
+  - name: nodeVersion
+    type: string
+
+  - name: referenceBranch
+    type: string
+
+jobs:
+  - job: SonarAnalyseNodeProject
+    displayName: SonarQube Analysis
+    steps:
+      # Full history: the scanner needs git blame for new-code attribution.
+      - checkout: self
+        fetchDepth: 0
+
+      - task: NodeTool@0
+        displayName: Install Node and NPM and add to path
+        inputs:
+          versionSpec: ${{ parameters.nodeVersion }}
+          addToPath: true
+
+      - script: |
+          npm --prefix ./service ci
+          npm --prefix ./service run test-jenkins
+        displayName: Install dependencies and test
+        continueOnError: true
+
+      - script: |
+          sed -i 's|path="test|path="service/test|g' service/coverage/unit.xml
+          sed -i "s|${PWD}/service|service|g" service/coverage/lcov.info
+        displayName: Rewrite report paths for the scanner
+        continueOnError: true
+
+      - template: /pipelines/steps/sonar-scan.yaml@ipaffs-infra
+        parameters:
+          referenceBranch: ${{ parameters.referenceBranch }}
