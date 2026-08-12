@@ -642,7 +642,7 @@
     {
       "id": 13,
       "type": "table",
-      "title": "Services with 90th percentile latency > 1s",
+      "title": "Slow endpoints (p90 latency > 1s) by service",
       "datasource": {
         "type": "grafana-azure-monitor-datasource",
         "uid": "azure-monitor-oob"
@@ -656,7 +656,10 @@
       "fieldConfig": {
         "defaults": {
           "custom": {
-            "align": "auto"
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            }
           }
         },
         "overrides": [
@@ -669,6 +672,34 @@
               {
                 "id": "unit",
                 "value": "s"
+              },
+              {
+                "id": "custom.width",
+                "value": 110
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "service"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 220
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "requests"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 90
               }
             ]
           }
@@ -695,11 +726,12 @@
             "resources": [
               "/subscriptions/$subscription/resourceGroups/$resourceGroup/providers/Microsoft.Insights/components/$resource"
             ],
-            "query": "requests | where $__timeFilter(timestamp) | summarize p90ms=percentile(duration, 90) by service=cloud_RoleName | where p90ms > 1000 | project service, p90_seconds=round(p90ms/1000.0, 2) | order by p90_seconds desc",
+            "query": "requests\n| where $__timeFilter(timestamp)\n| where url !contains \"/admin/health-check\"\n| summarize p90ms = percentile(duration, 90), requests = count() by service = cloud_RoleName, endpoint = name\n| where p90ms > 1000\n| project service, endpoint, p90_seconds = round(p90ms/1000.0, 2), requests\n| order by p90_seconds desc\n| take 100",
             "resultFormat": "table"
           }
         }
-      ]
+      ],
+      "description": "Request endpoints whose 90th-percentile latency exceeds 1s, with their service and request count. Health-check probes excluded."
     },
     {
       "id": 15,
