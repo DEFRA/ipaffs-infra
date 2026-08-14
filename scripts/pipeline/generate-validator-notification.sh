@@ -20,7 +20,6 @@ cat <<EOF > "$OUTPUT_PAYLOAD"
 {
   "attachments": [
     {
-      "color": "#36A64F",
       "blocks": [
         {
           "type": "header",
