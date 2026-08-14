@@ -36,6 +36,13 @@ parameters:
     type: string
     default: master
 
+  - name: sonarAnalysis
+    type: boolean
+    default: false
+
+  - name: sonarReferenceBranch
+    type: string
+    default: main
 
 stages:
   - stage: DetectContainerBuild
@@ -131,6 +138,34 @@ stages:
       - template: /pipelines/jobs/build-java-project.yaml@ipaffs-infra
         parameters:
           mvnGoals:  "${{ parameters.mvnGoals }}"
+
+  - ${{ if eq(parameters.sonarAnalysis, true) }}:
+    - stage: SonarAnalysis
+      displayName: SonarQube Analysis
+      variables:
+        - group: Common
+        - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
+            - group: HigherEnvs
+        - ${{ else }}:
+            - group: LowerEnvs
+        - group: "${{ parameters.environmentName }}"
+        - template: "/pipelines/vars/common.yaml"
+        - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
+
+      dependsOn:
+        - DetectContainerBuild
+        - BuildService
+      condition: and(
+        not(canceled()),
+        eq(dependencies.DetectContainerBuild.result, 'Succeeded'),
+        ne(dependencies.DetectContainerBuild.outputs['DetermineBuildMode.SetBuildMode.skipContainerBuild'], 'true'),
+        in(dependencies.BuildService.result, 'Succeeded', 'Skipped')
+        )
+      jobs:
+        - template: /pipelines/jobs/sonar-analyse-java-project.yaml@ipaffs-infra
+          parameters:
+            mvnGoals: "${{ parameters.mvnGoals }}"
+            referenceBranch: "${{ parameters.sonarReferenceBranch }}"
 
   - stage: PackageService
     displayName: Package Service Image
