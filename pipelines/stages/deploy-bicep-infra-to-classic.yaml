@@ -1,0 +1,136 @@
+parameters:
+  - name: environmentName
+    type: string
+
+stages:
+  - stage: ConfigureInfraToClassicDeployment
+    displayName: Configure Infrastructure to Classic deployment
+    variables:
+      - group: Common
+      - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
+        - group: HigherEnvs
+      - ${{ else }}:
+        - group: LowerEnvs
+      - group: "${{ parameters.environmentName }}"
+      - template: "/pipelines/vars/common.yaml"
+      - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
+    jobs:
+      - job: ConfigureBicep
+        displayName: Configure Bicep
+        steps:
+          - checkout: self
+
+          - task: Bash@3
+            name: GenerateBicepParams
+            displayName: Generate Bicep Params
+            inputs:
+              targetType: inline
+              script: |
+                set -ex
+                cat <<- 'EOF' >'$(Build.SourcesDirectory)/45-infra-to-classic-runtime.bicepparam'
+                using '45-infra-to-classic.bicep'
+                extends 'envs/${{ lower(parameters.environmentName) }}/45-infra-to-classic.bicepparam'
+                param entraGroups = {
+                  grafanaAdmins: {
+                    id: '$(grafanaAdminsGroupId)'
+                    name: '$(grafanaAdminsGroupName)'
+                  }
+                  grafanaEditors: {
+                    id: '$(grafanaEditorsGroupId)'
+                    name: '$(grafanaEditorsGroupName)'
+                  }
+                  grafanaViewers: {
+                    id: '$(grafanaViewersGroupId)'
+                    name: '$(grafanaViewersGroupName)'
+                  }
+                }
+                EOF
+                cat '$(Build.SourcesDirectory)/45-infra-to-classic-runtime.bicepparam'
+
+          - task: PublishPipelineArtifact@1
+            displayName: Publish artifact
+            inputs:
+              artifactName: bicepparam-infra-to-classic
+              targetPath: $(Build.SourcesDirectory)/45-infra-to-classic-runtime.bicepparam
+
+
+  - stage: DeployInfrastructureToClassic
+    displayName: Deploy Infrastructure to Classic
+    dependsOn: ConfigureInfraToClassicDeployment
+    variables:
+      - group: Common
+      - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
+        - group: HigherEnvs
+      - ${{ else }}:
+        - group: LowerEnvs
+      - group: "${{ parameters.environmentName }}"
+      - template: "/pipelines/vars/common.yaml"
+      - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
+    jobs:
+      - deployment: RunBicep
+        displayName: Run Bicep
+        environment:
+          name: "${{ parameters.environmentName }}"
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+
+                - task: DownloadPipelineArtifact@2
+                  displayName: Download artifact
+                  inputs:
+                    artifactName: bicepparam-infra-to-classic
+                    targetPath: $(Build.SourcesDirectory)/bicep
+
+                - task: AzureCLI@2
+                  displayName: WhatIf - Infrastructure to Classic
+                  inputs:
+                    azureSubscription: $(serviceConnection)
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      set -x
+                      az deployment group what-if \
+                        --name "Infrastructure-$(Build.BuildId)" \
+                        --subscription $(subscriptionId) \
+                        --resource-group $(classicResourceGroupName) \
+                        --template-file bicep/45-infra-to-classic.bicep \
+                        --parameters bicep/45-infra-to-classic-runtime.bicepparam \
+                        --parameters tenantId="$(tenantId)" \
+                        --parameters deployServicePrincipalObjectId="$(serviceConnectionPrincipalId)"
+                        --parameters grafanaManagedIdentityPrincipalId="$(grafanaManagedIdentityPrincipalId)"
+
+                - task: AzureCLI@2
+                  displayName: Deploy - Infrastructure to Classic
+                  condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+                  inputs:
+                    azureSubscription: $(serviceConnection)
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      set -x
+                      az deployment group create \
+                        --name "Infrastructure-$(Build.BuildId)" \
+                        --subscription $(subscriptionId) \
+                        --resource-group $(classicResourceGroupName) \
+                        --template-file bicep/45-infra-to-classic.bicep \
+                        --parameters bicep/45-infra-to-classic-runtime.bicepparam \
+                        --parameters tenantId="$(tenantId)" \
+                        --parameters deployServicePrincipalObjectId="$(serviceConnectionPrincipalId)"
+                        --parameters grafanaManagedIdentityPrincipalId="$(grafanaManagedIdentityPrincipalId)"
+
+                - task: AzureCLI@2
+                  displayName: Wait for Deployment - Infrastructure to Classic
+                  condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+                  inputs:
+                    azureSubscription: $(serviceConnection)
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      set -x
+                      az deployment group wait \
+                        --name "Infrastructure-$(Build.BuildId)" \
+                        --subscription $(subscriptionId) \
+                        --resource-group $(classicResourceGroupName) \
+                        --created
