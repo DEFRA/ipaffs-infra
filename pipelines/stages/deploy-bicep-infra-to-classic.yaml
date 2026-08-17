@@ -86,7 +86,7 @@ stages:
                 - task: AzureCLI@2
                   displayName: WhatIf - Infrastructure to Classic
                   inputs:
-                    azureSubscription: $(serviceConnection)
+                    azureSubscription: $(classicServiceConnection)
                     scriptType: bash
                     scriptLocation: inlineScript
                     inlineScript: |
@@ -104,7 +104,7 @@ stages:
                   displayName: Deploy - Infrastructure to Classic
                   condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
                   inputs:
-                    azureSubscription: $(serviceConnection)
+                    azureSubscription: $(classicServiceConnection)
                     scriptType: bash
                     scriptLocation: inlineScript
                     inlineScript: |
@@ -122,7 +122,7 @@ stages:
                   displayName: Wait for Deployment - Infrastructure to Classic
                   condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
                   inputs:
-                    azureSubscription: $(serviceConnection)
+                    azureSubscription: $(classicServiceConnection)
                     scriptType: bash
                     scriptLocation: inlineScript
                     inlineScript: |
