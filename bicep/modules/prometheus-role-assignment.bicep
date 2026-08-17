@@ -10,10 +10,7 @@ param resourceGroupName string = resourceGroup().name
 
 resource prometheus 'Microsoft.Monitor/accounts@2025-10-03' existing = {
   name: prometheusName,
-  scope: resourceGroup(
-      subscriptionId,
-      resourceGroupName
-  )
+  scope: resourceGroup(subscriptionId, resourceGroupName)
 }
 
 resource roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {

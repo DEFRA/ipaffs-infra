@@ -10,10 +10,7 @@ param resourceGroupName string = resourceGroup().name
 
 resource grafana 'Microsoft.Dashboard/grafana@2025-08-01' existing = {
   name: grafanaName,
-  scope: resourceGroup(
-      subscriptionId,
-      resourceGroupName
-  )
+  scope: resourceGroup(subscriptionId, resourceGroupName)
 }
 
 resource roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
