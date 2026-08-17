@@ -28,6 +28,8 @@ module monitoring './modules/monitoring-to-classic.bicep' = {
     tags: tags
     monitoringParams: monitoringParams
     entraGroups: entraGroups
+    prometheusId: prometheusId
+    grafanaId: grafanaId
     deployServicePrincipalObjectId: deployServicePrincipalObjectId
     grafanaManagedIdentityPrincipalId: grafanaManagedIdentityPrincipalId
   }
