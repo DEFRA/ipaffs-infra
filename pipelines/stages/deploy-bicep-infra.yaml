@@ -166,6 +166,8 @@ stages:
                         --template-file bicep/40-infra.bicep \
                         --parameters bicep/40-infra-runtime.bicepparam \
                         --parameters tenantId="$(tenantId)" \
+                        --parameters classicSubscriptionId="$(classicSubscriptionId)" \
+                        --parameters classicResourceGroupName="$(classicResourceGroupName)" \
                         --parameters deployServicePrincipalObjectId="$(serviceConnectionPrincipalId)"
 
                 - task: AzureCLI@2
@@ -184,6 +186,8 @@ stages:
                         --template-file bicep/40-infra.bicep \
                         --parameters bicep/40-infra-runtime.bicepparam \
                         --parameters tenantId="$(tenantId)" \
+                        --parameters classicSubscriptionId="$(classicSubscriptionId)" \
+                        --parameters classicResourceGroupName="$(classicResourceGroupName)" \
                         --parameters deployServicePrincipalObjectId="$(serviceConnectionPrincipalId)"
 
                 - task: AzureCLI@2

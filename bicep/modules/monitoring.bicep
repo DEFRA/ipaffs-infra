@@ -2,6 +2,8 @@ targetScope = 'resourceGroup'
 
 param monitoringParams object
 param entraGroups object
+param classicSubscriptionId string
+param classicResourceGroupName string
 param deployServicePrincipalObjectId string
 param deploymentId string
 param location string
@@ -76,6 +78,18 @@ resource grafanaAdminRole 'Microsoft.Authorization/roleAssignments@2022-04-01' =
 module grafanaAdmins './grafana-role-assignment.bicep' = {
   name: 'grafanaAdmins-${deploymentId}'
   scope: resourceGroup()
+  params: {
+    grafanaName: grafanaDashboard.name
+    deploymentId: deploymentId
+    principalObjectId: entraGroups.grafanaAdmins.id
+    principalType: 'Group'
+    roleDefinitionId: grafanaAdminRoleId
+  }
+}
+
+module classicGrafanaAdmins './grafana-role-assignment.bicep' = {
+  name: 'grafanaAdmins-${deploymentId}'
+  scope: resourceGroup(classicSubscriptionId, classicResourceGroupName)
   params: {
     grafanaName: grafanaDashboard.name
     deploymentId: deploymentId
