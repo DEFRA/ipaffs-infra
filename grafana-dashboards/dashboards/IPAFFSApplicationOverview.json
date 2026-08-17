@@ -392,7 +392,61 @@
             "filterable": true
           }
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Status"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "options": {
+                      "0": {
+                        "color": "green",
+                        "index": 0,
+                        "text": "Healthy"
+                      }
+                    },
+                    "type": "value"
+                  },
+                  {
+                    "options": {
+                      "from": 1,
+                      "result": {
+                        "color": "red",
+                        "index": 1,
+                        "text": "Degraded"
+                      },
+                      "to": 999999
+                    },
+                    "type": "range"
+                  },
+                  {
+                    "options": {
+                      "from": -999999,
+                      "result": {
+                        "color": "yellow",
+                        "index": 2,
+                        "text": "Over-provisioned"
+                      },
+                      "to": -1
+                    },
+                    "type": "range"
+                  }
+                ]
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background"
+                }
+              }
+            ]
+          }
+        ]
       },
       "gridPos": {
         "h": 8,
@@ -416,59 +470,117 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "label_replace(label_replace(kube_pod_container_info{image=~\".+/ipaffs/(${service:pipe}):.*\", namespace=~\"${namespace:pipe}\"}, \"service\",\"$1\",\"image\",\".*/ipaffs/([^:]+):.*\"), \"version\",\"$1\",\"image\",\".*:(.+)$\")",
+          "expr": "label_replace(label_replace(kube_deployment_labels{namespace=~\"$namespace\", label_app_kubernetes_io_name=~\".+\"}, \"service\", \"$1\", \"label_app_kubernetes_io_name\", \"(.+)\"), \"version\", \"$1\", \"label_defra_gov_uk_manifest_tag\", \"(.+)\")",
           "format": "table",
           "instant": true,
           "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "kube_deployment_spec_replicas{namespace=~\"$namespace\"}",
+          "format": "table",
+          "instant": true,
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "kube_deployment_status_replicas_available{namespace=~\"$namespace\"}",
+          "format": "table",
+          "instant": true,
+          "refId": "C"
         }
       ],
       "title": "Deployed service versions",
       "transformations": [
         {
+          "id": "joinByField",
+          "options": {
+            "byField": "deployment",
+            "mode": "outer"
+          }
+        },
+        {
           "id": "organize",
           "options": {
             "excludeByName": {
               "Time": true,
-              "Value": true,
+              "Time 1": true,
+              "Time 2": true,
+              "Time 3": true,
+              "Value #A": true,
               "__name__": true,
+              "__name__ 1": true,
+              "__name__ 2": true,
+              "__name__ 3": true,
               "cluster": true,
-              "container": true,
-              "container_id": true,
-              "image": true,
-              "image_id": true,
-              "image_spec": true,
+              "cluster 1": true,
+              "cluster 2": true,
+              "cluster 3": true,
+              "deployment": true,
               "instance": true,
+              "instance 1": true,
+              "instance 2": true,
+              "instance 3": true,
               "job": true,
+              "job 1": true,
+              "job 2": true,
+              "job 3": true,
+              "label_app_kubernetes_io_name": true,
+              "label_defra_gov_uk_manifest_tag": true,
               "microsoft.amwresourceid": true,
+              "microsoft.amwresourceid 1": true,
+              "microsoft.amwresourceid 2": true,
+              "microsoft.amwresourceid 3": true,
               "microsoft.resourcegroupname": true,
+              "microsoft.resourcegroupname 1": true,
+              "microsoft.resourcegroupname 2": true,
+              "microsoft.resourcegroupname 3": true,
               "microsoft.resourceid": true,
+              "microsoft.resourceid 1": true,
+              "microsoft.resourceid 2": true,
+              "microsoft.resourceid 3": true,
               "microsoft.resourcetype": true,
+              "microsoft.resourcetype 1": true,
+              "microsoft.resourcetype 2": true,
+              "microsoft.resourcetype 3": true,
               "microsoft.subscriptionid": true,
+              "microsoft.subscriptionid 1": true,
+              "microsoft.subscriptionid 2": true,
+              "microsoft.subscriptionid 3": true,
               "namespace": true,
-              "pod": true,
-              "uid": true
+              "namespace 1": true,
+              "namespace 2": true,
+              "namespace 3": true
             },
             "indexByName": {
+              "Value #B": 2,
+              "Value #C": 3,
               "service": 0,
               "version": 1
             },
-            "renameByName": {}
+            "renameByName": {
+              "Value #B": "Desired",
+              "Value #C": "Running"
+            }
           }
         },
         {
-          "id": "groupBy",
+          "id": "calculateField",
           "options": {
-            "fields": {
-              "namespace": {
-                "operation": "groupby"
-              },
-              "service": {
-                "operation": "groupby"
-              },
-              "version": {
-                "operation": "groupby"
-              }
-            }
+            "alias": "Status",
+            "binary": {
+              "left": "Desired",
+              "operator": "-",
+              "right": "Running"
+            },
+            "mode": "binary",
+            "replaceFields": false
           }
         }
       ],
