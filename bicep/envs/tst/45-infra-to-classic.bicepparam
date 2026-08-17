@@ -9,6 +9,8 @@ param entraGroups = {}
 param environment = 'TST'
 param deployServicePrincipalObjectId = ''
 param grafanaManagedIdentityPrincipalId = ''
+param subscriptionId = ''
+param resourceGroupName = ''
 
 
 param monitoringParams = {

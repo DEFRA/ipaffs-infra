@@ -2,6 +2,8 @@ targetScope = 'resourceGroup'
 
 param monitoringParams object
 param entraGroups object
+param subscriptionId string
+param resourceGroupName string
 param deployServicePrincipalObjectId string
 param grafanaManagedIdentityPrincipalId string
 param deploymentId string
@@ -24,6 +26,8 @@ module grafanaAdmins './grafana-role-assignment.bicep' = {
   scope: resourceGroup()
   params: {
     grafanaName: monitoringParams.grafanaName
+    subscriptionId: subscriptionId
+    resourceGroupName: resourceGroupName
     deploymentId: deploymentId
     principalObjectId: entraGroups.grafanaAdmins.id
     principalType: 'Group'
@@ -36,6 +40,8 @@ module grafanaEditors './grafana-role-assignment.bicep' = {
   scope: resourceGroup()
   params: {
     grafanaName: monitoringParams.grafanaName
+    subscriptionId: subscriptionId
+    resourceGroupName: resourceGroupName
     deploymentId: deploymentId
     principalObjectId: entraGroups.grafanaEditors.id
     principalType: 'Group'
@@ -48,6 +54,8 @@ module grafanaViewers './grafana-role-assignment.bicep' = {
   scope: resourceGroup()
   params: {
     grafanaName: monitoringParams.grafanaName
+    subscriptionId: subscriptionId
+    resourceGroupName: resourceGroupName
     deploymentId: deploymentId
     principalObjectId: entraGroups.grafanaViewers.id
     principalType: 'Group'
@@ -62,6 +70,8 @@ module grafanaDeploySpAdmin './grafana-role-assignment.bicep' = {
   scope: resourceGroup()
   params: {
     grafanaName: monitoringParams.grafanaName
+    subscriptionId: subscriptionId
+    resourceGroupName: resourceGroupName
     deploymentId: deploymentId
     principalObjectId: deployServicePrincipalObjectId
     principalType: 'ServicePrincipal'
@@ -84,6 +94,8 @@ module grafanaMonitoringDataReader './prometheus-role-assignment.bicep' = {
   scope: resourceGroup()
   params: {
     prometheusName: monitoringParams.prometheusName
+    subscriptionId: subscriptionId
+    resourceGroupName: resourceGroupName
     deploymentId: deploymentId
     principalObjectId: grafanaManagedIdentityPrincipalId
     principalType: 'ServicePrincipal'

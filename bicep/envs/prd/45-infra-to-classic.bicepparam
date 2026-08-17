@@ -9,6 +9,8 @@ param entraGroups = {}
 param environment = 'PRD'
 param deployServicePrincipalObjectId = ''
 param grafanaManagedIdentityPrincipalId = ''
+param subscriptionId = ''
+param resourceGroupName = ''
 
 param monitoringParams = {
   prometheusName: 'PRDIMPINFPR1401'

@@ -9,6 +9,8 @@ param entraGroups = {}
 param environment = 'DEV'
 param deployServicePrincipalObjectId = ''
 param grafanaManagedIdentityPrincipalId = ''
+param subscriptionId = ''
+param resourceGroupName = ''
 
 param monitoringParams = {
   prometheusName: 'DEVIMPINFPR1401'
