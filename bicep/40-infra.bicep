@@ -204,5 +204,7 @@ output insightsInstrumentationKey string = insights.outputs.insightsInstrumentat
 output insightsConnectionString string = insights.outputs.insightsConnectionString
 output grafanaManagedIdentityPrincipalId string = monitoring.outputs.grafanaManagedIdentityPrincipalId
 output grafanaName string = monitoring.outputs.grafanaName
+output grafanaId string = monitoring.outputs.grafanaId
 output prometheusName string = monitoring.outputs.prometheusName
+output prometheusId string = monitoring.outputs.prometheusId
 

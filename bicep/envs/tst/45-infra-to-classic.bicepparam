@@ -7,6 +7,8 @@ param builtInGroups = {
 
 param entraGroups = {}
 param environment = 'TST'
+param prometheusId = ''
+param grafanaId = ''
 param deployServicePrincipalObjectId = ''
 param grafanaManagedIdentityPrincipalId = ''
 

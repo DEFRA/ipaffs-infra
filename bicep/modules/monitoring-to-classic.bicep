@@ -1,6 +1,8 @@
 targetScope = 'resourceGroup'
 
 param monitoringParams object
+param grafanaId string
+param prometheusId string
 param entraGroups object
 param deployServicePrincipalObjectId string
 param grafanaManagedIdentityPrincipalId string
@@ -19,11 +21,11 @@ var grafanaViewerRoleId = subscriptionResourceId('Microsoft.Authorization/roleDe
 
 // Team group Grafana access mapping : ProjAdmins -> Admin, Developers ->
 // Editor, Readers -> Viewer (groups created + populated by entra-groups.yaml).
-module grafanaAdmins './grafana-role-assignment.bicep' = {
+module grafanaAdmins './grafana-role-assignment-to-classic.bicep' = {
   name: 'grafanaAdmins-${deploymentId}'
   scope: resourceGroup()
   params: {
-    grafanaName: monitoringParams.grafanaName
+    grafanaId: grafanaId
     deploymentId: deploymentId
     principalObjectId: entraGroups.grafanaAdmins.id
     principalType: 'Group'
@@ -31,11 +33,11 @@ module grafanaAdmins './grafana-role-assignment.bicep' = {
   }
 }
 
-module grafanaEditors './grafana-role-assignment.bicep' = {
+module grafanaEditors './grafana-role-assignment-to-classic.bicep' = {
   name: 'grafanaEditors-${deploymentId}'
   scope: resourceGroup()
   params: {
-    grafanaName: monitoringParams.grafanaName
+    grafanaId: grafanaId
     deploymentId: deploymentId
     principalObjectId: entraGroups.grafanaEditors.id
     principalType: 'Group'
@@ -43,11 +45,11 @@ module grafanaEditors './grafana-role-assignment.bicep' = {
   }
 }
 
-module grafanaViewers './grafana-role-assignment.bicep' = {
+module grafanaViewers './grafana-role-assignment-to-classic.bicep' = {
   name: 'grafanaViewers-${deploymentId}'
   scope: resourceGroup()
   params: {
-    grafanaName: monitoringParams.grafanaName
+    grafanaId: grafanaId
     deploymentId: deploymentId
     principalObjectId: entraGroups.grafanaViewers.id
     principalType: 'Group'
@@ -57,11 +59,11 @@ module grafanaViewers './grafana-role-assignment.bicep' = {
 
 // Deploy service principal (ADO service connection) needs Grafana Admin directly
 // to manage dashboards and datasources
-module grafanaDeploySpAdmin './grafana-role-assignment.bicep' = {
+module grafanaDeploySpAdmin './grafana-role-assignment-to-classic.bicep' = {
   name: 'grafanaDeploySpAdmin-${deploymentId}'
   scope: resourceGroup()
   params: {
-    grafanaName: monitoringParams.grafanaName
+    grafanaId: grafanaId
     deploymentId: deploymentId
     principalObjectId: deployServicePrincipalObjectId
     principalType: 'ServicePrincipal'
@@ -79,11 +81,11 @@ module grafanaMonitoringReader './rg-role-assignment.bicep' = {
   }
 }
 
-module grafanaMonitoringDataReader './prometheus-role-assignment.bicep' = {
+module grafanaMonitoringDataReader './prometheus-role-assignment-to-classic.bicep' = {
   name: 'grafanaMonitoringDataReader-${deploymentId}'
   scope: resourceGroup()
   params: {
-    prometheusName: monitoringParams.prometheusName
+    prometheusId: prometheusId
     deploymentId: deploymentId
     principalObjectId: grafanaManagedIdentityPrincipalId
     principalType: 'ServicePrincipal'
