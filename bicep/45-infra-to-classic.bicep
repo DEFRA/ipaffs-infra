@@ -14,6 +14,8 @@ var tags = union(loadJsonContent('default-tags.json'), {
 param builtInGroups object
 param monitoringParams object
 param entraGroups object
+param prometheusId string
+param grafanaId string
 param deployServicePrincipalObjectId string
 param grafanaManagedIdentityPrincipalId string
 
