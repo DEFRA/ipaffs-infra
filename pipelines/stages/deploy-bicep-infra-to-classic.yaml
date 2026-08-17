@@ -97,7 +97,6 @@ stages:
                         --resource-group $(classicResourceGroupName) \
                         --template-file bicep/45-infra-to-classic.bicep \
                         --parameters bicep/45-infra-to-classic-runtime.bicepparam \
-                        --parameters tenantId="$(tenantId)" \
                         --parameters deployServicePrincipalObjectId="$(serviceConnectionPrincipalId)"
                         --parameters grafanaManagedIdentityPrincipalId="$(grafanaManagedIdentityPrincipalId)"
 
@@ -116,7 +115,6 @@ stages:
                         --resource-group $(classicResourceGroupName) \
                         --template-file bicep/45-infra-to-classic.bicep \
                         --parameters bicep/45-infra-to-classic-runtime.bicepparam \
-                        --parameters tenantId="$(tenantId)" \
                         --parameters deployServicePrincipalObjectId="$(serviceConnectionPrincipalId)"
                         --parameters grafanaManagedIdentityPrincipalId="$(grafanaManagedIdentityPrincipalId)"
 
