@@ -240,10 +240,11 @@ while true; do
       esac
       echo -e "${timestamp} [${urlType}] ${status} -> ${classif_colored}"
       if [[ "${classification}" == "Classic" || "${classification}" == "AKS" ]]; then
-        if [[ -z "${cookieOriginsPrinted[${urlType}-${classification}]:-}" ]]; then
+        value="$(cookie_value "${urlType}-${classification}" "${result}")"
+        if [[ "${cookieOriginsPrinted[${urlType}-${classification}]:-}" == "" ]] || [[ "${cookieOriginsPrinted[${urlType}-${classification}]}" != "V${value}" ]]; then
           print_cookie_value "${urlType} ${classification}" "ASLBSA" "${result}"
           print_cookie_value "${urlType} ${classification}" "ASLBSACORS" "${result}"
-          cookieOriginsPrinted["${urlType}-${classification}"]=1
+          cookieOriginsPrinted["${urlType}-${classification}"]="V${value}"
         fi
       fi
       if [[ "${classification}" == "AKS" ]] && [[ "${location}" != *"${expectedAksLoginUrl}"* ]]; then
