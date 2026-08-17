@@ -156,6 +156,8 @@ module monitoring './modules/monitoring.bicep' = {
     tags: tags
     monitoringParams: monitoringParams
     entraGroups: entraGroups
+    classicSubscriptionId: classicSubscriptionId
+    classicResourceGroupName: classicResourceGroupName
     deployServicePrincipalObjectId: deployServicePrincipalObjectId
   }
 }
