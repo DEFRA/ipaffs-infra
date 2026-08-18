@@ -87,18 +87,6 @@ module grafanaAdmins './grafana-role-assignment.bicep' = {
   }
 }
 
-module classicGrafanaAdmins './grafana-role-assignment.bicep' = {
-  name: 'grafanaAdmins-${deploymentId}'
-  scope: resourceGroup(classicSubscriptionId, classicResourceGroupName)
-  params: {
-    grafanaName: grafanaDashboard.name
-    deploymentId: deploymentId
-    principalObjectId: entraGroups.grafanaAdmins.id
-    principalType: 'Group'
-    roleDefinitionId: grafanaAdminRoleId
-  }
-}
-
 module grafanaEditors './grafana-role-assignment.bicep' = {
   name: 'grafanaEditors-${deploymentId}'
   scope: resourceGroup()
@@ -140,6 +128,16 @@ module grafanaDeploySpAdmin './grafana-role-assignment.bicep' = {
 module grafanaMonitoringReader './rg-role-assignment.bicep' = {
   name: 'grafanaMonitoringReader-${deploymentId}'
   scope: resourceGroup()
+  params: {
+    deploymentId: deploymentId
+    principalObjectId: grafanaDashboard.identity.principalId
+    roleDefinitionId: monitoringReaderRoleId
+  }
+}
+
+module classicGrafanaMonitoringReader './rg-role-assignment.bicep' = {
+  name: 'grafanaMonitoringReader-${deploymentId}'
+  scope: resourceGroup(classicSubscriptionId, classicResourceGroupName)
   params: {
     deploymentId: deploymentId
     principalObjectId: grafanaDashboard.identity.principalId
