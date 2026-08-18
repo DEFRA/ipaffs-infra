@@ -336,7 +336,80 @@
             ]
           }
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Status"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "options": {
+                      "0": {
+                        "index": 0,
+                        "text": "Healthy"
+                      }
+                    },
+                    "type": "value"
+                  },
+                  {
+                    "options": {
+                      "from": 1,
+                      "result": {
+                        "index": 1,
+                        "text": "Degraded"
+                      },
+                      "to": 999999
+                    },
+                    "type": "range"
+                  },
+                  {
+                    "options": {
+                      "from": -999999,
+                      "result": {
+                        "index": 2,
+                        "text": "Over-provisioned"
+                      },
+                      "to": -1
+                    },
+                    "type": "range"
+                  }
+                ]
+              },
+              {
+                "id": "custom.align",
+                "value": "center"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Available"
+            },
+            "properties": [
+              {
+                "id": "custom.align",
+                "value": "center"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Desired"
+            },
+            "properties": [
+              {
+                "id": "custom.align",
+                "value": "center"
+              }
+            ]
+          }
+        ]
       },
       "gridPos": {
         "x": 12,
@@ -387,9 +460,20 @@
           "legendFormat": "__auto",
           "range": false,
           "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "label_replace(label_replace(kube_deployment_labels{namespace=~\"$namespace\", label_app_kubernetes_io_name=~\".+\"}, \"service\", \"$1\", \"label_app_kubernetes_io_name\", \"(.+)\"), \"version\", \"$1\", \"label_defra_gov_uk_manifest_tag\", \"(.+)\")",
+          "format": "table",
+          "instant": true,
+          "refId": "C"
         }
       ],
-      "title": "Service health - running / desired replicas",
+      "title": "Service health - running / desired replicas & version  |  Release: ${release}",
+      "description": "Running vs desired replicas and deployed release version per service. 'Version' is read live from each deployment's manifest-tag label. 'Release' (in the title) is the manifest release deployed to this environment from the Release variable - it is env-wide, i.e. the same for every service, and refreshes when dashboards are redeployed; compare it against the per-service Version column to spot drift during a partial rollout.",
       "transformations": [
         {
           "id": "joinByField",
@@ -403,14 +487,47 @@
           "options": {
             "excludeByName": {
               "Time 1": true,
-              "Time 2": true
+              "Time 2": true,
+              "Time 3": true,
+              "__name__": true,
+              "cluster": true,
+              "deployment": true,
+              "instance": true,
+              "job": true,
+              "label_app_kubernetes_io_name": true,
+              "label_defra_gov_uk_manifest_tag": true,
+              "microsoft.amwresourceid": true,
+              "microsoft.resourcegroupname": true,
+              "microsoft.resourceid": true,
+              "microsoft.resourcetype": true,
+              "microsoft.subscriptionid": true,
+              "namespace": true,
+              "Value #C": true
             },
             "includeByName": {},
-            "indexByName": {},
+            "indexByName": {
+              "service": 0,
+              "version": 1,
+              "Value #A": 2,
+              "Value #B": 3
+            },
             "renameByName": {
               "Value #A": "Available",
               "Value #B": "Desired"
             }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "alias": "Status",
+            "binary": {
+              "left": "Desired",
+              "operator": "-",
+              "right": "Available"
+            },
+            "mode": "binary",
+            "replaceFields": false
           }
         }
       ],
@@ -642,7 +759,7 @@
     {
       "id": 13,
       "type": "table",
-      "title": "Slow endpoints (p90 latency > 1s) by service",
+      "title": "Slow endpoints (p90 latency > 5s) by service",
       "datasource": {
         "type": "grafana-azure-monitor-datasource",
         "uid": "azure-monitor-oob"
@@ -726,7 +843,7 @@
             "resources": [
               "/subscriptions/$subscription/resourceGroups/$resourceGroup/providers/Microsoft.Insights/components/$resource"
             ],
-            "query": "requests\n| where $__timeFilter(timestamp)\n| where url !contains \"/admin/health-check\"\n| summarize p90ms = percentile(duration, 90), requests = count() by service = cloud_RoleName, endpoint = name\n| where p90ms > 1000\n| project service, endpoint, p90_seconds = round(p90ms/1000.0, 2), requests\n| order by p90_seconds desc\n| take 100",
+            "query": "requests\n| where $__timeFilter(timestamp)\n| where url !contains \"/admin/health-check\"\n| summarize p90ms = percentile(duration, 90), requests = count() by service = cloud_RoleName, endpoint = name\n| where p90ms > 5000\n| project service, endpoint, p90_seconds = round(p90ms/1000.0, 2), requests\n| order by p90_seconds desc\n| take 100",
             "resultFormat": "table"
           }
         }
@@ -1213,6 +1330,20 @@
         "refresh": 1,
         "regex": "/^(dev|tst|pre|prd)$/",
         "type": "query"
+      },
+      {
+        "type": "textbox",
+        "name": "release",
+        "label": "Release",
+        "description": "Manifest release deployed to this environment (e.g. 18.8.51). Injected automatically by the grafana-dashboards deploy pipeline from the latest Environment-<ENV> manifest release build; it is env-wide (same for every service) and refreshes each time the dashboards are redeployed to this environment.",
+        "query": "",
+        "current": {
+          "text": "",
+          "value": ""
+        },
+        "options": [],
+        "hide": 0,
+        "skipUrlSync": false
       }
     ]
   },
