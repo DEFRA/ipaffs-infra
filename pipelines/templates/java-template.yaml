@@ -164,7 +164,6 @@ stages:
       jobs:
         - template: /pipelines/jobs/sonar-analyse-java-project.yaml@ipaffs-infra
           parameters:
-            mvnGoals: "${{ parameters.mvnGoals }}"
             referenceBranch: "${{ parameters.sonarReferenceBranch }}"
 
   - stage: PackageService
