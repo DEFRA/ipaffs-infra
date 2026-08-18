@@ -30,7 +30,7 @@ function usage() {
 
 interval=5
 count=""
-parallelLimit=1
+parallelism=1
 
 while getopts "e:w:c:p:h" opt; do
   case $opt in
@@ -44,7 +44,7 @@ while getopts "e:w:c:p:h" opt; do
       count="${OPTARG}"
       ;;
     p)
-      parallelLimit="${OPTARG}"
+      parallelism="${OPTARG}"
       ;;
     h)
       usage
@@ -71,6 +71,20 @@ if ! [[ "${interval}" =~ ^[0-9]+$ ]]; then
   exit 1
 fi
 
+if ! [[ "${parallelism}" =~ ^[1-9][0-9]*$ ]]; then
+  echo "-p must be a positive whole number" >&2
+  echo >&2
+  usage
+  exit 1
+fi
+
+if [[ "${parallelism}" =~ ^[1-9][0-9]*$ ]] && [[ "${interval}" =~ ^[1-9][0-9]*$ ]]; then
+  echo "-p can only be specified with -w 0" >&2
+  echo >&2
+  usage
+  exit 1
+fi
+
 if [[ -n "${count}" ]]; then
   if ! [[ "${count}" =~ ^[1-9][0-9]*$ ]]; then
     echo "-c must be a positive whole number" >&2
@@ -78,20 +92,13 @@ if [[ -n "${count}" ]]; then
     usage
     exit 1
   fi
-fi
 
-if ! [[ "${parallelLimit}" =~ ^[1-9][0-9]*$ ]]; then
-  echo "-p must be a positive whole number" >&2
-  echo >&2
-  usage
-  exit 1
-fi
-
-if [[ "${parallelLimit}" =~ ^[1-9][0-9]*$ ]] && [[ "${interval}" =~ ^[1-9][0-9]*$ ]]; then
-  echo "-p can only be specified with -w 0" >&2
-  echo >&2
-  usage
-  exit 1
+  if (( parallelism > count )); then
+    echo "-p cannot be more than -c" >&2
+    echo >&2
+    usage
+    exit 1
+  fi
 fi
 
 case "${environment}" in
@@ -390,7 +397,7 @@ run_parallel_checks() {
   fi
 
   while true; do
-    while (( ${#pendingPids[@]} < parallelLimit )) && (( stopScheduling == 0 )); do
+    while (( ${#pendingPids[@]} < parallelism )) && (( stopScheduling == 0 )); do
       if [[ -n "${totalRequests}" ]] && (( nextRequest >= totalRequests )); then
         break
       fi
@@ -438,7 +445,7 @@ echo "B2B domain: ${domainB2B}"
 echo "B2B resolved IP address(es): $(dns_lookup "${domainB2B}")"
 echo "Wait between requests: ${interval}s"
 if (( interval == 0 )); then
-  echo "Parallel request limit: ${parallelLimit}"
+  echo "Parallel request limit: ${parallelism}"
 fi
 echo
 if [[ -n "${count}" ]]; then
@@ -476,7 +483,7 @@ pct() {
   awk -v n="$1" -v t="$2" 'BEGIN { if (t == 0) { printf "0.00" } else { printf "%.2f", (n / t) * 100 } }'
 }
 
-if (( interval == 0 && parallelLimit > 1 )); then
+if (( interval == 0 && parallelism > 1 )); then
   run_parallel_checks
 else
   run_serial_checks
