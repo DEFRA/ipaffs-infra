@@ -7,7 +7,7 @@ See the Confluence page for more information: [Azure Front Door Routing Checker]
 ## Script
 
 ```bash
-./routing-check.sh -e ENV [-w SECONDS] [-c CHECKS]
+./routing-check.sh -e ENV [-w SECONDS] [-c CHECKS] [-p REQUESTS]
 ```
 
 Run from this directory, or call the script by its full path from the repository root:
@@ -29,6 +29,7 @@ Option | Required | Description
 `-e`   | Yes      | Environment to check. Valid values are `dev`, `tst`, `pre`, `prd`.
 `-w`   | No       | Wait time between checks in seconds. Default is `5`. Use `0` for no wait.
 `-c`   | No       | Number of checks to perform before stopping. One check sends one B2C request and one B2B request.
+`-p`   | No       | Parallel request limit when `-w 0` is used. Default is `1`.
 
 If `-c` is not provided, the script runs until `q` or `Q` is pressed.
 
@@ -44,6 +45,12 @@ Run 100 TST checks with no wait:
 
 ```bash
 scripts/tools/routing-checker/routing-check.sh -e tst -w 0 -c 100
+```
+
+Run 100 TST checks with no wait and up to 10 requests in parallel:
+
+```bash
+scripts/tools/routing-checker/routing-check.sh -e tst -w 0 -c 100 -p 10
 ```
 
 Run 50 TST checks with a 2 second wait between checks:
