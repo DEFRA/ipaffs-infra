@@ -157,6 +157,18 @@ module grafanaMonitoringDataReader './prometheus-role-assignment.bicep' = {
   }
 }
 
+module classicGrafanaMonitoringDataReader './prometheus-role-assignment.bicep' = {
+  name: 'grafanaMonitoringDataReader-${deploymentId}'
+  scope: resourceGroup(classicSubscriptionId, classicResourceGroupName)
+  params: {
+    prometheusName: monitoringParams.prometheusName
+    deploymentId: deploymentId
+    principalObjectId: grafanaDashboard.identity.principalId
+    principalType: 'ServicePrincipal'
+    roleDefinitionId: monitoringDataReaderRoleId
+  }
+}
+
 output logAnalyticsId string = logAnalytics.id
 output grafanaManagedIdentityPrincipalId string = grafanaDashboard.identity.principalId
 output grafanaName string = grafanaDashboard.name
