@@ -27,26 +27,9 @@ jobs:
         continueOnError: true
 
       - script: |
-          # Failure entries carry the colour codes and control characters mocha puts in stack traces.
-          sed -i 's/\x1b\[[0-9;]*[a-zA-Z]//g' service/coverage/unit.xml
-          tr -d '\000-\010\013\014\016-\037' \
-            < service/coverage/unit.xml > service/coverage/unit.xml.clean
-          mv service/coverage/unit.xml.clean service/coverage/unit.xml
-
           sed -i 's|path="test|path="service/test|g' service/coverage/unit.xml
           sed -i "s|${PWD}/service|service|g" service/coverage/lcov.info
         displayName: Rewrite report paths for the scanner
-        continueOnError: true
-
-      - script: |
-          # The Sonar reporter writes XML and prints nothing to the console, so
-          # without this the log never says which tests failed.
-          test -f service/coverage/unit.xml || exit 0
-          tr '\n' ' ' < service/coverage/unit.xml \
-            | sed 's|<testCase|\n<testCase|g' \
-            | grep '<failure' \
-            | sed 's|<testCase name="\([^"]*\)".*message="\([^"]*\)".*|FAILED: \1\n        \2|'
-        displayName: List failing tests
         continueOnError: true
 
       - template: /pipelines/steps/sonar-scan.yaml@ipaffs-infra
