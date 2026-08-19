@@ -7,8 +7,6 @@ param builtInGroups = {
 
 param entraGroups = {}
 param environment = 'TST'
-param subscriptionId = ''
-param resourceGroupName = ''
 param deployServicePrincipalObjectId = ''
 param grafanaManagedIdentityPrincipalId = ''
 

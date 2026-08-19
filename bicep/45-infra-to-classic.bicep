@@ -14,8 +14,6 @@ var tags = union(loadJsonContent('default-tags.json'), {
 param builtInGroups object
 param monitoringParams object
 param entraGroups object
-param subscriptionId string
-param resourceGroupName string
 param deployServicePrincipalObjectId string
 param grafanaManagedIdentityPrincipalId string
 
@@ -28,8 +26,6 @@ module monitoring './modules/monitoring-to-classic.bicep' = {
     tags: tags
     monitoringParams: monitoringParams
     entraGroups: entraGroups
-    subscriptionId: subscriptionId
-    resourceGroupName: resourceGroupName
     deployServicePrincipalObjectId: deployServicePrincipalObjectId
     grafanaManagedIdentityPrincipalId: grafanaManagedIdentityPrincipalId
   }
