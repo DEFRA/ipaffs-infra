@@ -473,7 +473,7 @@
         }
       ],
       "title": "Service health - running / desired replicas & version  |  Release: ${release}",
-      "description": "Running vs desired replicas and deployed release version per service. 'Version' is read live from each deployment's manifest-tag label. 'Release' (in the title) is the manifest release deployed to this environment from the Release variable - it is env-wide, i.e. the same for every service, and refreshes when dashboards are redeployed; compare it against the per-service Version column to spot drift during a partial rollout.",
+      "description": "Available vs desired replicas and the live deployed version per service.",
       "transformations": [
         {
           "id": "joinByField",
@@ -1335,7 +1335,7 @@
         "type": "textbox",
         "name": "release",
         "label": "Release",
-        "description": "Manifest release deployed to this environment (e.g. 18.8.51). Injected automatically by the grafana-dashboards deploy pipeline from the latest Environment-<ENV> manifest release build; it is env-wide (same for every service) and refreshes each time the dashboards are redeployed to this environment.",
+        "description": "Env-wide manifest release deployed here (e.g. 18.8.51), injected by the dashboards deploy pipeline.",
         "query": "",
         "current": {
           "text": "",
