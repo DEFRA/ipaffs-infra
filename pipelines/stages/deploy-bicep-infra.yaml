@@ -166,11 +166,13 @@ stages:
                         --template-file bicep/40-infra.bicep \
                         --parameters bicep/40-infra-runtime.bicepparam \
                         --parameters tenantId="$(tenantId)" \
+                        --parameters classicSubscriptionId="$(classicSubscriptionId)" \
+                        --parameters classicResourceGroupName="$(classicResourceGroupName)" \
                         --parameters deployServicePrincipalObjectId="$(serviceConnectionPrincipalId)"
 
                 - task: AzureCLI@2
                   displayName: Deploy - Infrastructure
-                  condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+                  #condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
                   inputs:
                     azureSubscription: $(serviceConnection)
                     scriptType: bash
@@ -184,11 +186,13 @@ stages:
                         --template-file bicep/40-infra.bicep \
                         --parameters bicep/40-infra-runtime.bicepparam \
                         --parameters tenantId="$(tenantId)" \
+                        --parameters classicSubscriptionId="$(classicSubscriptionId)" \
+                        --parameters classicResourceGroupName="$(classicResourceGroupName)" \
                         --parameters deployServicePrincipalObjectId="$(serviceConnectionPrincipalId)"
 
                 - task: AzureCLI@2
                   displayName: Wait for Deployment - Infrastructure
-                  condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+                  #condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
                   inputs:
                     azureSubscription: $(serviceConnection)
                     scriptType: bash

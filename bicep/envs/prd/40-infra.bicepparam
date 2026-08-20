@@ -11,6 +11,8 @@ param entraGroups = {}
 param environment = 'PRD'
 param subnets = {}
 param tenantId = ''
+param classicSubscriptionId = ''
+param classicResourceGroupName = ''
 param deployServicePrincipalObjectId = ''
 param vnetName = 'PRDIMPNETVN1401'
 
