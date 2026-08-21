@@ -1,7 +1,7 @@
 parameters:
   - name: referenceBranch
     type: string
-    default: main
+    default: master
 
   # Both are spliced unquoted into the docker command line: values must be
   # space-separated arguments free of shell metacharacters.

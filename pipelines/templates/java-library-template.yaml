@@ -17,6 +17,14 @@ parameters:
     type: string
     default: $(Build.SourcesDirectory)/target
 
+  - name: sonarAnalysis
+    type: boolean
+    default: false
+
+  - name: sonarReferenceBranch
+    type: string
+    default: master
+
 stages:
   - stage: BuildLibrary
     displayName: Build Library
@@ -39,6 +47,8 @@ stages:
           mavenPomFile:  "${{ parameters.mavenPomFile }}"
           targetPath:  "${{ parameters.targetPath }}"
           publishArtifact: false
+          sonarAnalysis: ${{ parameters.sonarAnalysis }}
+          sonarReferenceBranch: "${{ parameters.sonarReferenceBranch }}"
 
   - stage: ReleaseLibrary
     displayName: Release Library
