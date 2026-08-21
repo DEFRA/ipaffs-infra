@@ -20,9 +20,15 @@ jobs:
           addToPath: true
 
       - script: |
+          set -x
           rm -rf service/coverage
           npm --prefix ./service ci
+          npm --prefix ./service test || true
           npm --prefix ./service run posttest-jenkins
+#          set -x
+#          rm -rf service/coverage
+#          npm --prefix ./service ci
+#          npm --prefix ./service run posttest-jenkins
         displayName: Install dependencies and test
         continueOnError: true
 
