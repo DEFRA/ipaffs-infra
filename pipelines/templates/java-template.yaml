@@ -42,7 +42,7 @@ parameters:
 
   - name: sonarReferenceBranch
     type: string
-    default: main
+    default: master
 
 stages:
   - stage: DetectContainerBuild

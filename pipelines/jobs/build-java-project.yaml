@@ -25,7 +25,7 @@ parameters:
     default: false
   - name: sonarReferenceBranch
     type: string
-    default: main
+    default: master
 
 jobs:
   - job: BuildJavaProject
