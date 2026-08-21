@@ -20,6 +20,12 @@ parameters:
   - name: publishArtifact
     type: boolean
     default: true
+  - name: sonarAnalysis
+    type: boolean
+    default: false
+  - name: sonarReferenceBranch
+    type: string
+    default: main
 
 jobs:
   - job: BuildJavaProject
@@ -29,6 +35,11 @@ jobs:
       MAVEN_CACHE_FOLDER: $(Pipeline.Workspace)/.m2/repository
       MAVEN_OPTS: '-Dmaven.repo.local=$(MAVEN_CACHE_FOLDER)'
     steps:
+      # Full history: the scanner needs git blame for new-code attribution.
+      - ${{ if eq(parameters.sonarAnalysis, true) }}:
+        - checkout: self
+          fetchDepth: 0
+
       - task: DownloadSecureFile@1
         name: mavenSettings
         displayName: 'Download Maven Settings'
@@ -62,6 +73,13 @@ jobs:
         inputs:
           summaryFileLocation: ${{ parameters.jacocoFile }}
           pathToSources: ${{ parameters.srcPaths }}
+
+      - ${{ if eq(parameters.sonarAnalysis, true) }}:
+        - template: /pipelines/steps/sonar-scan.yaml@ipaffs-infra
+          parameters:
+            referenceBranch: ${{ parameters.sonarReferenceBranch }}
+            extraDockerArgs: '-v $(MAVEN_CACHE_FOLDER):/usr/.m2:ro'
+            extraProperties: '-Dsonar.java.libraries=/usr/.m2 -Dsonar.java.test.libraries=/usr/.m2'
 
       - task: PublishPipelineArtifact@1
         displayName: Publish service artifact

@@ -47,29 +47,8 @@ stages:
           mavenPomFile:  "${{ parameters.mavenPomFile }}"
           targetPath:  "${{ parameters.targetPath }}"
           publishArtifact: false
-
-  - ${{ if eq(parameters.sonarAnalysis, true) }}:
-    - stage: SonarAnalysis
-      displayName: SonarQube Analysis
-      variables:
-        - group: Common
-        - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
-            - group: HigherEnvs
-        - ${{ else }}:
-            - group: LowerEnvs
-        - group: "${{ parameters.environmentName }}"
-        - template: "/pipelines/vars/common.yaml"
-        - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
-
-      dependsOn: BuildLibrary
-      condition: and(
-        not(canceled()),
-        eq(dependencies.BuildLibrary.result, 'Succeeded'))
-      jobs:
-        - template: /pipelines/jobs/sonar-analyse-java-library.yaml@ipaffs-infra
-          parameters:
-            referenceBranch: "${{ parameters.sonarReferenceBranch }}"
-            mavenPomFile: "${{ parameters.mavenPomFile }}"
+          sonarAnalysis: ${{ parameters.sonarAnalysis }}
+          sonarReferenceBranch: "${{ parameters.sonarReferenceBranch }}"
 
   - stage: ReleaseLibrary
     displayName: Release Library
