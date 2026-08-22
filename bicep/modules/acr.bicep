@@ -56,6 +56,7 @@ module acrPull './acr-role-assignment.bicep' = {
     deploymentId: deploymentId
     principalObjectId: entraGroups.acrPull.id
     principalType: 'Group'
+    roleAssignmentType: 'permanent'
     roleDefinitionId: acrPullRoleId
   }
 }
@@ -70,6 +71,7 @@ module acrDataImporterServicePrincipal './acr-role-assignment.bicep' = [for prin
     deploymentId: deploymentId
     principalObjectId: principalId
     principalType: 'ServicePrincipal'
+    roleAssignmentType: 'permanent'
     roleDefinitionId: dataImporterRoleId
   }
 }]
@@ -84,6 +86,7 @@ module acrContributor './acr-role-assignment.bicep' = [for principalId in acrPar
     deploymentId: deploymentId
     principalObjectId: principalId
     principalType: 'ServicePrincipal'
+    roleAssignmentType: 'permanent'
     roleDefinitionId: contributorRoleId
   }
 }]

@@ -4,6 +4,7 @@ param deploymentId string
 param entraGroups object
 param location string
 param keyVaultParams object
+param roleAssignmentsType string
 param subnets object
 param tags object
 param tenantId string
@@ -68,6 +69,7 @@ module keyVaultAdministrator './keyvault-role-assignment.bicep' = {
     location: location
     principalObjectId: entraGroups.keyVaultAdmins.id
     principalType: 'Group'
+    roleAssignmentType: roleAssignmentsType
     roleDefinitionId: keyVaultAdministratorRoleId
   }
 }
@@ -81,6 +83,7 @@ module keyVaultSecretsReader './keyvault-role-assignment.bicep' = {
     location: location
     principalObjectId: entraGroups.keyVaultSecretsReaders.id
     principalType: 'Group'
+    roleAssignmentType: roleAssignmentsType
     roleDefinitionId: keyVaultSecretsUserRoleId
   }
 }

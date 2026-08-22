@@ -5,6 +5,7 @@ param deploymentId string
 param entraGroups object
 param location string
 param logAnalyticsId string
+param roleAssignmentsType string
 param subnets object
 param tags object
 param vnetName string
@@ -25,6 +26,8 @@ module vnetNetworkContributor './vnet-role-assignment.bicep' = {
   params: {
     deploymentId: deploymentId
     principalObjectId: userAssignedIdentity.properties.principalId
+    principalType: 'ServicePrincipal'
+    roleAssignmentType: 'permanent'
     roleDefinitionId: networkContributorRoleId
     vnetName: vnetName
   }
@@ -177,6 +180,7 @@ module aksAdmin './aks-role-assignment.bicep' = {
     deploymentId: deploymentId
     principalObjectId: entraGroups.aksAdmins.id
     principalType: 'Group'
+    roleAssignmentType: roleAssignmentsType
     roleDefinitionId: aksRbacClusterAdminRoleId
   }
 }
@@ -189,6 +193,7 @@ module aksWriter './aks-role-assignment.bicep' = {
     deploymentId: deploymentId
     principalObjectId: entraGroups.aksContributors.id
     principalType: 'Group'
+    roleAssignmentType: roleAssignmentsType
     roleDefinitionId: aksRbacWriterRoleId
   }
 }
@@ -201,11 +206,13 @@ module aksReader './aks-role-assignment.bicep' = {
     deploymentId: deploymentId
     principalObjectId: entraGroups.aksReaders.id
     principalType: 'Group'
+    roleAssignmentType: roleAssignmentsType
     roleDefinitionId: aksRbacReaderRoleId
   }
 }
 
 output aksClusterName string = aksCluster.name
+output aksClusterResourceId string = aksCluster.id
 output kubeletPrincipalId string = aksCluster.properties.identityProfile.kubeletIdentity.objectId
 output oidcIssuerUrl string = aksCluster.properties.oidcIssuerProfile.issuerURL
 
