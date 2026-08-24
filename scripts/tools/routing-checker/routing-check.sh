@@ -78,7 +78,7 @@ if ! [[ "${parallelism}" =~ ^[1-9][0-9]*$ ]]; then
   exit 1
 fi
 
-if [[ "${parallelism}" =~ ^[1-9][0-9]*$ ]] && [[ "${interval}" =~ ^[1-9][0-9]*$ ]]; then
+if [[ "${parallelism}" =~ ^[2-9][0-9]*$ ]] && [[ "${interval}" =~ ^[1-9][0-9]*$ ]]; then
   echo "-p can only be specified with -w 0" >&2
   echo >&2
   usage
@@ -103,8 +103,8 @@ fi
 
 case "${environment}" in
   dev)
-    urlB2C="https://importnotification-dev-new.azure.defra.cloud/notification/dev/protected/notifications"
-    urlB2B="https://importnotification-int-dev-new.azure.defra.cloud/notification/dev/protected/notifications"
+    urlB2C="https://ipaffs-dev.azure.defra.cloud/notification/dev/protected/notifications"
+    urlB2B="https://importnotification-int-dev.azure.defra.cloud/notification/dev/protected/notifications"
     classicPrefixB2C="https://dcidmtest.b2clogin.com"
     classicPrefixB2B="https://login.microsoftonline.com"
     aksPrefix="https://ipaffs-redirect-dev.azure.defra.cloud"
@@ -112,7 +112,7 @@ case "${environment}" in
     aksLoginUrlB2B="login_url=https%3A%2F%2Flogin.microsoftonline.com"
     ;;
   tst)
-    urlB2C="https://importnotification-tst.azure.defra.cloud/notification/tst/protected/notifications"
+    urlB2C="https://ipaffs-tst.azure.defra.cloud/notification/tst/protected/notifications"
     urlB2B="https://importnotification-int-tst.azure.defra.cloud/notification/tst/protected/notifications"
     classicPrefixB2C="https://dcidmtest.b2clogin.com"
     classicPrefixB2B="https://login.microsoftonline.com"
@@ -121,7 +121,7 @@ case "${environment}" in
     aksLoginUrlB2B="login_url=https%3A%2F%2Flogin.microsoftonline.com"
     ;;
   pre)
-    urlB2C="https://importnotification-pre.azure.defra.cloud/notification/pre/protected/notifications"
+    urlB2C="https://ipaffs-pre.azure.defra.cloud/notification/pre/protected/notifications"
     urlB2B="https://importnotification-int-pre.azure.defra.cloud/notification/pre/protected/notifications"
     classicPrefixB2C="https://dcidmpreprod.b2clogin.com"
     classicPrefixB2B="https://login.microsoftonline.com"
