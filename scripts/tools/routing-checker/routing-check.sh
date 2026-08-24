@@ -78,7 +78,7 @@ if ! [[ "${parallelism}" =~ ^[1-9][0-9]*$ ]]; then
   exit 1
 fi
 
-if [[ "${parallelism}" =~ ^[1-9][0-9]*$ ]] && [[ "${interval}" =~ ^[1-9][0-9]*$ ]]; then
+if [[ "${parallelism}" =~ ^[2-9][0-9]*$ ]] && [[ "${interval}" =~ ^[1-9][0-9]*$ ]]; then
   echo "-p can only be specified with -w 0" >&2
   echo >&2
   usage
