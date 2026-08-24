@@ -186,7 +186,6 @@ stages:
       jobs:
         - template: /pipelines/jobs/sonar-analyse-node-project.yaml@ipaffs-infra
           parameters:
-            nodeVersion: "${{ parameters.nodeVersion }}"
             referenceBranch: "${{ parameters.sonarReferenceBranch }}"
 
   - stage: PackageService
