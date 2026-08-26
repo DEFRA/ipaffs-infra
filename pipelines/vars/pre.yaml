@@ -7,6 +7,7 @@ variables:
   dnsResourceGroupName: OPSINFRGPZON001
   dnsSubscriptionId: fa6d4701-12be-41be-9c4d-ba3daf88ed8e # AZR-OPS
   entraAccessGroupBaseName: AAG-Azure-AZR_IMP_PRE1
+  redirectorDomain: ipaffs-redirect-pre.azure.defra.cloud
   serviceConnection: ADO-DefraGovUK-AZR-IMP-PRE1
   serviceConnectionPrincipalId: 53a47ce7-dbaa-494e-8a87-54b13248ccd8
   subscriptionName: AZR-IMP-PRE1

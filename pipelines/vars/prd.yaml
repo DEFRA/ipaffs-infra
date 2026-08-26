@@ -7,6 +7,7 @@ variables:
   dnsResourceGroupName: opsinfrgpzon001
   dnsSubscriptionId: fa6d4701-12be-41be-9c4d-ba3daf88ed8e # AZR-OPS
   entraAccessGroupBaseName: AAG-Azure-AZR_IMP_PRD1
+  redirectorDomain: login.import-products-animals-food-feed.service.gov.uk
   serviceConnection: ADO-DefraGovUK-AZR-IMP-PRD1
   serviceConnectionPrincipalId: a3e0f04c-827a-4abc-89c2-249e476b3cf2
   subscriptionName: AZR-IMP-PRD1

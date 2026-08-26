@@ -263,6 +263,7 @@ stages:
                         --timeout 2m \
                         $(helmDryRun) \
                         --set environment="${{ lower(parameters.environmentName) }}" \
+                        --set env.HOST="$(redirectorDomain)" \
                         ms-identity-redirect-handler ./helm-charts/ms-identity-redirect-handler
 
                 - task: AzureCLI@2
