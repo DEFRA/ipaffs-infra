@@ -26,10 +26,9 @@ spec:
             - "{{ . }}"
             {{- end }}
           {{- end }}
-          {{ with .Values.env }}
           env:
-            {{- toYaml . | nindent 12 }}
-          {{ end }}
+            - name: HOST
+              value: {{ .Values.redirectorDomain }}
           imagePullPolicy: {{ .Values.container.imagePullPolicy }}
           {{- with .Values.container.securityContext }}
           securityContext:

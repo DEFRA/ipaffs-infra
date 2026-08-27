@@ -17,4 +17,4 @@ externalSecret:
     - secretKey: ipaffs-tls
       remoteKey: secret/star-azure-defra-cloud-cert
 
-env: {}
+redirectorDomain: ""
