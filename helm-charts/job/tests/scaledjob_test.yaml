@@ -50,3 +50,25 @@ tests:
           path: spec.jobTargetRef.template.spec.initContainers
       - notExists:
           path: spec.jobTargetRef.template.spec.shareProcessNamespace
+
+  - it: sources configuration from the service ConfigMap
+    set:
+      service: test-job
+      environment: dev
+      azure.clientId: 00000000-0000-0000-0000-000000000001
+      keda:
+        enabled: true
+        triggers:
+          - type: azure-servicebus
+            metadata:
+              queueName: test-queue
+      container.image: test/image:1.0.0
+      config.TEST_CONFIG: config-value
+    asserts:
+      - notExists:
+          path: spec.jobTargetRef.template.spec.containers[0].env
+      - contains:
+          path: spec.jobTargetRef.template.spec.containers[0].envFrom
+          content:
+            configMapRef:
+              name: test-job

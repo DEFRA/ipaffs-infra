@@ -172,3 +172,26 @@ tests:
           content:
             name: DATABASE_DB_CONNECTION_STRING_IMPORTS_SECONDARY
             value: "jdbc:sqlserver://devimpdbssq1401.database.windows.net:1433;databaseName=imports-secondary;encrypt=true;socketTimeout=1800000;loginTimeout=15;authentication=ActiveDirectoryManagedIdentity;msiClientId=00000000-0000-0000-0000-000000000002"
+
+  - it: sources configuration from the service ConfigMap
+    release:
+      namespace: dev
+    set:
+      service: test-service
+      database.databaseNames[0]: imports
+      database.migrations.enabled: true
+      database.migrations.image: test/migrations:1.0.0
+      database.migrations.clientId: 00000000-0000-0000-0000-000000000002
+      config.TEST_CONFIG: config-value
+    documentIndex: 1
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: TEST_CONFIG
+            value: config-value
+      - contains:
+          path: spec.template.spec.containers[0].envFrom
+          content:
+            configMapRef:
+              name: test-service

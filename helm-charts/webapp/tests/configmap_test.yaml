@@ -1,0 +1,14 @@
+suite: configmap template
+templates:
+  - templates/configmap.yaml
+tests:
+  - it: maps config values into config data
+    set:
+      service: test-service
+      environment: dev
+      azure.clientId: 00000000-0000-0000-0000-000000000001
+      config.CONFIG_ONLY: config-only-value
+    asserts:
+      - equal:
+          path: data.CONFIG_ONLY
+          value: config-only-value

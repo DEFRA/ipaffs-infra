@@ -62,10 +62,6 @@ spec:
                     name: {{ printf "%s-servicebus" .Values.service }}
                     optional: true
 {{- end }}
-              {{ with .Values.env }}
-              env:
-                {{- toYaml . | nindent 16 }}
-              {{ end }}
               {{- with .Values.resources }}
               resources:
                 {{- toYaml . | nindent 16 }}
@@ -91,4 +87,3 @@ spec:
 {{- end }}
 {{- end }}
 {{- end }}
-
