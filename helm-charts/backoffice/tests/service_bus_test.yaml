@@ -1,0 +1,29 @@
+suite: service bus template
+templates:
+  - templates/service-bus.yaml
+tests:
+  - it: uses the standard connection string secret key by default
+    set:
+      service: test-service
+      environment: dev
+      serviceBus.enabled: true
+      serviceBus.useSecrets: true
+    asserts:
+      - equal:
+          path: spec.operatorSpec.secrets.primaryConnectionString.name
+          value: test-service-servicebus
+      - equal:
+          path: spec.operatorSpec.secrets.primaryConnectionString.key
+          value: SERVICE_BUS_CONNECTION_STRING
+
+  - it: supports a service-specific connection string secret key
+    set:
+      service: test-service
+      environment: dev
+      serviceBus.enabled: true
+      serviceBus.useSecrets: true
+      serviceBus.connectionStringSecretKey: NOTIFY_QUEUE_CONNECTION_NAME
+    asserts:
+      - equal:
+          path: spec.operatorSpec.secrets.primaryConnectionString.key
+          value: NOTIFY_QUEUE_CONNECTION_NAME

@@ -12,6 +12,11 @@ externalSecret:
 serviceBus:
   enabled: false
 
+database:
+  databaseNames: []
+  connectionStringSecretKey: {}
+  connectionStringAliases: {}
+
 azure:
   clientId: ""
   managedIdentityName: ""

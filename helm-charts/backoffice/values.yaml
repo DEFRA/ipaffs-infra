@@ -18,6 +18,7 @@ redis:
 serviceBus:
   enabled: false
   useSecrets: false
+  connectionStringSecretKey: SERVICE_BUS_CONNECTION_STRING
 
 secretStore:
   name: "external-secrets-azure"
@@ -26,4 +27,3 @@ externalSecret:
   enabled: false
   refreshInterval: ""
   secrets: []
-

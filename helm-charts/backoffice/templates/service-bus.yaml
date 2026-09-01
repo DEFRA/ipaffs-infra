@@ -23,7 +23,7 @@ spec:
     secrets:
       primaryConnectionString:
         name: {{ printf "%s-servicebus" .Values.service }}
-        key: SERVICE_BUS_CONNECTION_STRING
+        key: {{ .Values.serviceBus.connectionStringSecretKey | quote }}
     {{- end }}
 
 {{- end }}
