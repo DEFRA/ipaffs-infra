@@ -40,12 +40,9 @@ mkdir -p "services/${SERVICE_NAME}"
 base_file="services/${SERVICE_NAME}/base.yaml"
 
 values_source_dir=""
-for candidate in "${SERVICE_ROOT}/deployment" "${SERVICE_ROOT}/config"; do
-  if [[ -f "${candidate}/values.yaml" ]]; then
-    values_source_dir="${candidate}"
-    break
-  fi
-done
+if [[ -f "${SERVICE_ROOT}/deployment/values.yaml" ]]; then
+  values_source_dir="${SERVICE_ROOT}/deployment"
+fi
 
 if [[ -n "${values_source_dir}" ]]; then
   source_values_file="${values_source_dir}/values.yaml"
@@ -73,7 +70,7 @@ if [[ -n "${values_source_dir}" ]]; then
     cp "${source_values_file}" "${base_file}"
   fi
 else
-  echo "No values.yaml found under ${SERVICE_ROOT}/deployment or ${SERVICE_ROOT}/config, using existing or empty base file"
+  echo "No values.yaml found under ${SERVICE_ROOT}/deployment, using existing or empty base file"
   if [[ ! -f "${base_file}" ]]; then
     printf "{}\n" > "${base_file}"
   fi

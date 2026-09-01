@@ -62,7 +62,7 @@ stages:
 
           - task: Bash@3
             name: SetBuildMode
-            displayName: Detect config-only values changes
+            displayName: Detect deployment-only values changes
             env:
               SOURCE_VERSION: $(Build.SourceVersion)
             inputs:
@@ -95,16 +95,16 @@ stages:
                 printf 'Changed files:\n'
                 printf ' - %s\n' "${changed_files[@]}"
 
-                config_values_only=true
+                deployment_values_only=true
                 for changed_file in "${changed_files[@]}"; do
-                  if [[ ! "${changed_file}" =~ ^(deployment|config)(/[^/]+)?/values\.ya?ml$ ]]; then
-                    config_values_only=false
+                  if [[ ! "${changed_file}" =~ ^deployment(/[^/]+)?/values\.ya?ml$ ]]; then
+                    deployment_values_only=false
                     break
                   fi
                 done
 
-                if [[ "${config_values_only}" == "true" ]]; then
-                  echo "Only deployment/config values.yaml files changed. Skipping container build and package stages."
+                if [[ "${deployment_values_only}" == "true" ]]; then
+                  echo "Only deployment values.yaml files changed. Skipping container build and package stages."
                   echo "##vso[task.setvariable variable=skipContainerBuild;isOutput=true]true"
                 else
                   echo "Detected non-values changes. Container build and package stages will run."
