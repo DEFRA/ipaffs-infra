@@ -65,10 +65,6 @@ spec:
                   name: {{ printf "%s-servicebus" .Values.service }}
                   optional: true
 {{- end }}
-            {{ with .Values.env }}
-            env:
-              {{- toYaml . | nindent 14 }}
-            {{ end }}
             {{- with .Values.resources }}
             resources:
               {{- toYaml . | nindent 14 }}
@@ -96,4 +92,3 @@ spec:
   triggers:
     {{- required "keda.triggers must contain at least one trigger when keda.enabled is true" .Values.keda.triggers | toYaml | nindent 4 }}
 {{- end }}
-

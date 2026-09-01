@@ -170,25 +170,8 @@
         "enabled"
       ]
     },
-    "env": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string"
-          },
-          "value": {
-            "type": "string"
-          },
-          "valueFrom": {
-            "type": "object"
-          }
-        },
-        "required": [
-          "name"
-        ]
-      }
+    "config": {
+      "type": "object"
     },
     "resources": {
       "type": "object"

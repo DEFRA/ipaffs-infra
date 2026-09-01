@@ -108,6 +108,25 @@ tests:
           path: spec.template.spec.containers[0].ports[0].containerPort
           value: 4000
 
+  - it: sources configuration from the service ConfigMap
+    set:
+      service: test-service
+      azure.clientId: 00000000-0000-0000-0000-000000000001
+      container.image: test/image:1.0.0
+      config.TEST_CONFIG: config-value
+    documentIndex: 1
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: TEST_CONFIG
+            value: config-value
+      - contains:
+          path: spec.template.spec.containers[0].envFrom
+          content:
+            configMapRef:
+              name: test-service
+
   - it: renders the adal bridge init container when databases are configured
     set:
       service: test-service

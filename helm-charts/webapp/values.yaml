@@ -74,8 +74,6 @@ search:
   subscriptionId: ""
   resourceGroupName: ""
 
-env: {}
-
 # This block is for setting up the ingress for more information can be found here: https://kubernetes.io/docs/concepts/services-networking/ingress/
 ingress:
   annotations:
@@ -96,4 +94,3 @@ resources: {}
   # requests:
   #   cpu: 100m
   #   memory: 128Mi
-
