@@ -12,3 +12,55 @@ tests:
       - equal:
           path: data.CONFIG_ONLY
           value: config-only-value
+
+  - it: exposes generated database connection strings under a configured primary key and aliases
+    set:
+      service: test-job
+      project: ipaffs
+      environment: dev
+      azure.clientId: 00000000-0000-0000-0000-000000000001
+      database:
+        databaseNames:
+          - notification-microservice
+        connectionStringSecretKey:
+          notification-microservice: JDBC_URL
+        connectionStringAliases:
+          notification-microservice:
+            - MANAGED_IDENTITY_JDBC_URL
+    asserts:
+      - equal:
+          path: data.JDBC_URL
+          value: jdbc:sqlserver://devimpdbssq1401.database.windows.net:1433;databaseName=notification-microservice-NAMESPACE;encrypt=true;socketTimeout=1800000;loginTimeout=15;authentication=ActiveDirectoryManagedIdentity;msiClientId=00000000-0000-0000-0000-000000000001
+      - equal:
+          path: data.MANAGED_IDENTITY_JDBC_URL
+          value: jdbc:sqlserver://devimpdbssq1401.database.windows.net:1433;databaseName=notification-microservice-NAMESPACE;encrypt=true;socketTimeout=1800000;loginTimeout=15;authentication=ActiveDirectoryManagedIdentity;msiClientId=00000000-0000-0000-0000-000000000001
+      - notExists:
+          path: data.DATABASE_DB_CONNECTION_STRING_NOTIFICATION_MICROSERVICE
+
+  - it: uses the canonical connection string key by default
+    set:
+      service: test-job
+      project: ipaffs
+      environment: dev
+      azure.clientId: 00000000-0000-0000-0000-000000000001
+      database.databaseNames:
+        - notification-microservice
+    asserts:
+      - equal:
+          path: data.DATABASE_DB_CONNECTION_STRING_NOTIFICATION_MICROSERVICE
+          value: jdbc:sqlserver://devimpdbssq1401.database.windows.net:1433;databaseName=notification-microservice-NAMESPACE;encrypt=true;socketTimeout=1800000;loginTimeout=15;authentication=ActiveDirectoryManagedIdentity;msiClientId=00000000-0000-0000-0000-000000000001
+
+  - it: does not expose aliases that are configured for another database
+    set:
+      service: test-job
+      environment: dev
+      azure.clientId: 00000000-0000-0000-0000-000000000001
+      database:
+        databaseNames:
+          - imports
+        connectionStringAliases:
+          notification-microservice:
+            - JDBC_URL
+    asserts:
+      - notExists:
+          path: data.JDBC_URL

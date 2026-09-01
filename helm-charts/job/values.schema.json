@@ -45,6 +45,45 @@
         }
       }
     },
+    "database": {
+      "type": "object",
+      "required": [
+        "databaseNames",
+        "connectionStringSecretKey",
+        "connectionStringAliases"
+      ],
+      "properties": {
+        "databaseNames": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "connectionStringSecretKey": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+          }
+        },
+        "connectionStringAliases": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+            }
+          }
+        }
+      }
+    },
     "azure": {
       "type": "object",
       "properties": {

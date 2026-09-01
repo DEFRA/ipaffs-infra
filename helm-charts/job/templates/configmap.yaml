@@ -8,12 +8,19 @@ data:
   ENVIRONMENT: "{{ .Values.environment }}"
 {{- $database := default (dict) .Values.database }}
 {{- $databaseNames := get $database "databaseNames" | default (list) }}
+{{- $connectionStringSecretKeys := get $database "connectionStringSecretKey" | default (dict) }}
+{{- $connectionStringAliases := get $database "connectionStringAliases" | default (dict) }}
 {{- $clientId := include "job.azure.serviceClientId" . | trim }}
 {{- range $databaseName := $databaseNames }}
 {{- $db := dict "databaseName" $databaseName "Values" $.Values "Release" $.Release }}
-  DATABASE_DB_CONNECTION_STRING_{{ upper (snakecase $databaseName) }}: "jdbc:sqlserver://{{ template "ipaffs-common.azure.sqlServerHostname" $db }}:1433;databaseName={{ template "ipaffs-common.azure.databaseName" $db }};encrypt=true;socketTimeout=1800000;loginTimeout=15;authentication=ActiveDirectoryManagedIdentity;msiClientId={{ $clientId }}"
+{{- $connectionString := printf "jdbc:sqlserver://%s:1433;databaseName=%s;encrypt=true;socketTimeout=1800000;loginTimeout=15;authentication=ActiveDirectoryManagedIdentity;msiClientId=%s" (include "ipaffs-common.azure.sqlServerHostname" $db) (include "ipaffs-common.azure.databaseName" $db) $clientId }}
+{{- $defaultConnectionStringSecretKey := printf "DATABASE_DB_CONNECTION_STRING_%s" (upper (snakecase $databaseName)) }}
+{{- $connectionStringSecretKey := get $connectionStringSecretKeys $databaseName | default $defaultConnectionStringSecretKey }}
+  {{ $connectionStringSecretKey }}: {{ $connectionString | quote }}
+{{- range $alias := get $connectionStringAliases $databaseName | default (list) }}
+  {{ $alias }}: {{ $connectionString | quote }}
+{{- end }}
 {{- end }}
 {{- range $key, $val := .Values.config }}
   {{ $key }}: "{{ $val }}"
 {{- end }}
-
