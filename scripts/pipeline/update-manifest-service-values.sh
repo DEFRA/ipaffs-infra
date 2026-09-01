@@ -50,10 +50,24 @@ done
 if [[ -n "${values_source_dir}" ]]; then
   source_values_file="${values_source_dir}/values.yaml"
 
-  if [[ "${skip_container_image_update}" == "true" ]] && [[ -f "${base_file}" ]]; then
-    echo "Skipping container image updates for ${SERVICE_NAME}; merging values without touching image keys."
+  if [[ "${skip_container_image_update}" == "true" ]]; then
+    echo "Skipping container image updates for ${SERVICE_NAME}; replacing values while preserving existing image keys."
+    if [[ ! -f "${base_file}" ]]; then
+      printf "{}\n" > "${base_file}"
+    fi
+
+    # shellcheck disable=SC2016 # $existing and $image are yq variables.
     SOURCE_VALUES_FILE="${source_values_file}" yq -i '
-      . *= (load(strenv(SOURCE_VALUES_FILE)) | del(.container.image, .database.migrations.image))
+      . as $existing |
+      (load(strenv(SOURCE_VALUES_FILE)) | del(.container.image, .database.migrations.image)) * (
+        (
+          (($existing.container.image | select(. != null)) as $image |
+            {"container": {"image": $image}}) // {}
+        ) * (
+          (($existing.database.migrations.image | select(. != null)) as $image |
+            {"database": {"migrations": {"image": $image}}}) // {}
+        )
+      )
     ' "${base_file}"
   else
     cp "${source_values_file}" "${base_file}"
