@@ -19,15 +19,6 @@
         }
       }
     },
-    "ipaffsUrls": {
-      "type": "object",
-      "properties": {
-        "useLiveUrls": {
-          "type": "boolean"
-        }
-      },
-      "additionalProperties": false
-    },
     "secretStore": {
       "type": "object",
       "properties": {
