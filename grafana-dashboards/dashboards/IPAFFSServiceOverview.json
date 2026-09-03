@@ -1096,6 +1096,7 @@
     "list": [
       {
         "current": {
+          "selected": true,
           "text": "Prometheus",
           "value": "bfq876mzxyfi8b"
         },
@@ -1154,8 +1155,8 @@
       {
         "current": {},
         "datasource": {
-          "type": "prometheus",
-          "uid": "${datasource}"
+          "type": "grafana-azure-monitor-datasource",
+          "uid": "azure-monitor-oob"
         },
         "definition": "",
         "description": "App Insights Resource Group",
@@ -1163,9 +1164,17 @@
         "label": "Resource Group",
         "name": "resourceGroup",
         "options": [],
-        "query": "",
+        "query": {
+          "azureLogAnalytics": {
+            "query": "",
+            "resources": []
+          },
+          "queryType": "Azure Resource Groups",
+          "refId": "A",
+          "subscription": "$subscription"
+        },
         "refresh": 1,
-        "regex": "/.*IMPINFRG1401.*/",
+        "regex": "/.*IMPINFRG1401.*/i",
         "type": "query"
       },
       {
