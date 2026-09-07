@@ -300,9 +300,14 @@ stages:
               displayName: Commit and push manifest changes
               condition: and(not(failed()), not(canceled()), ne(variables['skipManifestUpdate'], 'true'))
               env:
+                INFRA_ROOT: "$(Pipeline.Workspace)/s/ipaffs-infra"
+                MANIFEST_ROOT: "$(Pipeline.Workspace)/s/ipaffs-manifest"
                 SERVICE_NAME: "${{ parameters.serviceName }}"
                 BUILD_NUMBER: $(Build.BuildNumber)
                 MANIFEST_BRANCH: "$(targetManifestBranch)"
+                SOURCE_REPOSITORY_ROOT: "$(Pipeline.Workspace)/s/self"
+                SOURCE_REPOSITORY_URI: "$(Build.Repository.Uri)"
+                SOURCE_VERSION: "$(Build.SourceVersion)"
               inputs:
                 targetType: inline
                 workingDirectory: $(Pipeline.Workspace)/s/ipaffs-manifest
@@ -324,7 +329,7 @@ stages:
                     exit 0
                   fi
 
-                  git commit -m "Update ${SERVICE_NAME} values for build ${BUILD_NUMBER}"
+                  bash "${INFRA_ROOT}/scripts/pipeline/create-manifest-commit.sh"
 
                   if ! git ls-remote --exit-code --heads origin "${MANIFEST_BRANCH}" >/dev/null; then
                     echo "Manifest branch '${MANIFEST_BRANCH}' no longer exists. Skipping push."
@@ -333,4 +338,3 @@ stages:
 
                   git pull --rebase origin "${MANIFEST_BRANCH}"
                   git push origin "HEAD:${MANIFEST_BRANCH}"
-
