@@ -123,12 +123,14 @@ module grafanaDeploySpAdmin './grafana-role-assignment.bicep' = {
   }
 }
 
-module grafanaMonitoringReader './rg-role-assignment.bicep' = {
+module grafanaMonitoringReader './resource-group-role-assignment.bicep' = {
   name: 'grafanaMonitoringReader-${deploymentId}'
   scope: resourceGroup()
   params: {
     deploymentId: deploymentId
     principalObjectId: grafanaDashboard.identity.principalId
+    principalType: 'ServicePrincipal'
+    roleAssignmentType: 'permanent'
     roleDefinitionId: monitoringReaderRoleId
   }
 }
@@ -141,6 +143,7 @@ module grafanaMonitoringDataReader './prometheus-role-assignment.bicep' = {
     deploymentId: deploymentId
     principalObjectId: grafanaDashboard.identity.principalId
     principalType: 'ServicePrincipal'
+    roleAssignmentType: 'permanent'
     roleDefinitionId: monitoringDataReaderRoleId
   }
 }

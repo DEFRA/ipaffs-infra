@@ -27,6 +27,21 @@ stages:
                 - checkout: self
 
                 - task: AzureCLI@2
+                  name: ServiceConnPrincipalAKSClusterRBACAdmin
+                  inputs:
+                    azureSubscription: $(serviceConnection)
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      set -eux
+                      az account set --subscription "$(subscriptionId)"
+                      az role assignment create \
+                        --role b1ff04bb-8a4e-4dc4-8eb5-8693973ce19b \
+                        --scope $(aksClusterResourceId) \
+                        --assignee-object-id $(serviceConnectionPrincipalId) \
+                        --assignee-principal-type ServicePrincipal
+
+                - task: AzureCLI@2
                   name: SQLServerDirectoryReaders
                   displayName: Add SQL Server Managed Identity to Directory Readers Group
                   env:

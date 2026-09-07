@@ -238,6 +238,7 @@ stages:
               scriptLocation: inlineScript
               inlineScript: |
                 set -x
+                scripts/pipeline/update-group-variable-from-deployment.sh aksClusterResourceId aksClusterResourceId
                 scripts/pipeline/update-group-variable-from-deployment.sh aksKubeletPrincipalId aksKubeletPrincipalId
                 scripts/pipeline/update-group-variable-from-deployment.sh azureServiceOperatorClientId azureServiceOperatorClientId
                 scripts/pipeline/update-group-variable-from-deployment.sh externalSecretsClientId externalSecretsClientId

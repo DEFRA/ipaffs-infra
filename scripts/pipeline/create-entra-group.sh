@@ -10,10 +10,11 @@
 ## -u  Update-only flag, do not create a new group when specified
 ##
 ## Required environment variables:
-## GROUP_NAME        - The display name of a group to locate and add members
-## GROUP_DESCRIPTION - The object ID of a group to add members
+## GROUP_NAME        - The display name of a group to create/update
+## GROUP_DESCRIPTION - The groupo description to set
 ##
 ## Optional environment variables:
+## GROUP_ID                 - Optionally specify the group object ID, useful for renaming an existing group
 ## GROUP_OWNER_OBJECT_IDS   - Set of object IDs for principals that will own the group. This is only set
 ##                            at group creation time, and can include the calling principal (the script
 ##                            will gracefully handle known API issues around automagic ownership).
