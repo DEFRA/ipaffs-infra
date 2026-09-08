@@ -35,6 +35,10 @@ parameters:
     type: string
     default: apply
 
+  - name: helmfileDebug
+    type: boolean
+    default: false
+
   - name: helmfileSelector
     type: string
     default: ""
@@ -111,6 +115,10 @@ jobs:
           NAMESPACE: ${{ parameters.namespace }}
           HELMFILE_SELECTOR: "${{ parameters.helmfileSelector }}"
           SOURCE_REF: $(Build.SourceBranch)
+          ${{ if eq(parameters.helmfileDebug, true) }}:
+            HELMFILE_DEBUG: "true"
+          ${{ else }}:
+            HELMFILE_DEBUG: "false"
         inputs:
           azureSubscription: ${{ coalesce(parameters.serviceConnection, variables.serviceConnection) }}
           scriptType: bash
@@ -129,8 +137,6 @@ jobs:
             fi
             export MANIFEST_TAG="${manifest_tag}"
 
-            printenv
-
             curl -L https://github.com/helmfile/helmfile/releases/download/v1.1.9/helmfile_1.1.9_linux_amd64.tar.gz | tar -xz
             chmod +x ./helmfile
             ./helmfile init --force
@@ -140,5 +146,4 @@ jobs:
               selector_args=(--selector "${HELMFILE_SELECTOR}")
             fi
 
-            ./helmfile ${{ parameters.helmfileAction }} --debug "${selector_args[@]}"
-
+            ./helmfile ${{ parameters.helmfileAction }} "${selector_args[@]}"
