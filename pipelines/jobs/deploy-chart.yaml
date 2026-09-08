@@ -35,6 +35,10 @@ parameters:
     type: string
     default: apply
 
+  - name: helmfileDebug
+    type: boolean
+    default: false
+
   - name: helmfileSelector
     type: string
     default: ""
@@ -65,28 +69,13 @@ jobs:
         workspaceRepo: true
 
       - task: AzureCLI@2
-        name: AuthenticateAzure
-        displayName: Authenticate with Azure
+        name: DeployHelmCharts
+        displayName: Deploy Helm Charts
         env:
           ${{ if ne(parameters.acrNameOverride, '') }}:
             ACR_NAME: ${{ parameters.acrNameOverride }}
           ${{ else }}:
             ACR_NAME: $(acrName)
-        inputs:
-          azureSubscription: ${{ coalesce(parameters.serviceConnection, variables.serviceConnection) }}
-          scriptType: bash
-          scriptLocation: inlineScript
-          inlineScript: |
-            set -x
-            az aks install-cli --client-version v1.36.1 --kubelogin-version v0.2.18
-            az aks get-credentials -n "$(kubernetesCluster)" -g "$(resourceGroupName)" --subscription "$(subscriptionName)"
-            kubelogin convert-kubeconfig -l azurecli
-            az acr login --name "${ACR_NAME}" --subscription "$(subscriptionName)"
-
-      - task: AzureCLI@2
-        name: DeployHelmCharts
-        displayName: Deploy Helm Charts
-        env:
           ENVIRONMENT: ${{ lower(parameters.environmentName) }}
           AZURE_LOCATION: $(location)
           ${{ if ne(parameters.acrLoginServerOverride, '') }}:
@@ -111,6 +100,10 @@ jobs:
           NAMESPACE: ${{ parameters.namespace }}
           HELMFILE_SELECTOR: "${{ parameters.helmfileSelector }}"
           SOURCE_REF: $(Build.SourceBranch)
+          ${{ if eq(parameters.helmfileDebug, true) }}:
+            HELMFILE_DEBUG: "true"
+          ${{ else }}:
+            HELMFILE_DEBUG: "false"
         inputs:
           azureSubscription: ${{ coalesce(parameters.serviceConnection, variables.serviceConnection) }}
           scriptType: bash
@@ -118,6 +111,13 @@ jobs:
           inlineScript: |
             set -euo pipefail
 
+            echo "##[section]Authenticate with Azure"
+            az aks install-cli --client-version v1.36.1 --kubelogin-version v0.2.18
+            az aks get-credentials -n "$(kubernetesCluster)" -g "$(resourceGroupName)" --subscription "$(subscriptionName)"
+            kubelogin convert-kubeconfig -l azurecli
+            az acr login --name "${ACR_NAME}" --subscription "$(subscriptionName)"
+
+            echo "##[section]Deploy Helm charts"
             if [[ "${SOURCE_REF}" == refs/tags/* ]]; then
               manifest_tag="${SOURCE_REF#refs/tags/}"
             elif [[ "${SOURCE_REF}" == refs/heads/RELEASE/* ]]; then
@@ -129,8 +129,6 @@ jobs:
             fi
             export MANIFEST_TAG="${manifest_tag}"
 
-            printenv
-
             curl -L https://github.com/helmfile/helmfile/releases/download/v1.1.9/helmfile_1.1.9_linux_amd64.tar.gz | tar -xz
             chmod +x ./helmfile
             ./helmfile init --force
@@ -140,5 +138,4 @@ jobs:
               selector_args=(--selector "${HELMFILE_SELECTOR}")
             fi
 
-            ./helmfile ${{ parameters.helmfileAction }} --debug "${selector_args[@]}"
-
+            ./helmfile ${{ parameters.helmfileAction }} "${selector_args[@]}"
