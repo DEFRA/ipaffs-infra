@@ -82,6 +82,10 @@ jobs:
             bash -n "${file}"
           done
 
+      - name: Test ASO identity readiness
+        shell: bash
+        run: bash scripts/pipeline/wait-for-aso-identities-from-services.test.sh
+
   bicep:
     name: Bicep
     runs-on: ubuntu-latest
