@@ -6,7 +6,6 @@ set -euo pipefail
 : "${RESOURCE_GROUP_NAME:?RESOURCE_GROUP_NAME is required}"
 : "${SERVICES_ROOT:?SERVICES_ROOT is required}"
 
-ASO_IDENTITY_WAIT_MODE="${ASO_IDENTITY_WAIT_MODE:-sequential}"
 WAIT_TIMEOUT_SECONDS="${WAIT_TIMEOUT_SECONDS:-900}"
 WAIT_INTERVAL_SECONDS="${WAIT_INTERVAL_SECONDS:-5}"
 
@@ -19,14 +18,6 @@ if ! [[ "${WAIT_INTERVAL_SECONDS}" =~ ^[1-9][0-9]*$ ]]; then
   echo "WAIT_INTERVAL_SECONDS must be a positive integer" >&2
   exit 1
 fi
-
-case "${ASO_IDENTITY_WAIT_MODE}" in
-  sequential | batch) ;;
-  *)
-    echo "ASO_IDENTITY_WAIT_MODE must be 'sequential' or 'batch'" >&2
-    exit 1
-    ;;
-esac
 
 lower_resource_group_name="$(echo "${RESOURCE_GROUP_NAME}" | tr '[:upper:]' '[:lower:]')"
 
@@ -210,10 +201,5 @@ if [[ ${#expected_identity_names[@]} -eq 0 ]]; then
   exit 1
 fi
 
-echo "Using ${ASO_IDENTITY_WAIT_MODE} ASO identity readiness checks"
-
-if [[ "${ASO_IDENTITY_WAIT_MODE}" == "batch" ]]; then
-  wait_for_identity_client_ids_in_batch "${expected_identity_names[@]}"
-else
-  wait_for_identity_client_ids_sequentially "${expected_identity_names[@]}"
-fi
+echo "Using batch ASO identity readiness checks"
+wait_for_identity_client_ids_in_batch "${expected_identity_names[@]}"

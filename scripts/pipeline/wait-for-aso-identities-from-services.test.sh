@@ -163,9 +163,8 @@ chmod +x "${fake_bin}/kubectl" "${fake_bin}/sleep" "${fake_bin}/yq"
 run_case() {
   local case_name="$1"
   local scenario="$2"
-  local mode="$3"
-  local timeout="${4:-2}"
-  local interval="${5:-1}"
+  local timeout="${3:-2}"
+  local interval="${4:-1}"
   local case_root="${work_dir}/${case_name}"
   local services_root="${case_root}/services"
 
@@ -179,83 +178,54 @@ run_case() {
   : > "${case_kubectl_log}"
   : > "${case_sleep_log}"
 
-  if [[ "${mode}" == "unset" ]]; then
-    if PATH="${fake_bin}:${PATH}" \
-      NAMESPACE=tst \
-      RESOURCE_GROUP_NAME=TST-IMP-RG \
-      SERVICES_ROOT="${services_root}" \
-      WAIT_TIMEOUT_SECONDS="${timeout}" \
-      WAIT_INTERVAL_SECONDS="${interval}" \
-      FAKE_KUBECTL_SCENARIO="${scenario}" \
-      FAKE_KUBECTL_LOG="${case_kubectl_log}" \
-      FAKE_KUBECTL_STATE="${case_state}" \
-      FAKE_SLEEP_LOG="${case_sleep_log}" \
-      bash "${script_path}" > "${case_output}" 2>&1; then
-      case_status=0
-    else
-      case_status=$?
-    fi
+  if PATH="${fake_bin}:${PATH}" \
+    NAMESPACE=tst \
+    RESOURCE_GROUP_NAME=TST-IMP-RG \
+    SERVICES_ROOT="${services_root}" \
+    WAIT_TIMEOUT_SECONDS="${timeout}" \
+    WAIT_INTERVAL_SECONDS="${interval}" \
+    FAKE_KUBECTL_SCENARIO="${scenario}" \
+    FAKE_KUBECTL_LOG="${case_kubectl_log}" \
+    FAKE_KUBECTL_STATE="${case_state}" \
+    FAKE_SLEEP_LOG="${case_sleep_log}" \
+    bash "${script_path}" > "${case_output}" 2>&1; then
+    case_status=0
   else
-    if PATH="${fake_bin}:${PATH}" \
-      NAMESPACE=tst \
-      RESOURCE_GROUP_NAME=TST-IMP-RG \
-      SERVICES_ROOT="${services_root}" \
-      ASO_IDENTITY_WAIT_MODE="${mode}" \
-      WAIT_TIMEOUT_SECONDS="${timeout}" \
-      WAIT_INTERVAL_SECONDS="${interval}" \
-      FAKE_KUBECTL_SCENARIO="${scenario}" \
-      FAKE_KUBECTL_LOG="${case_kubectl_log}" \
-      FAKE_KUBECTL_STATE="${case_state}" \
-      FAKE_SLEEP_LOG="${case_sleep_log}" \
-      bash "${script_path}" > "${case_output}" 2>&1; then
-      case_status=0
-    else
-      case_status=$?
-    fi
+    case_status=$?
   fi
 }
 
-run_case "default-sequential" all-ready unset
-check "the default mode succeeds" "0" "${case_status}"
-check "the default mode performs three named reads" "3" "$(count_calls ' jsonpath=')"
-check "the default mode performs no collection reads" "0" "$(count_calls '--output json$')"
+run_case "batch-ready" all-ready
+check "batch-first succeeds when every identity is ready" "0" "${case_status}"
+check "batch-first performs one collection read" "1" "$(count_calls '--output json$')"
+check "batch-first performs no named reads" "0" "$(count_calls ' jsonpath=')"
+check "batch-first does not sleep when every identity is ready" "0" "$(wc -l < "${case_sleep_log}" | tr -d ' ')"
+check_output_contains "batch-first includes the migrations identity" "ASO clientIds resolved for all 3 identities"
+check_output_excludes "batch-first does not log clientIds" "alpha-service-id"
 
-run_case "batch-ready" all-ready batch
-check "batch mode succeeds when every identity is ready" "0" "${case_status}"
-check "batch mode performs one collection read" "1" "$(count_calls '--output json$')"
-check "batch mode performs no named reads" "0" "$(count_calls ' jsonpath=')"
-check "batch mode does not sleep when every identity is ready" "0" "$(wc -l < "${case_sleep_log}" | tr -d ' ')"
-check_output_contains "batch mode includes the migrations identity" "ASO clientIds resolved for all 3 identities"
-check_output_excludes "batch mode does not log clientIds" "alpha-service-id"
+run_case "batch-delayed" delayed
+check "batch-first succeeds after identities become ready" "0" "${case_status}"
+check "batch-first performs one collection read per poll" "2" "$(count_calls '--output json$')"
+check "batch-first sleeps once between two polls" "1" "$(wc -l < "${case_sleep_log}" | tr -d ' ')"
+check_output_contains "batch-first distinguishes missing resources from pending clientIds" "1 resources not found, 1 clientIds pending"
 
-run_case "batch-delayed" delayed batch
-check "batch mode succeeds after identities become ready" "0" "${case_status}"
-check "batch mode performs one collection read per poll" "2" "$(count_calls '--output json$')"
-check "batch mode sleeps once between two polls" "1" "$(wc -l < "${case_sleep_log}" | tr -d ' ')"
-check_output_contains "batch mode distinguishes missing resources from pending clientIds" "1 resources not found, 1 clientIds pending"
-
-run_case "batch-timeout" timeout batch
-check "batch mode fails after its shared timeout" "1" "${case_status}"
-check "batch mode polls twice before a two-second timeout" "2" "$(count_calls '--output json$')"
+run_case "batch-timeout" timeout
+check "batch-first fails after its shared timeout" "1" "${case_status}"
+check "batch-first polls twice before a two-second timeout" "2" "$(count_calls '--output json$')"
 check_output_contains "timeout reports a missing migration identity" "  - tst-imp-rg-tst-alpha-migrations"
 check_output_contains "timeout reports an identity with no clientId" "  - tst-imp-rg-tst-beta-service"
 
-run_case "batch-list-fallback" list-failure batch
+run_case "batch-list-fallback" list-failure
 check "a failed collection read falls back successfully" "0" "${case_status}"
 check "fallback attempts one collection read" "1" "$(count_calls '--output json$')"
 check "fallback checks each identity by name" "3" "$(count_calls ' jsonpath=')"
 check_output_contains "fallback explains why batching was abandoned" "switching to sequential readiness checks"
 
-run_case "batch-malformed-fallback" malformed batch
+run_case "batch-malformed-fallback" malformed
 check "an invalid collection response falls back successfully" "0" "${case_status}"
 check "invalid JSON falls back to three named reads" "3" "$(count_calls ' jsonpath=')"
 
-run_case "invalid-mode" all-ready invalid
-check "an invalid mode fails" "1" "${case_status}"
-check "an invalid mode fails before calling kubectl" "0" "$(wc -l < "${case_kubectl_log}" | tr -d ' ')"
-check_output_contains "an invalid mode is diagnosed" "ASO_IDENTITY_WAIT_MODE must be 'sequential' or 'batch'"
-
-run_case "invalid-interval" all-ready batch 2 0
+run_case "invalid-interval" all-ready 2 0
 check "a zero poll interval fails" "1" "${case_status}"
 check "a zero poll interval fails before calling kubectl" "0" "$(wc -l < "${case_kubectl_log}" | tr -d ' ')"
 
@@ -269,7 +239,6 @@ if PATH="${fake_bin}:${PATH}" \
   NAMESPACE=tst \
   RESOURCE_GROUP_NAME=TST-IMP-RG \
   SERVICES_ROOT="${empty_case_root}/services" \
-  ASO_IDENTITY_WAIT_MODE=batch \
   FAKE_KUBECTL_SCENARIO=all-ready \
   FAKE_KUBECTL_LOG="${case_kubectl_log}" \
   FAKE_KUBECTL_STATE="${empty_case_root}/kubectl-state" \
