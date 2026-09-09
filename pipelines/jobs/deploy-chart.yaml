@@ -63,10 +63,48 @@ jobs:
       - group: "${{ parameters.environmentName }}"
       - template: "/pipelines/vars/common.yaml"
       - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
+      - name: HELMFILE_TOOLCHAIN_DIRECTORY
+        value: $(Pipeline.Workspace)/.helmfile-toolchain
+      - name: HELMFILE_VERSION
+        value: "1.1.9"
+      - name: HELMFILE_SHA256
+        value: ee71196bb12460905b8cbe0ef67b28db51ef681b777cc212d8c0956475b51905
+      - name: HELMFILE_TOOLCHAIN_CACHE_RESTORED
+        value: "false"
 
     steps:
       - checkout: ${{ parameters.repository }}
         workspaceRepo: true
+
+      - task: Cache@2
+        displayName: Restore Helmfile toolchain
+        continueOnError: true
+        inputs:
+          key: '"helmfile-toolchain-v2" | "$(Agent.OS)" | "$(Agent.OSArchitecture)" | "helmfile-$(HELMFILE_VERSION)" | "archive-$(HELMFILE_SHA256)"'
+          path: $(HELMFILE_TOOLCHAIN_DIRECTORY)
+          cacheHitVar: HELMFILE_TOOLCHAIN_CACHE_RESTORED
+
+      - bash: |
+          set -euo pipefail
+
+          rm -rf -- "${HELMFILE_TOOLCHAIN_DIRECTORY}"
+          mkdir -p "${HELMFILE_TOOLCHAIN_DIRECTORY}/bin" "${HELM_PLUGINS}"
+          helmfile_archive="$(Agent.TempDirectory)/helmfile_${HELMFILE_VERSION}_linux_amd64.tar.gz"
+
+          curl --fail --location --retry 3 --show-error --silent \
+            --output "${helmfile_archive}" \
+            "https://github.com/helmfile/helmfile/releases/download/v${HELMFILE_VERSION}/helmfile_${HELMFILE_VERSION}_linux_amd64.tar.gz"
+          printf '%s  %s\n' "${HELMFILE_SHA256}" "${helmfile_archive}" | sha256sum --check -
+          tar -xzf "${helmfile_archive}" -C "${HELMFILE_TOOLCHAIN_DIRECTORY}/bin" helmfile
+          chmod +x "${HELMFILE_TOOLCHAIN_DIRECTORY}/bin/helmfile"
+          "${HELMFILE_TOOLCHAIN_DIRECTORY}/bin/helmfile" init --force
+        displayName: Install Helmfile toolchain
+        condition: and(succeeded(), ne(variables['HELMFILE_TOOLCHAIN_CACHE_RESTORED'], 'true'))
+        env:
+          HELMFILE_TOOLCHAIN_DIRECTORY: $(HELMFILE_TOOLCHAIN_DIRECTORY)
+          HELMFILE_VERSION: $(HELMFILE_VERSION)
+          HELMFILE_SHA256: $(HELMFILE_SHA256)
+          HELM_PLUGINS: $(HELMFILE_TOOLCHAIN_DIRECTORY)/plugins
 
       - task: AzureCLI@2
         name: DeployHelmCharts
@@ -100,6 +138,8 @@ jobs:
           NAMESPACE: ${{ parameters.namespace }}
           HELMFILE_SELECTOR: "${{ parameters.helmfileSelector }}"
           SOURCE_REF: $(Build.SourceBranch)
+          HELMFILE_BINARY: $(HELMFILE_TOOLCHAIN_DIRECTORY)/bin/helmfile
+          HELM_PLUGINS: $(HELMFILE_TOOLCHAIN_DIRECTORY)/plugins
           ${{ if eq(parameters.helmfileDebug, true) }}:
             HELMFILE_DEBUG: "true"
           ${{ else }}:
@@ -129,13 +169,9 @@ jobs:
             fi
             export MANIFEST_TAG="${manifest_tag}"
 
-            curl -L https://github.com/helmfile/helmfile/releases/download/v1.1.9/helmfile_1.1.9_linux_amd64.tar.gz | tar -xz
-            chmod +x ./helmfile
-            ./helmfile init --force
-
             selector_args=()
             if [[ -n "${HELMFILE_SELECTOR}" ]]; then
               selector_args=(--selector "${HELMFILE_SELECTOR}")
             fi
 
-            ./helmfile ${{ parameters.helmfileAction }} "${selector_args[@]}"
+            "${HELMFILE_BINARY}" ${{ parameters.helmfileAction }} "${selector_args[@]}"
