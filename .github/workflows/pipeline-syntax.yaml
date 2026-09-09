@@ -62,6 +62,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Test Entra group membership reconciliation
+        shell: bash
+        run: bash scripts/pipeline/add-entra-group-members.test.sh
+
       - name: Check Bash syntax
         shell: bash
         run: |

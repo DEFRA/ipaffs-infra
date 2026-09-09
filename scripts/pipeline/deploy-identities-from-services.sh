@@ -89,6 +89,7 @@ bulk_add_group_members() {
   echo "Adding principals to ${description}"
   GROUP_ID="${group_id}" \
   GROUP_MEMBERS="${principal_ids}" \
+  CHECK_EXISTING_MEMBERS=true \
   "${SCRIPT_DIR}/add-entra-group-members.sh"
 }
 
