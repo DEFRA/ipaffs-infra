@@ -62,6 +62,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Test Entra group membership reconciliation
+        shell: bash
+        run: bash scripts/pipeline/add-entra-group-members.test.sh
+
       - name: Check Bash syntax
         shell: bash
         run: |
@@ -85,6 +89,14 @@ jobs:
       - name: Test ASO identity readiness
         shell: bash
         run: bash scripts/pipeline/wait-for-aso-identities-from-services.test.sh
+
+      - name: Test managed identity reconciliation
+        shell: bash
+        run: bash scripts/pipeline/create-identity.test.sh
+
+      - name: Test managed identity preloading
+        shell: bash
+        run: bash scripts/pipeline/deploy-identities-from-services.test.sh
 
   bicep:
     name: Bicep

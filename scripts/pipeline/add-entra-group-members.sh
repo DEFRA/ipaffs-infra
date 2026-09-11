@@ -67,6 +67,8 @@ declare -a missingMemberIds=()
 chunk_size=20
 
 if [[ "${CHECK_EXISTING_MEMBERS}" == "true" ]]; then
+  membershipLookupAvailable=true
+
   for (( start=0; start<${#uniqueMemberIds[@]}; start+=chunk_size )); do
     chunk=("${uniqueMemberIds[@]:start:chunk_size}")
     chunkMembers="${chunk[*]}"
@@ -85,11 +87,24 @@ if [[ "${CHECK_EXISTING_MEMBERS}" == "true" ]]; then
         }
     ')"
 
-    batchResult="$(curl -sS -X POST -H "Authorization: Bearer ${TOKEN}" -H "Content-Type: application/json; charset=utf-8" -d "${batchJson}" "https://graph.microsoft.com/v1.0/\$batch")"
-    errorCode="$(jq -r '.error.code // empty' <<<"${batchResult}")"
-    if [[ -n "${errorCode}" ]]; then
-      logInfo "Membership lookup batch failed for group '${groupObjectId}': $(jq -c '.error' <<<"${batchResult}")"
-      exit 1
+    if ! batchResult="$(curl -sS -X POST -H "Authorization: Bearer ${TOKEN}" -H "Content-Type: application/json; charset=utf-8" -d "${batchJson}" "https://graph.microsoft.com/v1.0/\$batch")"; then
+      logInfo "Membership lookup batch request failed for group '${groupObjectId}'; continuing with the existing add path"
+      membershipLookupAvailable=false
+      break
+    fi
+
+    expectedResponseCount="${#chunk[@]}"
+    if ! jq --exit-status --argjson expectedCount "${expectedResponseCount}" '
+      (.error? == null)
+      and (.responses | type == "array")
+      and (.responses | length == $expectedCount)
+      and (([range(0; $expectedCount) | tostring] - [.responses[].id]) | length == 0)
+      and (all(.responses[]; .status == 200 or .status == 404))
+    ' <<<"${batchResult}" >/dev/null 2>&1; then
+      lookupFailure="$(jq -c '.error // [.responses[]? | select(.status != 200 and .status != 404) | {id, status, error: (.body.error.code // null)}]' <<<"${batchResult}" 2>/dev/null || printf 'invalid or incomplete response')"
+      logInfo "Membership lookup batch could not be used for group '${groupObjectId}': ${lookupFailure}; continuing with the existing add path"
+      membershipLookupAvailable=false
+      break
     fi
 
     while IFS= read -r missingMemberId; do
@@ -100,15 +115,11 @@ if [[ "${CHECK_EXISTING_MEMBERS}" == "true" ]]; then
       | select(.status == 404)
       | $ids[(.id | tonumber)]
     ' <<<"${batchResult}")
-
-    unexpectedFailures="$(jq -c '[.responses[] | select(.status != 200 and .status != 404)]' <<<"${batchResult}")"
-    if [[ "${unexpectedFailures}" != "[]" ]]; then
-      logInfo "Unexpected membership lookup response for group '${groupObjectId}': ${unexpectedFailures}"
-      exit 1
-    fi
   done
 
-  if [[ ${#missingMemberIds[@]} -eq 0 ]]; then
+  if [[ "${membershipLookupAvailable}" != "true" ]]; then
+    missingMemberIds=("${uniqueMemberIds[@]}")
+  elif [[ ${#missingMemberIds[@]} -eq 0 ]]; then
     logInfo "All requested members are already present in group '${groupObjectId}'"
     exit 0
   fi
@@ -155,4 +166,3 @@ done
 logInfo "Successfully added ${#missingMemberIds[@]} requested members to group '${groupObjectId}'"
 
 exit 0
-

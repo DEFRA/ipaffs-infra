@@ -6,6 +6,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 : "${NAMESPACE:?NAMESPACE is required}"
 : "${RESOURCE_GROUP_NAME:?RESOURCE_GROUP_NAME is required}"
+: "${SUBSCRIPTION_NAME:?SUBSCRIPTION_NAME is required}"
 : "${AKS_ISSUER:?AKS_ISSUER is required}"
 : "${SEARCH_CONTRIBUTORS_GROUP_ID:?SEARCH_CONTRIBUTORS_GROUP_ID is required}"
 : "${BLOB_STORAGE_CONTRIBUTORS_GROUP_ID:?BLOB_STORAGE_CONTRIBUTORS_GROUP_ID is required}"
@@ -17,6 +18,51 @@ lower_resource_group_name="$(echo "${RESOURCE_GROUP_NAME}" | tr '[:upper:]' '[:l
 search_contributor_principal_ids=()
 blob_storage_contributor_principal_ids=()
 sql_admin_principal_ids=()
+declare -A existing_identity_client_ids=()
+declare -A existing_identity_principal_ids=()
+identity_cache_available=false
+
+load_existing_identities() {
+  local identities_file=""
+  local list_started_at="${SECONDS}"
+  local identity_count=0
+  local identity_name=""
+  local client_id=""
+  local principal_id=""
+  local lookup_key=""
+
+  identities_file="$(mktemp)"
+
+  if ! az identity list \
+    --subscription "${SUBSCRIPTION_NAME}" \
+    --resource-group "${RESOURCE_GROUP_NAME}" \
+    --output json > "${identities_file}"; then
+    echo "Unable to list existing managed identities; continuing with the existing create/update path" >&2
+    rm -f "${identities_file}"
+    return
+  fi
+
+  if ! jq -e 'type == "array" and all(.[]; type == "object")' "${identities_file}" > /dev/null 2>&1; then
+    echo "Managed identity list returned an unexpected response; continuing with the existing create/update path" >&2
+    rm -f "${identities_file}"
+    return
+  fi
+
+  while IFS=$'\t' read -r identity_name client_id principal_id; do
+    if [[ -z "${identity_name}" || -z "${client_id}" || "${client_id}" == "null" || -z "${principal_id}" || "${principal_id}" == "null" ]]; then
+      continue
+    fi
+
+    lookup_key="$(printf '%s' "${identity_name}" | tr '[:upper:]' '[:lower:]')"
+    existing_identity_client_ids["${lookup_key}"]="${client_id}"
+    existing_identity_principal_ids["${lookup_key}"]="${principal_id}"
+    identity_count=$((identity_count + 1))
+  done < <(jq -r '.[] | [(.name // ""), (.clientId // .properties.clientId // ""), (.principalId // .properties.principalId // "")] | @tsv' "${identities_file}")
+
+  rm -f "${identities_file}"
+  identity_cache_available=true
+  echo "Loaded ${identity_count} existing managed identities in $((SECONDS - list_started_at))s"
+}
 
 add_unique_principal_id() {
   local -n principal_ids="$1"
@@ -43,6 +89,7 @@ bulk_add_group_members() {
   echo "Adding principals to ${description}"
   GROUP_ID="${group_id}" \
   GROUP_MEMBERS="${principal_ids}" \
+  CHECK_EXISTING_MEMBERS=true \
   "${SCRIPT_DIR}/add-entra-group-members.sh"
 }
 
@@ -71,16 +118,25 @@ ensure_identity() {
   local managed_identity_name="${lower_resource_group_name}-${NAMESPACE}-${service_name}-${role_suffix}"
   local identity_output_file=""
   local principal_id=""
+  local lookup_key=""
 
   export MANAGED_IDENTITY_NAME="${managed_identity_name}"
   export AKS_CREDENTIAL="${aks_credential}"
   export AKS_AUDIENCES="api://AzureADTokenExchange"
   export AKS_SUBJECT="${aks_subject}"
 
+  unset PREFETCHED_IDENTITY_CLIENT_ID PREFETCHED_IDENTITY_PRINCIPAL_ID
+  lookup_key="$(printf '%s' "${managed_identity_name}" | tr '[:upper:]' '[:lower:]')"
+  if [[ "${identity_cache_available}" == "true" && -n "${existing_identity_client_ids[${lookup_key}]:-}" && -n "${existing_identity_principal_ids[${lookup_key}]:-}" ]]; then
+    export PREFETCHED_IDENTITY_CLIENT_ID="${existing_identity_client_ids[${lookup_key}]}"
+    export PREFETCHED_IDENTITY_PRINCIPAL_ID="${existing_identity_principal_ids[${lookup_key}]}"
+  fi
+
   identity_output_file="$(mktemp)"
   export CREATE_IDENTITY_OUTPUT_FILE="${identity_output_file}"
   "${SCRIPT_DIR}/create-identity.sh"
   unset CREATE_IDENTITY_OUTPUT_FILE
+  unset PREFETCHED_IDENTITY_CLIENT_ID PREFETCHED_IDENTITY_PRINCIPAL_ID
 
   # shellcheck disable=SC1090
   source "${identity_output_file}"
@@ -131,6 +187,8 @@ if [[ ${#service_dirs[@]} -eq 0 ]]; then
   exit 1
 fi
 
+load_existing_identities
+
 for service_dir in "${service_dirs[@]}"; do
   [[ -d "${service_dir}" ]] || continue
 
@@ -161,4 +219,3 @@ if [[ "${VERIFY_GROUP_MEMBERSHIPS}" == "true" ]]; then
 else
   echo "Skipping group membership verification because VERIFY_GROUP_MEMBERSHIPS is not true"
 fi
-
