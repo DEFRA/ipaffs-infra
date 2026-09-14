@@ -43,6 +43,10 @@ parameters:
     type: string
     default: ""
 
+  - name: postSteps
+    type: stepList
+    default: []
+
   - name: acrNameOverride
     type: string
     default: ""
@@ -175,3 +179,5 @@ jobs:
             fi
 
             "${HELMFILE_BINARY}" ${{ parameters.helmfileAction }} "${selector_args[@]}"
+
+      - ${{ parameters.postSteps }}
