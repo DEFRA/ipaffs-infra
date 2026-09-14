@@ -170,6 +170,35 @@ check "a skipped build does not import a source container image into a new base"
 check "a skipped build does not import a source migrations image into a new base" \
   "false" "$(yq e '.database.migrations | has("image")' "${base_file}")"
 
+# Environment files opt a service into deployment, including explicitly empty
+# source values. Missing sources must not create entries in either build mode.
+for skip_image_update in false true; do
+  case_root="${work_dir}/environment-presence-${skip_image_update}"
+  service_root="${case_root}/service"
+  manifest_root="${case_root}/manifest"
+  write_source_values "${service_root}"
+  mkdir -p "${service_root}/deployment/tst" "${manifest_root}/environments/prd"
+  printf '{}\n' > "${service_root}/deployment/tst/values.yaml"
+
+  SERVICE_NAME=example-service \
+    BUILD_NUMBER=new-build \
+    MANIFEST_ROOT="${manifest_root}" \
+    SERVICE_ROOT="${service_root}" \
+    SKIP_CONTAINER_IMAGE_UPDATE="${skip_image_update}" \
+    bash "${script_path}" >/dev/null
+  check "environment update succeeds with skip images=${skip_image_update}" "0" "$?"
+
+  check "dev source values enable deployment with skip images=${skip_image_update}" \
+    "deployment-value" \
+    "$(yq e -r '.config.ENVIRONMENT_SETTING' "${manifest_root}/environments/dev/example-service.yaml")"
+  check "explicitly empty tst source enables deployment with skip images=${skip_image_update}" \
+    "true" "$(test -f "${manifest_root}/environments/tst/example-service.yaml" && printf true || printf false)"
+  for environment in pre prd; do
+    check "missing ${environment} source does not enable deployment with skip images=${skip_image_update}" \
+      "false" "$(test -e "${manifest_root}/environments/${environment}/example-service.yaml" && printf true || printf false)"
+  done
+done
+
 # A service with only the removed config folder is not treated as a values source.
 case_name="config-only"
 case_root="${work_dir}/${case_name}"
@@ -219,6 +248,9 @@ check "a config-only environment is not imported" \
   "keep-me" "$(yq e -r '.config.EXISTING_ENVIRONMENT_SETTING' "${env_file}")"
 check "a config-only environment setting is absent" \
   "false" "$(yq e '.config | has("LEGACY_ENVIRONMENT_SETTING")' "${env_file}")"
+
+check "a missing deployment folder does not create other environment entries" \
+  "false" "$(test -e "${manifest_root}/environments/pre/example-service.yaml" && printf true || printf false)"
 
 if [[ "${failures}" -gt 0 ]]; then
   echo "${failures} test(s) failed"

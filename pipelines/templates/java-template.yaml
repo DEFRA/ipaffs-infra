@@ -317,12 +317,13 @@ stages:
                   git config user.name "IPAFFS CI Bot"
                   git config user.email "ipaffs-ci-bot@defra.gov.uk"
 
-                  git add \
-                    "services/${SERVICE_NAME}/base.yaml" \
-                    "environments/dev/${SERVICE_NAME}.yaml" \
-                    "environments/tst/${SERVICE_NAME}.yaml" \
-                    "environments/pre/${SERVICE_NAME}.yaml" \
-                    "environments/prd/${SERVICE_NAME}.yaml"
+                  git add -- "services/${SERVICE_NAME}/base.yaml"
+                  for environment in dev tst pre prd; do
+                    values_file="environments/${environment}/${SERVICE_NAME}.yaml"
+                    if [[ -f "${values_file}" ]] || git ls-files --error-unmatch -- "${values_file}" >/dev/null 2>&1; then
+                      git add -- "${values_file}"
+                    fi
+                  done
 
                   if git diff --cached --quiet; then
                     echo "No manifest changes for ${SERVICE_NAME}"
