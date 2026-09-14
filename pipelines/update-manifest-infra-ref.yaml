@@ -5,6 +5,7 @@ trigger:
   paths:
     include:
       - pipelines/jobs/deploy-chart.yaml
+      - pipelines/steps/deploy-chart.yaml
       - pipelines/stages/tag-build.yaml
       - pipelines/vars/**
       - pipelines/update-manifest-infra-ref.yaml
@@ -141,4 +142,3 @@ stages:
                 git commit -m "Pin ipaffs-infra ref to ${INFRA_TAG}"
                 git pull --rebase origin "${MANIFEST_BRANCH}"
                 git push origin "HEAD:${MANIFEST_BRANCH}"
-

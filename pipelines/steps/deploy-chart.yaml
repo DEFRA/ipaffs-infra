@@ -1,0 +1,109 @@
+parameters:
+  - name: chart
+    type: object
+
+steps:
+  - checkout: ${{ parameters.chart.repository }}
+    workspaceRepo: true
+
+  - task: Cache@2
+    displayName: Restore Helmfile toolchain
+    continueOnError: true
+    inputs:
+      key: '"helmfile-toolchain-v2" | "$(Agent.OS)" | "$(Agent.OSArchitecture)" | "helmfile-$(HELMFILE_VERSION)" | "archive-$(HELMFILE_SHA256)"'
+      path: $(HELMFILE_TOOLCHAIN_DIRECTORY)
+      cacheHitVar: HELMFILE_TOOLCHAIN_CACHE_RESTORED
+
+  - bash: |
+      set -euo pipefail
+
+      rm -rf -- "${HELMFILE_TOOLCHAIN_DIRECTORY}"
+      mkdir -p "${HELMFILE_TOOLCHAIN_DIRECTORY}/bin" "${HELM_PLUGINS}"
+      helmfile_archive="$(Agent.TempDirectory)/helmfile_${HELMFILE_VERSION}_linux_amd64.tar.gz"
+
+      curl --fail --location --retry 3 --show-error --silent \
+        --output "${helmfile_archive}" \
+        "https://github.com/helmfile/helmfile/releases/download/v${HELMFILE_VERSION}/helmfile_${HELMFILE_VERSION}_linux_amd64.tar.gz"
+      printf '%s  %s\n' "${HELMFILE_SHA256}" "${helmfile_archive}" | sha256sum --check -
+      tar -xzf "${helmfile_archive}" -C "${HELMFILE_TOOLCHAIN_DIRECTORY}/bin" helmfile
+      chmod +x "${HELMFILE_TOOLCHAIN_DIRECTORY}/bin/helmfile"
+      "${HELMFILE_TOOLCHAIN_DIRECTORY}/bin/helmfile" init --force
+    displayName: Install Helmfile toolchain
+    condition: and(succeeded(), ne(variables['HELMFILE_TOOLCHAIN_CACHE_RESTORED'], 'true'))
+    env:
+      HELMFILE_TOOLCHAIN_DIRECTORY: $(HELMFILE_TOOLCHAIN_DIRECTORY)
+      HELMFILE_VERSION: $(HELMFILE_VERSION)
+      HELMFILE_SHA256: $(HELMFILE_SHA256)
+      HELM_PLUGINS: $(HELMFILE_TOOLCHAIN_DIRECTORY)/plugins
+
+  - task: AzureCLI@2
+    name: DeployHelmCharts
+    displayName: Deploy Helm Charts
+    env:
+      ${{ if ne(parameters.chart.acrNameOverride, '') }}:
+        ACR_NAME: ${{ parameters.chart.acrNameOverride }}
+      ${{ else }}:
+        ACR_NAME: $(acrName)
+      ENVIRONMENT: ${{ lower(parameters.chart.environmentName) }}
+      AZURE_LOCATION: $(location)
+      ${{ if ne(parameters.chart.acrLoginServerOverride, '') }}:
+        AZURE_CONTAINER_REGISTRY_HOST: ${{ parameters.chart.acrLoginServerOverride }}
+      ${{ else }}:
+        AZURE_CONTAINER_REGISTRY_HOST: $(acrLoginServer)
+      APPLICATIONINSIGHTS_CONNECTION_STRING: $(insightsConnectionString)
+      APPLICATIONINSIGHTS_INSTRUMENTATION_STRING: $(insightsInstrumentationKey)
+      AZURE_TENANT_ID: $(tenantId)
+      AZURE_MANAGED_IDENTITY_CLIENT_ID: ${{ parameters.chart.serviceClientId }}
+      AZURE_MANAGED_IDENTITY_PRINCIPAL_NAME: ${{ parameters.chart.servicePrincipalName }}
+      AZURE_MANAGED_IDENTITY_MIGRATIONS_CLIENT_ID: ${{ parameters.chart.migrationsClientId }}
+      AZURE_MANAGED_IDENTITY_EXTERNAL_SECRETS_CLIENT_ID: $(externalSecretsClientId)
+      AZURE_SQL_SERVER_NAME: $(sqlServerName)
+      AZURE_SEARCH_SUBSCRIPTION_ID: $(searchServiceSubscriptionId)
+      AZURE_SEARCH_RESOURCE_GROUP_NAME: $(searchServiceResourceGroupName)
+      AZURE_SEARCH_SERVICE_NAME: $(searchServiceName)
+      AZURE_STORAGE_ACCOUNT_NAME: $(storageAccountName)
+      AZURE_SEARCH_MANAGED_IDENTITY_PRINCIPAL_NAME: $(searchServiceManagedIdentityPrincipalName)
+      CONTAINER_IMAGE: "ipaffs/${{ parameters.chart.serviceName }}:${{ parameters.chart.serviceVersion }}"
+      MIGRATIONS_IMAGE: "ipaffs/${{ parameters.chart.serviceName }}-configuration:${{ parameters.chart.serviceVersion }}"
+      NAMESPACE: ${{ parameters.chart.namespace }}
+      HELMFILE_SELECTOR: "${{ parameters.chart.helmfileSelector }}"
+      SOURCE_REF: $(Build.SourceBranch)
+      HELMFILE_BINARY: $(HELMFILE_TOOLCHAIN_DIRECTORY)/bin/helmfile
+      HELM_PLUGINS: $(HELMFILE_TOOLCHAIN_DIRECTORY)/plugins
+      ${{ if eq(parameters.chart.helmfileDebug, true) }}:
+        HELMFILE_DEBUG: "true"
+      ${{ else }}:
+        HELMFILE_DEBUG: "false"
+    inputs:
+      azureSubscription: ${{ coalesce(parameters.chart.serviceConnection, variables.serviceConnection) }}
+      scriptType: bash
+      scriptLocation: inlineScript
+      inlineScript: |
+        set -euo pipefail
+
+        echo "##[section]Authenticate with Azure"
+        az aks install-cli --client-version v1.36.1 --kubelogin-version v0.2.18
+        az aks get-credentials -n "$(kubernetesCluster)" -g "$(resourceGroupName)" --subscription "$(subscriptionName)"
+        kubelogin convert-kubeconfig -l azurecli
+        az acr login --name "${ACR_NAME}" --subscription "$(subscriptionName)"
+
+        echo "##[section]Deploy Helm charts"
+        if [[ "${SOURCE_REF}" == refs/tags/* ]]; then
+          manifest_tag="${SOURCE_REF#refs/tags/}"
+        elif [[ "${SOURCE_REF}" == refs/heads/RELEASE/* ]]; then
+          manifest_tag="${SOURCE_REF#refs/heads/RELEASE/}"
+        elif [[ "${SOURCE_REF}" == refs/heads/* ]]; then
+          manifest_tag="${SOURCE_REF#refs/heads/}"
+        else
+          manifest_tag="${SOURCE_REF}"
+        fi
+        export MANIFEST_TAG="${manifest_tag}"
+
+        selector_args=()
+        if [[ -n "${HELMFILE_SELECTOR}" ]]; then
+          selector_args=(--selector "${HELMFILE_SELECTOR}")
+        fi
+
+        "${HELMFILE_BINARY}" ${{ parameters.chart.helmfileAction }} "${selector_args[@]}"
+
+  - ${{ parameters.chart.postSteps }}
