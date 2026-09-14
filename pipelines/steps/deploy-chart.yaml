@@ -75,7 +75,7 @@ steps:
       ${{ else }}:
         HELMFILE_DEBUG: "false"
     inputs:
-      azureSubscription: ${{ coalesce(parameters.chart.serviceConnection, variables.serviceConnection) }}
+      azureSubscription: ${{ coalesce(parameters.chart.serviceConnection, '$(serviceConnection)') }}
       scriptType: bash
       scriptLocation: inlineScript
       inlineScript: |
