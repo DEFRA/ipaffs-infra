@@ -43,9 +43,9 @@ parameters:
     type: string
     default: ""
 
-  - name: waitForAsoIdentities
-    type: boolean
-    default: false
+  - name: postSteps
+    type: stepList
+    default: []
 
   - name: acrNameOverride
     type: string
@@ -79,12 +79,6 @@ jobs:
     steps:
       - checkout: ${{ parameters.repository }}
         workspaceRepo: true
-        ${{ if eq(parameters.waitForAsoIdentities, true) }}:
-          path: s/manifest
-
-      - ${{ if eq(parameters.waitForAsoIdentities, true) }}:
-        - checkout: ipaffs-infra
-          path: s/ipaffs-infra
 
       - task: Cache@2
         displayName: Restore Helmfile toolchain
@@ -150,15 +144,6 @@ jobs:
           SOURCE_REF: $(Build.SourceBranch)
           HELMFILE_BINARY: $(HELMFILE_TOOLCHAIN_DIRECTORY)/bin/helmfile
           HELM_PLUGINS: $(HELMFILE_TOOLCHAIN_DIRECTORY)/plugins
-          WAIT_FOR_ASO_IDENTITIES: ${{ parameters.waitForAsoIdentities }}
-          ${{ if eq(parameters.waitForAsoIdentities, true) }}:
-            TARGET_ENVIRONMENT: ${{ lower(parameters.environmentName) }}
-            ENVIRONMENTS_ROOT: $(Pipeline.Workspace)/s/manifest/environments
-            SERVICES_ROOT: $(Pipeline.Workspace)/s/manifest/services
-            GENERATED_SERVICES_ROOT: $(Pipeline.Workspace)/s/manifest/.generated/services
-            RESOURCE_GROUP_NAME: $(resourceGroupName)
-            MANIFEST_ROOT: $(Pipeline.Workspace)/s/manifest
-            INFRA_ROOT: $(Pipeline.Workspace)/s/ipaffs-infra
           ${{ if eq(parameters.helmfileDebug, true) }}:
             HELMFILE_DEBUG: "true"
           ${{ else }}:
@@ -195,9 +180,4 @@ jobs:
 
             "${HELMFILE_BINARY}" ${{ parameters.helmfileAction }} "${selector_args[@]}"
 
-            if [[ "${WAIT_FOR_ASO_IDENTITIES,,}" == "true" ]]; then
-              echo "##[section]Wait for ASO managed identities"
-              bash "${MANIFEST_ROOT}/scripts/pipeline/generate-environment-service-values.sh"
-              export SERVICES_ROOT="${GENERATED_SERVICES_ROOT}/${TARGET_ENVIRONMENT}"
-              bash "${INFRA_ROOT}/scripts/pipeline/wait-for-aso-identities-from-services.sh"
-            fi
+      - ${{ parameters.postSteps }}
