@@ -3,6 +3,7 @@ targetScope = 'resourceGroup'
 param deploymentId string
 param entraGroups object
 param location string
+param roleAssignmentsType string
 param storageParams object
 param subnets object
 param tags object
@@ -118,6 +119,7 @@ module blobStorageContributor './storage-role-assignment.bicep' = {
     deploymentId: deploymentId
     principalObjectId: entraGroups.blobStorageContributors.id
     principalType: 'Group'
+    roleAssignmentType: roleAssignmentsType
     roleDefinitionId: storageBlobDataContributorRoleId
   }
 }
@@ -130,6 +132,7 @@ module blobStorageReader './storage-role-assignment.bicep' = {
     deploymentId: deploymentId
     principalObjectId: entraGroups.blobStorageReaders.id
     principalType: 'Group'
+    roleAssignmentType: roleAssignmentsType
     roleDefinitionId: storageBlobDataReaderRoleId
   }
 }

@@ -3,8 +3,56 @@ parameters:
     type: string
 
 stages:
+  - stage: ConfigureResourceGroupDeployment
+    displayName: Configure Resource Group deployment
+    variables:
+      - group: Common
+      - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
+        - group: HigherEnvs
+      - ${{ else }}:
+        - group: LowerEnvs
+      - group: "${{ parameters.environmentName }}"
+      - template: "/pipelines/vars/common.yaml"
+      - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
+    jobs:
+      - job: ConfigureBicep
+        displayName: Configure Bicep
+        steps:
+          - checkout: self
+
+          - task: Bash@3
+            name: GenerateBicepParams
+            displayName: Generate Bicep Params
+            inputs:
+              targetType: inline
+              script: |
+                set -ex
+                cat <<- 'EOF' >'$(Build.SourcesDirectory)/10-resource-group-runtime.bicepparam'
+                using '10-resource-group.bicep'
+                extends 'envs/${{ lower(parameters.environmentName) }}/10-resource-group.bicepparam'
+                param entraGroups = {
+                  pimOwners: {
+                    id: '$(pimOwnersGroupId)'
+                    name: '$(pimOwnersGroupName)'
+                  }
+                  pimContributors: {
+                    id: '$(pimContributorsGroupId)'
+                    name: '$(pimContributorsGroupName)'
+                  }
+                }
+                EOF
+                cat '$(Build.SourcesDirectory)/10-resource-group-runtime.bicepparam'
+
+          - task: PublishPipelineArtifact@1
+            displayName: Publish artifact
+            inputs:
+              artifactName: bicepparam-resource-group
+              targetPath: $(Build.SourcesDirectory)/10-resource-group-runtime.bicepparam
+
+
   - stage: DeployResourceGroup
     displayName: Deploy Resource Group
+    dependsOn: ConfigureResourceGroupDeployment
     variables:
       - group: Common
       - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
@@ -25,6 +73,12 @@ stages:
               steps:
                 - checkout: self
 
+                - task: DownloadPipelineArtifact@2
+                  displayName: Download artifact
+                  inputs:
+                    artifactName: bicepparam-resource-group
+                    targetPath: $(Build.SourcesDirectory)/bicep
+
                 - task: AzureCLI@2
                   displayName: WhatIf - Resource Group
                   inputs:
@@ -38,7 +92,7 @@ stages:
                         --subscription $(subscriptionId) \
                         --location $(location) \
                         --template-file bicep/10-resource-group.bicep \
-                        --parameters bicep/envs/${{ lower(parameters.environmentName) }}/10-resource-group.bicepparam
+                        --parameters bicep/10-resource-group-runtime.bicepparam
 
                 - task: AzureCLI@2
                   displayName: Deploy - ResourceGroup
@@ -54,5 +108,4 @@ stages:
                         --subscription $(subscriptionId) \
                         --location $(location) \
                         --template-file bicep/10-resource-group.bicep \
-                        --parameters bicep/envs/${{ lower(parameters.environmentName) }}/10-resource-group.bicepparam
-
+                        --parameters bicep/10-resource-group-runtime.bicepparam

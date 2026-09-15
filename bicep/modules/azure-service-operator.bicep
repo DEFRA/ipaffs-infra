@@ -27,12 +27,14 @@ resource credential 'Microsoft.ManagedIdentity/userAssignedIdentities/federatedI
   }
 }
 
-module rgContributor './rg-role-assignment.bicep' = {
+module rgContributor './resource-group-role-assignment.bicep' = {
   name: 'rgContributor'
   scope: resourceGroup()
   params: {
     deploymentId: deploymentId
     principalObjectId: managedIdentity.properties.principalId
+    principalType: 'ServicePrincipal'
+    roleAssignmentType: 'permanent'
     roleDefinitionId: contributorRoleId
   }
 }

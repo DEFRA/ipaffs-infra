@@ -9,6 +9,7 @@ param classicLocation = 'northeurope'
 param classicResourceIds = {}
 param entraGroups = {}
 param environment = 'PRE'
+param roleAssignmentsType = 'permanent'
 param subnets = {}
 param tenantId = ''
 param deployServicePrincipalObjectId = ''

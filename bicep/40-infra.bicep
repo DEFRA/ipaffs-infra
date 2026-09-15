@@ -3,6 +3,9 @@ targetScope = 'resourceGroup'
 @allowed(['DEV', 'TST', 'PRE', 'PRD'])
 param environment string
 
+@allowed(['permanent', 'eligible'])
+param roleAssignmentsType string
+
 param builtInGroups object
 param classicLocation string
 param classicResourceIds object
@@ -47,6 +50,7 @@ module aks './modules/aks.bicep' = {
     entraGroups: entraGroups
     location: location
     logAnalyticsId: monitoring.outputs.logAnalyticsId
+    roleAssignmentsType: roleAssignmentsType
     subnets: subnets
     tags: tags
     vnetName: vnetName
@@ -97,6 +101,7 @@ module keyVault './modules/keyvault.bicep' = {
     entraGroups: entraGroups
     keyVaultParams: keyVaultParams
     location: location
+    roleAssignmentsType: roleAssignmentsType
     subnets: subnets
     tags: tags
     tenantId: tenantId
@@ -124,6 +129,7 @@ module search './modules/search.bicep' = {
     entraGroups: entraGroups
     searchParams: searchParams
     location: location
+    roleAssignmentsType: roleAssignmentsType
     sqlServerName: sql.outputs.sqlServerName
     subnets: subnets
     tags: tags
@@ -177,6 +183,7 @@ module storage './modules/storage.bicep' = {
     deploymentId: deploymentId
     entraGroups: entraGroups
     location: location
+    roleAssignmentsType: roleAssignmentsType
     storageParams: storageParams
     subnets: subnets
     tags: tags
@@ -184,6 +191,7 @@ module storage './modules/storage.bicep' = {
 }
 
 output aksClusterName string = aks.outputs.aksClusterName
+output aksClusterResourceId string = aks.outputs.aksClusterResourceId
 output aksKubeletPrincipalId string = aks.outputs.kubeletPrincipalId
 output aksOidcIssuer string = aks.outputs.oidcIssuerUrl
 output azureServiceOperatorClientId string = aso.outputs.clientId

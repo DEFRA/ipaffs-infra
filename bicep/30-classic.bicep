@@ -3,6 +3,9 @@ targetScope = 'resourceGroup'
 @allowed(['SND', 'TST', 'PRE', 'PRD'])
 param environment string
 
+@allowed(['permanent', 'eligible'])
+param roleAssignmentsType string
+
 param entraGroups object
 
 param createdDate string = utcNow('yyyy-MM-dd')
@@ -64,6 +67,7 @@ module additionalContributors './modules/resource-group-role-assignment.bicep' =
     deploymentId: deploymentId
     principalObjectId: principalId
     principalType: 'ServicePrincipal'
+    roleAssignmentType: 'permanent'
     roleDefinitionId: contributorRoleId
   }
 }]
@@ -108,6 +112,7 @@ module search './modules/search-classic.bicep' = {
     deploymentId: deploymentId
     entraGroups: entraGroups
     location: location
+    roleAssignmentsType: roleAssignmentsType
     searchParams: searchParams
     sqlServerName: sql.outputs.sqlServerName
     tags: tags

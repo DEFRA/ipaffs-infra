@@ -37,10 +37,10 @@ module keyVaultSecretsReader './keyvault-role-assignment.bicep' = {
     location: location
     principalObjectId: managedIdentity.properties.principalId
     principalType: 'ServicePrincipal'
+    roleAssignmentType: 'permanent'
     roleDefinitionId: keyVaultSecretsUserRoleId
   }
 }
 
 output clientId string = managedIdentity.properties.clientId
 output principalObjectId string = managedIdentity.properties.principalId
-
