@@ -17,6 +17,17 @@ var tags = union(loadJsonContent('default-tags.json'), {
 
 param nsgParams object
 param vnetParams object
+param agcNetworkConfig object
+
+module agcNetwork './modules/agc-network.bicep' = {
+  name: 'agc-network-${deploymentId}'
+  params: {
+    deploymentId: deploymentId
+    location: location
+    tags: tags
+    config: agcNetworkConfig
+  }
+}
 
 module nsg './modules/network-security-groups.bicep' = {
   name: 'nsg-${deploymentId}'
@@ -53,6 +64,7 @@ module vnet './modules/virtual-network.bicep' = {
   }
   dependsOn: [
     nsg
+    agcNetwork
   ]
 }
 

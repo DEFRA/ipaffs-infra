@@ -1,6 +1,9 @@
 ---
 variables:
   acrGroupsServiceConnection: ADO-DefraGovUK-AZR-IMP-DEV1
+  # Non-secret Front Door profile GUID, not its Azure resource ID.
+  # AGC HTTPRoutes will use it for header matching.
+  appGatewayForContainersFrontDoorId: ''
   classicServiceConnection: ADO-DefraGovUK-AZR-IMP-SND1
   classicSqlAdminUserPrincipalObjectId: aaf71566-6255-442e-a51d-1633b56a01c2
   classicSubscriptionName: AZR-SND

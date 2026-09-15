@@ -2,6 +2,12 @@ using '../../20-network.bicep'
 
 param environment = 'PRE'
 
+param agcNetworkConfig = {
+  networkSecurityGroupName: 'PREIMPNETNS1401-AGC'
+  routeTableName: 'UDR-AGC-PREIMPNETVN1401-01'
+  podAddressPrefixes: ['172.16.0.0/16']
+}
+
 param subnetNames = {
   aksApiServer: 'PREIMPNETSU4401'
   aksSystemNodes: 'PREIMPNETSU4402'
@@ -307,9 +313,17 @@ param vnetParams = {
     {
       name: 'PREIMPNETSU4405'
       addressPrefix: '10.179.137.0/24'
+      delegations: [
+        {
+          name: 'application-gateway-for-containers'
+          properties: {
+            serviceName: 'Microsoft.ServiceNetworking/trafficControllers'
+          }
+        }
+      ]
       serviceEndpoints: []
-      routeTableId: '/subscriptions/3978eb4f-add1-415d-839b-db398e65a7d9/resourceGroups/PREIMPINFRG1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-PREIMPNETVN1401-01'
-      networkSecurityGroupId: '/subscriptions/3978eb4f-add1-415d-839b-db398e65a7d9/resourceGroups/PREIMPINFRG1401/providers/Microsoft.Network/networkSecurityGroups/PREIMPNETNS1401-AKS'
+      routeTableId: '/subscriptions/3978eb4f-add1-415d-839b-db398e65a7d9/resourceGroups/PREIMPINFRG1401/providers/Microsoft.Network/routeTables/UDR-AGC-PREIMPNETVN1401-01'
+      networkSecurityGroupId: '/subscriptions/3978eb4f-add1-415d-839b-db398e65a7d9/resourceGroups/PREIMPINFRG1401/providers/Microsoft.Network/networkSecurityGroups/PREIMPNETNS1401-AGC'
     }
     // AKS User Node Pool, 253 usable addresses
     {

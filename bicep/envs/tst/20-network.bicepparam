@@ -2,6 +2,12 @@ using '../../20-network.bicep'
 
 param environment = 'TST'
 
+param agcNetworkConfig = {
+  networkSecurityGroupName: 'TSTIMPNETNS1401-AGC'
+  routeTableName: 'UDR-AGC-TSTIMPNETVN1401-01'
+  podAddressPrefixes: ['172.16.0.0/16']
+}
+
 param subnetNames = {
   aksApiServer: 'TSTIMPNETSU4401'
   aksSystemNodes: 'TSTIMPNETSU4402'
@@ -305,9 +311,17 @@ param vnetParams = {
     {
       name: 'TSTIMPNETSU4405'
       addressPrefix: '10.179.133.0/24'
+      delegations: [
+        {
+          name: 'application-gateway-for-containers'
+          properties: {
+            serviceName: 'Microsoft.ServiceNetworking/trafficControllers'
+          }
+        }
+      ]
       serviceEndpoints: []
-      routeTableId: '/subscriptions/0022ef8e-d44e-49c5-8cfd-5e8e9c6e913e/resourceGroups/TSTIMPINFRG1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-TSTIMPNETVN1401-01'
-      networkSecurityGroupId: '/subscriptions/0022ef8e-d44e-49c5-8cfd-5e8e9c6e913e/resourceGroups/TSTIMPINFRG1401/providers/Microsoft.Network/networkSecurityGroups/TSTIMPNETNS1401-AKS'
+      routeTableId: '/subscriptions/0022ef8e-d44e-49c5-8cfd-5e8e9c6e913e/resourceGroups/TSTIMPINFRG1401/providers/Microsoft.Network/routeTables/UDR-AGC-TSTIMPNETVN1401-01'
+      networkSecurityGroupId: '/subscriptions/0022ef8e-d44e-49c5-8cfd-5e8e9c6e913e/resourceGroups/TSTIMPINFRG1401/providers/Microsoft.Network/networkSecurityGroups/TSTIMPNETNS1401-AGC'
     }
     // AKS User Node Pool, 253 usable addresses
     {

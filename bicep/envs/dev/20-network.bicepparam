@@ -2,6 +2,12 @@ using '../../20-network.bicep'
 
 param environment = 'DEV'
 
+param agcNetworkConfig = {
+  networkSecurityGroupName: 'DEVIMPNETNS1401-AGC'
+  routeTableName: 'UDR-AGC-DEVIMPNETVN1401-01'
+  podAddressPrefixes: ['172.16.0.0/16']
+}
+
 param subnetNames = {
   aksApiServer: 'DEVIMPNETSU4401'
   aksSystemNodes: 'DEVIMPNETSU4402'
@@ -308,9 +314,17 @@ param vnetParams = {
     {
       name: 'DEVIMPNETSU4405'
       addressPrefix: '10.179.145.0/24'
+      delegations: [
+        {
+          name: 'application-gateway-for-containers'
+          properties: {
+            serviceName: 'Microsoft.ServiceNetworking/trafficControllers'
+          }
+        }
+      ]
       serviceEndpoints: []
-      routeTableId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPINFRG1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-DEVIMPNETVN1401-01'
-      networkSecurityGroupId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPINFRG1401/providers/Microsoft.Network/networkSecurityGroups/DEVIMPNETNS1401-AKS'
+      routeTableId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPINFRG1401/providers/Microsoft.Network/routeTables/UDR-AGC-DEVIMPNETVN1401-01'
+      networkSecurityGroupId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPINFRG1401/providers/Microsoft.Network/networkSecurityGroups/DEVIMPNETNS1401-AGC'
     }
     // AKS User Node Pool, 253 usable addresses
     {
