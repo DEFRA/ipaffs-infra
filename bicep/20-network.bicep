@@ -22,7 +22,6 @@ param agcNetworkConfig object
 module agcNetwork './modules/agc-network.bicep' = {
   name: 'agc-network-${deploymentId}'
   params: {
-    deploymentId: deploymentId
     location: location
     tags: tags
     config: agcNetworkConfig
@@ -80,4 +79,3 @@ output privateEndpointsSubnetId string = first(filter(vnet.outputs.subnets, subn
 output privateEndpointsSubnetName string = first(filter(vnet.outputs.subnets, subnet => subnet.name == subnetNames.privateEndpoints)).name
 output vnetName string = vnet.outputs.vnetName
 output vnetResourceId string = vnet.outputs.vnetResourceId
-
