@@ -89,3 +89,8 @@ variables:
     a-peter.anning@Defra.onmicrosoft.com
     sandeep.pathrikar@defra.gov.uk
     zach.stratenwerth@Defra.onmicrosoft.com
+
+  lowerEnvsTestersGroupMembers: >
+    a-aarthy.siddapareddy@Defra.onmicrosoft.com
+    a-gaurav.seth@defra.onmicrosoft.com
+    a-toby.steed@defra.onmicrosoft.com

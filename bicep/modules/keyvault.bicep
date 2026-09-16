@@ -1,9 +1,9 @@
 targetScope = 'resourceGroup'
 
 param deploymentId string
-param entraGroups object
 param location string
 param keyVaultParams object
+param roleAssignments array
 param subnets object
 param tags object
 param tenantId string
@@ -56,34 +56,18 @@ resource keyVaultPrivateEndpoints 'Microsoft.Network/privateEndpoints@2024-10-01
   }
 }
 
-var keyVaultAdministratorRoleId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '00482a5a-887f-4fb3-b363-3b7fe8e74483')
-var keyVaultSecretsUserRoleId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '4633458b-17de-408a-b874-0445c86b69e6')
-
-module keyVaultAdministrator './keyvault-role-assignment.bicep' = {
-  name: 'keyVaultAdministrator-${deploymentId}'
+module keyVaultRoleAssignment './keyvault-role-assignment.bicep' = [for assignment in roleAssignments: {
+  name: format('keyVaultRoleAssignment-{0}-{1}', deploymentId, substring(uniqueString(keyVaultParams.name, assignment.roleDefinitionId, assignment.principalObjectId), 0, 7))
   scope: resourceGroup()
   params: {
     keyVaultName: keyVaultParams.name
     deploymentId: deploymentId
     location: location
-    principalObjectId: entraGroups.keyVaultAdmins.id
-    principalType: 'Group'
-    roleDefinitionId: keyVaultAdministratorRoleId
+    principalObjectId: assignment.principalObjectId
+    principalType: assignment.principalType
+    roleDefinitionId: assignment.roleDefinitionId
   }
-}
-
-module keyVaultSecretsReader './keyvault-role-assignment.bicep' = {
-  name: 'keyVaultSecretsReader-${deploymentId}'
-  scope: resourceGroup()
-  params: {
-    keyVaultName: keyVaultParams.name
-    deploymentId: deploymentId
-    location: location
-    principalObjectId: entraGroups.keyVaultSecretsReaders.id
-    principalType: 'Group'
-    roleDefinitionId: keyVaultSecretsUserRoleId
-  }
-}
+}]
 
 output keyVaultName string = keyVault.name
 output keyVaultId string = keyVault.id

@@ -185,6 +185,59 @@ stages:
                 scriptType: bash
                 scriptPath: scripts/pipeline/remove-entra-group-members.sh
 
+            - task: AzureCLI@2
+              name: TestersGroup
+              env:
+                GROUP_NAME: AAG-Users-IMP-IPAFFS-Testers
+                GROUP_DESCRIPTION: Entra user group for IPAFFS Testers
+                GROUP_OWNER_OBJECT_IDS: >
+                  $(serviceConnectionPrincipalId)
+                  $(upstreamServiceConnectionPrincipalId)
+              inputs:
+                azureSubscription: $(upstreamServiceConnection)
+                scriptType: bash
+                scriptPath: scripts/pipeline/create-entra-group.sh
+
+            - task: AzureCLI@2
+              name: GetTestersMembers
+              env:
+                NAMES: $(lowerEnvsTestersGroupMembers)
+              inputs:
+                azureSubscription: $(upstreamServiceConnection)
+                scriptType: bash
+                scriptPath: scripts/pipeline/lookup-directory-objects.sh
+                scriptArguments: "-o ado -t user"
+
+            - task: AzureCLI@2
+              name: DetermineTestersMemberChanges
+              env:
+                GROUP_ID: $(TestersGroup.objectId)
+                OBJECT_IDS: $(GetTestersMembers.objectIds)
+              inputs:
+                azureSubscription: $(upstreamServiceConnection)
+                scriptType: bash
+                scriptPath: scripts/pipeline/determine-group-members.sh
+
+            - task: AzureCLI@2
+              name: AddTestersMembers
+              env:
+                GROUP_ID: $(TestersGroup.objectId)
+                GROUP_MEMBERS: $(DetermineTestersMemberChanges.membersToAdd)
+              inputs:
+                azureSubscription: $(serviceConnection)
+                scriptType: bash
+                scriptPath: scripts/pipeline/add-entra-group-members.sh
+
+            - task: AzureCLI@2
+              name: RemoveTestersMembers
+              env:
+                GROUP_ID: $(TestersGroup.objectId)
+                GROUP_MEMBERS: $(DetermineTestersMemberChanges.membersToRemove)
+              inputs:
+                azureSubscription: $(serviceConnection)
+                scriptType: bash
+                scriptPath: scripts/pipeline/remove-entra-group-members.sh
+
         - job: SaveTeamGroups
           displayName: Update library variables
           condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
@@ -205,6 +258,10 @@ stages:
               value: $[dependencies.TeamGroups.outputs['ReadersGroup.displayName']]
             - name: teamReadersObjectId
               value: $[dependencies.TeamGroups.outputs['ReadersGroup.objectId']]
+            - name: teamTestersDisplayName
+              value: $[dependencies.TeamGroups.outputs['TestersGroup.displayName']]
+            - name: teamTestersObjectId
+              value: $[dependencies.TeamGroups.outputs['TestersGroup.objectId']]
           steps:
             - checkout: self
 
@@ -226,6 +283,8 @@ stages:
                   scripts/pipeline/update-group-variable.sh teamDevelopersGroupName '$(teamDevelopersDisplayName)'
                   scripts/pipeline/update-group-variable.sh teamReadersGroupId '$(teamReadersObjectId)'
                   scripts/pipeline/update-group-variable.sh teamReadersGroupName '$(teamReadersDisplayName)'
+                  scripts/pipeline/update-group-variable.sh teamTestersGroupId '$(teamTestersObjectId)'
+                  scripts/pipeline/update-group-variable.sh teamTestersGroupName '$(teamTestersDisplayName)'
 
 
   - ${{ if eq(parameters.environmentName, 'PRD') }}:
@@ -683,6 +742,30 @@ stages:
               scriptType: bash
               scriptPath: scripts/pipeline/add-principal-to-group.sh
 
+          - ${{ if eq(parameters.environmentName, 'TST') }}:
+            - task: AzureCLI@2
+              name: QaKeyVaultSecretsOfficer
+              env:
+                GROUP_NAME: $(entraAccessGroupBaseName)-QaKeyVaultSecretsOfficer
+                GROUP_DESCRIPTION: Entra access group for IPAFFS QA automation KeyVault Secrets Officers in ${{ parameters.environmentName }} environment
+                GROUP_OWNER_OBJECT_IDS: >
+                  $(serviceConnectionPrincipalId)
+                  $(upstreamServiceConnectionPrincipalId)
+              inputs:
+                azureSubscription: $(upstreamServiceConnection)
+                scriptType: bash
+                scriptPath: scripts/pipeline/create-entra-group.sh
+
+            - task: AzureCLI@2
+              name: QaKeyVaultSecretsOfficerMembersTesters
+              env:
+                GROUP_ID: $(QaKeyVaultSecretsOfficer.objectId)
+                PRINCIPAL_ID: $(teamTestersGroupId)
+              inputs:
+                azureSubscription: $(serviceConnection)
+                scriptType: bash
+                scriptPath: scripts/pipeline/add-principal-to-group.sh
+
       - job: SearchGroups
         displayName: Search Service Groups
         condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
@@ -984,6 +1067,11 @@ stages:
             value: $[dependencies.KeyVaultGroups.outputs['KeyVaultSecretsReader.displayName']]
           - name: keyVaultSecretsReaderObjectId
             value: $[dependencies.KeyVaultGroups.outputs['KeyVaultSecretsReader.objectId']]
+          - ${{ if eq(parameters.environmentName, 'TST') }}:
+            - name: qaKeyVaultSecretsOfficersDisplayName
+              value: $[dependencies.KeyVaultGroups.outputs['QaKeyVaultSecretsOfficer.displayName']]
+            - name: qaKeyVaultSecretsOfficersObjectId
+              value: $[dependencies.KeyVaultGroups.outputs['QaKeyVaultSecretsOfficer.objectId']]
           - name: searchContributorsDisplayName
             value: $[dependencies.SearchGroups.outputs['SearchContributors.displayName']]
           - name: searchContributorsObjectId
@@ -1061,3 +1149,19 @@ stages:
                 scripts/pipeline/update-group-variable.sh sqlAdminGroupId '$(sqlAdminsObjectId)'
                 scripts/pipeline/update-group-variable.sh sqlAdminGroupName '$(sqlAdminsDisplayName)'
 
+          - ${{ if eq(parameters.environmentName, 'TST') }}:
+            - task: Bash@3
+              name: StoreQaKeyVaultLibraryVars
+              displayName: Store QA Key Vault Library Variables
+              condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+              env:
+                ADO_ORG_URL: $(System.CollectionUri)
+                ADO_PROJECT: $(System.TeamProject)
+                ADO_GROUP_NAME: ${{ parameters.environmentName }}
+                AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
+              inputs:
+                targetType: inline
+                script: |
+                  set -x
+                  scripts/pipeline/update-group-variable.sh qaKeyVaultSecretsOfficersGroupId '$(qaKeyVaultSecretsOfficersObjectId)'
+                  scripts/pipeline/update-group-variable.sh qaKeyVaultSecretsOfficersGroupName '$(qaKeyVaultSecretsOfficersDisplayName)'

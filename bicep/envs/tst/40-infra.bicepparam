@@ -76,6 +76,10 @@ param keyVaultParams = {
   name: 'TSTIMPINFKV1401'
 }
 
+param qaKeyVaultParams = {
+  name: 'TSTIMPINFKV1402'
+}
+
 param monitoringParams = {
   logAnalyticsName: 'TSTIMPINFLA1401'
   prometheusName: 'TSTIMPINFPR1401'
