@@ -2,6 +2,10 @@ using '../../20-network.bicep'
 
 param environment = 'TST'
 
+param agcNetworkConfig = {
+  routeTableName: 'UDR-AGC-TSTIMPNETVN1401-01'
+}
+
 param subnetNames = {
   aksApiServer: 'TSTIMPNETSU4401'
   aksSystemNodes: 'TSTIMPNETSU4402'
@@ -230,6 +234,70 @@ param nsgParams = {
       purpose: 'Reserved'
       securityRules: []
     }
+    {
+      name: 'TSTIMPNETNS1401-AGC'
+      purpose: 'App Gateway for Containers'
+      // Keep AGC restrictions separate from the shared AKS NSG.
+      securityRules: [
+        {
+          name: 'AllowFrontDoorHttps'
+          properties: {
+            description: 'Allow HTTPS from Front Door; HTTPRoutes must also validate X-Azure-FDID.'
+            protocol: 'Tcp'
+            sourcePortRange: '*'
+            destinationPortRange: '443'
+            sourceAddressPrefix: 'AzureFrontDoor.Backend'
+            destinationAddressPrefix: '*'
+            access: 'Allow'
+            priority: 1000
+            direction: 'Inbound'
+          }
+        }
+        {
+          name: 'AllowAzureLoadBalancer'
+          properties: {
+            description: 'Required AGC platform connectivity.'
+            protocol: '*'
+            sourcePortRange: '*'
+            destinationPortRange: '*'
+            sourceAddressPrefix: 'AzureLoadBalancer'
+            destinationAddressPrefix: '*'
+            access: 'Allow'
+            priority: 1010
+            direction: 'Inbound'
+          }
+        }
+        {
+          name: 'DenyOtherInbound'
+          properties: {
+            description: 'Prevent public and VNet callers bypassing Front Door.'
+            protocol: '*'
+            sourcePortRange: '*'
+            destinationPortRange: '*'
+            sourceAddressPrefix: '*'
+            destinationAddressPrefix: '*'
+            access: 'Deny'
+            priority: 4096
+            direction: 'Inbound'
+          }
+        }
+        {
+          name: 'AllowAksPodBackends'
+          properties: {
+            description: 'Allow backend traffic and health probes to overlay pod target ports.'
+            protocol: 'Tcp'
+            sourcePortRange: '*'
+            destinationPortRange: '*'
+            sourceAddressPrefix: '*'
+            destinationAddressPrefixes: ['172.16.0.0/16']
+            access: 'Allow'
+            priority: 1000
+            direction: 'Outbound'
+          }
+        }
+      ]
+      // Deliberately retain default outbound rules until platform flows are validated.
+    }
   ]
 }
 
@@ -305,9 +373,17 @@ param vnetParams = {
     {
       name: 'TSTIMPNETSU4405'
       addressPrefix: '10.179.133.0/24'
+      delegations: [
+        {
+          name: '0'
+          properties: {
+            serviceName: 'Microsoft.ServiceNetworking/trafficControllers'
+          }
+        }
+      ]
       serviceEndpoints: []
-      routeTableId: '/subscriptions/0022ef8e-d44e-49c5-8cfd-5e8e9c6e913e/resourceGroups/TSTIMPINFRG1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-TSTIMPNETVN1401-01'
-      networkSecurityGroupId: '/subscriptions/0022ef8e-d44e-49c5-8cfd-5e8e9c6e913e/resourceGroups/TSTIMPINFRG1401/providers/Microsoft.Network/networkSecurityGroups/TSTIMPNETNS1401-AKS'
+      routeTableId: '/subscriptions/0022ef8e-d44e-49c5-8cfd-5e8e9c6e913e/resourceGroups/TSTIMPINFRG1401/providers/Microsoft.Network/routeTables/UDR-AGC-TSTIMPNETVN1401-01'
+      networkSecurityGroupId: '/subscriptions/0022ef8e-d44e-49c5-8cfd-5e8e9c6e913e/resourceGroups/TSTIMPINFRG1401/providers/Microsoft.Network/networkSecurityGroups/TSTIMPNETNS1401-AGC'
     }
     // AKS User Node Pool, 253 usable addresses
     {
@@ -345,4 +421,3 @@ param vnetParams = {
     }
   ]
 }
-

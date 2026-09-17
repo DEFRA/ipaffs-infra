@@ -2,6 +2,10 @@ using '../../20-network.bicep'
 
 param environment = 'DEV'
 
+param agcNetworkConfig = {
+  routeTableName: 'UDR-AGC-DEVIMPNETVN1401-01'
+}
+
 param subnetNames = {
   aksApiServer: 'DEVIMPNETSU4401'
   aksSystemNodes: 'DEVIMPNETSU4402'
@@ -230,6 +234,70 @@ param nsgParams = {
       purpose: 'Reserved'
       securityRules: []
     }
+    {
+      name: 'DEVIMPNETNS1401-AGC'
+      purpose: 'App Gateway for Containers'
+      // Keep AGC restrictions separate from the shared AKS NSG.
+      securityRules: [
+        {
+          name: 'AllowFrontDoorHttps'
+          properties: {
+            description: 'Allow HTTPS from Front Door; HTTPRoutes must also validate X-Azure-FDID.'
+            protocol: 'Tcp'
+            sourcePortRange: '*'
+            destinationPortRange: '443'
+            sourceAddressPrefix: 'AzureFrontDoor.Backend'
+            destinationAddressPrefix: '*'
+            access: 'Allow'
+            priority: 1000
+            direction: 'Inbound'
+          }
+        }
+        {
+          name: 'AllowAzureLoadBalancer'
+          properties: {
+            description: 'Required AGC platform connectivity.'
+            protocol: '*'
+            sourcePortRange: '*'
+            destinationPortRange: '*'
+            sourceAddressPrefix: 'AzureLoadBalancer'
+            destinationAddressPrefix: '*'
+            access: 'Allow'
+            priority: 1010
+            direction: 'Inbound'
+          }
+        }
+        {
+          name: 'DenyOtherInbound'
+          properties: {
+            description: 'Prevent public and VNet callers bypassing Front Door.'
+            protocol: '*'
+            sourcePortRange: '*'
+            destinationPortRange: '*'
+            sourceAddressPrefix: '*'
+            destinationAddressPrefix: '*'
+            access: 'Deny'
+            priority: 4096
+            direction: 'Inbound'
+          }
+        }
+        {
+          name: 'AllowAksPodBackends'
+          properties: {
+            description: 'Allow backend traffic and health probes to overlay pod target ports.'
+            protocol: 'Tcp'
+            sourcePortRange: '*'
+            destinationPortRange: '*'
+            sourceAddressPrefix: '*'
+            destinationAddressPrefixes: ['172.16.0.0/16']
+            access: 'Allow'
+            priority: 1000
+            direction: 'Outbound'
+          }
+        }
+      ]
+      // Deliberately retain default outbound rules until platform flows are validated.
+    }
   ]
 }
 
@@ -308,9 +376,17 @@ param vnetParams = {
     {
       name: 'DEVIMPNETSU4405'
       addressPrefix: '10.179.145.0/24'
+      delegations: [
+        {
+          name: '0'
+          properties: {
+            serviceName: 'Microsoft.ServiceNetworking/trafficControllers'
+          }
+        }
+      ]
       serviceEndpoints: []
-      routeTableId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPINFRG1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-DEVIMPNETVN1401-01'
-      networkSecurityGroupId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPINFRG1401/providers/Microsoft.Network/networkSecurityGroups/DEVIMPNETNS1401-AKS'
+      routeTableId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPINFRG1401/providers/Microsoft.Network/routeTables/UDR-AGC-DEVIMPNETVN1401-01'
+      networkSecurityGroupId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPINFRG1401/providers/Microsoft.Network/networkSecurityGroups/DEVIMPNETNS1401-AGC'
     }
     // AKS User Node Pool, 253 usable addresses
     {
@@ -348,4 +424,3 @@ param vnetParams = {
     }
   ]
 }
-
