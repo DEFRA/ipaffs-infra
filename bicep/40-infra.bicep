@@ -124,6 +124,13 @@ module keyVault './modules/keyvault.bicep' = {
 var deployQaKeyVault = !empty(qaKeyVaultParams)
 var qaSecretsOfficerObjectId = contains(entraGroups, 'qaKeyVaultSecretsOfficers') ? entraGroups.qaKeyVaultSecretsOfficers.id : ''
 var qaKeyVaultRoleAssignments = concat(
+  [
+    {
+      principalObjectId: entraGroups.keyVaultAdmins.id
+      principalType: 'Group'
+      roleDefinitionId: keyVaultAdministratorRoleId
+    }
+  ],
   empty(qaSecretsOfficerObjectId) ? [] : [
     {
       principalObjectId: qaSecretsOfficerObjectId
