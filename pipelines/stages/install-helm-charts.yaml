@@ -1,6 +1,9 @@
 parameters:
   - name: environmentName
     type: string
+  - name: infrastructureDeploymentName
+    type: string
+    default: ''
 
 stages:
   - stage: DeployHelmCharts
@@ -24,11 +27,96 @@ stages:
                     scriptType: bash
                     scriptLocation: inlineScript
                     inlineScript: |
-                      set -x
-                      az aks install-cli --client-version v1.36.1 --kubelogin-version v0.2.18
+                      set -euo pipefail
+                      cluster_version=$(az aks show --name "$(kubernetesCluster)" --resource-group "$(resourceGroupName)" --subscription "$(subscriptionName)" --query currentKubernetesVersion -o tsv)
+                      if [[ ! "$cluster_version" =~ ^1\.[0-9]+\.[0-9]+$ ]]; then
+                        echo 'Could not determine the current AKS version for a compatible kubectl client.'
+                        exit 1
+                      fi
+                      az aks install-cli --client-version "v$cluster_version" --kubelogin-version v0.2.18
                       az aks get-credentials -n "$(kubernetesCluster)" -g "$(resourceGroupName)" --subscription "$(subscriptionName)"
                       kubelogin convert-kubeconfig -l azurecli
                       az acr login --name "$(acrName)" --subscription "$(subscriptionName)" || az acr check-health -n "$(acrName)" --yes
+
+                - task: AzureCLI@2
+                  displayName: Helm Install - alb-controller
+                  env:
+                    ALB_CONTROLLER_CLIENT_ID: $(albControllerClientId)
+                    HELM_DRY_RUN: $(helmDryRun)
+                    INFRASTRUCTURE_DEPLOYMENT_NAME: ${{ parameters.infrastructureDeploymentName }}
+                  inputs:
+                    azureSubscription: $(serviceConnection)
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      set -euo pipefail
+                      cluster=$(az aks show --name "$(kubernetesCluster)" --resource-group "$(resourceGroupName)" --subscription "$(subscriptionName)" -o json)
+                      if ! jq -e '
+                        .oidcIssuerProfile.enabled == true and
+                        .securityProfile.workloadIdentity.enabled == true and
+                        .networkProfile.networkPlugin == "azure" and
+                        (.currentKubernetesVersion | split(".") | (.[0] | tonumber) == 1 and (.[1] | tonumber) >= 32)
+                      ' <<< "$cluster" > /dev/null; then
+                        echo 'ALB controller requires AKS 1.32+, Azure CNI, OIDC and workload identity. Check the selected environment before installing.'
+                        exit 1
+                      fi
+
+                      # Library updates are not guaranteed to refresh within the same run.
+                      # The infrastructure pipeline supplies its deployment; standalone installs use the Library.
+                      controller_client_id="$ALB_CONTROLLER_CLIENT_ID"
+                      if [[ -z "$HELM_DRY_RUN" && -n "$INFRASTRUCTURE_DEPLOYMENT_NAME" ]]; then
+                        controller_client_id=$(az deployment group show \
+                          --name "$INFRASTRUCTURE_DEPLOYMENT_NAME" \
+                          --subscription "$(subscriptionId)" \
+                          --resource-group "$(resourceGroupName)" \
+                          --query properties.outputs.albControllerClientId.value -o tsv)
+                      fi
+                      if [[ ! "$controller_client_id" =~ ^[[:xdigit:]]{8}-[[:xdigit:]]{4}-[[:xdigit:]]{4}-[[:xdigit:]]{4}-[[:xdigit:]]{12}$ ]]; then
+                        if [[ -n "$HELM_DRY_RUN" ]]; then
+                          echo 'Rendering only: the ALB identity has not been deployed yet.'
+                          controller_client_id=00000000-0000-0000-0000-000000000000
+                        else
+                          echo 'Missing albControllerClientId. Deploy infrastructure and import the ALB images before running the standalone Helm pipeline.'
+                          exit 1
+                        fi
+                      fi
+
+                      # The chart installs cluster-wide CRDs. Never adopt another installation implicitly.
+                      gateway_crds=$(kubectl get crds -o json | jq -r '.items[] | select(.spec.group == "gateway.networking.k8s.io" or .spec.group == "alb.networking.azure.io") | .metadata.name')
+                      if [[ -n "$gateway_crds" ]]; then
+                        helm list --namespace azure-alb-system --all --filter '^alb-controller$' --output json | \
+                          jq -e --arg chart 'alb-controller-$(albControllerVersion)' 'length == 1 and .[0].chart == $chart' > /dev/null || {
+                            echo 'Gateway API/ALB CRDs already exist without the expected ALB release. Confirm ownership before proceeding.'
+                            echo "$gateway_crds"
+                            exit 1
+                          }
+                        kubectl get deployment alb-controller --namespace azure-alb-system -o json | jq -e '
+                          .metadata.labels["app.kubernetes.io/managed-by"] == "Helm" and
+                          .metadata.annotations["meta.helm.sh/release-name"] == "alb-controller" and
+                          .metadata.annotations["meta.helm.sh/release-namespace"] == "azure-alb-system" and
+                          .spec.template.spec.serviceAccountName == "alb-controller-sa"
+                        ' > /dev/null
+                      fi
+
+                      helm upgrade \
+                        --install \
+                        --debug \
+                        --namespace azure-alb-system \
+                        --create-namespace \
+                        --dependency-update \
+                        --wait \
+                        --timeout 10m \
+                        $(helmDryRun) \
+                        --values helm-charts/alb-controller-values.yaml \
+                        --set-string "albController.podIdentity.clientID=$controller_client_id" \
+                        --set-string "albController.image.registry=$(acrLoginServer)" \
+                        alb-controller oci://mcr.microsoft.com/application-lb/charts/alb-controller \
+                        --version "$(albControllerVersion)"
+
+                      if [[ -z "$HELM_DRY_RUN" ]]; then
+                        kubectl wait --for=condition=Accepted gatewayclass/azure-alb-external --timeout=300s
+                        kubectl get pods --namespace azure-alb-system
+                      fi
 
                 - task: AzureCLI@2
                   displayName: Helm Install - cert-manager
@@ -285,5 +373,4 @@ stages:
                         ama-metrics-settings ./helm-charts/ama-metrics-settings
                       kubectl rollout restart deployment ama-metrics-ksm -n kube-system
                       kubectl rollout status deployment ama-metrics-ksm -n kube-system --timeout=2m
-
 

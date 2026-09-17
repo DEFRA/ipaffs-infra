@@ -14,6 +14,14 @@ param tenantId = ''
 param deployServicePrincipalObjectId = ''
 param vnetName = 'PRDIMPNETVN1401'
 
+param agcParams = {
+  name: 'PRDIMPINFAG1401'
+  managedIdentityName: 'PRDIMPINFMI1401-AlbController'
+  associationName: 'aks'
+  frontendName: 'public'
+  controllerNamespace: 'azure-alb-system'
+}
+
 param aksParams = {
   name: 'PRDIMPINFAK1401'
   dnsPrefix: 'prdimpinfak1401'
@@ -104,4 +112,3 @@ param sqlParams = {
 param storageParams = {
   name: 'prdimpinfst1401' // note: must be lowercase
 }
-

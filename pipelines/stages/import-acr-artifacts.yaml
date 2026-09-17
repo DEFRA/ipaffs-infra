@@ -10,7 +10,8 @@ stages:
         displayName: Import Container Images
         environment:
           name: "${{ parameters.environmentName }}"
-        condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+        # TST shares the DEV ACR; the existing image set is imported by DEV.
+        condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'), ne('${{ parameters.environmentName }}', 'TST'))
         strategy:
           runOnce:
             deploy:
@@ -224,3 +225,33 @@ stages:
                         --force \
                         --verbose
 
+      - deployment: ImportAlbControllerImages
+        displayName: Import ALB Controller Images
+        environment:
+          name: "${{ parameters.environmentName }}"
+        condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+
+                - task: AzureCLI@2
+                  displayName: Import application-lb images
+                  inputs:
+                    # Uses DEV's service connection for the shared DEV/TST ACR.
+                    azureSubscription: $(acrGroupsServiceConnection)
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      set -euo pipefail
+                      for image in alb-controller alb-controller-bootstrap alb-controller-crds; do
+                        image_ref="application-lb/images/$image:$(albControllerVersion)"
+                        # The official chart adds public/ for a non-MCR registry.
+                        az acr import \
+                          --name "$(acrName)" \
+                          --source "mcr.microsoft.com/$image_ref" \
+                          --image "public/$image_ref" \
+                          --force \
+                          --verbose
+                      done

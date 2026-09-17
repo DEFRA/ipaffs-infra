@@ -22,6 +22,7 @@ var tags = union(loadJsonContent('default-tags.json'), {
   Location: location
 })
 
+param agcParams object
 param aksParams object
 param alertsParams object
 param asoParams object
@@ -50,6 +51,21 @@ module aks './modules/aks.bicep' = {
     location: location
     logAnalyticsId: monitoring.outputs.logAnalyticsId
     subnets: subnets
+    tags: tags
+    vnetName: vnetName
+  }
+}
+
+module agc './modules/application-gateway-for-containers.bicep' = {
+  name: 'agc-${deploymentId}'
+  scope: resourceGroup()
+  params: {
+    agcParams: agcParams
+    aksNodeResourceGroupName: aksParams.nodeResourceGroup
+    deploymentId: deploymentId
+    location: location
+    oidcIssuerUrl: aks.outputs.oidcIssuerUrl
+    subnetName: subnets.appGatewayForContainers.name
     tags: tags
     vnetName: vnetName
   }
@@ -237,6 +253,10 @@ module storage './modules/storage.bicep' = {
 output aksClusterName string = aks.outputs.aksClusterName
 output aksKubeletPrincipalId string = aks.outputs.kubeletPrincipalId
 output aksOidcIssuer string = aks.outputs.oidcIssuerUrl
+output albControllerClientId string = agc.outputs.controllerClientId
+output appGatewayForContainersResourceId string = agc.outputs.agcResourceId
+output appGatewayForContainersFrontendName string = agc.outputs.frontendName
+output appGatewayForContainersFrontendFqdn string = agc.outputs.frontendFqdn
 output azureServiceOperatorClientId string = aso.outputs.clientId
 output externalSecretsClientId string = externalSecrets.outputs.clientId
 output externalSecretsPrincipalObjectId string = externalSecrets.outputs.principalObjectId
@@ -258,4 +278,3 @@ output insightsConnectionString string = insights.outputs.insightsConnectionStri
 output grafanaManagedIdentityPrincipalId string = monitoring.outputs.grafanaManagedIdentityPrincipalId
 output grafanaName string = monitoring.outputs.grafanaName
 output prometheusName string = monitoring.outputs.prometheusName
-
