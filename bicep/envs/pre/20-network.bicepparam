@@ -377,7 +377,7 @@ param vnetParams = {
       addressPrefix: '10.179.137.0/24'
       delegations: [
         {
-          name: 'application-gateway-for-containers'
+          name: '0'
           properties: {
             serviceName: 'Microsoft.ServiceNetworking/trafficControllers'
           }
