@@ -73,6 +73,27 @@ stages:
                         scriptArguments: >
                           -UpdateAllDnsZones $true
 
+                - ${{ if eq(parameters.environmentName, 'TST') }}:
+                  - template: /templates/steps/powershell.yaml@PipelineCommon
+                    parameters:
+                      azureResourceManagerConnection: AZR-MST-PrivateLinkDNS
+                      variables:
+                        projectServiceConnection: $(serviceConnection)
+                      scriptsList:
+                        - displayName: "Resolve Private Endpoint IPs"
+                          serviceConnectionVariableName: projectServiceConnection
+                          scriptPath: 'Get-ResourcePrivateEndPointsDnsRecordsAsJson.ps1@PipelineCommon'
+                          scriptArguments: >
+                            -ResourceGroupName '$(resourceGroupName)'
+                            -ResourceName '$(qaKeyVaultName)'
+                            -Subscription '$(subscriptionName)'
+
+                        - displayName: "Set DNS records"
+                          condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+                          scriptPath: 'Set-PrivateDnsRecordSet.ps1@PipelineCommon'
+                          scriptArguments: >
+                            -UpdateAllDnsZones $true
+
       - deployment: Redis
         displayName: Redis
         environment:
