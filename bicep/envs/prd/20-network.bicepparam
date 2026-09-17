@@ -2,6 +2,10 @@ using '../../20-network.bicep'
 
 param environment = 'PRD'
 
+param agcNetworkConfig = {
+  routeTableName: 'UDR-AGC-PRDIMPNETVN1401-01'
+}
+
 param subnetNames = {
   aksApiServer: 'PRDIMPNETSU4401'
   aksSystemNodes: 'PRDIMPNETSU4402'
@@ -380,7 +384,7 @@ param vnetParams = {
         }
       ]
       serviceEndpoints: []
-      routeTableId: '/subscriptions/5f38dc6f-69b9-4d1b-9000-7e0b8277e515/resourceGroups/PRDIMPINFRG1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-PRDIMPNETVN1401-01'
+      routeTableId: '/subscriptions/5f38dc6f-69b9-4d1b-9000-7e0b8277e515/resourceGroups/PRDIMPINFRG1401/providers/Microsoft.Network/routeTables/UDR-AGC-PRDIMPNETVN1401-01'
       networkSecurityGroupId: '/subscriptions/5f38dc6f-69b9-4d1b-9000-7e0b8277e515/resourceGroups/PRDIMPINFRG1401/providers/Microsoft.Network/networkSecurityGroups/PRDIMPNETNS1401-AGC'
     }
     // AKS User Node Pool, 253 usable addresses

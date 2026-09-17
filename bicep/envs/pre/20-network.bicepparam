@@ -2,6 +2,10 @@ using '../../20-network.bicep'
 
 param environment = 'PRE'
 
+param agcNetworkConfig = {
+  routeTableName: 'UDR-AGC-PREIMPNETVN1401-01'
+}
+
 param subnetNames = {
   aksApiServer: 'PREIMPNETSU4401'
   aksSystemNodes: 'PREIMPNETSU4402'
@@ -380,7 +384,7 @@ param vnetParams = {
         }
       ]
       serviceEndpoints: []
-      routeTableId: '/subscriptions/3978eb4f-add1-415d-839b-db398e65a7d9/resourceGroups/PREIMPINFRG1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-PREIMPNETVN1401-01'
+      routeTableId: '/subscriptions/3978eb4f-add1-415d-839b-db398e65a7d9/resourceGroups/PREIMPINFRG1401/providers/Microsoft.Network/routeTables/UDR-AGC-PREIMPNETVN1401-01'
       networkSecurityGroupId: '/subscriptions/3978eb4f-add1-415d-839b-db398e65a7d9/resourceGroups/PREIMPINFRG1401/providers/Microsoft.Network/networkSecurityGroups/PREIMPNETNS1401-AGC'
     }
     // AKS User Node Pool, 253 usable addresses

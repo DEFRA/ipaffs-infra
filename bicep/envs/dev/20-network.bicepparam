@@ -2,6 +2,10 @@ using '../../20-network.bicep'
 
 param environment = 'DEV'
 
+param agcNetworkConfig = {
+  routeTableName: 'UDR-AGC-DEVIMPNETVN1401-01'
+}
+
 param subnetNames = {
   aksApiServer: 'DEVIMPNETSU4401'
   aksSystemNodes: 'DEVIMPNETSU4402'
@@ -381,7 +385,7 @@ param vnetParams = {
         }
       ]
       serviceEndpoints: []
-      routeTableId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPINFRG1401/providers/Microsoft.Network/routeTables/UDR-Spoke-Route-From-DEVIMPNETVN1401-01'
+      routeTableId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPINFRG1401/providers/Microsoft.Network/routeTables/UDR-AGC-DEVIMPNETVN1401-01'
       networkSecurityGroupId: '/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPINFRG1401/providers/Microsoft.Network/networkSecurityGroups/DEVIMPNETNS1401-AGC'
     }
     // AKS User Node Pool, 253 usable addresses
