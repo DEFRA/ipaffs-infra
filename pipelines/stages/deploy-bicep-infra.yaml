@@ -164,6 +164,22 @@ stages:
                     targetPath: $(Build.SourcesDirectory)/bicep
 
                 - task: AzureCLI@2
+                  displayName: Check AGC resource providers
+                  inputs:
+                    azureSubscription: $(serviceConnection)
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      set -euo pipefail
+                      for provider in Microsoft.ContainerService Microsoft.Network Microsoft.NetworkFunction Microsoft.ServiceNetworking; do
+                        state=$(az provider show --namespace "$provider" --subscription "$(subscriptionId)" --query registrationState -o tsv)
+                        if [[ "$state" != Registered ]]; then
+                          echo "Required AGC provider $provider is $state. Arrange registration before deploying infrastructure."
+                          exit 1
+                        fi
+                      done
+
+                - task: AzureCLI@2
                   displayName: WhatIf - Infrastructure
                   inputs:
                     azureSubscription: $(serviceConnection)
@@ -251,6 +267,10 @@ stages:
               inlineScript: |
                 set -x
                 scripts/pipeline/update-group-variable-from-deployment.sh aksKubeletPrincipalId aksKubeletPrincipalId
+                scripts/pipeline/update-group-variable-from-deployment.sh albControllerClientId albControllerClientId
+                scripts/pipeline/update-group-variable-from-deployment.sh appGatewayForContainersResourceId appGatewayForContainersResourceId
+                scripts/pipeline/update-group-variable-from-deployment.sh appGatewayForContainersFrontendName appGatewayForContainersFrontendName
+                scripts/pipeline/update-group-variable-from-deployment.sh appGatewayForContainersFrontendFqdn appGatewayForContainersFrontendFqdn
                 scripts/pipeline/update-group-variable-from-deployment.sh azureServiceOperatorClientId azureServiceOperatorClientId
                 scripts/pipeline/update-group-variable-from-deployment.sh externalSecretsClientId externalSecretsClientId
                 scripts/pipeline/update-group-variable-from-deployment.sh externalSecretsPrincipalObjectId externalSecretsPrincipalObjectId
