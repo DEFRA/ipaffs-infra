@@ -58,6 +58,11 @@ steps:
       AZURE_MANAGED_IDENTITY_MIGRATIONS_CLIENT_ID: ${{ parameters.chart.migrationsClientId }}
       AZURE_MANAGED_IDENTITY_EXTERNAL_SECRETS_CLIENT_ID: $(externalSecretsClientId)
       AZURE_SQL_SERVER_NAME: $(sqlServerName)
+      AZURE_BASE_RESOURCE_GROUP_NAME: $(resourceGroupName)
+      ${{ if ne(parameters.chart.namespaceResourceGroupName, '') }}:
+        AZURE_NAMESPACE_RESOURCE_GROUP_NAME: ${{ parameters.chart.namespaceResourceGroupName }}
+      ${{ else }}:
+        AZURE_NAMESPACE_RESOURCE_GROUP_NAME: $(resourceGroupName)
       AZURE_SEARCH_SUBSCRIPTION_ID: $(searchServiceSubscriptionId)
       AZURE_SEARCH_RESOURCE_GROUP_NAME: $(searchServiceResourceGroupName)
       AZURE_SEARCH_SERVICE_NAME: $(searchServiceName)

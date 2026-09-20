@@ -9,7 +9,7 @@ metadata:
 spec:
   location: uksouth
   owner:
-    name: {{ template "ipaffs-common.azure.resourceGroup" . }}
+    name: {{ template "ipaffs-common.azure.resourceGroupK8sName" . }}
 
 {{ if .Values.database.migrations.enabled }}
 ---
@@ -24,6 +24,6 @@ metadata:
 spec:
   location: uksouth
   owner:
-    name: {{ template "ipaffs-common.azure.resourceGroup" . }}
+    name: {{ template "ipaffs-common.azure.resourceGroupK8sName" . }}
 {{ end }}
 

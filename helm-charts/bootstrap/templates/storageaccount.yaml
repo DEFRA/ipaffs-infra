@@ -11,7 +11,7 @@ metadata:
       {{- include "ipaffs-common.labels" $root | nindent 4 }}
 spec:
   owner:
-    name: {{ template "ipaffs-common.azure.resourceGroup" $root }}
+    name: {{ template "ipaffs-common.azure.baseResourceGroupK8sName" $root }}
   location: {{ $root.Values.azure.location }}
   kind: StorageV2
   sku:
