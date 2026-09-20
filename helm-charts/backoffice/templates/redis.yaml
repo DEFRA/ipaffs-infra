@@ -13,7 +13,7 @@ metadata:
 spec:
   location: {{ .Values.azure.location }}
   owner:
-    name: {{ template "ipaffs-common.azure.resourceGroup" . }}
+    name: {{ template "ipaffs-common.azure.resourceGroupK8sName" . }}
   sku:
     family: C
     name: Basic

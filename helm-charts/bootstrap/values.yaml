@@ -4,6 +4,8 @@ environment: dev
 
 azure:
   location: uksouth
+  baseResourceGroupName: ""
+  namespaceResourceGroupName: ""
 
 serviceBus:
   queues: []

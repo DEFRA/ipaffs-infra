@@ -1,0 +1,29 @@
+suite: storage account template
+templates:
+  - templates/storageaccount.yaml
+tests:
+  - it: does not render outside the dev environment
+    release:
+      namespace: tst
+    set:
+      service: bootstrap
+      environment: tst
+      azure.location: uksouth
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: stays in the shared base resource group even for an alternative namespace
+    release:
+      namespace: pr-123
+    set:
+      service: bootstrap
+      environment: dev
+      azure.location: uksouth
+      azure.namespaceResourceGroupName: devimpinfrg1401-pr-123
+      storageAccount.blobService.containers: []
+    documentIndex: 0
+    asserts:
+      - equal:
+          path: spec.owner.name
+          value: devimpinfrg1401
