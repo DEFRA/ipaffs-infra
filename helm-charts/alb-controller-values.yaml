@@ -1,0 +1,9 @@
+# Runs alongside the existing managed NGINX controller; no application routes are installed.
+# The pipeline supplies the identity client ID and existing ACR login server.
+# Chart 1.12.1 adds a public/ prefix when a non-MCR registry is configured.
+albController:
+  namespace: azure-alb-system
+  podIdentity:
+    clientID: ""
+  image:
+    registry: ""

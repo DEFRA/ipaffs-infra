@@ -101,14 +101,14 @@ stages:
     parameters:
       environmentName: ${{ parameters.environmentName }}
 
-  - ${{ if or(eq(parameters.environmentName, 'DEV'), eq(parameters.environmentName, 'PRE'), eq(parameters.environmentName, 'PRD')) }}:
-    - template: stages/import-acr-artifacts.yaml
-      parameters:
-        environmentName: ${{ parameters.environmentName }}
+  - template: stages/import-acr-artifacts.yaml
+    parameters:
+      environmentName: ${{ parameters.environmentName }}
 
   - template: stages/install-helm-charts.yaml
     parameters:
       environmentName: ${{ parameters.environmentName }}
+      infrastructureDeploymentName: Infrastructure-$(Build.BuildId)
 
   - template: stages/deploy-bicep-privatelink.yaml
     parameters:
