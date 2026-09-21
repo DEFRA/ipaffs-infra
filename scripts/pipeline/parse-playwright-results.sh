@@ -25,10 +25,10 @@ fi
 echo ":: Parsing Playwright JSON report: ${REPORT_FILE}."
 TOTAL_SUITES=$(jq '.config.projects | length' "$REPORT_FILE" 2>/dev/null || echo "0")
 TOTAL_SPECS=$(jq '[.suites[].specs[]?] | length' "$REPORT_FILE" 2>/dev/null || echo "0")
-PASSED=$(jq '[.. | objects | select(has("status")) | select(.status == "expected")] | length' "$REPORT_FILE")
-FAILED=$(jq '[.. | objects | select(has("status")) | select(.status == "unexpected")] | length' "$REPORT_FILE")
-FLAKY=$(jq '[.. | objects | select(has("status")) | select(.status == "flaky")] | length' "$REPORT_FILE")
-SKIPPED=$(jq '[.. | objects | select(has("status")) | select(.status == "skipped")] | length' "$REPORT_FILE")
+PASSED=$(jq '.stats.expected // 0' "$REPORT_FILE")
+FAILED=$(jq '.stats.unexpected // 0' "$REPORT_FILE")
+FLAKY=$(jq '.stats.flaky // 0' "$REPORT_FILE")
+SKIPPED=$(jq '.stats.skipped // 0' "$REPORT_FILE")
 
 TOTAL_TESTS=$((PASSED + FAILED + FLAKY + SKIPPED))
 
