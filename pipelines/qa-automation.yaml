@@ -11,12 +11,11 @@ parameters:
   - name: environmentName
     displayName: Environment
     type: string
-    default: NEW-DEV
+    default: DEV
     values:
-      - NEW-DEV
-      - NEW-TST
-      - VNET
+      - DEV
       - TST
+      - VNET
       - PRE
 
   - name: workers
@@ -64,12 +63,12 @@ variables:
 
   - group: Testing
 
-  - ${{ if or(eq(parameters.environmentName, 'NEW-PRD'), eq(parameters.environmentName, 'NEW-PRE')) }}:
+  - ${{ if eq(parameters.environmentName, 'PRE') }}:
     - group: HigherEnvs
   - ${{ else }}:
     - group: LowerEnvs
 
-  - ${{ if in(parameters.environmentName, 'NEW-DEV', 'NEW-TST', 'NEW-PRE', 'NEW-PRD') }}:
+  - ${{ if in(parameters.environmentName, 'DEV', 'TST', 'PRE') }}:
     - group: "${{ replace(parameters.environmentName, 'NEW-', '') }}"
     - template: "/pipelines/vars/${{ lower(replace(parameters.environmentName, 'NEW-', '')) }}.yaml"
 
@@ -103,7 +102,7 @@ stages:
               inlineScript: |
                 $(Pipeline.Workspace)/s/ipaffs-infra/scripts/pipeline/substitute-environment-variables.sh .env-kv $(qaAutomationKeyvaultName) .env-substituted
 
-          - ${{ if in(parameters.environmentName, 'NEW-DEV', 'NEW-TST', 'NEW-PRE', 'NEW-PRD') }}:
+          - ${{ if in(parameters.environmentName, 'DEV', 'TST', 'PRE') }}:
             - task: AzureCLI@2
               displayName: Log AKS Service Status
               continueOnError: true
