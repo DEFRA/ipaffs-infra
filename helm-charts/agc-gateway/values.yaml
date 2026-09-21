@@ -1,0 +1,12 @@
+# Opt in per environment only after confirming certificate coverage and test access.
+enabled: false
+gatewayName: ipaffs-agc
+resourceId: ""
+frontendName: public
+
+# Deploy this release in defra-certs, alongside the existing secret owner.
+# This chart references the secret; it does not create or copy certificates.
+tlsSecretName: star-azure-defra-cloud-cert
+
+# Explicit namespace allowlist. Do not allow arbitrary namespaces to attach routes.
+allowedNamespaces: []

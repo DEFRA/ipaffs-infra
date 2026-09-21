@@ -1,0 +1,1 @@
+{{- include "ipaffs-common.agcHttpRoutes" (dict "root" . "hosts" (include "ipaffs-common.ingressOriginHosts" .) "name" "origin" "service" "proxy" "port" 80) }}

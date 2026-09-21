@@ -1,0 +1,100 @@
+suite: shared AGC gateway
+templates:
+  - templates/gateway.yaml
+tests:
+  - it: renders nothing unless enabled
+    asserts:
+      - hasDocuments:
+          count: 0
+  - it: attaches an HTTPS listener to the existing Bicep frontend
+    release:
+      namespace: defra-certs
+    set:
+      enabled: true
+      resourceId: /subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/PRDIMPINFRG1401/providers/Microsoft.ServiceNetworking/trafficControllers/PRDIMPINFAG1401
+      allowedNamespaces: [prd, prd-test]
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Gateway
+      - equal:
+          path: metadata.name
+          value: ipaffs-agc
+      - equal:
+          path: metadata.annotations["alb.networking.azure.io/alb-id"]
+          value: /subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/PRDIMPINFRG1401/providers/Microsoft.ServiceNetworking/trafficControllers/PRDIMPINFAG1401
+      - equal:
+          path: spec.gatewayClassName
+          value: azure-alb-external
+      - equal:
+          path: spec.addresses[0]
+          value:
+            type: alb.networking.azure.io/alb-frontend
+            value: public
+      - equal:
+          path: spec.listeners[0].protocol
+          value: HTTPS
+      - equal:
+          path: spec.listeners[0].port
+          value: 443
+      - equal:
+          path: spec.listeners[0].tls.certificateRefs[0].name
+          value: star-azure-defra-cloud-cert
+      - equal:
+          path: spec.listeners[0].allowedRoutes.namespaces
+          value:
+            from: Selector
+            selector:
+              matchExpressions:
+                - key: kubernetes.io/metadata.name
+                  operator: In
+                  values: [prd, prd-test]
+  - it: requires the existing Azure resource ID
+    set:
+      enabled: true
+      allowedNamespaces: [dev]
+    asserts:
+      - failedTemplate:
+          errorMessage: resourceId is required when the AGC Gateway is enabled
+  - it: rejects another Azure resource type
+    set:
+      enabled: true
+      resourceId: /subscriptions/test/resourceGroups/test/providers/Microsoft.Network/loadBalancers/test
+      allowedNamespaces: [dev]
+    asserts:
+      - failedTemplate:
+          errorMessage: resourceId must identify an existing Application Gateway for Containers resource
+  - it: requires an explicit namespace allowlist
+    set:
+      enabled: true
+      resourceId: /subscriptions/test/resourceGroups/test/providers/Microsoft.ServiceNetworking/trafficControllers/test
+    asserts:
+      - failedTemplate:
+          errorMessage: allowedNamespaces must explicitly allow at least one route namespace
+  - it: rejects a namespace wildcard
+    set:
+      enabled: true
+      resourceId: /subscriptions/test/resourceGroups/test/providers/Microsoft.ServiceNetworking/trafficControllers/test
+      allowedNamespaces: ['*']
+    asserts:
+      - failedTemplate:
+          errorMessage: allowedNamespaces entries must be valid Kubernetes namespace names
+  - it: supports an explicitly selected certificate and frontend
+    set:
+      enabled: true
+      resourceId: /subscriptions/test/resourceGroups/test/providers/Microsoft.ServiceNetworking/trafficControllers/test
+      allowedNamespaces: [pre]
+      tlsSecretName: origin-tls
+      frontendName: alternate
+      gatewayName: alternate-gateway
+    asserts:
+      - equal:
+          path: metadata.name
+          value: alternate-gateway
+      - equal:
+          path: spec.addresses[0].value
+          value: alternate
+      - equal:
+          path: spec.listeners[0].tls.certificateRefs[0].name
+          value: origin-tls
