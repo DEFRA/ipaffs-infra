@@ -50,17 +50,6 @@ stages:
                     scriptLocation: inlineScript
                     inlineScript: |
                       set -euo pipefail
-                      cluster=$(az aks show --name "$(kubernetesCluster)" --resource-group "$(resourceGroupName)" --subscription "$(subscriptionName)" -o json)
-                      if ! jq -e '
-                        .oidcIssuerProfile.enabled == true and
-                        .securityProfile.workloadIdentity.enabled == true and
-                        .networkProfile.networkPlugin == "azure" and
-                        (.currentKubernetesVersion | split(".") | (.[0] | tonumber) == 1 and (.[1] | tonumber) >= 32)
-                      ' <<< "$cluster" > /dev/null; then
-                        echo 'ALB controller requires AKS 1.32+, Azure CNI, OIDC and workload identity. Check the selected environment before installing.'
-                        exit 1
-                      fi
-
                       # Library updates are not guaranteed to refresh within the same run.
                       # The infrastructure pipeline supplies its deployment; standalone installs use the Library.
                       controller_client_id="$ALB_CONTROLLER_CLIENT_ID"
@@ -81,11 +70,17 @@ stages:
                         fi
                       fi
 
-                      # The chart installs cluster-wide CRDs. Never adopt another installation implicitly.
+                      # Existing Gateway API/ALB CRDs require the expected Helm release and controller.
+                      # Check installation identity, not version, so upgrades and rollbacks remain possible.
                       gateway_crds=$(kubectl get crds -o json | jq -r '.items[] | select(.spec.group == "gateway.networking.k8s.io" or .spec.group == "alb.networking.azure.io") | .metadata.name')
                       if [[ -n "$gateway_crds" ]]; then
                         helm list --namespace azure-alb-system --all --filter '^alb-controller$' --output json | \
-                          jq -e --arg chart 'alb-controller-$(albControllerVersion)' 'length == 1 and .[0].chart == $chart' > /dev/null || {
+                          jq -e '
+                            length == 1 and
+                            .[0].name == "alb-controller" and
+                            .[0].namespace == "azure-alb-system" and
+                            (.[0].chart | startswith("alb-controller-"))
+                          ' > /dev/null || {
                             echo 'Gateway API/ALB CRDs already exist without the expected ALB release. Confirm ownership before proceeding.'
                             echo "$gateway_crds"
                             exit 1
