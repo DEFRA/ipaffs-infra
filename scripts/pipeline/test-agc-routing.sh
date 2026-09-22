@@ -54,6 +54,18 @@ tests = [
 ]
 %w[DEV TST PRE PRD].each do |environment|
   tests << {name: "#{environment} namespace selection", environment: environment, pass: true, has: ["allowedNamespaces[0]=#{environment.downcase}"]}
+  environment_variables = YAML.load_file("#{repo}/pipelines/vars/#{environment.downcase}.yaml").fetch('variables')
+  effective_variables = common.fetch('variables').merge(environment_variables)
+  enabled = effective_variables.fetch('appGatewayForContainersGatewayEnabled')
+  abort "Only DEV should currently opt in to the shared Gateway" unless enabled == (environment == 'DEV')
+  tests << {
+    name: "#{environment} configured Gateway rollout",
+    environment: environment,
+    env: {'AGC_GATEWAY_ENABLED' => enabled.to_s, 'HELM_DRY_RUN' => '--dry-run'},
+    pass: true,
+    has: ["enabled=#{enabled}", 'HELM_ARG:--dry-run'],
+    lacks: enabled ? ['KUBECTL_ARG:'] : ['KUBECTL_ARG:', 'resourceId=', 'allowedNamespaces[0]=']
+  }
 end
 
 tests.each do |test|
