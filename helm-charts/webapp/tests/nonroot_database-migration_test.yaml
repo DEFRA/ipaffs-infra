@@ -1,0 +1,79 @@
+suite: non-root container identities
+templates:
+  - templates/database-migration.yaml
+tests:
+  - it: sets explicit non-root identities on every container
+    set:
+      service: test-service
+      azure.clientId: 00000000-0000-0000-0000-000000000001
+      container.image: test/image:1.0.0
+      database.migrations.enabled: true
+      database.migrations.image: test/migrations:1.0.0
+      database.migrations.clientId: 00000000-0000-0000-0000-000000000002
+      database.databaseNames:
+        - imports
+    documentIndex: 1
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].securityContext
+          value:
+            runAsNonRoot: true
+            runAsUser: 1001
+            runAsGroup: 1001
+            allowPrivilegeEscalation: false
+      - equal:
+          path: spec.template.spec.initContainers[0].securityContext
+          value:
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            allowPrivilegeEscalation: false
+  - it: supports different non-root identities without losing other security defaults
+    set:
+      service: test-service
+      azure.clientId: 00000000-0000-0000-0000-000000000001
+      container.image: test/image:1.0.0
+      database.migrations.enabled: true
+      database.migrations.image: test/migrations:1.0.0
+      database.migrations.clientId: 00000000-0000-0000-0000-000000000002
+      database.databaseNames:
+        - imports
+      database.migrations.securityContext.runAsUser: 2000
+      database.migrations.securityContext.runAsGroup: 2001
+      initContainers.workloadIdentityAdalBridge.securityContext.runAsUser: 3000
+      initContainers.workloadIdentityAdalBridge.securityContext.runAsGroup: 3001
+    documentIndex: 1
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].securityContext
+          value:
+            runAsNonRoot: true
+            runAsUser: 2000
+            runAsGroup: 2001
+            allowPrivilegeEscalation: false
+      - equal:
+          path: spec.template.spec.initContainers[0].securityContext
+          value:
+            runAsNonRoot: true
+            runAsUser: 3000
+            runAsGroup: 3001
+            allowPrivilegeEscalation: false
+  - it: keeps the main container non-root without a database bridge
+    set:
+      service: test-service
+      azure.clientId: 00000000-0000-0000-0000-000000000001
+      container.image: test/image:1.0.0
+      database.migrations.enabled: true
+      database.migrations.image: test/migrations:1.0.0
+      database.migrations.clientId: 00000000-0000-0000-0000-000000000002
+    documentIndex: 1
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].securityContext
+          value:
+            runAsNonRoot: true
+            runAsUser: 1001
+            runAsGroup: 1001
+            allowPrivilegeEscalation: false
+      - notExists:
+          path: spec.template.spec.initContainers
