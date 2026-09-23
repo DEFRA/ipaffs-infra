@@ -1,7 +1,7 @@
 ---
 schedules:
   - cron: "0 6 * * 1-5"
-    displayName: "Run QA automation tests nightly"
+    displayName: "Run QA automation tests nightly on TST and DEV"
     branches:
       include: [ main ]
     always: true
