@@ -1,5 +1,6 @@
 # Reloader settings:
 # - only restart workloads that explicitly opt in via annotations
+# - webapp deployments opt in to changes in the shared ipaffs-config ConfigMap
 # - ignore Jobs/CronJobs (they naturally pick up config on next run)
 reloader:
   autoReloadAll: false
