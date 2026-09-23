@@ -1,7 +1,7 @@
 ---
 schedules:
   - cron: "0 6 * * 1-5"
-    displayName: "Run QA automation tests nightly"
+    displayName: "Run QA automation tests nightly on TST and DEV"
     branches:
       include: [ main ]
     always: true
@@ -18,6 +18,7 @@ variables:
 
 jobs:
   - job: TriggerCorePipeline
+    displayName: Trigger QA Pipeline (TST)
     steps:
       - task: AzureCLI@2
         name: TriggerQAPipeline
@@ -37,3 +38,25 @@ jobs:
               --org "${ADO_ORG_URL}" \
               --project "${ADO_PROJECT}" \
               --parameters environmentName="TST" notification="true"
+
+  - job: TriggerCorePipelineDev
+    displayName: Trigger QA Pipeline (DEV)
+    steps:
+      - task: AzureCLI@2
+        name: TriggerQAPipelineDev
+        displayName: Trigger QA Pipeline
+        env:
+          PIPELINE_ID: 11345
+          ADO_ORG_URL: $(System.CollectionUri)
+          ADO_PROJECT: $(System.TeamProject)
+          AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
+        inputs:
+          azureSubscription: $(serviceConnection)
+          scriptType: bash
+          scriptLocation: inlineScript
+          inlineScript: |
+            az pipelines run \
+              --id ${PIPELINE_ID} \
+              --org "${ADO_ORG_URL}" \
+              --project "${ADO_PROJECT}" \
+              --parameters environmentName="DEV" notification="false"
