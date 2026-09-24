@@ -13,6 +13,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ .Values.service }}
+  annotations:
+    configmap.reloader.stakater.com/reload: "ipaffs-config"
   labels:
     {{- include "ipaffs-common.labels" . | nindent 4 }}
     {{- if .Values.deployment.manifestTag }}

@@ -127,6 +127,40 @@ tests:
             configMapRef:
               name: test-service
 
+  - it: watches the shared ConfigMap without requiring external secrets
+    set:
+      service: test-service
+      azure.clientId: 00000000-0000-0000-0000-000000000001
+      container.image: test/image:1.0.0
+      externalSecret.enabled: false
+    documentIndex: 1
+    asserts:
+      - equal:
+          path: metadata.annotations["configmap.reloader.stakater.com/reload"]
+          value: ipaffs-config
+      - contains:
+          path: spec.template.spec.containers[0].envFrom
+          content:
+            configMapRef:
+              name: ipaffs-config
+      - notExists:
+          path: spec.template.metadata.annotations["secret.reloader.stakater.com/reload"]
+
+  - it: watches the shared ConfigMap alongside the service secret
+    set:
+      service: test-service
+      azure.clientId: 00000000-0000-0000-0000-000000000001
+      container.image: test/image:1.0.0
+      externalSecret.enabled: true
+    documentIndex: 1
+    asserts:
+      - equal:
+          path: metadata.annotations["configmap.reloader.stakater.com/reload"]
+          value: ipaffs-config
+      - equal:
+          path: spec.template.metadata.annotations["secret.reloader.stakater.com/reload"]
+          value: test-service-secrets
+
   - it: renders the adal bridge init container when databases are configured
     set:
       service: test-service
