@@ -1,0 +1,4 @@
+apiVersion: v2
+name: agc-gateway
+description: Shared Gateway API listener for the Bicep-managed Application Gateway for Containers
+version: 0.1.0

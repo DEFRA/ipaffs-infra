@@ -83,6 +83,26 @@ ingress:
     #traefik.ingress.kubernetes.io/router.middlewares: kube-system/original-host
   hosts: []
 
+# Add AGC routes alongside the existing NGINX Ingress; disabled until opted in.
+agc:
+  enabled: false
+  gateway:
+    name: ipaffs-agc
+    namespace: defra-certs
+    sectionName: https
+  frontDoorId: ""
+  # Empty selects existing FQDN ingress hosts; otherwise supply a subset of them.
+  hosts: []
+  # Optional whole-request deadline (e.g. 120s), not an NGINX inactivity timeout.
+  requestTimeout: ""
+  # Service-owned policy can be enabled without a webapp HTTPRoute (e.g. proxy).
+  healthCheck:
+    enabled: false
+    path: /admin/health-check
+    host: localhost
+    # Zero uses ports.container, since AGC probes the backend pod directly.
+    port: 0
+
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious
   # choice for the user. This also increases chances charts run on environments with little

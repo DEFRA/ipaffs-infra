@@ -310,6 +310,79 @@ stages:
                         $(helmDryRun) \
                         defra-certs ./helm-charts/defra-certs
 
+                - task: AzureCLI@2
+                  displayName: Helm Install - agc-gateway
+                  env:
+                    AGC_GATEWAY_ENABLED: $(appGatewayForContainersGatewayEnabled)
+                    AGC_RESOURCE_ID: $(appGatewayForContainersResourceId)
+                    AGC_FRONTEND_NAME: $(appGatewayForContainersFrontendName)
+                    HELM_DRY_RUN: $(helmDryRun)
+                    INFRASTRUCTURE_DEPLOYMENT_NAME: ${{ parameters.infrastructureDeploymentName }}
+                  inputs:
+                    azureSubscription: $(serviceConnection)
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      set -euo pipefail
+                      case "$AGC_GATEWAY_ENABLED" in
+                        [Tt][Rr][Uu][Ee]) gateway_enabled=true ;;
+                        [Ff][Aa][Ll][Ss][Ee]) gateway_enabled=false ;;
+                        *) echo 'appGatewayForContainersGatewayEnabled must be true or false.'; exit 1 ;;
+                      esac
+                      gateway_args=(--set "enabled=$gateway_enabled")
+
+                      if [[ "$gateway_enabled" == true ]]; then
+                        resource_id="$AGC_RESOURCE_ID"
+                        frontend_name="$AGC_FRONTEND_NAME"
+                        # Refresh outputs in the combined infrastructure run, not from a stale Library snapshot.
+                        # Dry runs use saved values: an enabled Gateway must still identify a real AGC frontend.
+                        if [[ -n "$INFRASTRUCTURE_DEPLOYMENT_NAME" ]]; then
+                          case "$INFRASTRUCTURE_DEPLOYMENT_NAME" in
+                            *'$('*|*'${'*) echo 'Unresolved infrastructureDeploymentName.'; exit 1 ;;
+                          esac
+                          if [[ -z "$HELM_DRY_RUN" ]]; then
+                            outputs=$(az deployment group show \
+                              --name "$INFRASTRUCTURE_DEPLOYMENT_NAME" \
+                              --subscription "$(subscriptionId)" \
+                              --resource-group "$(resourceGroupName)" \
+                              --query properties.outputs -o json)
+                            resource_id=$(jq -er '.appGatewayForContainersResourceId.value' <<< "$outputs")
+                            frontend_name=$(jq -er '.appGatewayForContainersFrontendName.value' <<< "$outputs")
+                          fi
+                        fi
+                        if [[ ! "$resource_id" =~ ^/subscriptions/[[:xdigit:]-]+/resourceGroups/[^/]+/providers/Microsoft\.ServiceNetworking/trafficControllers/[^/]+$ || "$resource_id" == *'$('* ]]; then
+                          echo 'A valid appGatewayForContainersResourceId is required when the Gateway is enabled, including dry runs.'
+                          exit 1
+                        fi
+                        if [[ ! "$frontend_name" =~ ^[[:alnum:]][[:alnum:]_.-]*$ ]]; then
+                          echo 'A valid appGatewayForContainersFrontendName is required when the Gateway is enabled.'
+                          exit 1
+                        fi
+                        gateway_args+=(--set-string "resourceId=$resource_id")
+                        gateway_args+=(--set-string "frontendName=$frontend_name")
+                        gateway_args+=(--set-string "allowedNamespaces[0]=${{ lower(parameters.environmentName) }}")
+                        if [[ -z "$HELM_DRY_RUN" ]]; then
+                          kubectl wait --for=condition=Ready externalsecret/star-azure-defra-cloud-cert --namespace defra-certs --timeout=300s
+                        fi
+                      fi
+
+                      # Running with enabled=false removes a previously installed Gateway.
+                      helm upgrade \
+                        --install \
+                        --debug \
+                        --namespace defra-certs \
+                        --create-namespace \
+                        --dependency-update \
+                        --timeout 2m \
+                        $(helmDryRun) \
+                        "${gateway_args[@]}" \
+                        agc-gateway ./helm-charts/agc-gateway
+
+                      if [[ "$gateway_enabled" == true && -z "$HELM_DRY_RUN" ]]; then
+                        kubectl wait --for=condition=Accepted gateway/ipaffs-agc --namespace defra-certs --timeout=300s
+                        kubectl wait --for=condition=Programmed gateway/ipaffs-agc --namespace defra-certs --timeout=300s
+                      fi
+
                 # See https://learn.microsoft.com/en-us/azure/aks/app-routing-nginx-configuration?pivots=nginx-ingress-controller
                 - task: AzureCLI@2
                   displayName: Helm Install - app-routing-controller
