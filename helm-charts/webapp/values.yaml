@@ -10,11 +10,17 @@ container:
   command: ""
   args: []
   securityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    runAsGroup: 1000
     allowPrivilegeEscalation: false
 
 initContainers:
   workloadIdentityAdalBridge:
     securityContext:
+      runAsNonRoot: true
+      runAsUser: 1000
+      runAsGroup: 1000
       allowPrivilegeEscalation: false
 
 deployment:
@@ -66,6 +72,12 @@ database:
     image: ""
     command: ""
     args: []
+    # Liquibase 4.33 images own /opt and /liquibase as UID/GID 1001.
+    securityContext:
+      runAsNonRoot: true
+      runAsUser: 1001
+      runAsGroup: 1001
+      allowPrivilegeEscalation: false
 
 search:
   enabled: false

@@ -1,0 +1,7 @@
+service: test-job
+environment: dev
+schedule: "0 * * * *"
+azure:
+  clientId: 00000000-0000-0000-0000-000000000001
+container:
+  image: test/image:1.0.0

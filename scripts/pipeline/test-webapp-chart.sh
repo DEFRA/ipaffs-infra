@@ -11,7 +11,7 @@ echo "Updating chart dependencies..."
 [[ -f "${CHART_PATH}/Chart.lock" ]] && rm "${CHART_PATH}/Chart.lock"
 helm dependency build "${CHART_PATH}" --skip-refresh
 
-echo "Linting webapp chart..."
+echo "Linting chart ${CHART_PATH}..."
 if [[ -f "${LINT_VALUES_FILE}" ]]; then
   helm lint "${CHART_PATH}" --values "${LINT_VALUES_FILE}"
 else
@@ -23,6 +23,6 @@ if ! helm plugin list | awk 'NR>1 {print $1}' | grep -qx "unittest"; then
   helm plugin install https://github.com/helm-unittest/helm-unittest --version "${HELM_UNITTEST_VERSION}"
 fi
 
-echo "Running webapp helm unit tests..."
+echo "Running helm unit tests for ${CHART_PATH}..."
 helm unittest --strict "${CHART_PATH}"
 

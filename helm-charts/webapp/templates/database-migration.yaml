@@ -37,6 +37,10 @@ spec:
       containers:
         - name: database-migration
           image: "{{ include "webapp.image.resolve" (dict "root" . "image" .Values.database.migrations.image) }}"
+          {{- with .Values.database.migrations.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           {{- if .Values.database.migrations.command }}
           command: ["{{ .Values.database.migrations.command }}"]
           {{- end }}
@@ -118,6 +122,10 @@ spec:
         - name: workload-identity-adal-bridge
           image: "manicminer/workload-identity-adal-bridge:0.4.1"
           restartPolicy: Always
+          {{- with .Values.initContainers.workloadIdentityAdalBridge.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           env:
             - name: LOG_LEVEL
               value: "info"

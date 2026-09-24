@@ -42,12 +42,26 @@ container:
   command: ""
   args: []
   securityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    runAsGroup: 1000
     allowPrivilegeEscalation: false
 
 initContainer:
   enabled: false
   securityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    runAsGroup: 1000
     allowPrivilegeEscalation: false
+
+initContainers:
+  workloadIdentityAdalBridge:
+    securityContext:
+      runAsNonRoot: true
+      runAsUser: 1000
+      runAsGroup: 1000
+      allowPrivilegeEscalation: false
 
 config: {}
 
