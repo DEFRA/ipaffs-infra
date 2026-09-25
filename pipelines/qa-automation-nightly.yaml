@@ -1,62 +1,15 @@
 ---
-schedules:
-  - cron: "0 6 * * 1-5"
-    displayName: "Run QA automation tests nightly on TST and DEV"
-    branches:
-      include: [ main ]
-    always: true
-
+# Retired: each fixed-environment pipeline owns its own schedule.
+# Keep the YAML path valid for the old ADO definition until it is disabled.
 trigger: none
 pr: none
 
 pool:
   name: DEFRA-COMMON-ubuntu2204-SSV5
 
-variables:
-  - group: "Common"
-  - template: "/pipelines/vars/dev.yaml"
-
-jobs:
-  - job: TriggerCorePipeline
-    displayName: Trigger QA Pipeline (TST)
-    steps:
-      - task: AzureCLI@2
-        name: TriggerQAPipeline
-        displayName: Trigger QA Pipeline
-        env:
-          PIPELINE_ID: 11345
-          ADO_ORG_URL: $(System.CollectionUri)
-          ADO_PROJECT: $(System.TeamProject)
-          AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
-        inputs:
-          azureSubscription: $(serviceConnection)
-          scriptType: bash
-          scriptLocation: inlineScript
-          inlineScript: |
-            az pipelines run \
-              --id ${PIPELINE_ID} \
-              --org "${ADO_ORG_URL}" \
-              --project "${ADO_PROJECT}" \
-              --parameters environmentName="TST" notification="true"
-
-  - job: TriggerCorePipelineDev
-    displayName: Trigger QA Pipeline (DEV)
-    steps:
-      - task: AzureCLI@2
-        name: TriggerQAPipelineDev
-        displayName: Trigger QA Pipeline
-        env:
-          PIPELINE_ID: 11345
-          ADO_ORG_URL: $(System.CollectionUri)
-          ADO_PROJECT: $(System.TeamProject)
-          AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
-        inputs:
-          azureSubscription: $(serviceConnection)
-          scriptType: bash
-          scriptLocation: inlineScript
-          inlineScript: |
-            az pipelines run \
-              --id ${PIPELINE_ID} \
-              --org "${ADO_ORG_URL}" \
-              --project "${ADO_PROJECT}" \
-              --parameters environmentName="DEV" notification="false"
+steps:
+  - checkout: none
+  - bash: |
+      echo "This wrapper is retired. Use QA - DEV or QA - TST."
+      echo "See docs/qa-environment-pipelines.md for the cutover procedure."
+    displayName: Retired nightly wrapper (no tests queued)

@@ -1,21 +1,27 @@
 ---
-name: ${{ parameters.environmentName }}-${{ replace(replace(parameters.playwrightTag, '@', ''), ' ', '') }}-$(Date:yyyyMMdd)$(Rev:.r)
+name: TST-${{ replace(replace(parameters.playwrightTag, '@', ''), ' ', '') }}-$(Date:yyyyMMdd)$(Rev:.r)
 
 trigger: none
 pr: none
 
-# Retained for old release tags and manual PRE/VNET runs.
-parameters:
-  - name: environmentName
-    displayName: Environment
-    type: string
-    default: DEV
-    values:
-      - DEV
-      - TST
-      - VNET
-      - PRE
+# Preserve the existing weekday schedule; cron is UTC throughout the year.
+schedules:
+  - cron: "0 6 * * 1-5"
+    displayName: Weekday TST QA
+    branches:
+      include: [main]
+    always: true
 
+resources:
+  pipelines:
+    - pipeline: deployment
+      source: '\Releasing\Release Pipeline'
+      trigger:
+        # A marker in the companion manifest change: old YAML cannot double-trigger QA.
+        stages:
+          - QA_TST_Ready
+
+parameters:
   - name: workers
     displayName: Workers
     type: number
@@ -55,12 +61,12 @@ parameters:
   - name: notification
     displayName: Send Notification
     type: boolean
-    default: false
+    default: true
 
 extends:
   template: templates/qa-automation.yaml
   parameters:
-    environmentName: ${{ parameters.environmentName }}
+    environmentName: TST
     workers: ${{ parameters.workers }}
     imageTag: ${{ parameters.imageTag }}
     playwrightTag: ${{ parameters.playwrightTag }}
