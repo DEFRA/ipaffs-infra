@@ -1,12 +1,5 @@
 ---
-name: ${{ parameters.environmentName }}-${{ replace(replace(parameters.playwrightTag, '@', ''), ' ', '') }}-$(Date:yyyyMMdd)$(Rev:.r)
-
-trigger: none
-pr: none
-
-pool:
-  name: DEFRA-COMMON-ubuntu2204-SSV5
-
+# Shared execution and reporting for the fixed DEV and TST QA entry points.
 parameters:
   - name: environmentName
     displayName: Environment
@@ -15,11 +8,10 @@ parameters:
     values:
       - DEV
       - TST
-      - VNET
-      - PRE
 
   - name: workers
     displayName: Workers
+    type: number
     default: 8
     values:
       - 4
@@ -29,6 +21,7 @@ parameters:
 
   - name: imageTag
     displayName: Image Tag
+    type: string
     default: latest
 
   - name: playwrightTag
@@ -57,20 +50,18 @@ parameters:
     type: boolean
     default: false
 
+pool:
+  name: DEFRA-COMMON-ubuntu2204-SSV5
+
 variables:
   - group: Common
   - template: "/pipelines/vars/common.yaml"
 
   - group: Testing
 
-  - ${{ if eq(parameters.environmentName, 'PRE') }}:
-    - group: HigherEnvs
-  - ${{ else }}:
-    - group: LowerEnvs
-
-  - ${{ if in(parameters.environmentName, 'DEV', 'TST', 'PRE') }}:
-    - group: "${{ replace(parameters.environmentName, 'NEW-', '') }}"
-    - template: "/pipelines/vars/${{ lower(replace(parameters.environmentName, 'NEW-', '')) }}.yaml"
+  - group: LowerEnvs
+  - group: "${{ parameters.environmentName }}"
+  - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
 
 resources:
   repositories:
@@ -88,9 +79,31 @@ stages:
         timeoutInMinutes: 180
         steps:
           - checkout: self
+            path: s/ipaffs-infra
 
           - checkout: ipaffs-qa-automation
             path: s/ipaffs-qa-automation
+            clean: true
+
+          - task: Bash@3
+            displayName: Record QA run context
+            env:
+              QA_ENVIRONMENT: ${{ parameters.environmentName }}
+              QA_TEST_SUITE: ${{ parameters.testSuite }}
+              QA_TEST_FILTER: ${{ parameters.playwrightTag }}
+              QA_IMAGE_TAG: ${{ parameters.imageTag }}
+              QA_RUN_ID: $(Build.BuildId)
+              QA_PIPELINE_ID: $(System.DefinitionId)
+              QA_BUILD_REASON: $(Build.Reason)
+              QA_TRIGGER_ALIAS: $(Resources.TriggeringAlias)
+              QA_DEPLOYMENT_RUN_ID: $(resources.pipeline.deployment.runID)
+              QA_DEPLOYMENT_PIPELINE_ID: $(resources.pipeline.deployment.pipelineID)
+              QA_DEPLOYMENT_SOURCE_REF: $(resources.pipeline.deployment.sourceBranch)
+              QA_DEPLOYMENT_SOURCE_COMMIT: $(resources.pipeline.deployment.sourceCommit)
+            inputs:
+              targetType: inline
+              script: |
+                python3 "$(Pipeline.Workspace)/s/ipaffs-infra/scripts/pipeline/write-qa-run-context.py" "$(Build.ArtifactStagingDirectory)/qa-run-context/run.json"
 
           - task: AzureCLI@2
             displayName: Update QA Automation environment file
@@ -102,36 +115,34 @@ stages:
               inlineScript: |
                 $(Pipeline.Workspace)/s/ipaffs-infra/scripts/pipeline/substitute-environment-variables.sh .env-kv $(qaAutomationKeyvaultName) .env-substituted
 
-          - ${{ if in(parameters.environmentName, 'DEV', 'TST', 'PRE') }}:
-            - task: AzureCLI@2
-              displayName: Log AKS Service Status
-              continueOnError: true
-              env:
-                AKS_NAME: $(kubernetesCluster)
-                AKS_RESOURCE_GROUP_NAME: $(resourceGroupName)
-                AKS_SUBSCRIPTION_NAME: $(subscriptionName)
-                ENVIRONMENT_NAME: ${{ lower(parameters.environmentName) }}
-              inputs:
-                azureSubscription: $(serviceConnection)
-                scriptType: bash
-                scriptLocation: inlineScript
-                inlineScript: |
-                  set -x
-                  K8S_ENV="${ENVIRONMENT_NAME#new-}"
-                  az aks install-cli --client-version v1.36.1 --kubelogin-version v0.2.18
-                  az aks get-credentials \
-                    --name "${AKS_NAME}" \
-                    --resource-group "${AKS_RESOURCE_GROUP_NAME}" \
-                    --subscription "${AKS_SUBSCRIPTION_NAME}" \
-                    --overwrite-existing
-                  kubelogin convert-kubeconfig -l azurecli
-                  kubectl get deployments,cronjobs,scaledjobs -n "${K8S_ENV}" -L defra.gov.uk/manifest-tag
-                  echo "--- Recent warnings ---"
-                  kubectl get events -n "${K8S_ENV}" --field-selector type=Warning --sort-by=.lastTimestamp 2>/dev/null | tail -20
+          - task: AzureCLI@2
+            displayName: Log AKS Service Status
+            continueOnError: true
+            env:
+              AKS_NAME: $(kubernetesCluster)
+              AKS_RESOURCE_GROUP_NAME: $(resourceGroupName)
+              AKS_SUBSCRIPTION_NAME: $(subscriptionName)
+              ENVIRONMENT_NAME: ${{ lower(parameters.environmentName) }}
+            inputs:
+              azureSubscription: $(serviceConnection)
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                set -x
+                K8S_ENV="${ENVIRONMENT_NAME}"
+                az aks install-cli --client-version v1.36.1 --kubelogin-version v0.2.18
+                az aks get-credentials \
+                  --name "${AKS_NAME}" \
+                  --resource-group "${AKS_RESOURCE_GROUP_NAME}" \
+                  --subscription "${AKS_SUBSCRIPTION_NAME}" \
+                  --overwrite-existing
+                kubelogin convert-kubeconfig -l azurecli
+                kubectl get deployments,cronjobs,scaledjobs -n "${K8S_ENV}" -L defra.gov.uk/manifest-tag
+                echo "--- Recent warnings ---"
+                kubectl get events -n "${K8S_ENV}" --field-selector type=Warning --sort-by=.lastTimestamp 2>/dev/null | tail -20
 
           - task: AzureCLI@2
             displayName: Run Automation Container
-            continueOnError: true
             env:
               WORKERS: ${{ parameters.workers }}
               IMAGE_TAG: ${{ parameters.imageTag }}
@@ -144,11 +155,11 @@ stages:
               scriptLocation: inlineScript
               workingDirectory: $(Pipeline.Workspace)/s/ipaffs-qa-automation
               inlineScript: |
-                set -x
+                set -euo pipefail
                 readonly DOCKER_RUN="docker run --init --volume "${PWD}/playwright-report:/app/playwright-report:rw" --volume "${PWD}/test-results:/app/test-results:rw" --env-file .env-substituted --env ENV=$QA_AUTOMATION_ENV "$(acrLoginServer)/ipaffs/qa-automation:${IMAGE_TAG}""
                 echo "Executing QA automation framework for environment ${QA_AUTOMATION_ENV}"
 
-                mkdir playwright-report test-results
+                mkdir -p playwright-report test-results
                 az acr login --name "$(qaAutomationAcrName)" --subscription "$(qaAutomationSubscriptionName)"
                 docker pull "$(qaAutomationAcrName).azurecr.io/ipaffs/qa-automation:${IMAGE_TAG}"
 
@@ -172,7 +183,8 @@ stages:
                       ${DOCKER_RUN} npm run test:browserstack -- --workers="${WORKERS}"
                       ;;
                     *)
-                      echo "Unknown test suite tag: ${TEST_SUITE}"
+                      echo "Unknown test suite tag: ${TEST_SUITE}" >&2
+                      exit 1
                       ;;
                   esac
                 fi
@@ -188,10 +200,18 @@ stages:
               scriptLocation: inlineScript
               workingDirectory: $(Pipeline.Workspace)/s/ipaffs-qa-automation
               inlineScript: |
-                set -x
+                set -euo pipefail
                 readonly DOCKER_RUN="docker run --init --volume "${PWD}/playwright-report:/app/playwright-report:rw" --volume "${PWD}/test-results:/app/test-results:rw" --env-file .env-substituted --env ENV=$QA_AUTOMATION_ENV "$(acrLoginServer)/ipaffs/qa-automation:${IMAGE_TAG}""
                 ${DOCKER_RUN} npm run report:release-csv
             condition: and(succeededOrFailed(), eq('${{ parameters.csvReport }}', true))
+
+          - task: PublishPipelineArtifact@1
+            displayName: Publish QA run context
+            inputs:
+              targetPath: $(Build.ArtifactStagingDirectory)/qa-run-context
+              artifact: qa-run-context
+              publishLocation: pipeline
+            condition: succeededOrFailed()
 
           - task: PublishPipelineArtifact@1
             displayName: Publish Playwright Report Artifact
@@ -216,6 +236,9 @@ stages:
               testResultsFormat: JUnit
               testResultsFiles: junit.xml
               mergeTestResults: true
+              failTaskOnFailedTests: true
+              failTaskOnMissingResultsFile: true
+              failTaskOnFailureToPublishResults: true
               testRunTitle: Playwright Tests $(Build.BuildNumber)
             condition: succeededOrFailed()
 
