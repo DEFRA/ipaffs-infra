@@ -9,7 +9,7 @@ from pathlib import Path
 
 def value(name):
     result = os.environ.get(name, "").strip()
-    # ADO leaves undefined macros unexpanded, notably on legacy/manual runs.
+    # ADO leaves undefined macros unexpanded, on manual/scheduled runs.
     return None if not result or result.startswith("$(") else result
 
 

@@ -100,7 +100,7 @@ class RunContextTests(unittest.TestCase):
                     self.assertIn("missing upstream run metadata", result.stderr)
                     self.assertIsNone(data)
 
-    def test_legacy_manual_run_accepts_unexpanded_optional_resource_macros(self):
+    def test_manual_run_accepts_unexpanded_optional_resource_macros(self):
         result, data = self.write_context({
             "QA_BUILD_REASON": "Manual",
             "QA_TRIGGER_ALIAS": "$(Resources.TriggeringAlias)",
@@ -270,15 +270,6 @@ class PipelineContractTests(unittest.TestCase):
                 resource, = entry["resources"]["pipelines"]
                 self.assertEqual(resource["pipeline"], "deployment")
                 self.assertEqual(resource["trigger"]["stages"], [f"QA_{environment}_Ready"])
-
-    def test_legacy_execution_survives_but_the_nightly_wrapper_cannot_queue_tests(self):
-        legacy = pipeline("pipelines/qa-automation.yaml")
-        self.assertIn("environmentName", {item["name"] for item in legacy["parameters"]})
-        self.assertEqual(legacy["extends"]["template"], "templates/qa-automation.yaml")
-        nightly = pipeline("pipelines/qa-automation-nightly.yaml")
-        self.assertNotIn("schedules", nightly)
-        self.assertNotIn("resources", nightly)
-        self.assertNotIn("az pipelines run", json.dumps(nightly))
 
     def test_failed_tests_cannot_be_successful_and_evidence_still_publishes(self):
         steps = execution_steps()

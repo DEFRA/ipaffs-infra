@@ -1,5 +1,5 @@
 ---
-# Shared execution and reporting for fixed-environment and legacy QA entry points.
+# Shared execution and reporting for the fixed DEV and TST QA entry points.
 parameters:
   - name: environmentName
     displayName: Environment
@@ -8,8 +8,6 @@ parameters:
     values:
       - DEV
       - TST
-      - VNET
-      - PRE
 
   - name: workers
     displayName: Workers
@@ -61,14 +59,9 @@ variables:
 
   - group: Testing
 
-  - ${{ if eq(parameters.environmentName, 'PRE') }}:
-    - group: HigherEnvs
-  - ${{ else }}:
-    - group: LowerEnvs
-
-  - ${{ if in(parameters.environmentName, 'DEV', 'TST', 'PRE') }}:
-    - group: "${{ replace(parameters.environmentName, 'NEW-', '') }}"
-    - template: "/pipelines/vars/${{ lower(replace(parameters.environmentName, 'NEW-', '')) }}.yaml"
+  - group: LowerEnvs
+  - group: "${{ parameters.environmentName }}"
+  - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
 
 resources:
   repositories:
@@ -122,32 +115,31 @@ stages:
               inlineScript: |
                 $(Pipeline.Workspace)/s/ipaffs-infra/scripts/pipeline/substitute-environment-variables.sh .env-kv $(qaAutomationKeyvaultName) .env-substituted
 
-          - ${{ if in(parameters.environmentName, 'DEV', 'TST', 'PRE') }}:
-            - task: AzureCLI@2
-              displayName: Log AKS Service Status
-              continueOnError: true
-              env:
-                AKS_NAME: $(kubernetesCluster)
-                AKS_RESOURCE_GROUP_NAME: $(resourceGroupName)
-                AKS_SUBSCRIPTION_NAME: $(subscriptionName)
-                ENVIRONMENT_NAME: ${{ lower(parameters.environmentName) }}
-              inputs:
-                azureSubscription: $(serviceConnection)
-                scriptType: bash
-                scriptLocation: inlineScript
-                inlineScript: |
-                  set -x
-                  K8S_ENV="${ENVIRONMENT_NAME#new-}"
-                  az aks install-cli --client-version v1.36.1 --kubelogin-version v0.2.18
-                  az aks get-credentials \
-                    --name "${AKS_NAME}" \
-                    --resource-group "${AKS_RESOURCE_GROUP_NAME}" \
-                    --subscription "${AKS_SUBSCRIPTION_NAME}" \
-                    --overwrite-existing
-                  kubelogin convert-kubeconfig -l azurecli
-                  kubectl get deployments,cronjobs,scaledjobs -n "${K8S_ENV}" -L defra.gov.uk/manifest-tag
-                  echo "--- Recent warnings ---"
-                  kubectl get events -n "${K8S_ENV}" --field-selector type=Warning --sort-by=.lastTimestamp 2>/dev/null | tail -20
+          - task: AzureCLI@2
+            displayName: Log AKS Service Status
+            continueOnError: true
+            env:
+              AKS_NAME: $(kubernetesCluster)
+              AKS_RESOURCE_GROUP_NAME: $(resourceGroupName)
+              AKS_SUBSCRIPTION_NAME: $(subscriptionName)
+              ENVIRONMENT_NAME: ${{ lower(parameters.environmentName) }}
+            inputs:
+              azureSubscription: $(serviceConnection)
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                set -x
+                K8S_ENV="${ENVIRONMENT_NAME}"
+                az aks install-cli --client-version v1.36.1 --kubelogin-version v0.2.18
+                az aks get-credentials \
+                  --name "${AKS_NAME}" \
+                  --resource-group "${AKS_RESOURCE_GROUP_NAME}" \
+                  --subscription "${AKS_SUBSCRIPTION_NAME}" \
+                  --overwrite-existing
+                kubelogin convert-kubeconfig -l azurecli
+                kubectl get deployments,cronjobs,scaledjobs -n "${K8S_ENV}" -L defra.gov.uk/manifest-tag
+                echo "--- Recent warnings ---"
+                kubectl get events -n "${K8S_ENV}" --field-selector type=Warning --sort-by=.lastTimestamp 2>/dev/null | tail -20
 
           - task: AzureCLI@2
             displayName: Run Automation Container

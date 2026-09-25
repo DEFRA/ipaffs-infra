@@ -30,15 +30,15 @@ manual approval and does not become gated on the test outcome.
 ## Execution and evidence
 
 `pipelines/templates/qa-automation.yaml` holds shared variables, repository checkout,
-execution and report publishing. The existing `pipelines/qa-automation.yaml` is a
-compatibility entry point for old release tags and manual PRE/VNET runs. It retains
-its environment parameter and uses the same template.
+execution and report publishing for DEV and TST only. The old environment-selector
+pipeline (`pipelines/qa-automation.yaml`) and nightly wrapper
+(`pipelines/qa-automation-nightly.yaml`) are deleted. There are no compatibility
+entry points or no-op wrappers, and no PRE/VNET execution path in this template.
 
 Test execution now fails the pipeline on a nonzero exit. JUnit publication fails
 on failed tests, a missing result file or publication failure. JUnit, Playwright
 HTML, test-result artifacts and CSV generation still run after a test failure.
-This behavior also applies to the legacy entry point. The diagnostic AKS status
-step remains non-blocking.
+The diagnostic AKS status step remains non-blocking.
 
 The `qa-run-context/run.json` artifact records the fixed environment, effective
 suite/filter, requested image tag, QA run/definition IDs and trigger reason. Only
@@ -55,20 +55,20 @@ combine full regression and targeted/specialist suites into an unqualified pass 
 ## Coordinated cutover (not performed by these PRs)
 
 1. Review the infra and manifest companion PRs together. Arrange the cutover away
-   from the weekday schedule. Merging this infra change retires the old wrapper's
-   YAML schedule, so create the replacement definitions before the next scheduled run.
+   from the weekday schedule and complete active releases that use the old QA queue
+   step. Disable the old schedules before merging: their YAML files will be deleted.
 2. Merge the infra change. Create the two definitions above from this repo, using
    `refs/heads/main` as **Default branch for manual and scheduled builds**. Authorize
    the existing pipeline resources, variable groups, agent pool, GitHub connection
    and service connections for the new definitions. No new identities are needed.
-3. Check for UI-defined schedule overrides. Disable the old nightly definition and
-   its UI schedules after the replacements are configured. Its retained YAML path
-   is an explicit no-op; it no longer queues any tests.
+3. Check for UI-defined schedule overrides on the new definitions and confirm their
+   YAML schedules are active. This change does not migrate old runs; decide how any
+   required historical QA evidence will be preserved before removing old definitions.
 4. Run each new definition manually and verify its fixed target, suite, native ADO
    Tests results, report artifacts and `qa-run-context` artifact. Check that a known
    failing test run is Failed and still publishes its evidence.
 5. Update Release Explorer to recognise both new QA definition IDs and the native
-   upstream resource relationship while preserving existing legacy links. That app
+   upstream resource relationship. That app
    change is not part of this pipeline split; its current single-definition/log
    lookup will not automatically discover the new QA runs.
 6. Merge the companion manifest change. DEV deployments containing the new marker
@@ -77,20 +77,22 @@ combine full regression and targeted/specialist suites into an unqualified pass 
    release tag; do not move existing tags.
 7. Verify one canonical DEV deployment triggers one DEV QA run, a branch-namespace
    deployment triggers none, and a TST deployment triggers one TST QA run while PRE
-   is still awaiting approval. Verify the next scheduled run for each definition.
+   is still awaiting approval. Remove the retired environment-selector and nightly
+   ADO definitions and their UI schedules as part of this later cutover. Verify the
+   next scheduled run for each replacement definition.
 
-Keep the legacy shared execution definition available: immutable older release
-tags and in-progress releases still contain their explicit queue step. They lack
-`QA_TST_Ready`, so they cannot also trigger the new TST definition. Old histories
-stay in that definition; new per-environment trends start with the new definitions.
+Older release tags retain their explicit queue step and PRE's dependency on it.
+After retirement, those pipelines cannot be used unchanged: the obsolete queue
+step will fail and block PRE. Update the maintained release branch and cut a new
+tag containing the readiness stage before deploying or promoting that release.
+Do not move existing tags. Starting the new TST QA pipeline manually does not fix
+an old release pipeline's obsolete dependency. New environment trends begin in
+the replacement definitions.
 
 Schedules and deployment triggers can overlap. `batch: true` is not a cross-trigger
 mutex (and `always: true` overrides schedule batching). If shared test data cannot
 tolerate parallel runs, configure and validate per-environment serialization before
 enabling both triggers; this change does not introduce a lock or cancel older runs.
-
-Rollback: disable the new definitions/triggers before restoring the old nightly
-wrapper and manifest queue step. Keep definitions and run history for diagnosis.
 
 ## Validation
 
