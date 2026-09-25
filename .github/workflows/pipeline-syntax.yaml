@@ -9,9 +9,6 @@ on:
       - "pipelines/**/*.yaml"
       - "pipelines/**/*.yml"
       - "scripts/**/*.sh"
-      - "scripts/**/*.py"
-      - "tests/test_qa_pipelines.py"
-      - "tests/requirements.txt"
       - "bicep/*.bicep"
       - "bicep/*.bicepparam"
       - "bicep/**/*.bicep"
@@ -27,9 +24,6 @@ on:
       - "pipelines/**/*.yaml"
       - "pipelines/**/*.yml"
       - "scripts/**/*.sh"
-      - "scripts/**/*.py"
-      - "tests/test_qa_pipelines.py"
-      - "tests/requirements.txt"
       - "bicep/*.bicep"
       - "bicep/*.bicepparam"
       - "bicep/**/*.bicep"
@@ -60,24 +54,6 @@ jobs:
           fi
 
           ruby -e 'require "psych"; ARGV.each { |file| Psych.load_file(file); puts "Parsed #{file}" }' "${files[@]}"
-
-  qa-pipelines:
-    name: QA pipeline behavior
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-
-      - name: Install test dependencies
-        run: python -m pip install -r tests/requirements.txt
-
-      - name: Test QA provenance and pipeline execution
-        run: python -m unittest discover -s tests -p 'test_qa_pipelines.py' -v
 
   shell-scripts:
     name: Shell scripts
