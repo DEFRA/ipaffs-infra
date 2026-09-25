@@ -120,7 +120,7 @@ class RunContextTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(data["requestedSuite"], "test:a11y")
         self.assertEqual(data["effectiveSuite"], "test")
-        self.assertEqual(data["testFilter"], "@smoke")
+        self.assertEqual(data["testFilter"], " @smoke ")
 
     def test_blank_filter_preserves_requested_suite(self):
         result, data = self.write_context({"QA_TEST_SUITE": "test:a11y"})

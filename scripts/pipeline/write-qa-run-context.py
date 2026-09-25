@@ -20,7 +20,9 @@ def identifier(name):
 
 def context():
     reason = value("QA_BUILD_REASON")
-    test_filter = value("QA_TEST_FILTER")
+    # Match the shell's space-only empty check and retain the exact grep expression.
+    raw_filter = os.environ.get("QA_TEST_FILTER", "")
+    test_filter = raw_filter if raw_filter.replace(" ", "") else None
     requested_suite = value("QA_TEST_SUITE")
     deployment = None
     if reason == "ResourceTrigger" and value("QA_TRIGGER_ALIAS") == "deployment":
