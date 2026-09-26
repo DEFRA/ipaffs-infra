@@ -48,7 +48,7 @@ steps:
 
         # Scan from a saved tarball rather than the docker socket so Trivy can
         # run as the agent's (non-root) uid and leave no root-owned files behind.
-        docker save --output "${SCAN_DIR}/image.tar" "${IMAGE_NAME}:${TAG_NAME}"
+        docker save --output "${SCAN_DIR}/${IMAGE_NAME}.tar" "${IMAGE_NAME}:${TAG_NAME}"
 
         docker run --rm \
           --user "$(id -u):$(id -g)" \
@@ -57,7 +57,7 @@ steps:
           "${TRIVY_IMAGE}" \
           image \
           --cache-dir /scan/cache \
-          --input /scan/image.tar \
+          --input /scan/${IMAGE_NAME}.tar \
           --scanners vuln \
           --severity "${SEVERITY}" \
           --format sarif \
