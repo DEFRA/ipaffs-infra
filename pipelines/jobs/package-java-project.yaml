@@ -28,6 +28,10 @@ jobs:
           directory: ./service
           imageName: ${{ parameters.serviceName }}
 
+      - template: /pipelines/steps/scan-container-image.yaml@ipaffs-infra
+        parameters:
+          imageName: ${{ parameters.serviceName }}
+
   - job: PackageMigrationsImage
     displayName: Package Migrations Image
     condition: and(not(failed()), not(canceled()), ${{ eq(parameters.migrations, true) }})
@@ -41,3 +45,6 @@ jobs:
           directory: ./configuration
           imageName: ${{ parameters.serviceName }}-configuration
 
+      - template: /pipelines/steps/scan-container-image.yaml@ipaffs-infra
+        parameters:
+          imageName: ${{ parameters.serviceName }}-configuration

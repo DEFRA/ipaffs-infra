@@ -1,0 +1,74 @@
+parameters:
+  - name: imageName
+    type: string
+
+  - name: tagName
+    type: string
+    default: ' '
+
+  # Comma-separated Trivy severities to report.
+  - name: severity
+    type: string
+    default: UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL
+
+  # When true, the step fails if any vulnerability at the reported severities
+  # is found. Leave false to report only.
+  - name: failOnFindings
+    type: boolean
+    default: false
+
+# Scans a locally built image with Trivy and publishes a SARIF report to the
+# CodeAnalysisLogs build artifact, which the SARIF SAST Scans Tab extension
+# renders on the pipeline run's "Scans" tab.
+steps:
+  - task: Bash@3
+    displayName: Scan Container Image
+    continueOnError: ${{ not(parameters.failOnFindings) }}
+    env:
+      TRIVY_IMAGE: $(trivyImage)
+      TAG_NAME_PARAMETER: ${{ parameters.tagName }}
+      IMAGE_NAME: ${{ parameters.imageName }}
+      SEVERITY: ${{ parameters.severity }}
+      EXIT_CODE: ${{ iif(parameters.failOnFindings, 1, 0) }}
+      BUILD_NUMBER: $(Build.BuildNumber)
+      REPORT_DIR: $(Build.ArtifactStagingDirectory)/CodeAnalysisLogs
+      SCAN_DIR: $(Agent.TempDirectory)/trivy
+    inputs:
+      targetType: inline
+      script: |
+        set -euo pipefail
+
+        if [[ -n "${TAG_NAME_PARAMETER// /}" ]]; then
+          TAG_NAME="${TAG_NAME_PARAMETER}"
+        else
+          TAG_NAME="${BUILD_NUMBER}"
+        fi
+
+        mkdir -p "${REPORT_DIR}" "${SCAN_DIR}/cache"
+
+        # Scan from a saved tarball rather than the docker socket so Trivy can
+        # run as the agent's (non-root) uid and leave no root-owned files behind.
+        docker save --output "${SCAN_DIR}/image.tar" "${IMAGE_NAME}:${TAG_NAME}"
+
+        docker run --rm \
+          --user "$(id -u):$(id -g)" \
+          -v "${SCAN_DIR}:/scan" \
+          -v "${REPORT_DIR}:/report" \
+          "${TRIVY_IMAGE}" \
+          image \
+          --cache-dir /scan/cache \
+          --input /scan/image.tar \
+          --scanners vuln \
+          --severity "${SEVERITY}" \
+          --format sarif \
+          --output "/report/${IMAGE_NAME}.sarif" \
+          --exit-code "${EXIT_CODE}"
+
+        rm -f "${SCAN_DIR}/image.tar"
+
+  - task: PublishBuildArtifacts@1
+    displayName: Publish Container Scan Report
+    condition: succeededOrFailed()
+    inputs:
+      PathtoPublish: $(Build.ArtifactStagingDirectory)/CodeAnalysisLogs
+      ArtifactName: CodeAnalysisLogs
