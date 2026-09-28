@@ -17,6 +17,8 @@ module grafanaMonitoringReader './resource-group-role-assignment.bicep' = {
   params: {
     deploymentId: deploymentId
     principalObjectId: grafanaManagedIdentityPrincipalId
+    principalType: 'ServicePrincipal'
+    roleAssignmentType: 'permanent'
     roleDefinitionId: monitoringReaderRoleId
   }
 }

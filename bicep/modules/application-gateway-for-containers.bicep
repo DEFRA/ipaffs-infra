@@ -71,6 +71,8 @@ module configurationManager './resource-group-role-assignment.bicep' = {
   params: {
     deploymentId: deploymentId
     principalObjectId: controllerIdentity.properties.principalId
+    principalType: 'ServicePrincipal'
+    roleAssignmentType: 'permanent'
     roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'fbc52c3f-28ad-4303-a892-8a056630b8f1')
   }
 }
@@ -93,6 +95,8 @@ module nodeResourceGroupReader './resource-group-role-assignment.bicep' = {
   params: {
     deploymentId: deploymentId
     principalObjectId: controllerIdentity.properties.principalId
+    principalType: 'ServicePrincipal'
+    roleAssignmentType: 'permanent'
     roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'acdd72a7-3385-48ef-bd42-f606fba81ae7')
   }
 }
