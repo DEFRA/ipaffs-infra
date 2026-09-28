@@ -142,7 +142,7 @@ module keyVault './modules/keyvault.bicep' = {
   }
 }
 
-// Only depployed when an environment supplies qaKeyVaultParams (currently just envs/tst/40-infra.bicepparam).
+// Only deployed when an environment supplies qaKeyVaultParams (currently just envs/tst/40-infra.bicepparam).
 var deployQaKeyVault = !empty(qaKeyVaultParams)
 var qaSecretsOfficerObjectId = contains(entraGroups, 'qaKeyVaultSecretsOfficers') ? entraGroups.qaKeyVaultSecretsOfficers.id : ''
 var qaKeyVaultRoleAssignments = concat(
