@@ -59,12 +59,13 @@ steps:
           --cache-dir /scan/cache \
           --input /scan/${IMAGE_NAME}.tar \
           --scanners vuln \
+          --pkg-types os \
           --severity "${SEVERITY}" \
           --format sarif \
           --output "/report/${IMAGE_NAME}.sarif" \
           --exit-code "${EXIT_CODE}"
 
-        rm -f "${SCAN_DIR}/image.tar"
+        rm -f "${SCAN_DIR}/${IMAGE_NAME}.tar"
 
   - task: PublishBuildArtifacts@1
     displayName: Publish Container Scan Report
