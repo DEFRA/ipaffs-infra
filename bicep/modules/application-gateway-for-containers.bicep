@@ -65,7 +65,7 @@ resource frontend 'Microsoft.ServiceNetworking/trafficControllers/frontends@2025
 }
 
 // Use Microsoft's documented BYO scopes; never grant subscription-wide access.
-module configurationManager './rg-role-assignment.bicep' = {
+module configurationManager './resource-group-role-assignment.bicep' = {
   name: 'agc-config-manager-${deploymentId}'
   scope: resourceGroup()
   params: {
@@ -87,7 +87,7 @@ module subnetNetworkContributor './subnet-role-assignment.bicep' = {
 }
 
 // Discover AKS-managed networking without granting write access to the node RG.
-module nodeResourceGroupReader './rg-role-assignment.bicep' = {
+module nodeResourceGroupReader './resource-group-role-assignment.bicep' = {
   name: 'agc-node-rg-reader-${deploymentId}'
   scope: resourceGroup(aksNodeResourceGroupName)
   params: {
