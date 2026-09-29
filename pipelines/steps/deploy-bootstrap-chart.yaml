@@ -33,6 +33,7 @@ steps:
         --dependency-update
         --create-namespace
         -f helm-charts/envs/${{ lower(parameters.environmentName) }}/bootstrap-values.yaml
+        --set-string agc.frontDoorId=$(appGatewayForContainersFrontDoorId)
         --set ipaffsConfig.data.APPLICATIONINSIGHTS_CONNECTION_STRING=$(insightsConnectionString)
         --set ipaffsConfig.data.APPLICATIONINSIGHTS_INSTRUMENTATION_STRING=$(insightsInstrumentationKey)
 
