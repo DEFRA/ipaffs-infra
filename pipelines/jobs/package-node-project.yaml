@@ -21,3 +21,7 @@ jobs:
           dockerFile: ${{ parameters.dockerFile }}
           directory: ./service
           imageName: ${{ parameters.serviceName }}
+
+      - template: /pipelines/steps/scan-container-image.yaml@ipaffs-infra
+        parameters:
+          imageName: ${{ parameters.serviceName }}
