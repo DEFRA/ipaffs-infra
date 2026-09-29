@@ -3,6 +3,9 @@ targetScope = 'resourceGroup'
 @allowed(['DEV', 'TST', 'PRE', 'PRD'])
 param environment string
 
+@allowed(['permanent', 'eligible'])
+param roleAssignmentsType string
+
 param builtInGroups object
 param classicLocation string
 param classicResourceIds object
@@ -50,6 +53,7 @@ module aks './modules/aks.bicep' = {
     entraGroups: entraGroups
     location: location
     logAnalyticsId: monitoring.outputs.logAnalyticsId
+    roleAssignmentsType: roleAssignmentsType
     subnets: subnets
     tags: tags
     vnetName: vnetName
@@ -125,18 +129,20 @@ module keyVault './modules/keyvault.bicep' = {
       {
         principalObjectId: entraGroups.keyVaultAdmins.id
         principalType: 'Group'
+        roleAssignmentType: 'permanent'
         roleDefinitionId: keyVaultAdministratorRoleId
       }
       {
         principalObjectId: entraGroups.keyVaultSecretsReaders.id
         principalType: 'Group'
+        roleAssignmentType: 'permanent'
         roleDefinitionId: keyVaultSecretsUserRoleId
       }
     ]
   }
 }
 
-// Only depployed when an environment supplies qaKeyVaultParams (currently just envs/tst/40-infra.bicepparam).
+// Only deployed when an environment supplies qaKeyVaultParams (currently just envs/tst/40-infra.bicepparam).
 var deployQaKeyVault = !empty(qaKeyVaultParams)
 var qaSecretsOfficerObjectId = contains(entraGroups, 'qaKeyVaultSecretsOfficers') ? entraGroups.qaKeyVaultSecretsOfficers.id : ''
 var qaKeyVaultRoleAssignments = concat(
@@ -144,6 +150,7 @@ var qaKeyVaultRoleAssignments = concat(
     {
       principalObjectId: entraGroups.keyVaultAdmins.id
       principalType: 'Group'
+      roleAssignmentType: 'permanent'
       roleDefinitionId: keyVaultAdministratorRoleId
     }
   ],
@@ -151,6 +158,7 @@ var qaKeyVaultRoleAssignments = concat(
     {
       principalObjectId: qaSecretsOfficerObjectId
       principalType: 'Group'
+      roleAssignmentType: 'permanent'
       roleDefinitionId: keyVaultSecretsOfficerRoleId
     }
   ],
@@ -158,6 +166,7 @@ var qaKeyVaultRoleAssignments = concat(
     {
       principalObjectId: qaAutomationPrincipalObjectId
       principalType: 'ServicePrincipal'
+      roleAssignmentType: 'permanent'
       roleDefinitionId: keyVaultSecretsUserRoleId
     }
   ]
@@ -198,6 +207,7 @@ module search './modules/search.bicep' = {
     entraGroups: entraGroups
     searchParams: searchParams
     location: location
+    roleAssignmentsType: roleAssignmentsType
     sqlServerName: sql.outputs.sqlServerName
     subnets: subnets
     tags: tags
@@ -251,6 +261,7 @@ module storage './modules/storage.bicep' = {
     deploymentId: deploymentId
     entraGroups: entraGroups
     location: location
+    roleAssignmentsType: roleAssignmentsType
     storageParams: storageParams
     subnets: subnets
     tags: tags
@@ -258,6 +269,7 @@ module storage './modules/storage.bicep' = {
 }
 
 output aksClusterName string = aks.outputs.aksClusterName
+output aksClusterResourceId string = aks.outputs.aksClusterResourceId
 output aksKubeletPrincipalId string = aks.outputs.kubeletPrincipalId
 output aksOidcIssuer string = aks.outputs.oidcIssuerUrl
 output albControllerClientId string = agc.outputs.controllerClientId
