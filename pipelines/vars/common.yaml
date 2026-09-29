@@ -1,6 +1,8 @@
 ---
 variables:
   albControllerVersion: '1.12.1'
+  appGatewayForContainersGatewayEnabled: false
+  appGatewayForContainersFrontDoorId: ''
   directoryReadersGroupObjectId: ddc67494-5229-4a73-949b-a90f409fd919
   sonarHostUrl: https://vss-sonarqube-test.azure.defra.cloud/
   sonarScannerImage: sonarsource/sonar-scanner-cli:12.1.0.3233_8.0.1

@@ -1,0 +1,52 @@
+{{- if .Values.enabled }}
+{{- $resourceId := required "resourceId is required when the AGC Gateway is enabled" .Values.resourceId }}
+{{- if not (regexMatch "(?i)^/subscriptions/[^/]+/resourceGroups/[^/]+/providers/Microsoft\\.ServiceNetworking/trafficControllers/[^/]+$" $resourceId) }}
+{{- fail "resourceId must identify an existing Application Gateway for Containers resource" }}
+{{- end }}
+{{- $namespaces := .Values.allowedNamespaces }}
+{{- if empty $namespaces }}
+{{- fail "allowedNamespaces must explicitly allow at least one route namespace" }}
+{{- end }}
+{{- range $namespaces }}
+{{- if or (gt (len .) 63) (not (regexMatch "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$" .)) }}
+{{- fail "allowedNamespaces entries must be valid Kubernetes namespace names" }}
+{{- end }}
+{{- end }}
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: {{ required "gatewayName is required" .Values.gatewayName }}
+  labels:
+    app.kubernetes.io/name: agc-gateway
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+  annotations:
+    alb.networking.azure.io/alb-id: {{ $resourceId | quote }}
+spec:
+  gatewayClassName: azure-alb-external
+  addresses:
+    - type: alb.networking.azure.io/alb-frontend
+      value: {{ required "frontendName is required" .Values.frontendName | quote }}
+  listeners:
+    - name: https
+      protocol: HTTPS
+      port: 443
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - group: ""
+            kind: Secret
+            name: {{ required "tlsSecretName is required" .Values.tlsSecretName }}
+      allowedRoutes:
+        kinds:
+          - group: gateway.networking.k8s.io
+            kind: HTTPRoute
+        namespaces:
+          from: Selector
+          selector:
+            matchExpressions:
+              - key: kubernetes.io/metadata.name
+                operator: In
+                values:
+                  {{- toYaml $namespaces | nindent 18 }}
+{{- end }}

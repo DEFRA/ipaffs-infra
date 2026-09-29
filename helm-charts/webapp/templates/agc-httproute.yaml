@@ -1,0 +1,1 @@
+{{- include "ipaffs-common.agcHttpRoutes" (dict "root" . "hosts" (include "ipaffs-common.ingressHosts" .) "name" .Values.service "service" .Values.service "port" .Values.ports.service) }}

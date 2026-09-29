@@ -1,0 +1,231 @@
+suite: opt-in AGC HTTPRoutes
+templates:
+  - templates/agc-httproute.yaml
+tests:
+  - it: renders no AGC routes by default even when ingress hosts exist
+    set:
+      service: test-service
+      ingress.hosts: [test]
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: renders no AGC routes or requires FDID when there are no ingress hosts
+    set:
+      service: test-service
+      agc.enabled: true
+      ingress.hosts: []
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: matches the existing FQDN and FDID together and preserves the service and port
+    release:
+      namespace: dev
+    set:
+      service: test-service
+      ingress.hosts: [test]
+      ports.service: 8080
+      agc.enabled: true
+      agc.frontDoorId: 11111111-2222-3333-4444-555555555555
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isAPIVersion:
+          of: gateway.networking.k8s.io/v1
+      - isKind:
+          of: HTTPRoute
+      - equal:
+          path: metadata.name
+          value: test-service-agc-529a669f0b22
+      - equal:
+          path: metadata.namespace
+          value: dev
+      - equal:
+          path: spec
+          value:
+            parentRefs:
+              - group: gateway.networking.k8s.io
+                kind: Gateway
+                name: ipaffs-agc
+                namespace: defra-certs
+                sectionName: https
+            hostnames: [test.aks.imp.dev.azure.defra.cloud]
+            rules:
+              - matches:
+                  - path:
+                      type: PathPrefix
+                      value: /
+                    headers:
+                      - type: Exact
+                        name: X-Azure-FDID
+                        value: 11111111-2222-3333-4444-555555555555
+                filters:
+                  - type: RequestHeaderModifier
+                    requestHeaderModifier:
+                      set:
+                        - name: X-Original-Host
+                          value: test.aks.imp.dev.azure.defra.cloud
+                backendRefs:
+                  - group: ""
+                    kind: Service
+                    name: test-service
+                    port: 8080
+
+  - it: keeps feature namespace suffixes and omits short service aliases
+    release:
+      namespace: feature1
+    set:
+      service: test-service
+      ingress.hosts: [test]
+      agc.enabled: true
+      agc.frontDoorId: 11111111-2222-3333-4444-555555555555
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.hostnames
+          value: [test-feature1.aks.imp.dev.azure.defra.cloud]
+      - equal:
+          path: spec.rules[0].filters[0].requestHeaderModifier.set[0].value
+          value: test-feature1.aks.imp.dev.azure.defra.cloud
+
+  - it: gives every hostname its own stable name and trusted original-host header
+    release:
+      namespace: dev
+    set:
+      service: test-service
+      ingress.hosts: [test, other]
+      agc.enabled: true
+      agc.frontDoorId: 11111111-2222-3333-4444-555555555555
+    asserts:
+      - hasDocuments:
+          count: 2
+      - equal:
+          path: metadata.name
+          value: test-service-agc-529a669f0b22
+        documentIndex: 0
+      - equal:
+          path: metadata.name
+          value: test-service-agc-5233217287c3
+        documentIndex: 1
+      - equal:
+          path: spec.rules[0].filters[0].requestHeaderModifier.set[0].value
+          value: other.aks.imp.dev.azure.defra.cloud
+        documentIndex: 1
+
+  - it: allows an explicit subset without changing host-derived route names
+    release:
+      namespace: dev
+    set:
+      service: test-service
+      ingress.hosts: [test, other]
+      agc.enabled: true
+      agc.frontDoorId: 11111111-2222-3333-4444-555555555555
+      agc.hosts: [other.aks.imp.dev.azure.defra.cloud]
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: metadata.name
+          value: test-service-agc-5233217287c3
+      - equal:
+          path: spec.hostnames
+          value: [other.aks.imp.dev.azure.defra.cloud]
+
+  - it: uses the selected shared Gateway listener
+    release:
+      namespace: dev
+    set:
+      service: test-service
+      ingress.hosts: [test]
+      agc.enabled: true
+      agc.frontDoorId: 11111111-2222-3333-4444-555555555555
+      agc.gateway.name: pilot-agc
+      agc.gateway.namespace: gateway-system
+      agc.gateway.sectionName: pilot-https
+    asserts:
+      - equal:
+          path: spec.parentRefs[0]
+          value:
+            group: gateway.networking.k8s.io
+            kind: Gateway
+            name: pilot-agc
+            namespace: gateway-system
+            sectionName: pilot-https
+
+  - it: rejects an absent Front Door profile ID when a route would be rendered
+    release:
+      namespace: dev
+    set:
+      service: test-service
+      ingress.hosts: [test]
+      agc.enabled: true
+    asserts:
+      - failedTemplate:
+          errorMessage: agc.frontDoorId is required when AGC routes are enabled
+
+  - it: rejects a resource ID or other non-GUID Front Door ID
+    release:
+      namespace: dev
+    set:
+      service: test-service
+      ingress.hosts: [test]
+      agc.enabled: true
+      agc.frontDoorId: /subscriptions/example/resourceGroups/example/providers/Microsoft.Cdn/profiles/example
+    asserts:
+      - failedTemplate:
+          errorMessage: agc.frontDoorId must be a Front Door profile GUID
+
+  - it: rejects hosts that are not existing ingress FQDNs
+    release:
+      namespace: dev
+    set:
+      service: test-service
+      ingress.hosts: [test]
+      agc.enabled: true
+      agc.frontDoorId: 11111111-2222-3333-4444-555555555555
+      agc.hosts: [unconfigured.example.com]
+    asserts:
+      - failedTemplate:
+          errorMessage: 'agc.hosts must contain only existing FQDN ingress hosts; rejected "unconfigured.example.com"'
+
+  - it: rejects even existing short aliases in an explicit host subset
+    release:
+      namespace: dev
+    set:
+      service: test-service
+      ingress.hosts: [test]
+      agc.enabled: true
+      agc.frontDoorId: 11111111-2222-3333-4444-555555555555
+      agc.hosts: [test]
+    asserts:
+      - failedTemplate:
+          errorMessage: 'agc.hosts must contain only existing FQDN ingress hosts; rejected "test"'
+
+  - it: deduplicates repeated host entries rather than creating colliding resources
+    release:
+      namespace: dev
+    set:
+      service: test-service
+      ingress.hosts: [test, test]
+      agc.enabled: true
+      agc.frontDoorId: 11111111-2222-3333-4444-555555555555
+    asserts:
+      - hasDocuments:
+          count: 1
+
+  - it: adds a whole-request timeout only when explicitly configured
+    release:
+      namespace: dev
+    set:
+      service: test-service
+      ingress.hosts: [test]
+      agc.enabled: true
+      agc.frontDoorId: 11111111-2222-3333-4444-555555555555
+      agc.requestTimeout: 120s
+    asserts:
+      - equal:
+          path: spec.rules[0].timeouts
+          value:
+            request: 120s

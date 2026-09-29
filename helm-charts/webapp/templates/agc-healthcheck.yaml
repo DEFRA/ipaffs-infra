@@ -1,0 +1,29 @@
+{{- if .Values.agc.healthCheck.enabled }}
+apiVersion: alb.networking.azure.io/v1
+kind: HealthCheckPolicy
+metadata:
+  name: {{ .Values.service }}-agc
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "ipaffs-common.labels" . | nindent 4 }}
+spec:
+  targetRef:
+    group: ""
+    kind: Service
+    name: {{ .Values.service }}
+    namespace: {{ .Release.Namespace }}
+  default:
+    interval: 5s
+    timeout: 3s
+    healthyThreshold: 1
+    unhealthyThreshold: 3
+    port: {{ default .Values.ports.container .Values.agc.healthCheck.port }}
+    http:
+      host: {{ required "agc.healthCheck.host is required when AGC health checks are enabled" .Values.agc.healthCheck.host | quote }}
+      path: {{ required "agc.healthCheck.path is required when AGC health checks are enabled" .Values.agc.healthCheck.path | quote }}
+      match:
+        statusCodes:
+          - start: 200
+            end: 299
+    useTLS: false
+{{- end }}

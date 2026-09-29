@@ -1,0 +1,91 @@
+suite: opt-in AGC service health checks
+templates:
+  - templates/agc-healthcheck.yaml
+tests:
+  - it: does not render an AGC health policy by default
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: targets its own service independently of whether webapp AGC routes are enabled
+    release:
+      namespace: dev
+    set:
+      service: proxy
+      agc.enabled: false
+      agc.healthCheck.enabled: true
+      ports.container: 8080
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isAPIVersion:
+          of: alb.networking.azure.io/v1
+      - isKind:
+          of: HealthCheckPolicy
+      - equal:
+          path: metadata.name
+          value: proxy-agc
+      - equal:
+          path: metadata.namespace
+          value: dev
+      - equal:
+          path: spec
+          value:
+            targetRef:
+              group: ""
+              kind: Service
+              name: proxy
+              namespace: dev
+            default:
+              interval: 5s
+              timeout: 3s
+              healthyThreshold: 1
+              unhealthyThreshold: 3
+              port: 8080
+              http:
+                host: localhost
+                path: /admin/health-check
+                match:
+                  statusCodes:
+                    - start: 200
+                      end: 299
+              useTLS: false
+
+  - it: supports an explicit backend probe port path and host
+    set:
+      service: proxy
+      agc.healthCheck.enabled: true
+      agc.healthCheck.port: 9000
+      agc.healthCheck.path: /health
+      agc.healthCheck.host: proxy.internal
+    asserts:
+      - equal:
+          path: spec.default.port
+          value: 9000
+      - equal:
+          path: spec.default.http.path
+          value: /health
+      - equal:
+          path: spec.default.http.host
+          value: proxy.internal
+
+  - it: does not enable the health policy just because HTTPRoutes are enabled
+    release:
+      namespace: dev
+    set:
+      service: test-service
+      ingress.hosts: [test]
+      agc.enabled: true
+      agc.frontDoorId: 11111111-2222-3333-4444-555555555555
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: rejects an empty custom health path
+    set:
+      service: proxy
+      agc.healthCheck.enabled: true
+      agc.healthCheck.path: ""
+    asserts:
+      - failedTemplate:
+          errorMessage: agc.healthCheck.path is required when AGC health checks are enabled

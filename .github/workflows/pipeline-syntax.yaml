@@ -98,6 +98,10 @@ jobs:
         shell: bash
         run: bash scripts/pipeline/deploy-identities-from-services.test.sh
 
+      - name: Test AGC Gateway pipeline configuration
+        shell: bash
+        run: bash scripts/pipeline/test-agc-routing.sh
+
   bicep:
     name: Bicep
     runs-on: ubuntu-latest
@@ -191,3 +195,11 @@ jobs:
               helm lint "${chart}"
             fi
           done
+
+      - name: Test Helm routing charts
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash scripts/pipeline/test-webapp-chart.sh
+          helm unittest --strict helm-charts/bootstrap
+          helm unittest --strict helm-charts/agc-gateway

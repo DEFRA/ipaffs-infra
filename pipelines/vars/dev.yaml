@@ -1,9 +1,11 @@
 ---
 variables:
   acrGroupsServiceConnection: ADO-DefraGovUK-AZR-IMP-DEV1
+  # Enable the shared Gateway; application HTTPRoutes remain separately opt-in.
+  appGatewayForContainersGatewayEnabled: true
   # Non-secret Front Door profile GUID, not its Azure resource ID.
   # AGC HTTPRoutes will use it for header matching.
-  appGatewayForContainersFrontDoorId: ''
+  appGatewayForContainersFrontDoorId: 3ef680bd-5641-4652-804b-2761c2cae804
   classicServiceConnection: ADO-DefraGovUK-AZR-IMP-SND1
   classicSqlAdminUserPrincipalObjectId: aaf71566-6255-442e-a51d-1633b56a01c2
   classicSubscriptionName: AZR-SND

@@ -33,3 +33,16 @@ originIngress:
     nginx.ingress.kubernetes.io/configuration-snippet: |
       proxy_set_header X-Original-Host $host;
       proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+
+# Add AGC origin routes alongside the existing NGINX origin Ingress.
+agc:
+  enabled: false
+  gateway:
+    name: ipaffs-agc
+    namespace: defra-certs
+    sectionName: https
+  frontDoorId: ""
+  # Empty selects existing origin FQDNs; otherwise supply a subset of them.
+  hosts: []
+  # Optional whole-request deadline (e.g. 120s), not an NGINX inactivity timeout.
+  requestTimeout: ""

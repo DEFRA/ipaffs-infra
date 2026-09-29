@@ -1,0 +1,159 @@
+suite: opt-in AGC origin HTTPRoutes
+templates:
+  - templates/agc-httproute.yaml
+tests:
+  - it: renders no AGC origin routes by default
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: renders each existing origin FQDN without any short aliases
+    release:
+      namespace: dev
+    set:
+      agc.enabled: true
+      agc.frontDoorId: 11111111-2222-3333-4444-555555555555
+    asserts:
+      - hasDocuments:
+          count: 6
+      - isKind:
+          of: HTTPRoute
+      - equal:
+          path: metadata.name
+          value: origin-agc-b507d8e1c508
+        documentIndex: 0
+      - equal:
+          path: spec.hostnames
+          value: [importnotification-dev.azure.defra.cloud]
+        documentIndex: 0
+      - equal:
+          path: spec.hostnames
+          value: [importnotification-api-dev-new.azure.defra.cloud]
+        documentIndex: 5
+
+  - it: combines the FDID header and root path and sends only to the existing proxy service
+    release:
+      namespace: dev
+    set:
+      agc.enabled: true
+      agc.frontDoorId: 11111111-2222-3333-4444-555555555555
+      agc.hosts: [importnotification-dev.azure.defra.cloud]
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec
+          value:
+            parentRefs:
+              - group: gateway.networking.k8s.io
+                kind: Gateway
+                name: ipaffs-agc
+                namespace: defra-certs
+                sectionName: https
+            hostnames: [importnotification-dev.azure.defra.cloud]
+            rules:
+              - matches:
+                  - path:
+                      type: PathPrefix
+                      value: /
+                    headers:
+                      - type: Exact
+                        name: X-Azure-FDID
+                        value: 11111111-2222-3333-4444-555555555555
+                filters:
+                  - type: RequestHeaderModifier
+                    requestHeaderModifier:
+                      set:
+                        - name: X-Original-Host
+                          value: importnotification-dev.azure.defra.cloud
+                backendRefs:
+                  - group: ""
+                    kind: Service
+                    name: proxy
+                    port: 80
+
+  - it: preserves feature namespace origin names and their trusted headers
+    release:
+      namespace: feature1
+    set:
+      agc.enabled: true
+      agc.frontDoorId: 11111111-2222-3333-4444-555555555555
+    asserts:
+      - hasDocuments:
+          count: 6
+      - equal:
+          path: spec.hostnames
+          value: [importnotification-dev-feature1.azure.defra.cloud]
+        documentIndex: 0
+      - equal:
+          path: spec.rules[0].filters[0].requestHeaderModifier.set[0].value
+          value: importnotification-api-dev-feature1-new.azure.defra.cloud
+        documentIndex: 5
+
+  - it: permits an explicit subset and alternate Gateway listener
+    release:
+      namespace: dev
+    set:
+      agc.enabled: true
+      agc.frontDoorId: 11111111-2222-3333-4444-555555555555
+      agc.hosts: [importnotification-int-dev.azure.defra.cloud]
+      agc.gateway.name: pilot-agc
+      agc.gateway.namespace: gateway-system
+      agc.gateway.sectionName: pilot-https
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.hostnames
+          value: [importnotification-int-dev.azure.defra.cloud]
+      - equal:
+          path: spec.parentRefs[0]
+          value:
+            group: gateway.networking.k8s.io
+            kind: Gateway
+            name: pilot-agc
+            namespace: gateway-system
+            sectionName: pilot-https
+
+  - it: rejects a missing Front Door ID
+    release:
+      namespace: dev
+    set:
+      agc.enabled: true
+    asserts:
+      - failedTemplate:
+          errorMessage: agc.frontDoorId is required when AGC routes are enabled
+
+  - it: rejects a malformed Front Door ID
+    release:
+      namespace: dev
+    set:
+      agc.enabled: true
+      agc.frontDoorId: not-a-guid
+    asserts:
+      - failedTemplate:
+          errorMessage: agc.frontDoorId must be a Front Door profile GUID
+
+  - it: rejects an explicit origin hostname outside the existing ingress set
+    release:
+      namespace: dev
+    set:
+      agc.enabled: true
+      agc.frontDoorId: 11111111-2222-3333-4444-555555555555
+      agc.hosts: [importnotification-prd.azure.defra.cloud]
+    asserts:
+      - failedTemplate:
+          errorMessage: 'agc.hosts must contain only existing FQDN ingress hosts; rejected "importnotification-prd.azure.defra.cloud"'
+
+  - it: accepts an explicit whole-request deadline without assuming NGINX timeout equivalence
+    release:
+      namespace: dev
+    set:
+      agc.enabled: true
+      agc.frontDoorId: 11111111-2222-3333-4444-555555555555
+      agc.requestTimeout: 120s
+    asserts:
+      - equal:
+          path: spec.rules[0].timeouts
+          value:
+            request: 120s

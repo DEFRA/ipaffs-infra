@@ -45,6 +45,7 @@ steps:
       ${{ else }}:
         ACR_NAME: $(acrName)
       ENVIRONMENT: ${{ lower(parameters.chart.environmentName) }}
+      APP_GATEWAY_FOR_CONTAINERS_FRONT_DOOR_ID: $(appGatewayForContainersFrontDoorId)
       AZURE_LOCATION: $(location)
       ${{ if ne(parameters.chart.acrLoginServerOverride, '') }}:
         AZURE_CONTAINER_REGISTRY_HOST: ${{ parameters.chart.acrLoginServerOverride }}
