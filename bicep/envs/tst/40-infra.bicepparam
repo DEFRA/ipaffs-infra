@@ -12,6 +12,8 @@ param environment = 'TST'
 param roleAssignmentsType = 'permanent'
 param subnets = {}
 param tenantId = ''
+param classicSubscriptionId = ''
+param classicResourceGroupName = ''
 param deployServicePrincipalObjectId = ''
 param vnetName = 'TSTIMPNETVN1401'
 

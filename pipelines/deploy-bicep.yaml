@@ -85,9 +85,9 @@ stages:
     parameters:
       environmentName: ${{ parameters.environmentName }}
 
-  - template: stages/deploy-bicep-infra-to-classic.yaml
-    parameters:
-      environmentName: ${{ parameters.environmentName }}
+#  - template: stages/deploy-bicep-infra-to-classic.yaml
+#    parameters:
+#      environmentName: ${{ parameters.environmentName }}
 
   - template: stages/deploy-bicep-privatelink.yaml
     parameters:

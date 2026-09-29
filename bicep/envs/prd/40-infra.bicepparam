@@ -12,6 +12,8 @@ param environment = 'PRD'
 param roleAssignmentsType = 'permanent'
 param subnets = {}
 param tenantId = ''
+param classicSubscriptionId = ''
+param classicResourceGroupName = ''
 param deployServicePrincipalObjectId = ''
 param vnetName = 'PRDIMPNETVN1401'
 
