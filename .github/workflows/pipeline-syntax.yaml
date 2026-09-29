@@ -180,7 +180,9 @@ jobs:
             helm dependency update --skip-refresh "${chart}"
 
             if [[ "${chart}" == "helm-charts/bootstrap" ]]; then
-              helm lint "${chart}" --values helm-charts/envs/dev/bootstrap-values.yaml
+              helm lint "${chart}" \
+                --values helm-charts/envs/dev/bootstrap-values.yaml \
+                --set-string agc.frontDoorId=11111111-2222-3333-4444-555555555555
             elif [[ "${chart}" == "helm-charts/job" ]]; then
               helm lint "${chart}" \
                 --set service=test-job \

@@ -6,6 +6,10 @@ environment: dev
 azure:
   location: uksouth
 
+# Enable parallel AGC origin routes; keep NGINX ingress unchanged.
+agc:
+  enabled: true
+
 serviceBus:
   queues:
     - notify-queue

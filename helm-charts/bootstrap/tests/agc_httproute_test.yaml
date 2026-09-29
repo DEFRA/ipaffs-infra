@@ -7,6 +7,68 @@ tests:
       - hasDocuments:
           count: 0
 
+  - it: enables the six origin routes through the DEV environment values
+    release:
+      namespace: dev
+    values:
+      - ../../envs/dev/bootstrap-values.yaml
+    set:
+      agc.frontDoorId: 11111111-2222-3333-4444-555555555555
+    asserts:
+      - hasDocuments:
+          count: 6
+      - isKind:
+          of: HTTPRoute
+      - equal:
+          path: spec.rules[0].backendRefs[0]
+          value:
+            group: ""
+            kind: Service
+            name: proxy
+            port: 80
+
+  - it: requires the pipeline-supplied Front Door ID for DEV
+    release:
+      namespace: dev
+    values:
+      - ../../envs/dev/bootstrap-values.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: agc.frontDoorId is required when AGC routes are enabled
+
+  - it: keeps TST origin routes disabled
+    release:
+      namespace: tst
+    values:
+      - ../../envs/tst/bootstrap-values.yaml
+    set:
+      agc.frontDoorId: 11111111-2222-3333-4444-555555555555
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: keeps PRE origin routes disabled
+    release:
+      namespace: pre
+    values:
+      - ../../envs/pre/bootstrap-values.yaml
+    set:
+      agc.frontDoorId: 11111111-2222-3333-4444-555555555555
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: keeps PRD origin routes disabled
+    release:
+      namespace: prd
+    values:
+      - ../../envs/prd/bootstrap-values.yaml
+    set:
+      agc.frontDoorId: 11111111-2222-3333-4444-555555555555
+    asserts:
+      - hasDocuments:
+          count: 0
+
   - it: renders each existing origin FQDN without any short aliases
     release:
       namespace: dev
