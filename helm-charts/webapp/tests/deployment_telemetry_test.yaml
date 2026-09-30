@@ -1,0 +1,143 @@
+suite: deployment Java telemetry
+templates:
+  - templates/deployment.yaml
+tests:
+  - it: leaves existing applications unchanged when central Java telemetry is disabled
+    release:
+      namespace: dev
+    set:
+      service: test-service
+      environment: DEV
+      azure.clientId: 00000000-0000-0000-0000-000000000001
+      container.image: test/image:1.0.0
+    documentIndex: 1
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].env
+          value:
+            - name: OTEL_SERVICE_NAME
+              value: test-service
+            - name: MANAGED_IDENTITY_USER
+              value: DEVimpinfrg1401-dev-test-service-service
+  - it: keeps the exact existing role in the default canonical namespace
+    release:
+      namespace: dev
+    set:
+      service: test-service
+      environment: DEV
+      azure.clientId: 00000000-0000-0000-0000-000000000001
+      container.image: test/image:1.0.0
+      telemetry.java.enabled: true
+      telemetry.java.roleName: existing-service-role
+    documentIndex: 1
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: APPLICATIONINSIGHTS_CONFIGURATION_CONTENT
+            value: '{"customDimensions":{"k8s.namespace.name":"dev"},"jmxMetrics":[],"role":{"name":"existing-service-role"}}'
+  - it: prefixes the namespace to the existing role outside the canonical namespace
+    release:
+      namespace: imta-21256
+    set:
+      service: test-service
+      environment: DEV
+      azure.clientId: 00000000-0000-0000-0000-000000000001
+      container.image: test/image:1.0.0
+      telemetry.java.enabled: true
+      telemetry.java.roleName: existing-service-role
+    documentIndex: 1
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: APPLICATIONINSIGHTS_CONFIGURATION_CONTENT
+            value: '{"customDimensions":{"k8s.namespace.name":"imta-21256"},"jmxMetrics":[],"role":{"name":"imta-21256.existing-service-role"}}'
+  - it: retains the existing role when the canonical namespace is explicitly configured
+    release:
+      namespace: shared-dev
+    set:
+      service: test-service
+      environment: DEV
+      azure.clientId: 00000000-0000-0000-0000-000000000001
+      container.image: test/image:1.0.0
+      telemetry.java.enabled: true
+      telemetry.java.roleName: existing-service-role
+      telemetry.java.canonicalNamespace: shared-dev
+    documentIndex: 1
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: APPLICATIONINSIGHTS_CONFIGURATION_CONTENT
+            value: '{"customDimensions":{"k8s.namespace.name":"shared-dev"},"jmxMetrics":[],"role":{"name":"existing-service-role"}}'
+  - it: preserves JMX settings and the optional metric interval with valid JSON escaping
+    release:
+      namespace: dev
+    set:
+      service: test-service
+      environment: DEV
+      azure.clientId: 00000000-0000-0000-0000-000000000001
+      container.image: test/image:1.0.0
+      telemetry.java.enabled: true
+      telemetry.java.roleName: existing-service-role
+      telemetry.java.jmxMetrics:
+        - name: GC "young" \ cycle
+          objectName: java.lang:type=GarbageCollector,name=G1 Young Generation
+          attribute: CollectionCount
+      telemetry.java.metricIntervalSeconds: 60
+    documentIndex: 1
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: APPLICATIONINSIGHTS_CONFIGURATION_CONTENT
+            value: '{"customDimensions":{"k8s.namespace.name":"dev"},"jmxMetrics":[{"attribute":"CollectionCount","name":"GC \"young\" \\ cycle","objectName":"java.lang:type=GarbageCollector,name=G1
+              Young Generation"}],"metricIntervalSeconds":60,"role":{"name":"existing-service-role"}}'
+  - it: omits the override when telemetry is explicitly disabled
+    release:
+      namespace: dev
+    set:
+      service: test-service
+      environment: DEV
+      azure.clientId: 00000000-0000-0000-0000-000000000001
+      container.image: test/image:1.0.0
+      telemetry.java.enabled: false
+      telemetry.java.roleName: existing-service-role
+    documentIndex: 1
+    asserts:
+      - notExists:
+          path: spec.template.spec.containers[0].env[?(@.name == "APPLICATIONINSIGHTS_CONFIGURATION_CONTENT")]
+  - it: rejects enabling central Java telemetry without the existing role name
+    release:
+      namespace: dev
+    set:
+      service: test-service
+      environment: DEV
+      azure.clientId: 00000000-0000-0000-0000-000000000001
+      container.image: test/image:1.0.0
+      telemetry.java.enabled: true
+      telemetry.java.roleName: ''
+    asserts:
+      - failedTemplate:
+          errorMessage: telemetry.java.roleName is required when central Java telemetry is enabled
+  - it: allows an empty JMX list to clear inherited metrics
+    release:
+      namespace: dev
+    set:
+      service: test-service
+      environment: DEV
+      azure.clientId: 00000000-0000-0000-0000-000000000001
+      container.image: test/image:1.0.0
+      telemetry.java.enabled: true
+      telemetry.java.roleName: existing-service-role
+      telemetry.java.jmxMetrics: []
+    documentIndex: 1
+    values:
+      - fixtures/java-telemetry.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: APPLICATIONINSIGHTS_CONFIGURATION_CONTENT
+            value: '{"customDimensions":{"k8s.namespace.name":"dev"},"jmxMetrics":[],"metricIntervalSeconds":60,"role":{"name":"existing-service-role"}}'

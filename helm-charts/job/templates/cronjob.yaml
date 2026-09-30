@@ -43,6 +43,10 @@ spec:
                 {{ end }}
               {{ end }}
               imagePullPolicy: {{ .Values.container.imagePullPolicy }}
+              {{- with (include "ipaffs-common.telemetry.javaEnv" .) }}
+              env:
+                {{- . | nindent 16 }}
+              {{- end }}
               {{- with .Values.container.securityContext }}
               securityContext:
                 {{- toYaml . | nindent 16 }}

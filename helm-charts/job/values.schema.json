@@ -15,6 +15,35 @@
     "imageRegistry": {
       "type": "string"
     },
+    "telemetry": {
+      "type": "object",
+      "properties": {
+        "java": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "roleName": {
+              "type": "string"
+            },
+            "canonicalNamespace": {
+              "type": "string"
+            },
+            "jmxMetrics": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            },
+            "metricIntervalSeconds": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        }
+      }
+    },
     "deployment": {
       "type": "object",
       "properties": {
@@ -125,6 +154,14 @@
       "properties": {
         "enabled": {
           "type": "boolean"
+        },
+        "rolloutStrategy": {
+          "type": "string",
+          "enum": [
+            "",
+            "default",
+            "gradual"
+          ]
         },
         "pollingInterval": {
           "type": "integer",

@@ -198,10 +198,11 @@ jobs:
             fi
           done
 
-      - name: Test Helm routing charts
+      - name: Test Helm charts
         shell: bash
         run: |
           set -euo pipefail
           bash scripts/pipeline/test-webapp-chart.sh
+          CHART_PATH=helm-charts/job bash scripts/pipeline/test-webapp-chart.sh
           helm unittest --strict helm-charts/bootstrap
           helm unittest --strict helm-charts/agc-gateway
