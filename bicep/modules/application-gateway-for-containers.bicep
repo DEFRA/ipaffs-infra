@@ -65,14 +65,12 @@ resource frontend 'Microsoft.ServiceNetworking/trafficControllers/frontends@2025
 }
 
 // Use Microsoft's documented BYO scopes; never grant subscription-wide access.
-module configurationManager './resource-group-role-assignment.bicep' = {
+module configurationManager './rg-role-assignment.bicep' = {
   name: 'agc-config-manager-${deploymentId}'
   scope: resourceGroup()
   params: {
     deploymentId: deploymentId
     principalObjectId: controllerIdentity.properties.principalId
-    principalType: 'ServicePrincipal'
-    roleAssignmentType: 'permanent'
     roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'fbc52c3f-28ad-4303-a892-8a056630b8f1')
   }
 }
@@ -89,14 +87,12 @@ module subnetNetworkContributor './subnet-role-assignment.bicep' = {
 }
 
 // Discover AKS-managed networking without granting write access to the node RG.
-module nodeResourceGroupReader './resource-group-role-assignment.bicep' = {
+module nodeResourceGroupReader './rg-role-assignment.bicep' = {
   name: 'agc-node-rg-reader-${deploymentId}'
   scope: resourceGroup(aksNodeResourceGroupName)
   params: {
     deploymentId: deploymentId
     principalObjectId: controllerIdentity.properties.principalId
-    principalType: 'ServicePrincipal'
-    roleAssignmentType: 'permanent'
     roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'acdd72a7-3385-48ef-bd42-f606fba81ae7')
   }
 }
