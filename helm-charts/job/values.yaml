@@ -20,6 +20,8 @@ database:
 azure:
   clientId: ""
   managedIdentityName: ""
+  baseResourceGroupName: ""
+  namespaceResourceGroupName: ""
 
 schedule: ""
 concurrencyPolicy: Forbid

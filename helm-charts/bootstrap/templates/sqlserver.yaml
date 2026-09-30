@@ -8,7 +8,7 @@ metadata:
     {{- include "ipaffs-common.labels" . | nindent 4 }}
 spec:
   owner:
-    name: {{ template "ipaffs-common.azure.resourceGroup" . }}
+    name: {{ template "ipaffs-common.azure.baseResourceGroupK8sName" . }}
   location: {{ .Values.azure.location }}
 
 {{- end }}

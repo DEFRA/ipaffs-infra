@@ -15,7 +15,7 @@ spec:
   location: {{ $root.Values.azure.location }}
   minimumTlsVersion: "1.2"
   owner:
-    name: {{ template "ipaffs-common.azure.resourceGroup" $root }}
+    name: {{ template "ipaffs-common.azure.resourceGroupK8sName" $root }}
   sku:
     name: Standard
   zoneRedundant: false

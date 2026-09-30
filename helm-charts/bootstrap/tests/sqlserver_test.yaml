@@ -1,0 +1,51 @@
+suite: sql server template
+templates:
+  - templates/sqlserver.yaml
+tests:
+  - it: does not render outside the dev environment
+    release:
+      namespace: tst
+    set:
+      service: bootstrap
+      environment: tst
+      azure.location: uksouth
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: is owned by the shared base resource group in the default namespace
+    release:
+      namespace: dev
+    set:
+      service: bootstrap
+      environment: dev
+      azure.location: uksouth
+    asserts:
+      - equal:
+          path: spec.owner.name
+          value: devimpinfrg1401
+
+  - it: stays in the shared base resource group even for an alternative namespace
+    release:
+      namespace: pr-123
+    set:
+      service: bootstrap
+      environment: dev
+      azure.location: uksouth
+    asserts:
+      - equal:
+          path: spec.owner.name
+          value: devimpinfrg1401
+
+  - it: stays in the shared base resource group even when a namespace resource group is threaded in
+    release:
+      namespace: pr-123
+    set:
+      service: bootstrap
+      environment: dev
+      azure.location: uksouth
+      azure.namespaceResourceGroupName: devimpinfrg1401-pr-123
+    asserts:
+      - equal:
+          path: spec.owner.name
+          value: devimpinfrg1401

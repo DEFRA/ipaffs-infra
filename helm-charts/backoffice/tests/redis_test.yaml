@@ -1,0 +1,45 @@
+suite: redis template
+templates:
+  - templates/redis.yaml
+tests:
+  - it: does not render outside the dev environment
+    release:
+      namespace: tst
+    set:
+      service: test-service
+      environment: tst
+      azure.location: uksouth
+      redis.enabled: true
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: default namespace redis is owned by the shared base resource group
+    release:
+      namespace: dev
+    set:
+      service: test-service
+      environment: dev
+      azure.location: uksouth
+      redis.enabled: true
+    asserts:
+      - equal:
+          path: spec.owner.name
+          value: devimpinfrg1401
+
+  - it: alternative namespace redis moves into the namespace resource group
+    release:
+      namespace: pr-123
+    set:
+      service: test-service
+      environment: dev
+      azure.location: uksouth
+      redis.enabled: true
+      azure.namespaceResourceGroupName: devimpinfrg1401-pr-123
+    asserts:
+      - equal:
+          path: spec.owner.name
+          value: devimpinfrg1401-pr-123
+      - equal:
+          path: metadata.name
+          value: devimpinfrd1401-test-service-pr-123

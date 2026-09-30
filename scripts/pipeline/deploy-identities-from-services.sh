@@ -1,4 +1,34 @@
 #!/bin/bash
+#
+# deploy-identities-from-services.sh
+# For every service under SERVICES_ROOT, create/update its "service" managed
+# identity (and, if database.migrations.enabled is true, a "migrations"
+# identity too), federate each with its AKS service account, then add all
+# principals to the search/blob-storage Entra groups and migration principals
+# to the SQL-admin group.
+#
+# Usage (with Azure authentication and the required environment configured):
+#   NAMESPACE=pr-123 RESOURCE_GROUP_NAME=devimpinfrg1401 \
+#   SUBSCRIPTION_NAME=... AKS_ISSUER=https://... \
+#   SEARCH_CONTRIBUTORS_GROUP_ID=... BLOB_STORAGE_CONTRIBUTORS_GROUP_ID=... \
+#   SQL_ADMIN_GROUP_ID=... SERVICES_ROOT=/path/to/services \
+#   bash ./deploy-identities-from-services.sh
+#
+# Required env: NAMESPACE, RESOURCE_GROUP_NAME, SUBSCRIPTION_NAME, AKS_ISSUER,
+# SEARCH_CONTRIBUTORS_GROUP_ID, BLOB_STORAGE_CONTRIBUTORS_GROUP_ID,
+# SQL_ADMIN_GROUP_ID, SERVICES_ROOT.
+# Optional: NAMESPACE_RESOURCE_GROUP_NAME (create identities in a namespace's
+# dedicated resource group instead of RESOURCE_GROUP_NAME - identity names
+# still use RESOURCE_GROUP_NAME's prefix, see namespace-resource-groups.md),
+# VERIFY_GROUP_MEMBERSHIPS (wait for group membership to propagate),
+# MIGRATIONS_ENABLED_SERVICES (comma-separated override, skips reading
+# each service's base.yaml).
+#
+# Requires: Bash 4.3+, az (logged in), jq; optionally Mike Farah's yq.
+# Delegates to create-identity.sh and
+# add-entra-group-members.sh/wait-for-group-memberships.sh in the same
+# directory. Covered by ./deploy-identities-from-services.test.sh, which
+# fakes az and runs without Azure.
 
 set -euo pipefail
 
@@ -14,7 +44,19 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 : "${SERVICES_ROOT:?SERVICES_ROOT is required}"
 
 VERIFY_GROUP_MEMBERSHIPS="${VERIFY_GROUP_MEMBERSHIPS:-false}"
+
+# lower_resource_group_name always derives from the shared base resource
+# group: managed identity *names* keep this prefix regardless of which
+# resource group they're actually created in, so names stay stable if a
+# namespace's resource group scheme ever changes.
 lower_resource_group_name="$(echo "${RESOURCE_GROUP_NAME}" | tr '[:upper:]' '[:lower:]')"
+
+# The resource group identities are actually created in. Defaults to the base
+# resource group (RESOURCE_GROUP_NAME) for backwards compatibility; the
+# deployment pipeline sets this to the namespace's own resource group for
+# alternative (non-default) namespaces.
+RESOURCE_GROUP_NAME="${NAMESPACE_RESOURCE_GROUP_NAME:-${RESOURCE_GROUP_NAME}}"
+export RESOURCE_GROUP_NAME
 search_contributor_principal_ids=()
 blob_storage_contributor_principal_ids=()
 sql_admin_principal_ids=()

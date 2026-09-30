@@ -9,7 +9,7 @@ Create chart name and version as used by the chart label.
 Managed identity names created by deploy-identities.yaml.
 */}}
 {{- define "job.azure.serviceManagedIdentityName" -}}
-{{- $defaultIdentityName := printf "%s-%s-%s-service" (include "ipaffs-common.azure.resourceGroup" .) .Release.Namespace .Values.service -}}
+{{- $defaultIdentityName := printf "%s-%s-%s-service" (include "ipaffs-common.azure.baseResourceGroupK8sName" .) .Release.Namespace .Values.service -}}
 {{- .Values.azure.managedIdentityName | default $defaultIdentityName -}}
 {{- end }}
 

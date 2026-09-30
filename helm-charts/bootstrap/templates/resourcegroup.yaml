@@ -1,9 +1,40 @@
+{{- $baseResourceGroup := include "ipaffs-common.azure.baseResourceGroup" . -}}
+{{- $baseResourceGroupK8sName := include "ipaffs-common.azure.baseResourceGroupK8sName" . -}}
+{{- $namespaceResourceGroup := include "ipaffs-common.azure.resourceGroup" . -}}
+{{- $namespaceResourceGroupK8sName := include "ipaffs-common.azure.resourceGroupK8sName" . -}}
 apiVersion: resources.azure.com/v1api20200601
 kind: ResourceGroup
 metadata:
-  name: {{ template "ipaffs-common.azure.resourceGroup" . }}
+  name: {{ $baseResourceGroupK8sName }}
   labels:
     {{- include "ipaffs-common.labels" . | nindent 4 }}
 spec:
+  {{- if ne $baseResourceGroupK8sName $baseResourceGroup }}
+  azureName: {{ $baseResourceGroup }}
+  {{- end }}
   location: {{ .Values.azure.location }}
-
+{{ if ne $namespaceResourceGroupK8sName $baseResourceGroupK8sName }}
+---
+apiVersion: resources.azure.com/v1api20200601
+kind: ResourceGroup
+metadata:
+  name: {{ $namespaceResourceGroupK8sName }}
+  labels:
+    {{- include "ipaffs-common.labels" . | nindent 4 }}
+  annotations:
+    # Created up-front by the pipeline (ensure-namespace-resource-group.sh);
+    # ASO only manages/deletes within it, never the shared base RG above.
+    serviceoperator.azure.com/reconcile-policy: manage
+spec:
+  {{- if ne $namespaceResourceGroupK8sName $namespaceResourceGroup }}
+  azureName: {{ $namespaceResourceGroup }}
+  {{- end }}
+  location: {{ .Values.azure.location }}
+  tags:
+    # Must match ensure-namespace-resource-group.sh's `az group create --tags`
+    # exactly, otherwise ASO overwrites them and the next deploy's ownership
+    # check fails.
+    ManagedBy: ipaffs-manifest-pipeline
+    Namespace: {{ .Release.Namespace }}
+    BaseResourceGroup: {{ $baseResourceGroup }}
+{{- end }}

@@ -1,0 +1,51 @@
+suite: managed identities template
+templates:
+  - templates/identities.yaml
+tests:
+  - it: default namespace identity is owned by the shared base resource group with a base-rg-prefixed name
+    release:
+      namespace: dev
+    set:
+      service: test-service
+      environment: dev
+    documentIndex: 0
+    asserts:
+      - equal:
+          path: metadata.name
+          value: devimpinfrg1401-dev-test-service-service
+      - equal:
+          path: spec.owner.name
+          value: devimpinfrg1401
+
+  - it: alternative namespace identity moves into the namespace resource group but keeps a base-rg-prefixed name
+    release:
+      namespace: pr-123
+    set:
+      service: test-service
+      environment: dev
+      azure.namespaceResourceGroupName: devimpinfrg1401-pr-123
+    documentIndex: 0
+    asserts:
+      - equal:
+          path: metadata.name
+          value: devimpinfrg1401-pr-123-test-service-service
+      - equal:
+          path: spec.owner.name
+          value: devimpinfrg1401-pr-123
+
+  - it: migrations identity also moves into the namespace resource group when migrations are enabled
+    release:
+      namespace: pr-123
+    set:
+      service: test-service
+      environment: dev
+      database.migrations.enabled: true
+      azure.namespaceResourceGroupName: devimpinfrg1401-pr-123
+    documentIndex: 1
+    asserts:
+      - equal:
+          path: metadata.name
+          value: devimpinfrg1401-pr-123-test-service-migrations
+      - equal:
+          path: spec.owner.name
+          value: devimpinfrg1401-pr-123
