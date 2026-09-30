@@ -123,14 +123,12 @@ module grafanaDeploySpAdmin './grafana-role-assignment.bicep' = {
   }
 }
 
-module grafanaMonitoringReader './resource-group-role-assignment.bicep' = {
+module grafanaMonitoringReader './rg-role-assignment.bicep' = {
   name: 'grafanaMonitoringReader-${deploymentId}'
   scope: resourceGroup()
   params: {
     deploymentId: deploymentId
     principalObjectId: grafanaDashboard.identity.principalId
-    principalType: 'ServicePrincipal'
-    roleAssignmentType: 'permanent'
     roleDefinitionId: monitoringReaderRoleId
   }
 }
