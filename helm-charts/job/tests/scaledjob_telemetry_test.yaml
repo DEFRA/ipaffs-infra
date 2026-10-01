@@ -21,7 +21,7 @@ tests:
       - equal:
           path: spec.rollout.strategy
           value: gradual
-  - it: keeps the exact existing role in the default canonical namespace
+  - it: derives the canonical role from service despite a stale roleName value
     release:
       namespace: dev
     set:
@@ -35,17 +35,17 @@ tests:
           metadata:
             queueName: test-queue
       telemetry.java.enabled: true
-      telemetry.java.roleName: existing-service-role
+      telemetry.java.roleName: stale-original-role
     asserts:
       - contains:
           path: spec.jobTargetRef.template.spec.containers[0].env
           content:
             name: APPLICATIONINSIGHTS_CONFIGURATION_CONTENT
-            value: '{"customDimensions":{"k8s.namespace.name":"dev"},"jmxMetrics":[],"role":{"name":"existing-service-role"}}'
+            value: '{"customDimensions":{"k8s.namespace.name":"dev"},"jmxMetrics":[],"role":{"name":"test-service"}}'
       - equal:
           path: spec.rollout.strategy
           value: gradual
-  - it: prefixes the namespace to the existing role outside the canonical namespace
+  - it: prefixes the namespace to the service name outside the canonical namespace
     release:
       namespace: imta-21256
     set:
@@ -59,14 +59,13 @@ tests:
           metadata:
             queueName: test-queue
       telemetry.java.enabled: true
-      telemetry.java.roleName: existing-service-role
     asserts:
       - contains:
           path: spec.jobTargetRef.template.spec.containers[0].env
           content:
             name: APPLICATIONINSIGHTS_CONFIGURATION_CONTENT
-            value: '{"customDimensions":{"k8s.namespace.name":"imta-21256"},"jmxMetrics":[],"role":{"name":"imta-21256.existing-service-role"}}'
-  - it: retains the existing role when the canonical namespace is explicitly configured
+            value: '{"customDimensions":{"k8s.namespace.name":"imta-21256"},"jmxMetrics":[],"role":{"name":"imta-21256.test-service"}}'
+  - it: uses the service name when the canonical namespace is explicitly configured
     release:
       namespace: shared-dev
     set:
@@ -80,14 +79,13 @@ tests:
           metadata:
             queueName: test-queue
       telemetry.java.enabled: true
-      telemetry.java.roleName: existing-service-role
       telemetry.java.canonicalNamespace: shared-dev
     asserts:
       - contains:
           path: spec.jobTargetRef.template.spec.containers[0].env
           content:
             name: APPLICATIONINSIGHTS_CONFIGURATION_CONTENT
-            value: '{"customDimensions":{"k8s.namespace.name":"shared-dev"},"jmxMetrics":[],"role":{"name":"existing-service-role"}}'
+            value: '{"customDimensions":{"k8s.namespace.name":"shared-dev"},"jmxMetrics":[],"role":{"name":"test-service"}}'
   - it: preserves JMX settings and the optional metric interval with valid JSON escaping
     release:
       namespace: dev
@@ -102,7 +100,6 @@ tests:
           metadata:
             queueName: test-queue
       telemetry.java.enabled: true
-      telemetry.java.roleName: existing-service-role
       telemetry.java.jmxMetrics:
         - name: GC "young" \ cycle
           objectName: java.lang:type=GarbageCollector,name=G1 Young Generation
@@ -114,7 +111,7 @@ tests:
           content:
             name: APPLICATIONINSIGHTS_CONFIGURATION_CONTENT
             value: '{"customDimensions":{"k8s.namespace.name":"dev"},"jmxMetrics":[{"attribute":"CollectionCount","name":"GC \"young\" \\ cycle","objectName":"java.lang:type=GarbageCollector,name=G1
-              Young Generation"}],"metricIntervalSeconds":60,"role":{"name":"existing-service-role"}}'
+              Young Generation"}],"metricIntervalSeconds":60,"role":{"name":"test-service"}}'
   - it: omits the override when telemetry is explicitly disabled
     release:
       namespace: dev
@@ -129,15 +126,14 @@ tests:
           metadata:
             queueName: test-queue
       telemetry.java.enabled: false
-      telemetry.java.roleName: existing-service-role
     asserts:
       - notExists:
           path: spec.jobTargetRef.template.spec.containers[0].env
-  - it: rejects enabling central Java telemetry without the existing role name
+  - it: rejects enabling central Java telemetry without a service name
     release:
       namespace: dev
     set:
-      service: test-service
+      service: ''
       environment: DEV
       azure.clientId: 00000000-0000-0000-0000-000000000001
       container.image: test/image:1.0.0
@@ -147,10 +143,9 @@ tests:
           metadata:
             queueName: test-queue
       telemetry.java.enabled: true
-      telemetry.java.roleName: ''
     asserts:
       - failedTemplate:
-          errorMessage: telemetry.java.roleName is required when central Java telemetry is enabled
+          errorMessage: service is required when central Java telemetry is enabled
   - it: prevents overriding gradual rollout when Java telemetry is enabled
     release:
       namespace: dev
@@ -165,7 +160,6 @@ tests:
           metadata:
             queueName: test-queue
       telemetry.java.enabled: true
-      telemetry.java.roleName: existing-service-role
       keda.rolloutStrategy: default
     asserts:
       - equal:

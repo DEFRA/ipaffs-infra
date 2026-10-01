@@ -3,7 +3,7 @@
 {{- $telemetry := .Values.telemetry | default dict -}}
 {{- $java := $telemetry.java | default dict -}}
 {{- if $java.enabled -}}
-{{- $roleName := required "telemetry.java.roleName is required when central Java telemetry is enabled" $java.roleName -}}
+{{- $roleName := required "service is required when central Java telemetry is enabled" .Values.service -}}
 {{- $canonicalNamespace := $java.canonicalNamespace | default (lower .Values.environment) -}}
 {{- if ne .Release.Namespace $canonicalNamespace -}}
 {{- $roleName = printf "%s.%s" .Release.Namespace $roleName -}}

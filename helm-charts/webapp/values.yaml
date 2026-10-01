@@ -6,7 +6,6 @@ imageRegistry: ""
 telemetry:
   java:
     enabled: false
-    roleName: ""
     # An empty value uses the environment name in lowercase.
     canonicalNamespace: ""
     jmxMetrics: []

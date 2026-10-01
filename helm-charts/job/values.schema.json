@@ -24,9 +24,6 @@
             "enabled": {
               "type": "boolean"
             },
-            "roleName": {
-              "type": "string"
-            },
             "canonicalNamespace": {
               "type": "string"
             },

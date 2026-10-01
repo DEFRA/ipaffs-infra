@@ -1,7 +1,6 @@
 telemetry:
   java:
     enabled: true
-    roleName: existing-service-role
     jmxMetrics:
       - name: GC "young" \ cycle
         objectName: java.lang:type=GarbageCollector,name=G1 Young Generation
