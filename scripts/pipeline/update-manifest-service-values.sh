@@ -3,16 +3,16 @@
 set -euo pipefail
 
 : "${SERVICE_NAME:?SERVICE_NAME is required}"
+: "${SERVICE_RUNTIME:?SERVICE_RUNTIME is required}"
 : "${BUILD_NUMBER:?BUILD_NUMBER is required}"
 : "${MANIFEST_ROOT:?MANIFEST_ROOT is required}"
 : "${SERVICE_ROOT:?SERVICE_ROOT is required}"
 skip_container_image_update="$(printf '%s' "${SKIP_CONTAINER_IMAGE_UPDATE:-false}" | tr '[:upper:]' '[:lower:]')"
-service_runtime="${SERVICE_RUNTIME:-}"
 
-case "${service_runtime}" in
-  java|node|"") ;;
+case "${SERVICE_RUNTIME}" in
+  java|node) ;;
   *)
-    echo "SERVICE_RUNTIME must be java or node when supplied" >&2
+    echo "SERVICE_RUNTIME must be java or node" >&2
     exit 1
     ;;
 esac
@@ -52,22 +52,6 @@ if [[ -f "${SERVICE_ROOT}/deployment/values.yaml" ]]; then
   values_source_dir="${SERVICE_ROOT}/deployment"
 fi
 
-# Older callers do not identify their runtime. Resolve it before replacing the
-# base values so a previously generated runtime survives either build mode.
-if [[ -z "${service_runtime}" ]] && [[ -n "${values_source_dir}" ]]; then
-  service_runtime="$(yq e -r '.runtime | select(. != null)' "${values_source_dir}/values.yaml")"
-fi
-if [[ -z "${service_runtime}" ]] && [[ -f "${base_file}" ]]; then
-  service_runtime="$(yq e -r '.runtime | select(. != null)' "${base_file}")"
-fi
-case "${service_runtime}" in
-  java|node|"") ;;
-  *)
-    echo "Source or existing manifest runtime must be java or node when supplied" >&2
-    exit 1
-    ;;
-esac
-
 mkdir -p "services/${SERVICE_NAME}"
 
 if [[ -n "${values_source_dir}" ]]; then
@@ -102,9 +86,7 @@ else
   fi
 fi
 
-if [[ -n "${service_runtime}" ]]; then
-  SERVICE_RUNTIME="${service_runtime}" yq -i '.runtime = strenv(SERVICE_RUNTIME)' "${base_file}"
-fi
+yq -i '.runtime = strenv(SERVICE_RUNTIME)' "${base_file}"
 
 service_image="ipaffs/${SERVICE_NAME}:${BUILD_NUMBER}"
 migrations_image="ipaffs/${SERVICE_NAME}-configuration:${BUILD_NUMBER}"

@@ -62,6 +62,7 @@ run_update() {
   mkdir -p "${manifest_root}/services/example-service"
 
   SERVICE_NAME=example-service \
+    SERVICE_RUNTIME=java \
     BUILD_NUMBER=unused-build \
     MANIFEST_ROOT="${manifest_root}" \
     SERVICE_ROOT="${service_root}" \
@@ -229,6 +230,7 @@ EOF
 
 update_output="$({
   SERVICE_NAME=example-service \
+    SERVICE_RUNTIME=java \
     BUILD_NUMBER=unused-build \
     MANIFEST_ROOT="${manifest_root}" \
     SERVICE_ROOT="${service_root}" \
@@ -295,62 +297,40 @@ EOF
   done
 done
 
-# Legacy callers retain source runtime when present, or the previously generated
-# runtime when source replacement would otherwise remove it.
-for runtime_source in source existing; do
-  for skip_image_update in false true; do
-    case_root="${work_dir}/inherited-runtime-${runtime_source}-${skip_image_update}"
-    service_root="${case_root}/service"
-    manifest_root="${case_root}/manifest"
-    write_source_values "${service_root}"
-    mkdir -p "${manifest_root}/services/example-service"
-    printf 'runtime: java\n' > "${manifest_root}/services/example-service/base.yaml"
-    expected_runtime=java
-    if [[ "${runtime_source}" == "source" ]]; then
-      yq -i '.runtime = "node"' "${service_root}/deployment/values.yaml"
-      expected_runtime=node
-    fi
-    SERVICE_NAME=example-service \
-      SERVICE_RUNTIME="" \
-      BUILD_NUMBER=new-build \
-      MANIFEST_ROOT="${manifest_root}" \
-      SERVICE_ROOT="${service_root}" \
-      SKIP_CONTAINER_IMAGE_UPDATE="${skip_image_update}" \
-      bash "${script_path}" >/dev/null
-    check "${runtime_source} runtime is inherited when omitted with skip images=${skip_image_update}" \
-      "${expected_runtime}" "$(yq e -r '.runtime' "${manifest_root}/services/example-service/base.yaml")"
+# Runtime must come from the caller. Even valid source or existing metadata
+# cannot rescue an unset, empty or invalid value, in either image mode.
+for runtime_input in unset empty invalid; do
+  for runtime_source in source existing; do
+    for skip_image_update in false true; do
+      case_name="${runtime_input}-runtime-${runtime_source}-${skip_image_update}"
+      case_root="${work_dir}/${case_name}"
+      service_root="${case_root}/service"
+      manifest_root="${case_root}/manifest"
+      write_source_values "${service_root}"
+      mkdir -p "${manifest_root}"
+      if [[ "${runtime_source}" == "source" ]]; then
+        yq -i '.runtime = "node"' "${service_root}/deployment/values.yaml"
+      else
+        mkdir -p "${manifest_root}/services/example-service"
+        printf 'runtime: java\n' > "${manifest_root}/services/example-service/base.yaml"
+      fi
+      cp -R "${manifest_root}" "${case_root}/manifest-before"
+      runtime_env=(env -u SERVICE_RUNTIME)
+      case "${runtime_input}" in
+        empty) runtime_env+=(SERVICE_RUNTIME=) ;;
+        invalid) runtime_env+=(SERVICE_RUNTIME=python) ;;
+      esac
+      SERVICE_NAME=example-service \
+        BUILD_NUMBER=new-build \
+        MANIFEST_ROOT="${manifest_root}" \
+        SERVICE_ROOT="${service_root}" \
+        SKIP_CONTAINER_IMAGE_UPDATE="${skip_image_update}" \
+        "${runtime_env[@]}" bash "${script_path}" >/dev/null 2>&1
+      check "${case_name} is rejected" "1" "$?"
+      check "${case_name} leaves the manifest untouched" \
+        "true" "$(diff -r "${case_root}/manifest-before" "${manifest_root}" >/dev/null && printf true || printf false)"
+    done
   done
-done
-check "legacy callers without any runtime do not gain runtime metadata" \
-  "false" "$(yq e 'has("runtime")' "${work_dir}/no-existing-base/manifest/services/example-service/base.yaml")"
-
-# Invalid runtime is rejected before copying source values, creating generated
-# paths, changing images, or enabling an environment.
-for invalid_source in pipeline source existing; do
-  case_root="${work_dir}/invalid-runtime-${invalid_source}"
-  service_root="${case_root}/service"
-  manifest_root="${case_root}/manifest"
-  write_source_values "${service_root}"
-  mkdir -p "${manifest_root}"
-  runtime=""
-  if [[ "${invalid_source}" == "pipeline" ]]; then
-    runtime=python
-  elif [[ "${invalid_source}" == "source" ]]; then
-    yq -i '.runtime = false' "${service_root}/deployment/values.yaml"
-  else
-    mkdir -p "${manifest_root}/services/example-service"
-    printf 'runtime: dotnet\n' > "${manifest_root}/services/example-service/base.yaml"
-  fi
-  cp -R "${manifest_root}" "${case_root}/manifest-before"
-  SERVICE_NAME=example-service \
-    SERVICE_RUNTIME="${runtime}" \
-    BUILD_NUMBER=new-build \
-    MANIFEST_ROOT="${manifest_root}" \
-    SERVICE_ROOT="${service_root}" \
-    bash "${script_path}" >/dev/null 2>&1
-  check "invalid ${invalid_source} runtime is rejected" "1" "$?"
-  check "invalid ${invalid_source} runtime leaves the manifest untouched" \
-    "true" "$(diff -r "${case_root}/manifest-before" "${manifest_root}" >/dev/null && printf true || printf false)"
 done
 
 if [[ "${failures}" -gt 0 ]]; then
