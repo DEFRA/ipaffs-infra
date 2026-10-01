@@ -98,6 +98,10 @@ jobs:
         shell: bash
         run: bash scripts/pipeline/deploy-identities-from-services.test.sh
 
+      - name: Test generated manifest service values
+        shell: bash
+        run: bash scripts/pipeline/update-manifest-service-values.test.sh
+
       - name: Test AGC Gateway pipeline configuration
         shell: bash
         run: bash scripts/pipeline/test-agc-routing.sh

@@ -69,8 +69,7 @@ run_update() {
     bash "${script_path}" >/dev/null
 }
 
-# A replacement removes every key that is not in the service source, while the
-# two generated image fields survive unchanged.
+# A replacement removes stale source settings while preserving generated images.
 case_name="both-images"
 case_root="${work_dir}/${case_name}"
 mkdir -p "${case_root}/manifest/services/example-service"
@@ -181,6 +180,7 @@ for skip_image_update in false true; do
   printf '{}\n' > "${service_root}/deployment/tst/values.yaml"
 
   SERVICE_NAME=example-service \
+    SERVICE_RUNTIME=java \
     BUILD_NUMBER=new-build \
     MANIFEST_ROOT="${manifest_root}" \
     SERVICE_ROOT="${service_root}" \
@@ -251,6 +251,107 @@ check "a config-only environment setting is absent" \
 
 check "a missing deployment folder does not create other environment entries" \
   "false" "$(test -e "${manifest_root}/environments/pre/example-service.yaml" && printf true || printf false)"
+
+# The pipeline is authoritative, including when source values specify another
+# runtime. Both container build modes must retain their existing image behavior.
+for runtime in java node; do
+  for skip_image_update in false true; do
+    case_root="${work_dir}/runtime-${runtime}-${skip_image_update}"
+    service_root="${case_root}/service"
+    manifest_root="${case_root}/manifest"
+    write_source_values "${service_root}"
+    mkdir -p "${manifest_root}/services/example-service"
+    cat > "${manifest_root}/services/example-service/base.yaml" <<'EOF'
+runtime: java
+container:
+  image: ipaffs/example-service:existing
+database:
+  migrations:
+    image: ipaffs/example-service-configuration:existing
+EOF
+    source_runtime=java
+    [[ "${runtime}" == "java" ]] && source_runtime=node
+    SOURCE_RUNTIME="${source_runtime}" yq -i '.runtime = strenv(SOURCE_RUNTIME)' \
+      "${service_root}/deployment/values.yaml"
+
+    SERVICE_NAME=example-service \
+      SERVICE_RUNTIME="${runtime}" \
+      BUILD_NUMBER=new-build \
+      MANIFEST_ROOT="${manifest_root}" \
+      SERVICE_ROOT="${service_root}" \
+      SKIP_CONTAINER_IMAGE_UPDATE="${skip_image_update}" \
+      bash "${script_path}" >/dev/null
+    check "${runtime} runtime update succeeds with skip images=${skip_image_update}" "0" "$?"
+    base_file="${manifest_root}/services/example-service/base.yaml"
+    check "pipeline ${runtime} overrides the source runtime with skip images=${skip_image_update}" \
+      "${runtime}" "$(yq e -r '.runtime' "${base_file}")"
+    expected_tag=new-build
+    [[ "${skip_image_update}" == "true" ]] && expected_tag=existing
+    check "${runtime} runtime preserves image behavior with skip images=${skip_image_update}" \
+      "ipaffs/example-service:${expected_tag}" "$(yq e -r '.container.image' "${base_file}")"
+    check "${runtime} runtime preserves migrations image behavior with skip images=${skip_image_update}" \
+      "ipaffs/example-service-configuration:${expected_tag}" \
+      "$(yq e -r '.database.migrations.image' "${base_file}")"
+  done
+done
+
+# Legacy callers retain source runtime when present, or the previously generated
+# runtime when source replacement would otherwise remove it.
+for runtime_source in source existing; do
+  for skip_image_update in false true; do
+    case_root="${work_dir}/inherited-runtime-${runtime_source}-${skip_image_update}"
+    service_root="${case_root}/service"
+    manifest_root="${case_root}/manifest"
+    write_source_values "${service_root}"
+    mkdir -p "${manifest_root}/services/example-service"
+    printf 'runtime: java\n' > "${manifest_root}/services/example-service/base.yaml"
+    expected_runtime=java
+    if [[ "${runtime_source}" == "source" ]]; then
+      yq -i '.runtime = "node"' "${service_root}/deployment/values.yaml"
+      expected_runtime=node
+    fi
+    SERVICE_NAME=example-service \
+      SERVICE_RUNTIME="" \
+      BUILD_NUMBER=new-build \
+      MANIFEST_ROOT="${manifest_root}" \
+      SERVICE_ROOT="${service_root}" \
+      SKIP_CONTAINER_IMAGE_UPDATE="${skip_image_update}" \
+      bash "${script_path}" >/dev/null
+    check "${runtime_source} runtime is inherited when omitted with skip images=${skip_image_update}" \
+      "${expected_runtime}" "$(yq e -r '.runtime' "${manifest_root}/services/example-service/base.yaml")"
+  done
+done
+check "legacy callers without any runtime do not gain runtime metadata" \
+  "false" "$(yq e 'has("runtime")' "${work_dir}/no-existing-base/manifest/services/example-service/base.yaml")"
+
+# Invalid runtime is rejected before copying source values, creating generated
+# paths, changing images, or enabling an environment.
+for invalid_source in pipeline source existing; do
+  case_root="${work_dir}/invalid-runtime-${invalid_source}"
+  service_root="${case_root}/service"
+  manifest_root="${case_root}/manifest"
+  write_source_values "${service_root}"
+  mkdir -p "${manifest_root}"
+  runtime=""
+  if [[ "${invalid_source}" == "pipeline" ]]; then
+    runtime=python
+  elif [[ "${invalid_source}" == "source" ]]; then
+    yq -i '.runtime = false' "${service_root}/deployment/values.yaml"
+  else
+    mkdir -p "${manifest_root}/services/example-service"
+    printf 'runtime: dotnet\n' > "${manifest_root}/services/example-service/base.yaml"
+  fi
+  cp -R "${manifest_root}" "${case_root}/manifest-before"
+  SERVICE_NAME=example-service \
+    SERVICE_RUNTIME="${runtime}" \
+    BUILD_NUMBER=new-build \
+    MANIFEST_ROOT="${manifest_root}" \
+    SERVICE_ROOT="${service_root}" \
+    bash "${script_path}" >/dev/null 2>&1
+  check "invalid ${invalid_source} runtime is rejected" "1" "$?"
+  check "invalid ${invalid_source} runtime leaves the manifest untouched" \
+    "true" "$(diff -r "${case_root}/manifest-before" "${manifest_root}" >/dev/null && printf true || printf false)"
+done
 
 if [[ "${failures}" -gt 0 ]]; then
   echo "${failures} test(s) failed"
