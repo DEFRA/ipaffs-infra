@@ -37,8 +37,6 @@ suspend: false
 
 keda:
   enabled: false
-  # When empty, central Java telemetry uses gradual; other jobs retain KEDA's default.
-  rolloutStrategy: ""
   pollingInterval: 30
   cooldownPeriod: 300
   maxReplicaCount: 1

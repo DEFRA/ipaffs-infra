@@ -155,14 +155,6 @@
         "enabled": {
           "type": "boolean"
         },
-        "rolloutStrategy": {
-          "type": "string",
-          "enum": [
-            "",
-            "default",
-            "gradual"
-          ]
-        },
         "pollingInterval": {
           "type": "integer",
           "minimum": 1

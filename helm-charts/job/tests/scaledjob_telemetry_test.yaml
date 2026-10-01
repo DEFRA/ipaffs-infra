@@ -2,7 +2,7 @@ suite: scaledjob Java telemetry
 templates:
   - templates/scaledjob.yaml
 tests:
-  - it: leaves existing applications unchanged when central Java telemetry is disabled
+  - it: preserves running jobs without injecting disabled Java telemetry
     release:
       namespace: dev
     set:
@@ -18,8 +18,9 @@ tests:
     asserts:
       - notExists:
           path: spec.jobTargetRef.template.spec.containers[0].env
-      - notExists:
-          path: spec.rollout
+      - equal:
+          path: spec.rollout.strategy
+          value: gradual
   - it: keeps the exact existing role in the default canonical namespace
     release:
       namespace: dev
@@ -150,7 +151,7 @@ tests:
     asserts:
       - failedTemplate:
           errorMessage: telemetry.java.roleName is required when central Java telemetry is enabled
-  - it: honours an explicit KEDA rollout strategy for enrolled applications
+  - it: prevents overriding gradual rollout when Java telemetry is enabled
     release:
       namespace: dev
     set:
@@ -169,8 +170,8 @@ tests:
     asserts:
       - equal:
           path: spec.rollout.strategy
-          value: default
-  - it: allows gradual rollout independently of Java telemetry
+          value: gradual
+  - it: prevents overriding gradual rollout when Java telemetry is disabled
     release:
       namespace: dev
     set:
@@ -183,7 +184,7 @@ tests:
         - type: azure-servicebus
           metadata:
             queueName: test-queue
-      keda.rolloutStrategy: gradual
+      keda.rolloutStrategy: default
     asserts:
       - equal:
           path: spec.rollout.strategy
