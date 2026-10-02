@@ -61,7 +61,7 @@ parameters:
   - name: notification
     displayName: Send Notification
     type: boolean
-    default: false
+    default: true
 
 extends:
   template: templates/qa-automation.yaml
