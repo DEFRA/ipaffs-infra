@@ -1,0 +1,75 @@
+---
+name: TST-${{ replace(replace(parameters.playwrightTag, '@', ''), ' ', '') }}-$(Date:yyyyMMdd)$(Rev:.r)
+
+trigger: none
+pr: none
+
+# Preserve the existing weekday schedule; cron is UTC throughout the year.
+schedules:
+  - cron: "0 6 * * 1-5"
+    displayName: Weekday TST QA
+    branches:
+      include: [main]
+    always: true
+
+resources:
+  pipelines:
+    - pipeline: deployment
+      source: '\Releasing\Release Pipeline'
+      trigger:
+        # A marker in the companion manifest change: old YAML cannot double-trigger QA.
+        stages:
+          - QA_TST_Ready
+
+parameters:
+  - name: workers
+    displayName: Workers
+    type: number
+    default: 8
+    values:
+      - 4
+      - 8
+      - 12
+      - 16
+
+  - name: imageTag
+    displayName: Image Tag
+    type: string
+    default: latest
+
+  - name: playwrightTag
+    displayName: Playwright Tag (if set overrides any Test Suite selection!)
+    type: string
+    default: ' '
+
+  - name: testSuite
+    displayName: Test Suite
+    type: string
+    default: test
+    values:
+      - test
+      - test:a11y
+      - test:cross-browser
+      - test:visual
+      - test:visual:update
+
+  - name: csvReport
+    displayName: Generate CSV report
+    type: boolean
+    default: true
+
+  - name: notification
+    displayName: Send Notification
+    type: boolean
+    default: true
+
+extends:
+  template: templates/qa-automation.yaml
+  parameters:
+    environmentName: TST
+    workers: ${{ parameters.workers }}
+    imageTag: ${{ parameters.imageTag }}
+    playwrightTag: ${{ parameters.playwrightTag }}
+    testSuite: ${{ parameters.testSuite }}
+    csvReport: ${{ parameters.csvReport }}
+    notification: ${{ parameters.notification }}
