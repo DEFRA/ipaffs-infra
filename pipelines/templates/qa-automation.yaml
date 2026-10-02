@@ -50,9 +50,6 @@ parameters:
     type: boolean
     default: false
 
-pool:
-  name: DEFRA-COMMON-ubuntu2204-SSV5
-
 variables:
   - group: Common
   - template: "/pipelines/vars/common.yaml"
@@ -74,6 +71,8 @@ resources:
 stages:
   - stage: RunTests
     displayName: Run QA Automation Test Suite
+    pool:
+      name: DEFRA-COMMON-ubuntu2204-SSV5
     jobs:
       - job: RunAndPublishTests
         timeoutInMinutes: 180
