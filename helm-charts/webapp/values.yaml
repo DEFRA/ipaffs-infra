@@ -3,6 +3,13 @@ project: ipaffs
 environment: dev
 imageRegistry: ""
 
+telemetry:
+  java:
+    enabled: false
+    # An empty value uses the environment name in lowercase.
+    canonicalNamespace: ""
+    jmxMetrics: []
+
 container:
   image: ""
   imagePullPolicy: Always

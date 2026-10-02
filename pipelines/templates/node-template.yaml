@@ -308,6 +308,7 @@ stages:
               condition: and(not(failed()), not(canceled()), ne(variables['skipManifestUpdate'], 'true'))
               env:
                 SERVICE_NAME: "${{ parameters.serviceName }}"
+                SERVICE_RUNTIME: node
                 BUILD_NUMBER: $(Build.BuildNumber)
                 ACR_LOGIN_SERVER: $(acrLoginServer)
                 SKIP_CONTAINER_IMAGE_UPDATE: $(skipContainerBuild)

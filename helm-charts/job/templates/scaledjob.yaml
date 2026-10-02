@@ -15,6 +15,9 @@ metadata:
     autoscaling.keda.sh/paused: "true"
   {{- end }}
 spec:
+  # Preserve running jobs when configuration or images change.
+  rollout:
+    strategy: gradual
   pollingInterval: {{ default 30 .Values.keda.pollingInterval }}
   cooldownPeriod: {{ default 300 .Values.keda.cooldownPeriod }}
   maxReplicaCount: {{ default 1 .Values.keda.maxReplicaCount }}
@@ -46,6 +49,10 @@ spec:
               {{ end }}
             {{ end }}
             imagePullPolicy: {{ .Values.container.imagePullPolicy }}
+            {{- with (include "ipaffs-common.telemetry.javaEnv" .) }}
+            env:
+              {{- . | nindent 14 }}
+            {{- end }}
             {{- with .Values.container.securityContext }}
             securityContext:
               {{- toYaml . | nindent 14 }}

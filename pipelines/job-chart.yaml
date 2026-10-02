@@ -15,6 +15,7 @@ pr:
       - main
   paths:
     include:
+      - helm-charts/ipaffs-common/**
       - helm-charts/job/**
       - pipelines/job-chart.yaml
       - scripts/pipeline/update-manifest-chart-version.sh

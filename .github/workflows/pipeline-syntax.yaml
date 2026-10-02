@@ -98,6 +98,10 @@ jobs:
         shell: bash
         run: bash scripts/pipeline/deploy-identities-from-services.test.sh
 
+      - name: Test generated manifest service values
+        shell: bash
+        run: bash scripts/pipeline/update-manifest-service-values.test.sh
+
       - name: Test AGC Gateway pipeline configuration
         shell: bash
         run: bash scripts/pipeline/test-agc-routing.sh
@@ -198,10 +202,11 @@ jobs:
             fi
           done
 
-      - name: Test Helm routing charts
+      - name: Test Helm charts
         shell: bash
         run: |
           set -euo pipefail
           bash scripts/pipeline/test-webapp-chart.sh
+          CHART_PATH=helm-charts/job bash scripts/pipeline/test-webapp-chart.sh
           helm unittest --strict helm-charts/bootstrap
           helm unittest --strict helm-charts/agc-gateway

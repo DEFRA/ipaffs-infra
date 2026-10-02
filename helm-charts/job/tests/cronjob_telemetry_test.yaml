@@ -1,0 +1,114 @@
+suite: cronjob Java telemetry
+templates:
+  - templates/cronjob.yaml
+tests:
+  - it: leaves existing applications unchanged when central Java telemetry is disabled
+    release:
+      namespace: dev
+    set:
+      service: test-service
+      environment: DEV
+      azure.clientId: 00000000-0000-0000-0000-000000000001
+      container.image: test/image:1.0.0
+      schedule: 0 0 * * *
+    asserts:
+      - notExists:
+          path: spec.jobTemplate.spec.template.spec.containers[0].env
+  - it: derives the canonical role from service despite a stale roleName value
+    release:
+      namespace: dev
+    set:
+      service: test-service
+      environment: DEV
+      azure.clientId: 00000000-0000-0000-0000-000000000001
+      container.image: test/image:1.0.0
+      schedule: 0 0 * * *
+      telemetry.java.enabled: true
+      telemetry.java.roleName: stale-original-role
+    asserts:
+      - contains:
+          path: spec.jobTemplate.spec.template.spec.containers[0].env
+          content:
+            name: APPLICATIONINSIGHTS_CONFIGURATION_CONTENT
+            value: '{"customDimensions":{"k8s.namespace.name":"dev"},"jmxMetrics":[],"role":{"name":"test-service"}}'
+  - it: prefixes the namespace to the service name outside the canonical namespace
+    release:
+      namespace: imta-21256
+    set:
+      service: test-service
+      environment: DEV
+      azure.clientId: 00000000-0000-0000-0000-000000000001
+      container.image: test/image:1.0.0
+      schedule: 0 0 * * *
+      telemetry.java.enabled: true
+    asserts:
+      - contains:
+          path: spec.jobTemplate.spec.template.spec.containers[0].env
+          content:
+            name: APPLICATIONINSIGHTS_CONFIGURATION_CONTENT
+            value: '{"customDimensions":{"k8s.namespace.name":"imta-21256"},"jmxMetrics":[],"role":{"name":"imta-21256.test-service"}}'
+  - it: uses the service name when the canonical namespace is explicitly configured
+    release:
+      namespace: shared-dev
+    set:
+      service: test-service
+      environment: DEV
+      azure.clientId: 00000000-0000-0000-0000-000000000001
+      container.image: test/image:1.0.0
+      schedule: 0 0 * * *
+      telemetry.java.enabled: true
+      telemetry.java.canonicalNamespace: shared-dev
+    asserts:
+      - contains:
+          path: spec.jobTemplate.spec.template.spec.containers[0].env
+          content:
+            name: APPLICATIONINSIGHTS_CONFIGURATION_CONTENT
+            value: '{"customDimensions":{"k8s.namespace.name":"shared-dev"},"jmxMetrics":[],"role":{"name":"test-service"}}'
+  - it: preserves JMX settings and the optional metric interval with valid JSON escaping
+    release:
+      namespace: dev
+    set:
+      service: test-service
+      environment: DEV
+      azure.clientId: 00000000-0000-0000-0000-000000000001
+      container.image: test/image:1.0.0
+      schedule: 0 0 * * *
+      telemetry.java.enabled: true
+      telemetry.java.jmxMetrics:
+        - name: GC "young" \ cycle
+          objectName: java.lang:type=GarbageCollector,name=G1 Young Generation
+          attribute: CollectionCount
+      telemetry.java.metricIntervalSeconds: 60
+    asserts:
+      - contains:
+          path: spec.jobTemplate.spec.template.spec.containers[0].env
+          content:
+            name: APPLICATIONINSIGHTS_CONFIGURATION_CONTENT
+            value: '{"customDimensions":{"k8s.namespace.name":"dev"},"jmxMetrics":[{"attribute":"CollectionCount","name":"GC \"young\" \\ cycle","objectName":"java.lang:type=GarbageCollector,name=G1
+              Young Generation"}],"metricIntervalSeconds":60,"role":{"name":"test-service"}}'
+  - it: omits the override when telemetry is explicitly disabled
+    release:
+      namespace: dev
+    set:
+      service: test-service
+      environment: DEV
+      azure.clientId: 00000000-0000-0000-0000-000000000001
+      container.image: test/image:1.0.0
+      schedule: 0 0 * * *
+      telemetry.java.enabled: false
+    asserts:
+      - notExists:
+          path: spec.jobTemplate.spec.template.spec.containers[0].env
+  - it: rejects enabling central Java telemetry without a service name
+    release:
+      namespace: dev
+    set:
+      service: ''
+      environment: DEV
+      azure.clientId: 00000000-0000-0000-0000-000000000001
+      container.image: test/image:1.0.0
+      schedule: 0 0 * * *
+      telemetry.java.enabled: true
+    asserts:
+      - failedTemplate:
+          errorMessage: service is required when central Java telemetry is enabled
