@@ -18,3 +18,6 @@ externalSecret:
       remoteKey: secret/star-azure-defra-cloud-cert
 
 redirectorDomain: ""
+
+# CPU limits are ignored by the chart; requests and other limits are preserved.
+resources: {}

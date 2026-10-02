@@ -65,9 +65,9 @@ spec:
                   name: {{ printf "%s-servicebus" .Values.service }}
                   optional: true
 {{- end }}
-            {{- with .Values.resources }}
+            {{- with include "ipaffs-common.resources" .Values.resources }}
             resources:
-              {{- toYaml . | nindent 14 }}
+              {{- . | nindent 14 }}
             {{- end }}
 {{- if or (gt (len $databaseNames) 0) .Values.initContainer.enabled }}
         initContainers:

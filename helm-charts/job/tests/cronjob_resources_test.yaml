@@ -1,0 +1,51 @@
+suite: cronjob CPU limit policy
+templates:
+  - templates/cronjob.yaml
+tests:
+  - it: ignores CPU limits while preserving requests and other limits
+    values:
+      - ci-values.yaml
+    documentIndex: 0
+    set:
+      resources:
+        limits:
+          cpu: "2"
+          memory: 512Mi
+          ephemeral-storage: 1Gi
+        requests:
+          cpu: 100m
+          memory: 128Mi
+          ephemeral-storage: 256Mi
+    asserts:
+      - equal:
+          path: spec.jobTemplate.spec.template.spec.containers[0].resources
+          value:
+            limits:
+              memory: 512Mi
+              ephemeral-storage: 1Gi
+            requests:
+              cpu: 100m
+              memory: 128Mi
+              ephemeral-storage: 256Mi
+
+  - it: omits resources when only a CPU limit is configured
+    values:
+      - ci-values.yaml
+    documentIndex: 0
+    set:
+      resources:
+        limits:
+          cpu: 500m
+    asserts:
+      - notExists:
+          path: spec.jobTemplate.spec.template.spec.containers[0].resources
+
+  - it: omits empty resources
+    values:
+      - ci-values.yaml
+    documentIndex: 0
+    set:
+      resources: {}
+    asserts:
+      - notExists:
+          path: spec.jobTemplate.spec.template.spec.containers[0].resources

@@ -1,3 +1,7 @@
 apiVersion: v2
 name: ms-identity-redirect-handler
 version: 0.1.1
+dependencies:
+  - name: ipaffs-common
+    version: 1.0.0
+    repository: "file://../ipaffs-common"

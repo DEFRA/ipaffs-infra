@@ -102,9 +102,9 @@ spec:
             - name: debug
               containerPort: 5005
               protocol: TCP
-          {{- with .Values.resources }}
+          {{- with include "ipaffs-common.resources" .Values.resources }}
           resources:
-            {{- toYaml . | nindent 12 }}
+            {{- . | nindent 12 }}
           {{- end }}
       {{- if gt (len $databaseNames) 0 }}
       initContainers:

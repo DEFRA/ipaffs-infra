@@ -1,0 +1,45 @@
+suite: deployment CPU limit policy
+templates:
+  - templates/deployment.yaml
+tests:
+  - it: ignores CPU limits while preserving requests and other limits
+    documentIndex: 0
+    set:
+      resources:
+        limits:
+          cpu: "2"
+          memory: 512Mi
+          ephemeral-storage: 1Gi
+        requests:
+          cpu: 100m
+          memory: 128Mi
+          ephemeral-storage: 256Mi
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].resources
+          value:
+            limits:
+              memory: 512Mi
+              ephemeral-storage: 1Gi
+            requests:
+              cpu: 100m
+              memory: 128Mi
+              ephemeral-storage: 256Mi
+
+  - it: omits resources when only a CPU limit is configured
+    documentIndex: 0
+    set:
+      resources:
+        limits:
+          cpu: 500m
+    asserts:
+      - notExists:
+          path: spec.template.spec.containers[0].resources
+
+  - it: omits empty resources
+    documentIndex: 0
+    set:
+      resources: {}
+    asserts:
+      - notExists:
+          path: spec.template.spec.containers[0].resources

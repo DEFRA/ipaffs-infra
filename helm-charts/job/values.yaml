@@ -65,4 +65,5 @@ initContainers:
 
 config: {}
 
+# CPU limits are ignored by the chart; requests and other limits are preserved.
 resources: {}

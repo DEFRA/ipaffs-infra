@@ -1,0 +1,66 @@
+suite: scaledjob CPU limit policy
+templates:
+  - templates/scaledjob.yaml
+tests:
+  - it: ignores CPU limits while preserving requests and other limits
+    values:
+      - ci-values.yaml
+    documentIndex: 0
+    set:
+      keda.enabled: true
+      keda.triggers:
+        - type: azure-servicebus
+          metadata:
+            queueName: test-queue
+      resources:
+        limits:
+          cpu: "2"
+          memory: 512Mi
+          ephemeral-storage: 1Gi
+        requests:
+          cpu: 100m
+          memory: 128Mi
+          ephemeral-storage: 256Mi
+    asserts:
+      - equal:
+          path: spec.jobTargetRef.template.spec.containers[0].resources
+          value:
+            limits:
+              memory: 512Mi
+              ephemeral-storage: 1Gi
+            requests:
+              cpu: 100m
+              memory: 128Mi
+              ephemeral-storage: 256Mi
+
+  - it: omits resources when only a CPU limit is configured
+    values:
+      - ci-values.yaml
+    documentIndex: 0
+    set:
+      keda.enabled: true
+      keda.triggers:
+        - type: azure-servicebus
+          metadata:
+            queueName: test-queue
+      resources:
+        limits:
+          cpu: 500m
+    asserts:
+      - notExists:
+          path: spec.jobTargetRef.template.spec.containers[0].resources
+
+  - it: omits empty resources
+    values:
+      - ci-values.yaml
+    documentIndex: 0
+    set:
+      keda.enabled: true
+      keda.triggers:
+        - type: azure-servicebus
+          metadata:
+            queueName: test-queue
+      resources: {}
+    asserts:
+      - notExists:
+          path: spec.jobTargetRef.template.spec.containers[0].resources
