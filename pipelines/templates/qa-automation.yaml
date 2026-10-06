@@ -75,6 +75,7 @@ stages:
       name: DEFRA-COMMON-ubuntu2204-SSV5
     jobs:
       - job: RunAndPublishTests
+        displayName: Playwright tests - $(resources.pipeline.deployment.runName)
         timeoutInMinutes: 180
         steps:
           - checkout: self
@@ -85,8 +86,10 @@ stages:
             clean: true
 
           - task: Bash@3
-            displayName: Record QA run context
+            displayName: Name QA run and record context
             env:
+              QA_DEPLOYMENT_NAME: $(resources.pipeline.deployment.runName)
+              QA_RUN_NUMBER: $(Build.BuildNumber)
               QA_ENVIRONMENT: ${{ parameters.environmentName }}
               QA_TEST_SUITE: ${{ parameters.testSuite }}
               QA_TEST_FILTER: ${{ parameters.playwrightTag }}
@@ -102,6 +105,9 @@ stages:
             inputs:
               targetType: inline
               script: |
+                filter="${QA_TEST_FILTER//[@ ]/}"
+                name="$(printf '%s' "${QA_DEPLOYMENT_NAME}${filter:+-$filter}" | tr -cs 'A-Za-z0-9._-' '-')"
+                echo "##vso[build.updatebuildnumber]${name:0:200}-${QA_RUN_NUMBER##*-}"
                 python3 "$(Pipeline.Workspace)/s/ipaffs-infra/scripts/pipeline/write-qa-run-context.py" "$(Build.ArtifactStagingDirectory)/qa-run-context/run.json"
 
           - task: AzureCLI@2

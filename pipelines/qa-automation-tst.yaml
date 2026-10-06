@@ -1,5 +1,6 @@
 ---
-name: TST-${{ replace(replace(parameters.playwrightTag, '@', ''), ' ', '') }}-$(Date:yyyyMMdd)$(Rev:.r)
+name: $(Date:yyyyMMdd)$(Rev:.r)
+appendCommitMessageToRunName: false
 
 trigger: none
 pr: none
