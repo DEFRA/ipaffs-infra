@@ -7,7 +7,7 @@ parameters:
 
   - name: mvnGoals
     type: string
-    default: verify -Pintegration jacoco:report package
+    default: verify jacoco:report package
 
   - name: mavenPomFile
     type: string
