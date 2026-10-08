@@ -12,16 +12,19 @@ agc:
 
 serviceBus:
   queues:
-    - notify-queue
-    - enotification-event-queue
-    - enotification-submission-queue
-    - enotification-processing-status-queue
+    # Published by notification, risk-locking and dmp-integration; consumed by notify.
+    - notify_queue
+    # Published by bulk-upload and enotification-processing; consumed by enotification-event-listener.
+    - enotification_event_queue
   topics:
+    # Published by notification.
     - name: notification-topic
-    - name: alvs-topic
-    - name: messaging-topic
+    # Published by soapsearch.
+    - name: alvs_topic
+    # Published by file-upload; consumed by bulk-upload.
+    - name: messaging_topic
       subscriptions:
-        - commodity-file-upload
+        - commodity_file_upload
 
 storageAccount:
   blobService:
