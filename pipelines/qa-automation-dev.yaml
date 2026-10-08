@@ -5,10 +5,10 @@ appendCommitMessageToRunName: false
 trigger: none
 pr: none
 
-# Preserve the existing weekday schedule; cron is UTC throughout the year.
+# Run the full suite daily at the existing time; cron is UTC throughout the year.
 schedules:
-  - cron: "0 6 * * 1-5"
-    displayName: Weekday DEV QA
+  - cron: "0 6 * * *"
+    displayName: Daily DEV full QA
     branches:
       include: [main]
     always: true
