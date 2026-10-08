@@ -1,0 +1,49 @@
+parameters:
+  - name: environmentName
+    type: string
+
+  - name: applyOnBranch
+    type: boolean
+    default: false
+
+stages:
+  - stage: RunHooks
+    displayName: Run Hooks
+    variables:
+      - group: Common
+      - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
+        - group: HigherEnvs
+      - ${{ else }}:
+        - group: LowerEnvs
+      - group: "${{ parameters.environmentName }}"
+      - template: "/pipelines/vars/common.yaml"
+      - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
+    jobs:
+      - deployment: Hooks
+        displayName: Run deployment hooks
+        environment:
+          name: "${{ parameters.environmentName }}"
+        # Runs on every branch; DRY_RUN decides whether hooks may change anything.
+        condition: and(not(failed()), not(canceled()))
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+
+                - task: AzureCLI@2
+                  name: RunHooks
+                  displayName: Run hooks in scripts/hooks
+                  env:
+                    ENVIRONMENT: ${{ lower(parameters.environmentName) }}
+                    HOOKS_DIR: scripts/hooks
+                    SUBSCRIPTION_ID: $(subscriptionId)
+                    RESOURCE_GROUP_NAME: $(resourceGroupName)
+                    ${{ if or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), eq(parameters.applyOnBranch, true)) }}:
+                      DRY_RUN: "false"
+                    ${{ else }}:
+                      DRY_RUN: "true"
+                  inputs:
+                    azureSubscription: $(serviceConnection)
+                    scriptType: bash
+                    scriptPath: scripts/pipeline/run-hooks.sh

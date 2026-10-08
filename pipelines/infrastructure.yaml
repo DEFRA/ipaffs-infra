@@ -26,6 +26,10 @@ parameters:
     displayName: Establish Peering To Hub
     type: boolean
     default: false
+  - name: runHooksOnBranch
+    displayName: Apply hooks on non-main branch (use sparingly)
+    type: boolean
+    default: false
 
 variables:
   - group: Common
@@ -58,6 +62,11 @@ stages:
   - template: stages/entra-groups.yaml
     parameters:
       environmentName: ${{ parameters.environmentName }}
+
+  - template: stages/run-hooks.yaml
+    parameters:
+      environmentName: ${{ parameters.environmentName }}
+      applyOnBranch: ${{ parameters.runHooksOnBranch }}
 
   - template: stages/deploy-bicep-resource-group.yaml
     parameters:
