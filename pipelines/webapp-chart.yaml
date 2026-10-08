@@ -45,7 +45,7 @@ variables:
 parameters:
   - name: updateManifest
     type: boolean
-    default: true
+    default: false
 
   - name: manifestBranch
     type: string

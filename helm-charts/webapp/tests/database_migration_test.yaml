@@ -195,3 +195,50 @@ tests:
           content:
             configMapRef:
               name: test-service
+
+  - it: uses native authentication for every migration database without the bridge
+    release:
+      namespace: sqlwi-pilot
+    set:
+      service: test-service
+      azure.clientId: 00000000-0000-0000-0000-000000000001
+      database.managedDatabaseNames[0]: imports-primary
+      database.referencedDatabaseNames[0]: imports-secondary
+      database.workloadIdentity.enabled: true
+      database.migrations.enabled: true
+      database.migrations.image: test/migrations:1.0.0
+      database.migrations.clientId: 00000000-0000-0000-0000-000000000002
+    documentIndex: 1
+    asserts:
+      - notExists:
+          path: spec.template.spec.initContainers
+      - equal:
+          path: spec.template.metadata.labels["azure.workload.identity/use"]
+          value: "true"
+      - equal:
+          path: spec.template.spec.serviceAccountName
+          value: test-service-migrations
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: DATABASE_DB_CONNECTION_STRING_IMPORTS_PRIMARY
+            value: "jdbc:sqlserver://devimpdbssq1401.database.windows.net:1433;databaseName=imports-primary-sqlwi-pilot;encrypt=true;socketTimeout=1800000;loginTimeout=15;authentication=ActiveDirectoryDefault"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: DATABASE_DB_CONNECTION_STRING_IMPORTS_SECONDARY
+            value: "jdbc:sqlserver://devimpdbssq1401.database.windows.net:1433;databaseName=imports-secondary-sqlwi-pilot;encrypt=true;socketTimeout=1800000;loginTimeout=15;authentication=ActiveDirectoryDefault"
+
+  - it: preserves the separate migrations workload identity client id in native mode
+    set:
+      service: test-service
+      database.databaseNames[0]: imports
+      database.workloadIdentity.enabled: true
+      database.migrations.enabled: true
+      database.migrations.image: test/migrations:1.0.0
+      database.migrations.clientId: 00000000-0000-0000-0000-000000000002
+    documentIndex: 0
+    asserts:
+      - equal:
+          path: metadata.annotations["azure.workload.identity/client-id"]
+          value: 00000000-0000-0000-0000-000000000002

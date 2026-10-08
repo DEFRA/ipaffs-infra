@@ -67,6 +67,10 @@ config: {}
 
 database:
   enabled: false
+  workloadIdentity:
+    # Requires a JDBC driver and Azure Identity library that support workload identity.
+    # Selects ActiveDirectoryDefault and removes the SQL identity compatibility bridge.
+    enabled: false
   sqlServerName: ""
   databaseNames: []
   managedDatabaseNames: []

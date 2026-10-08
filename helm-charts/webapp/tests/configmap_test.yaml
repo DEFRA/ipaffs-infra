@@ -12,3 +12,45 @@ tests:
       - equal:
           path: data.CONFIG_ONLY
           value: config-only-value
+
+  - it: keeps managed identity authentication and the service client id by default
+    release:
+      namespace: dev
+    set:
+      service: test-service
+      azure.clientId: 00000000-0000-0000-0000-000000000001
+      database.databaseNames[0]: imports
+    asserts:
+      - equal:
+          path: data.DATABASE_DB_CONNECTION_STRING_IMPORTS
+          value: "jdbc:sqlserver://devimpdbssq1401.database.windows.net:1433;databaseName=imports;encrypt=true;socketTimeout=1800000;loginTimeout=15;authentication=ActiveDirectoryManagedIdentity;msiClientId=00000000-0000-0000-0000-000000000001"
+
+  - it: selects native workload identity without an msi client id
+    release:
+      namespace: dev
+    set:
+      service: test-service
+      azure.clientId: 00000000-0000-0000-0000-000000000001
+      database.databaseNames[0]: imports
+      database.workloadIdentity.enabled: true
+    asserts:
+      - equal:
+          path: data.DATABASE_DB_CONNECTION_STRING_IMPORTS
+          value: "jdbc:sqlserver://devimpdbssq1401.database.windows.net:1433;databaseName=imports;encrypt=true;socketTimeout=1800000;loginTimeout=15;authentication=ActiveDirectoryDefault"
+
+  - it: applies native authentication to managed and referenced databases in an isolated namespace
+    release:
+      namespace: sqlwi-pilot
+    set:
+      service: test-service
+      azure.clientId: 00000000-0000-0000-0000-000000000001
+      database.managedDatabaseNames[0]: imports-primary
+      database.referencedDatabaseNames[0]: imports-secondary
+      database.workloadIdentity.enabled: true
+    asserts:
+      - equal:
+          path: data.DATABASE_DB_CONNECTION_STRING_IMPORTS_PRIMARY
+          value: "jdbc:sqlserver://devimpdbssq1401.database.windows.net:1433;databaseName=imports-primary-sqlwi-pilot;encrypt=true;socketTimeout=1800000;loginTimeout=15;authentication=ActiveDirectoryDefault"
+      - equal:
+          path: data.DATABASE_DB_CONNECTION_STRING_IMPORTS_SECONDARY
+          value: "jdbc:sqlserver://devimpdbssq1401.database.windows.net:1433;databaseName=imports-secondary-sqlwi-pilot;encrypt=true;socketTimeout=1800000;loginTimeout=15;authentication=ActiveDirectoryDefault"

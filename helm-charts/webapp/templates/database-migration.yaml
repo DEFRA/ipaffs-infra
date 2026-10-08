@@ -68,7 +68,7 @@ spec:
           {{- range $databaseName := $databaseNames }}
           {{- $db := dict "databaseName" $databaseName "Values" $.Values "Release" $.Release }}
             - name: DATABASE_DB_CONNECTION_STRING_{{ upper (snakecase $databaseName) }}
-              value: "jdbc:sqlserver://{{ template "ipaffs-common.azure.sqlServerHostname" $db }}:1433;databaseName={{ template "ipaffs-common.azure.databaseName" $db }};encrypt=true;socketTimeout=1800000;loginTimeout=15;authentication=ActiveDirectoryManagedIdentity;msiClientId={{ include "webapp.azure.migrationsClientId" $ }}"
+              value: {{ include "webapp.database.jdbcUrl" (dict "root" $ "databaseName" $databaseName "clientId" (include "webapp.azure.migrationsClientId" $)) | quote }}
           {{- if $.Values.search.enabled }}
             - name: AZURE_SEARCH_DB_CONNECTION_STRING_{{ upper (snakecase $databaseName) }}
               value: "Encrypt=True;Connection Timeout=30;Database={{ template "ipaffs-common.azure.databaseName" $db }};ResourceId=/subscriptions/{{ $.Values.search.subscriptionId }}/resourceGroups/{{ include "ipaffs-common.azure.searchServiceResourceGroupName" $ | trim }}/providers/Microsoft.Sql/servers/{{ template "ipaffs-common.azure.sqlServer" $db }};"
@@ -112,7 +112,7 @@ spec:
               {{- end }}
             - name: MANAGED_IDENTITY_USERNAME
               value: {{ include "webapp.azure.servicePrincipalName" . | quote }}
-      {{- if gt (len $databaseNames) 0 }}
+      {{- if and (gt (len $databaseNames) 0) (not .Values.database.workloadIdentity.enabled) }}
       initContainers:
         - name: workload-identity-adal-bridge
           image: "manicminer/workload-identity-adal-bridge:0.4.1"
