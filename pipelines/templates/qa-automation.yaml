@@ -60,6 +60,15 @@ variables:
   - group: "${{ parameters.environmentName }}"
   - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
 
+  # DEV deployment triggers use smoke tests; scheduled/manual runs retain their selection.
+  - name: requestedPlaywrightTag
+    value: ${{ parameters.playwrightTag }}
+  - name: effectivePlaywrightTag
+    ${{ if eq(parameters.environmentName, 'DEV') }}:
+      value: $[iif(and(eq(variables['Build.Reason'], 'ResourceTrigger'), eq(variables['Resources.TriggeringAlias'], 'deployment')), '@smoke', variables['requestedPlaywrightTag'])]
+    ${{ else }}:
+      value: ${{ parameters.playwrightTag }}
+
 resources:
   repositories:
     - repository: ipaffs-qa-automation
@@ -92,7 +101,7 @@ stages:
               QA_RUN_NUMBER: $(Build.BuildNumber)
               QA_ENVIRONMENT: ${{ parameters.environmentName }}
               QA_TEST_SUITE: ${{ parameters.testSuite }}
-              QA_TEST_FILTER: ${{ parameters.playwrightTag }}
+              QA_TEST_FILTER: $(effectivePlaywrightTag)
               QA_IMAGE_TAG: ${{ parameters.imageTag }}
               QA_RUN_ID: $(Build.BuildId)
               QA_PIPELINE_ID: $(System.DefinitionId)
@@ -151,7 +160,7 @@ stages:
             env:
               WORKERS: ${{ parameters.workers }}
               IMAGE_TAG: ${{ parameters.imageTag }}
-              PLAYWRIGHT_TAG: ${{ parameters.playwrightTag }}
+              PLAYWRIGHT_TAG: $(effectivePlaywrightTag)
               TEST_SUITE: ${{ parameters.testSuite }}
               QA_AUTOMATION_ENV: ${{ lower(parameters.environmentName) }}
             inputs:
