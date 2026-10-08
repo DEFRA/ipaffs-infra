@@ -117,7 +117,7 @@
         {
           "azureLogAnalytics": {
             "dashboardTime": false,
-            "query": "requests\n| where $__timeFilter(timestamp)\n| where url !contains \"/admin/health-check\"\n| where toint(resultCode) >= 500\n| summarize Count = count() by series = strcat(cloud_RoleName, \" \u00b7 \", tostring(resultCode)), bin(timestamp, $__interval)\n| order by timestamp asc",
+            "query": "requests\n| where $__timeFilter(timestamp)\n| where tostring(customDimensions[\"k8s.namespace.name\"]) in (\"$namespace\", \"\")\n| where url !contains \"/admin/health-check\"\n| where toint(resultCode) >= 500\n| summarize Count = count() by series = strcat(cloud_RoleName, \" \u00b7 \", tostring(resultCode)), bin(timestamp, $__interval)\n| order by timestamp asc",
             "resources": [
               "/subscriptions/$subscription/resourceGroups/$resourceGroup/providers/Microsoft.Insights/components/$resource"
             ],
@@ -219,7 +219,7 @@
         {
           "azureLogAnalytics": {
             "dashboardTime": false,
-            "query": "exceptions | where $__timeFilter(timestamp) | summarize Exceptions=count() by cloud_RoleName, bin(timestamp, $__interval) | order by timestamp asc",
+            "query": "exceptions | where $__timeFilter(timestamp) | where tostring(customDimensions[\"k8s.namespace.name\"]) in (\"$namespace\", \"\") | summarize Exceptions=count() by cloud_RoleName, bin(timestamp, $__interval) | order by timestamp asc",
             "resources": [
               "/subscriptions/$subscription/resourceGroups/$resourceGroup/providers/Microsoft.Insights/components/$resource"
             ],
@@ -252,7 +252,7 @@
     {
       "id": 12,
       "type": "timeseries",
-      "title": "Requests per second - notification-microservice",
+      "title": "Requests per second - notification service",
       "datasource": {
         "type": "grafana-azure-monitor-datasource",
         "uid": "azure-monitor-oob"
@@ -299,7 +299,7 @@
             "resources": [
               "/subscriptions/$subscription/resourceGroups/$resourceGroup/providers/Microsoft.Insights/components/$resource"
             ],
-            "query": "requests | where $__timeFilter(timestamp) | where cloud_RoleName == \"notification-microservice\" | summarize RPS = todouble(count())/60 by bin(timestamp, 1m) | order by timestamp asc",
+            "query": "requests | where $__timeFilter(timestamp) | where tostring(customDimensions[\"k8s.namespace.name\"]) in (\"$namespace\", \"\") | where cloud_RoleName endswith \"notification-service\" or cloud_RoleName endswith \"notification-microservice\" | summarize itemCount=max(itemCount), timestamp=min(timestamp) by id | summarize RPS = todouble(sum(itemCount))/60 by bin(timestamp, 1m) | order by timestamp asc",
             "resultFormat": "time_series"
           }
         }
@@ -843,7 +843,7 @@
             "resources": [
               "/subscriptions/$subscription/resourceGroups/$resourceGroup/providers/Microsoft.Insights/components/$resource"
             ],
-            "query": "requests\n| where $__timeFilter(timestamp)\n| where url !contains \"/admin/health-check\"\n| summarize p90ms = percentile(duration, 90), requests = count() by service = cloud_RoleName, endpoint = name\n| where p90ms > 5000\n| project service, endpoint, p90_seconds = round(p90ms/1000.0, 2), requests\n| order by p90_seconds desc\n| take 100",
+            "query": "requests\n| where $__timeFilter(timestamp)\n| where tostring(customDimensions[\"k8s.namespace.name\"]) in (\"$namespace\", \"\")\n| where url !contains \"/admin/health-check\"\n| summarize p90ms = percentile(duration, 90), requests = count() by service = cloud_RoleName, endpoint = name\n| where p90ms > 5000\n| project service, endpoint, p90_seconds = round(p90ms/1000.0, 2), requests\n| order by p90_seconds desc\n| take 100",
             "resultFormat": "table"
           }
         }
@@ -1037,7 +1037,7 @@
         {
           "azureLogAnalytics": {
             "dashboardTime": false,
-            "query": "exceptions | where $__timeFilter(timestamp) | summarize count=dcount(itemId), lastSeen=max(timestamp) by service=cloud_RoleName, problemId, message=outerMessage | order by count desc, lastSeen desc | project lastSeen, service, count, message | take 50",
+            "query": "exceptions | where $__timeFilter(timestamp) | where tostring(customDimensions[\"k8s.namespace.name\"]) in (\"$namespace\", \"\") | summarize count=dcount(itemId), lastSeen=max(timestamp) by service=cloud_RoleName, problemId, message=outerMessage | order by count desc, lastSeen desc | project lastSeen, service, count, message | take 50",
             "resources": [
               "/subscriptions/$subscription/resourceGroups/$resourceGroup/providers/Microsoft.Insights/components/$resource"
             ],
@@ -1328,7 +1328,7 @@
           "refId": "PrometheusVariableQueryEditor-VariableQuery"
         },
         "refresh": 1,
-        "regex": "/^(dev|tst|pre|prd)$/",
+        "regex": "/^(dev|tst|pre|prd|imta-.*)$/",
         "type": "query"
       },
       {
