@@ -192,3 +192,55 @@ tests:
       - equal:
           path: spec.template.spec.initContainers[0].name
           value: workload-identity-adal-bridge
+
+  - it: hashes the rendered legacy database configuration for rollouts
+    release:
+      namespace: dev
+    set:
+      service: test-service
+      azure.clientId: 00000000-0000-0000-0000-000000000001
+      container.image: test/image:1.0.0
+      database.databaseNames[0]: imports
+    documentIndex: 1
+    asserts:
+      # SHA-256 of the sorted JSON ConfigMap data checked in configmap_test.yaml.
+      - equal:
+          path: spec.template.metadata.annotations["checksum/service-config"]
+          value: 682a689b179e005ff30b27f44a3cefc0bda5a876b5bece42d740ba47921572aa
+
+  - it: removes the bridge and changes the rollout checksum with native authentication
+    release:
+      namespace: dev
+    set:
+      service: test-service
+      azure.clientId: 00000000-0000-0000-0000-000000000001
+      container.image: test/image:1.0.0
+      database.databaseNames[0]: imports
+      database.workloadIdentity.enabled: true
+    documentIndex: 1
+    asserts:
+      - notExists:
+          path: spec.template.spec.initContainers
+      - equal:
+          path: spec.template.metadata.labels["azure.workload.identity/use"]
+          value: "true"
+      - equal:
+          path: spec.template.spec.serviceAccountName
+          value: test-service-service
+      # The native ConfigMap data yields a different checksum from the legacy mode.
+      - equal:
+          path: spec.template.metadata.annotations["checksum/service-config"]
+          value: db238423e44ff571d376c8e36546c830d34ffbfef6f1186f8d2761321ec6d831
+
+  - it: preserves the service workload identity client id in native mode
+    set:
+      service: test-service
+      azure.clientId: 00000000-0000-0000-0000-000000000001
+      container.image: test/image:1.0.0
+      database.databaseNames[0]: imports
+      database.workloadIdentity.enabled: true
+    documentIndex: 0
+    asserts:
+      - equal:
+          path: metadata.annotations["azure.workload.identity/client-id"]
+          value: 00000000-0000-0000-0000-000000000001

@@ -76,6 +76,20 @@ Backwards compatibility:
 {{- end }}
 
 {{/*
+Render the JDBC URL consistently for application configuration, migrations and rollouts.
+Native workload identity uses the credentials injected into the pod by the AKS webhook.
+*/}}
+{{- define "webapp.database.jdbcUrl" -}}
+{{- $db := dict "databaseName" .databaseName "Values" .root.Values "Release" .root.Release -}}
+{{- $connection := printf "jdbc:sqlserver://%s:1433;databaseName=%s;encrypt=true;socketTimeout=1800000;loginTimeout=15" (include "ipaffs-common.azure.sqlServerHostname" $db) (include "ipaffs-common.azure.databaseName" $db) -}}
+{{- if .root.Values.database.workloadIdentity.enabled -}}
+{{- printf "%s;authentication=ActiveDirectoryDefault" $connection -}}
+{{- else -}}
+{{- printf "%s;authentication=ActiveDirectoryManagedIdentity;msiClientId=%s" $connection .clientId -}}
+{{- end -}}
+{{- end }}
+
+{{/*
 Resolve an image reference.
 
 If the supplied image already contains a registry host, return as-is.
@@ -115,9 +129,8 @@ absent
 {{- $data := dict "ENVIRONMENT" (printf "%v" .Values.environment) -}}
 {{- $databaseNames := include "webapp.database.connectionNames" . | fromJsonArray -}}
 {{- range $databaseName := $databaseNames }}
-{{- $db := dict "databaseName" $databaseName "Values" $.Values "Release" $.Release -}}
 {{- $key := printf "DATABASE_DB_CONNECTION_STRING_%s" (upper (snakecase $databaseName)) -}}
-{{- $value := printf "jdbc:sqlserver://%s:1433;databaseName=%s;encrypt=true;socketTimeout=1800000;loginTimeout=15;authentication=ActiveDirectoryManagedIdentity;msiClientId=%s" (include "ipaffs-common.azure.sqlServerHostname" $db) (include "ipaffs-common.azure.databaseName" $db) (include "webapp.azure.serviceClientId" $) -}}
+{{- $value := include "webapp.database.jdbcUrl" (dict "root" $ "databaseName" $databaseName "clientId" (include "webapp.azure.serviceClientId" $)) -}}
 {{- $_ := set $data $key $value -}}
 {{- end }}
 {{- range $key, $val := .Values.config }}
@@ -135,4 +148,3 @@ absent
 {{- $secret := lookup "v1" "Secret" .namespace .name -}}
 {{- include "webapp.rollout.hashFromObjectData" (dict "obj" $secret) -}}
 {{- end }}
-
