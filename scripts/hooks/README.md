@@ -10,6 +10,9 @@ means adding a file here, with no pipeline change.
 Hooks are `NN-what-it-does.sh` and run in lexical filename order, so the numeric
 prefix sets the sequence (`10-` before `20-`), as with the Bicep layers.
 
+Only `*.sh` files run. Any other suffix is ignored, so `00-hello-world.sh.example`
+is a disabled hook kept as a template: copy it and drop the suffix to start a new one.
+
 ## Environment overrides
 
 Hooks in `scripts/hooks/<env>/` (`dev`, `tst`, `pre`, `prd`) are merged in by

@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# Example hook. Disabled by the .example suffix: the runner only picks up *.sh.
+# Rename to 00-hello-world.sh to run it as a smoke test of the RunHooks stage.
+set -euo pipefail
+
+echo "Hello world from ${ENVIRONMENT} (DryRun=${DRY_RUN})"
