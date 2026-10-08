@@ -19,9 +19,19 @@ serviceBus:
   topics:
     - name: notification-topic
     - name: alvs-topic
-    - name: messaging-topic
+    - name: messaging_topic
+      defaultMessageTimeToLive: P14D
+      maxSizeInMegabytes: 5120
       subscriptions:
-        - commodity-file-upload
+        - name: commodity_file_upload
+          defaultMessageTimeToLive: P14D
+          lockDuration: PT30S
+          maxDeliveryCount: 3
+          deadLetteringOnFilterEvaluationExceptions: true
+          correlationFilter:
+            properties:
+              file_type: commodity_data
+              event: "urn:message:IPAFFS.Messages.Events:FileUploaded"
 
 storageAccount:
   blobService:
