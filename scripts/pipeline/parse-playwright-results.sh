@@ -4,17 +4,43 @@
 ##
 ## Parse Playwright results.json file
 ##
-## usage $0 [Playwright results file] [Link to Playwright report view]
+## usage $0 [Playwright results file] [Link to Playwright report view] [K8s Environment] [Test Suite] [Test Filter]
 ## Required arguments
 ## [$1] - Playwright results file
 ## [$2] - Playwright report view URL
 ## [$3] - K8s Environment
+## Optional arguments
+## [$4] - Requested test suite (default: test)
+## [$5] - Effective Playwright filter (overrides the requested suite)
 set -euo pipefail
 
 REPORT_FILE="${1:-results.json}"
 DASHBOARD_URL="$2"
 ENVIRONMENT="$3"
+TEST_SUITE="${4:-test}"
+TEST_FILTER="${5:- }"
 OUTPUT_PAYLOAD="slack_payload.json"
+
+# Match the runner: a nonblank filter always selects filtered functional tests.
+if [[ -n "${TEST_FILTER// /}" ]]; then
+    if [[ "$TEST_FILTER" == '@smoke' ]]; then
+        SUITE_LABEL="Smoke tests (${TEST_FILTER})"
+    else
+        SUITE_LABEL="Filtered functional tests (${TEST_FILTER})"
+    fi
+else
+    case "$TEST_SUITE" in
+        test) SUITE_LABEL="Full functional suite" ;;
+        test:a11y) SUITE_LABEL="Accessibility tests" ;;
+        test:cross-browser) SUITE_LABEL="Cross-browser tests" ;;
+        test:visual) SUITE_LABEL="Visual tests" ;;
+        test:visual:update) SUITE_LABEL="Visual baseline update" ;;
+        *) SUITE_LABEL="$TEST_SUITE" ;;
+    esac
+fi
+
+# Encode filters as JSON and plain text so regex characters remain readable.
+SUITE_SECTION=$(jq -cn --arg suite "$SUITE_LABEL" '{type: "section", text: {type: "plain_text", text: ("Test Suite : " + $suite)}}')
 
 # Check if the report file exists
 if [ ! -f "$REPORT_FILE" ]; then
@@ -54,6 +80,7 @@ cat <<EOF > "$OUTPUT_PAYLOAD"
             "emoji": true
           }
         },
+        $SUITE_SECTION,
         {
           "type": "section",
           "fields": [
