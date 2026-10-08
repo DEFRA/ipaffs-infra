@@ -2,7 +2,6 @@ parameters:
   - name: environmentName
     type: string
 
-  # Forces a real run off main; use sparingly, and only against lower environments.
   - name: applyOnBranch
     type: boolean
     default: false
