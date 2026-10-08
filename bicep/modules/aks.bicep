@@ -180,7 +180,7 @@ module aksAdmin './aks-role-assignment.bicep' = {
     deploymentId: deploymentId
     principalObjectId: entraGroups.aksAdmins.id
     principalType: 'Group'
-    roleAssignmentType: roleAssignmentsType
+    roleAssignmentType: 'eligible'
     roleDefinitionId: aksRbacClusterAdminRoleId
   }
 }
