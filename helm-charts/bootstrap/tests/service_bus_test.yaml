@@ -1,0 +1,129 @@
+suite: service bus topics and subscriptions
+templates:
+  - templates/service-bus.yaml
+set:
+  environment: dev
+  azure.location: uksouth
+tests:
+  - it: renders a subscription without a rule when no correlation filter is set
+    set:
+      serviceBus.topics:
+        - name: messaging-topic
+          subscriptions:
+            - commodity-file-upload
+    asserts:
+      - hasDocuments:
+          count: 3
+      - isKind:
+          of: NamespacesTopicsSubscription
+        documentIndex: 2
+      - equal:
+          path: metadata.name
+          value: commodity-file-upload
+        documentIndex: 2
+
+  - it: replaces the $Default rule with the correlation filter
+    set:
+      serviceBus.topics:
+        - name: messaging-topic
+          subscriptions:
+            - name: commodity_file_upload
+              correlationFilter:
+                label: commodity-file-upload
+                properties:
+                  EntityType: commodity
+    asserts:
+      - hasDocuments:
+          count: 4
+      - isKind:
+          of: NamespacesTopicsSubscription
+        documentIndex: 2
+      - equal:
+          path: metadata.name
+          value: commodity-file-upload
+        documentIndex: 2
+      - equal:
+          path: spec.azureName
+          value: commodity_file_upload
+        documentIndex: 2
+      - isKind:
+          of: NamespacesTopicsSubscriptionsRule
+        documentIndex: 3
+      - equal:
+          path: metadata.name
+          value: messaging-topic-commodity-file-upload-default-rule
+        documentIndex: 3
+      - equal:
+          path: spec.azureName
+          value: $Default
+        documentIndex: 3
+      - equal:
+          path: spec.owner.name
+          value: commodity-file-upload
+        documentIndex: 3
+      - equal:
+          path: spec.filterType
+          value: CorrelationFilter
+        documentIndex: 3
+      - equal:
+          path: spec.correlationFilter
+          value:
+            label: commodity-file-upload
+            properties:
+              EntityType: commodity
+        documentIndex: 3
+
+  - it: rejects an empty correlation filter
+    set:
+      serviceBus.topics:
+        - name: messaging-topic
+          subscriptions:
+            - name: commodity_file_upload
+              correlationFilter: {}
+    asserts:
+      - failedTemplate: {}
+
+  - it: renders the DEV messaging topic to match the SND reference
+    release:
+      namespace: dev
+    values:
+      - ../../envs/dev/bootstrap-values.yaml
+    asserts:
+      - equal:
+          path: spec
+          value:
+            azureName: messaging_topic
+            owner:
+              name: devimpinfsb1401-dev
+            defaultMessageTimeToLive: P14D
+            maxSizeInMegabytes: 5120
+        documentSelector:
+          path: metadata.name
+          value: messaging-topic
+      - equal:
+          path: spec
+          value:
+            azureName: commodity_file_upload
+            owner:
+              name: messaging-topic
+            defaultMessageTimeToLive: P14D
+            lockDuration: PT30S
+            maxDeliveryCount: 3
+            deadLetteringOnFilterEvaluationExceptions: true
+        documentSelector:
+          path: metadata.name
+          value: commodity-file-upload
+      - equal:
+          path: spec
+          value:
+            azureName: $Default
+            owner:
+              name: commodity-file-upload
+            filterType: CorrelationFilter
+            correlationFilter:
+              properties:
+                file_type: commodity_data
+                event: urn:message:IPAFFS.Messages.Events:FileUploaded
+        documentSelector:
+          path: metadata.name
+          value: messaging-topic-commodity-file-upload-default-rule

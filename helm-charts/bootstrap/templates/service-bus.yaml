@@ -36,39 +36,91 @@ spec:
 
 {{- end }}
 
+{{- $topicSettingKeys := list "autoDeleteOnIdle" "defaultMessageTimeToLive" "duplicateDetectionHistoryTimeWindow" "enableBatchedOperations" "enablePartitioning" "maxSizeInMegabytes" "requiresDuplicateDetection" "supportOrdering" }}
+{{- $subscriptionSettingKeys := list "autoDeleteOnIdle" "deadLetteringOnFilterEvaluationExceptions" "deadLetteringOnMessageExpiration" "defaultMessageTimeToLive" "enableBatchedOperations" "forwardDeadLetteredMessagesTo" "forwardTo" "lockDuration" "maxDeliveryCount" "requiresSession" }}
+
 {{- range $topic := $serviceBus.topics }}
 {{- $topicName := $topic }}
 {{- $topicSubscriptions := list }}
+{{- $topicSettings := dict }}
 {{- if kindIs "map" $topic }}
 {{- $topicName = required "serviceBus.topics[].name is required when topic is an object" $topic.name }}
 {{- $topicSubscriptions = default (list) $topic.subscriptions }}
+{{- range $key := $topicSettingKeys }}
+{{- if hasKey $topic $key }}
+{{- $_ := set $topicSettings $key (get $topic $key) }}
 {{- end }}
+{{- end }}
+{{- end }}
+{{- /* Kubernetes names cannot contain underscores; the Azure name is set via azureName. */}}
+{{- $topicResourceName := replace "_" "-" $topicName }}
 ---
 apiVersion: servicebus.azure.com/v1api20240101
 kind: NamespacesTopic
 metadata:
-  name: {{ $topicName }}
+  name: {{ $topicResourceName }}
   labels:
     {{- include "ipaffs-common.labels" $root | nindent 4 }}
   annotations:
     serviceoperator.azure.com/reconcile-policy: manage
 spec:
+  azureName: {{ $topicName }}
   owner:
     name: {{ template "ipaffs-common.azure.serviceBusNamespace" $root }}
+  {{- with $topicSettings }}
+  {{- toYaml . | nindent 2 }}
+  {{- end }}
 
-{{- range $topicSubscriptions }}
+{{- range $subscription := $topicSubscriptions }}
+{{- $subscriptionName := $subscription }}
+{{- $correlationFilter := dict }}
+{{- $subscriptionSettings := dict }}
+{{- if kindIs "map" $subscription }}
+{{- $subscriptionName = required "serviceBus.topics[].subscriptions[].name is required when subscription is an object" $subscription.name }}
+{{- $correlationFilter = default (dict) $subscription.correlationFilter }}
+{{- range $key := $subscriptionSettingKeys }}
+{{- if hasKey $subscription $key }}
+{{- $_ := set $subscriptionSettings $key (get $subscription $key) }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- $subscriptionResourceName := replace "_" "-" $subscriptionName }}
 ---
 apiVersion: servicebus.azure.com/v1api20240101
 kind: NamespacesTopicsSubscription
 metadata:
-  name: {{ . }}
+  name: {{ $subscriptionResourceName }}
   labels:
     {{- include "ipaffs-common.labels" $root | nindent 4 }}
   annotations:
     serviceoperator.azure.com/reconcile-policy: manage
 spec:
+  azureName: {{ $subscriptionName }}
   owner:
-    name: {{ $topicName }}
+    name: {{ $topicResourceName }}
+  {{- with $subscriptionSettings }}
+  {{- toYaml . | nindent 2 }}
+  {{- end }}
+
+{{- if $correlationFilter }}
+---
+# Overwrites the subscription's match-all $Default rule; an additional rule would be OR'd with it and filter nothing.
+apiVersion: servicebus.azure.com/v1api20240101
+kind: NamespacesTopicsSubscriptionsRule
+metadata:
+  name: {{ $topicResourceName }}-{{ $subscriptionResourceName }}-default-rule
+  labels:
+    {{- include "ipaffs-common.labels" $root | nindent 4 }}
+  annotations:
+    serviceoperator.azure.com/reconcile-policy: manage
+spec:
+  azureName: $Default
+  owner:
+    name: {{ $subscriptionResourceName }}
+  filterType: CorrelationFilter
+  correlationFilter:
+    {{- toYaml $correlationFilter | nindent 4 }}
+{{- end }}
 
 {{- end }}
 {{- end }}
