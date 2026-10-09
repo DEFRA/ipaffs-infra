@@ -78,7 +78,7 @@ tests:
       - equal:
           path: spec.template.spec.serviceAccountName
           value: test-service-migrations
-      - contains:
+      - notContains:
           path: spec.template.spec.containers[0].envFrom
           content:
             secretRef:

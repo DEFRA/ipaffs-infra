@@ -38,8 +38,10 @@ The effective FTR ExternalSecret lists remove all 15 DEV Service Bus connection
 imports and retain every other import. Lists replace the inherited DEV/base
 lists; adding one new secret requires keeping the complete retained list in FTR.
 Application properties and KEDA triggers use the existing entity names unchanged.
-Deployments, migration Jobs, ScaledJobs and CronJobs use explicit required
+Deployments, ScaledJobs and CronJobs use explicit required
 `secretKeyRef` entries, preventing an imported secret from overriding an alias.
+Database migration Jobs retain their database and setup configuration and do not
+import the ASO Service Bus secret.
 
 ## Feature topology
 
@@ -72,8 +74,8 @@ a queue-name property without a Service Bus client or imported connection.
 
 ## Publication and deployment
 
-1. Land the ASO-safe bootstrap entity naming change from infra PR #383. This
-   feature work is based on that branch; the normal DEV topology stays with it.
+1. Use the ASO-safe bootstrap entity naming provided by merged infra PR #383.
+   The normal DEV topology remains separate from the FTR overlay.
 2. Publish the updated bootstrap, backoffice, webapp and job charts through their
    existing pipelines. Chart versions and manifest chart pins are pipeline-owned.
 3. For ticket branch testing, the manifest loads infra templates from

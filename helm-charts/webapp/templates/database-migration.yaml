@@ -64,13 +64,7 @@ spec:
             - secretRef:
                 name: {{ printf "%s-redis" .Values.service }}
             {{- end }}
-            {{- if .Values.serviceBus.useSecrets }}
-            - secretRef:
-                name: {{ printf "%s-servicebus" .Values.service }}
-                optional: true
-            {{- end }}
           env:
-            {{- include "ipaffs-common.serviceBus.env" . | nindent 12 }}
           {{- range $databaseName := $databaseNames }}
           {{- $db := dict "databaseName" $databaseName "Values" $.Values "Release" $.Release }}
             - name: DATABASE_DB_CONNECTION_STRING_{{ upper (snakecase $databaseName) }}

@@ -1,10 +1,13 @@
-suite: database migration Service Bus connection sources
+suite: database migrations are independent of Service Bus
 templates:
   - templates/database-migration.yaml
 tests:
-  - it: pins migration connections to the same ASO secret as the application
+  - it: keeps database configuration without importing the application's Service Bus secret
+    release:
+      namespace: dev
     set:
       service: notification-service
+      database.databaseNames: [notification-microservice]
       database.migrations.enabled: true
       database.migrations.image: test/migrations:1.0.0
       database.migrations.clientId: test-client-id
@@ -13,7 +16,14 @@ tests:
       serviceBus.connectionStringAliases: [TRADE_CHARGE_QUEUE_CONNECTION_STRING]
     documentIndex: 1
     asserts:
-      - contains:
+      - equal:
+          path: spec.template.spec.containers[0].envFrom
+          value:
+            - configMapRef:
+                name: ipaffs-config
+            - configMapRef:
+                name: notification-service
+      - notContains:
           path: spec.template.spec.containers[0].env
           content:
             name: SERVICE_BUS_CONNECTION_STRING
@@ -22,7 +32,7 @@ tests:
                 name: notification-service-servicebus
                 key: SERVICE_BUS_CONNECTION_STRING
                 optional: false
-      - contains:
+      - notContains:
           path: spec.template.spec.containers[0].env
           content:
             name: TRADE_CHARGE_QUEUE_CONNECTION_STRING
@@ -31,3 +41,8 @@ tests:
                 name: notification-service-servicebus
                 key: SERVICE_BUS_CONNECTION_STRING
                 optional: false
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: DATABASE_DB_CONNECTION_STRING_NOTIFICATION_MICROSERVICE
+            value: "jdbc:sqlserver://devimpdbssq1401.database.windows.net:1433;databaseName=notification-microservice;encrypt=true;socketTimeout=1800000;loginTimeout=15;authentication=ActiveDirectoryManagedIdentity;msiClientId=test-client-id"
