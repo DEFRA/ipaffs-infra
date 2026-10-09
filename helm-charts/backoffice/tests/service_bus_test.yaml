@@ -2,6 +2,22 @@ suite: service bus template
 templates:
   - templates/service-bus.yaml
 tests:
+  - it: owns the connection policy in the feature namespace bus
+    release:
+      namespace: ftr-feature-42
+    set:
+      service: test-service
+      environment: dev
+      serviceBus.enabled: true
+      serviceBus.useSecrets: true
+    asserts:
+      - equal:
+          path: spec.owner.name
+          value: devimpinfsb1401-ftr-feature-42
+      - equal:
+          path: spec.operatorSpec.secrets.primaryConnectionString.name
+          value: test-service-servicebus
+
   - it: uses the standard connection string secret key by default
     set:
       service: test-service

@@ -1,0 +1,18 @@
+# Overlay on DEV bootstrap values. Trade entities are local equivalents for feature testing.
+serviceBus:
+  queues:
+    # IPAFFS-owned queues.
+    - notify_queue
+    - enotification_event_queue
+    # Trade-owned queues in DEV; feature namespaces provision isolated equivalents.
+    - defra.trade.imports.notifications.create
+    - defra.trade.eds.decisionoutput.snd.1002
+    - defra.trade.dmp.gto.ipaffsoutput.snd.1002
+    - defra.trade.dmp.ipaffsoutput.snd.1002
+    - defra.trade.charge.cuc.chargeableevents
+  topics:
+    - name: notification-topic
+    - name: alvs_topic
+    - name: messaging_topic
+      subscriptions:
+        - commodity_file_upload

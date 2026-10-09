@@ -64,11 +64,6 @@ spec:
             - secretRef:
                 name: {{ printf "%s-redis" .Values.service }}
             {{- end }}
-            {{- if .Values.serviceBus.useSecrets }}
-            - secretRef:
-                name: {{ printf "%s-servicebus" .Values.service }}
-                optional: true
-            {{- end }}
           env:
           {{- range $databaseName := $databaseNames }}
           {{- $db := dict "databaseName" $databaseName "Values" $.Values "Release" $.Release }}

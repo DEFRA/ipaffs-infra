@@ -2,6 +2,10 @@ parameters:
   - name: environmentName
     type: string
 
+  - name: configurationEnvironment
+    type: string
+    default: ""
+
   - name: serviceConnection
     type: string
     default: ""
