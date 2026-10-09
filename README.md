@@ -89,3 +89,68 @@ Things are moving along quickly. At the time of writing, migration of ipaffs-imp
 * Ensure your development VM is set up with K3S as detailed above.
 * Run `scripts/build.sh` to build the service, package a container and push to the local registry.
 * Run `scripts/deploy.sh` to deploy the latest built container image and run with remote debugger enabled.
+
+### Namespace network policy
+
+The bootstrap chart can install `ipaffs-port-baseline`, a single NetworkPolicy selecting
+every pod in the release namespace. It isolates ingress and egress and permits the
+configured ports below. It is disabled by default so it can be piloted in one
+application namespace before wider rollout.
+
+| Direction | Protocol / ports | Configuration dependency |
+| --- | --- | --- |
+| Ingress | TCP 8000, 4000 | Shared webapp pod port and OpenID's pod port |
+| Ingress from the same namespace | TCP 6379 | In-cluster imports-proxy-cache Redis |
+| Egress to CoreDNS in kube-system | UDP/TCP 53 | Cluster DNS |
+| Egress | TCP 80, 4000, 8000 | HTTP Services and their destination pod ports |
+| Egress | TCP 443 | HTTPS APIs, identity, telemetry, Azure Storage/Search/Key Vault |
+| Egress | TCP 1433 | Azure SQL through Private Link in Proxy mode |
+| Egress | TCP 5671 | Service Bus / Event Hubs over TLS AMQP |
+| Egress | TCP 6379, 6380 | In-cluster Redis and Azure Redis TLS |
+| Egress | TCP 1344 | Symantec ICAP antivirus used by upload/compression |
+
+The defaults are a shared union of the ports in the deployment configuration. Port
+5005 for remote debugging is deliberately absent. Kubernetes port-forward and
+same-pod loopback traffic are not controlled by this policy.
+
+This is a port baseline for a single-tenant cluster: application ingress accepts
+any source on its listed ports, and the TCP egress list accepts any destination
+on its listed ports. It does not isolate individual services or allowlist external
+hostnames. DNS uses a combined namespace and pod selector; cache ingress uses a
+same-namespace pod selector. Keep these restrictions in any future edits. Policies
+are additive, so another policy can grant additional traffic. Traffic from a pod's
+own node and host-network traffic have Kubernetes/provider-specific exceptions.
+See the [Kubernetes NetworkPolicy documentation](https://kubernetes.io/docs/concepts/services-networking/network-policies/).
+
+The source settings are `helm-charts/bootstrap/values.yaml` and optional overrides
+in `helm-charts/envs/<environment>/bootstrap-values.yaml`. Do not edit generated
+`ipaffs-manifest/bootstrap` files: the bootstrap publishing pipeline copies these
+values and updates the chart version. The lists are maintained explicitly; a new
+port in application configuration requires a corresponding baseline update.
+
+For a pilot, pass this overlay to the normal bootstrap Helm release in the chosen
+namespace (an environment-file override would affect every namespace using it):
+
+```yaml
+networkPolicy:
+  enabled: true
+```
+
+Before applying, confirm the cluster enforces NetworkPolicy and inspect existing
+policies. Read-only checks on 9 October 2026 found Calico on DEV and TST, no existing
+Kubernetes NetworkPolicies, and CoreDNS pods labelled `k8s-app: kube-dns` in
+`kube-system`. Their live workload ports match the defaults. DEV SQL uses Default
+policy through a private endpoint; TST SQL uses Proxy policy through a private
+endpoint. Both therefore use TCP 1433. Explicit Private Link Redirect requires
+TCP 1433-65535; if introduced, add a separate rule scoped to the SQL private endpoint
+IP, rather than adding that range to the generic port list. See
+[Microsoft's Private Link connection-policy guidance](https://learn.microsoft.com/en-us/azure/azure-sql/database/private-endpoint-overview?view=azuresql#use-redirect-connection-policy-with-private-endpoints).
+
+Validate the pilot with DNS resolution, ingress routes and interservice calls,
+SQL/migrations, Redis, Service Bus workers, antivirus upload/compression and fresh
+telemetry. Confirm an unlisted TCP port and an unlisted UDP port are blocked using
+known listening test endpoints in the pilot namespace; a refused connection to a
+non-listening port is insufficient evidence. After those checks, enable the
+environment override for rollout. To roll back, set `networkPolicy.enabled: false`
+and redeploy the bootstrap release; Helm removes this policy. No policy has been
+applied as part of preparing this change.
