@@ -1,0 +1,64 @@
+suite: Service Bus Azure entity names
+templates:
+  - templates/service-bus.yaml
+tests:
+  - it: preserves queue names with a distinct Kubernetes identity for ASO replacement
+    set:
+      serviceBus.queues: [enotification_event_queue]
+    asserts:
+      - equal:
+          path: metadata.name
+          value: enotification-event-queue-5abf3309
+        documentIndex: 1
+      - equal:
+          path: spec.azureName
+          value: enotification_event_queue
+        documentIndex: 1
+
+  - it: preserves Azure names for the supported string topic form
+    set:
+      serviceBus.topics: [alvs_topic, notification-topic]
+    asserts:
+      - equal:
+          path: metadata.name
+          value: alvs-topic-f12fca5c
+        documentIndex: 1
+      - equal:
+          path: spec.azureName
+          value: alvs_topic
+        documentIndex: 1
+      - equal:
+          path: metadata.name
+          value: notification-topic
+        documentIndex: 2
+      - equal:
+          path: spec.azureName
+          value: notification-topic
+        documentIndex: 2
+
+  - it: references the normalized topic resource while preserving subscription names in Azure
+    set:
+      serviceBus.topics:
+        - name: messaging_topic
+          subscriptions: [commodity_file_upload]
+    asserts:
+      - equal:
+          path: metadata.name
+          value: messaging-topic-fd90158d
+        documentIndex: 1
+      - equal:
+          path: spec.azureName
+          value: messaging_topic
+        documentIndex: 1
+      - equal:
+          path: metadata.name
+          value: commodity-file-upload-1a55a9fa
+        documentIndex: 2
+      - equal:
+          path: spec.azureName
+          value: commodity_file_upload
+        documentIndex: 2
+      - equal:
+          path: spec.owner.name
+          value: messaging-topic-fd90158d
+        documentIndex: 2

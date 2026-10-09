@@ -25,12 +25,13 @@ spec:
 apiVersion: servicebus.azure.com/v1api20240101
 kind: NamespacesQueue
 metadata:
-  name: {{ . }}
+  name: {{ include "bootstrap.serviceBus.resourceName" . }}
   labels:
     {{- include "ipaffs-common.labels" $root | nindent 4 }}
   annotations:
     serviceoperator.azure.com/reconcile-policy: manage
 spec:
+  azureName: {{ . }}
   owner:
     name: {{ template "ipaffs-common.azure.serviceBusNamespace" $root }}
 
@@ -43,16 +44,18 @@ spec:
 {{- $topicName = required "serviceBus.topics[].name is required when topic is an object" $topic.name }}
 {{- $topicSubscriptions = default (list) $topic.subscriptions }}
 {{- end }}
+{{- $topicResourceName := include "bootstrap.serviceBus.resourceName" $topicName }}
 ---
 apiVersion: servicebus.azure.com/v1api20240101
 kind: NamespacesTopic
 metadata:
-  name: {{ $topicName }}
+  name: {{ $topicResourceName }}
   labels:
     {{- include "ipaffs-common.labels" $root | nindent 4 }}
   annotations:
     serviceoperator.azure.com/reconcile-policy: manage
 spec:
+  azureName: {{ $topicName }}
   owner:
     name: {{ template "ipaffs-common.azure.serviceBusNamespace" $root }}
 
@@ -61,14 +64,15 @@ spec:
 apiVersion: servicebus.azure.com/v1api20240101
 kind: NamespacesTopicsSubscription
 metadata:
-  name: {{ . }}
+  name: {{ include "bootstrap.serviceBus.resourceName" . }}
   labels:
     {{- include "ipaffs-common.labels" $root | nindent 4 }}
   annotations:
     serviceoperator.azure.com/reconcile-policy: manage
 spec:
+  azureName: {{ . }}
   owner:
-    name: {{ $topicName }}
+    name: {{ $topicResourceName }}
 
 {{- end }}
 {{- end }}
