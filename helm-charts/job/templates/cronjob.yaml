@@ -1,6 +1,8 @@
 {{- if not (default false .Values.keda.enabled) }}
 {{- $database := default (dict) .Values.database }}
 {{- $databaseNames := get $database "databaseNames" | default (list) }}
+{{- $workloadIdentity := get $database "workloadIdentity" | default dict }}
+{{- $useBridge := and (gt (len $databaseNames) 0) (not (get $workloadIdentity "enabled" | default false)) }}
 apiVersion: batch/v1
 kind: CronJob
 metadata:
@@ -70,9 +72,9 @@ spec:
               resources:
                 {{- toYaml . | nindent 16 }}
               {{- end }}
-{{- if or (gt (len $databaseNames) 0) .Values.initContainer.enabled }}
+{{- if or $useBridge .Values.initContainer.enabled }}
           initContainers:
-{{- if gt (len $databaseNames) 0 }}
+{{- if $useBridge }}
             - name: workload-identity-adal-bridge
               image: "manicminer/workload-identity-adal-bridge:0.4.1"
               restartPolicy: Always

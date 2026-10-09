@@ -12,8 +12,7 @@ data:
 {{- $connectionStringAliases := get $database "connectionStringAliases" | default (dict) }}
 {{- $clientId := include "job.azure.serviceClientId" . | trim }}
 {{- range $databaseName := $databaseNames }}
-{{- $db := dict "databaseName" $databaseName "Values" $.Values "Release" $.Release }}
-{{- $connectionString := printf "jdbc:sqlserver://%s:1433;databaseName=%s;encrypt=true;socketTimeout=1800000;loginTimeout=15;authentication=ActiveDirectoryManagedIdentity;msiClientId=%s" (include "ipaffs-common.azure.sqlServerHostname" $db) (include "ipaffs-common.azure.databaseName" $db) $clientId }}
+{{- $connectionString := include "job.database.jdbcUrl" (dict "root" $ "databaseName" $databaseName "clientId" $clientId) }}
 {{- $defaultConnectionStringSecretKey := printf "DATABASE_DB_CONNECTION_STRING_%s" (upper (snakecase $databaseName)) }}
 {{- $connectionStringSecretKey := get $connectionStringSecretKeys $databaseName | default $defaultConnectionStringSecretKey }}
   {{ $connectionStringSecretKey }}: {{ $connectionString | quote }}
