@@ -4,6 +4,7 @@ Feature manifest branches use base + DEV + FTR values on the DEV cluster.
 `ENVIRONMENT=dev` keeps the DEV infrastructure settings;
 `CONFIGURATION_ENVIRONMENT=ftr` selects the overlay. ASO creates a bus named
 `devimpinfsb1401-<namespace>` for each feature namespace.
+Services and bootstrap without FTR files keep their DEV configuration.
 
 ## Service connections
 
@@ -51,5 +52,6 @@ The ticket branch uses infra `refs/heads/IMTA-21824` for testing; replace it wit
 the publisher-generated immutable pin before merging. Chart versions remain
 pipeline-owned. `master` and `RELEASE/*` continue to use DEV configuration.
 
-FTR validation rejects shared bus overrides and remote connection strings.
-Generate the overlays before deployment so it cannot inherit DEV bus imports.
+FTR validation rejects shared bus overrides and remote connections only where
+an FTR file is present. Publish overlays for services that need isolated buses;
+other services retain their environment settings.
