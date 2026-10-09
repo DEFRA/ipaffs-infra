@@ -76,9 +76,10 @@ a queue-name property without a Service Bus client or imported connection.
    feature work is based on that branch; the normal DEV topology stays with it.
 2. Publish the updated bootstrap, backoffice, webapp and job charts through their
    existing pipelines. Chart versions and manifest chart pins are pipeline-owned.
-3. Publish the infra template changes and let the existing infra-ref updater
-   advance the manifest pin. The current pin is intentionally preserved in this
-   source change; it does not yet accept the new configuration-profile parameter.
+3. For ticket branch testing, the manifest loads infra templates from
+   `refs/heads/IMTA-21824`, which accepts the configuration-profile parameter.
+   Publish the infra changes and replace that temporary branch ref with the
+   immutable pin produced by the existing infra-ref updater before merging.
 4. Publish the service source FTR files and run their pipelines. The service
    generator and both Java/Node staging loops now include `ftr`. Bootstrap's
    generator also copies the optional FTR overlay. Their manifest outputs remain
