@@ -114,6 +114,23 @@
       "properties": {
         "enabled": {
           "type": "boolean"
+        },
+        "useSecrets": {
+          "type": "boolean"
+        },
+        "connectionStringSecretKey": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+        },
+        "connectionStringAliases": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+          }
         }
       }
     }

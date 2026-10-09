@@ -1,0 +1,32 @@
+suite: cron job Service Bus connection sources
+templates:
+  - templates/cronjob.yaml
+tests:
+  - it: supplies named connections from the ASO secret to scheduled jobs
+    set:
+      service: notify-service
+      azure.clientId: test-client-id
+      container.image: test/image:1.0.0
+      schedule: "0 * * * *"
+      serviceBus.enabled: true
+      serviceBus.useSecrets: true
+      serviceBus.connectionStringAliases: [NOTIFY_QUEUE_CONNECTION_NAME]
+    asserts:
+      - contains:
+          path: spec.jobTemplate.spec.template.spec.containers[0].env
+          content:
+            name: SERVICE_BUS_CONNECTION_STRING
+            valueFrom:
+              secretKeyRef:
+                name: notify-service-servicebus
+                key: SERVICE_BUS_CONNECTION_STRING
+                optional: false
+      - contains:
+          path: spec.jobTemplate.spec.template.spec.containers[0].env
+          content:
+            name: NOTIFY_QUEUE_CONNECTION_NAME
+            valueFrom:
+              secretKeyRef:
+                name: notify-service-servicebus
+                key: SERVICE_BUS_CONNECTION_STRING
+                optional: false

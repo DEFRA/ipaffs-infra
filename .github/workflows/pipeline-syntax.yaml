@@ -102,6 +102,10 @@ jobs:
         shell: bash
         run: bash scripts/pipeline/update-manifest-service-values.test.sh
 
+      - name: Test generated bootstrap profile values
+        shell: bash
+        run: bash scripts/pipeline/update-manifest-bootstrap-values.test.sh
+
       - name: Test AGC Gateway pipeline configuration
         shell: bash
         run: bash scripts/pipeline/test-agc-routing.sh

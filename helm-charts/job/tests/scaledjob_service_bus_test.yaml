@@ -1,0 +1,58 @@
+suite: scaled job Service Bus connection sources
+templates:
+  - templates/scaledjob.yaml
+tests:
+  - it: supplies both IPAFFS and Trade connections to KEDA jobs alongside telemetry
+    set:
+      service: bulkupload-service
+      azure.clientId: test-client-id
+      container.image: test/image:1.0.0
+      keda.enabled: true
+      keda.triggers:
+        - type: azure-servicebus
+          metadata:
+            queueName: test-queue
+            connectionFromEnv: SERVICE_BUS_TRADE_CONNECTION_STRING
+      serviceBus.enabled: true
+      serviceBus.useSecrets: true
+      serviceBus.connectionStringAliases: [SERVICE_BUS_TRADE_CONNECTION_STRING]
+      telemetry.java.enabled: true
+    asserts:
+      - contains:
+          path: spec.jobTargetRef.template.spec.containers[0].env
+          content:
+            name: SERVICE_BUS_CONNECTION_STRING
+            valueFrom:
+              secretKeyRef:
+                name: bulkupload-service-servicebus
+                key: SERVICE_BUS_CONNECTION_STRING
+                optional: false
+      - contains:
+          path: spec.jobTargetRef.template.spec.containers[0].env
+          content:
+            name: SERVICE_BUS_TRADE_CONNECTION_STRING
+            valueFrom:
+              secretKeyRef:
+                name: bulkupload-service-servicebus
+                key: SERVICE_BUS_CONNECTION_STRING
+                optional: false
+      - equal:
+          path: spec.jobTargetRef.template.spec.containers[0].env[0].name
+          value: APPLICATIONINSIGHTS_CONFIGURATION_CONTENT
+
+  - it: requires no generated connection when ASO secret use is disabled
+    set:
+      service: test-job
+      azure.clientId: test-client-id
+      container.image: test/image:1.0.0
+      keda.enabled: true
+      keda.triggers:
+        - type: azure-servicebus
+          metadata:
+            queueName: test-queue
+      serviceBus.enabled: true
+      serviceBus.useSecrets: false
+      serviceBus.connectionStringAliases: [GVMS_QUEUE_CONNECTION_NAME]
+    asserts:
+      - notExists:
+          path: spec.jobTargetRef.template.spec.containers[0].env

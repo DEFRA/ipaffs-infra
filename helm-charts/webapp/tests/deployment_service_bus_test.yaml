@@ -1,0 +1,104 @@
+suite: deployment Service Bus connection sources
+templates:
+  - templates/deployment.yaml
+tests:
+  - it: pins the primary and Trade connection to the ASO secret alongside telemetry
+    set:
+      service: notification-service
+      azure.clientId: test-client-id
+      container.image: test/image:1.0.0
+      serviceBus.enabled: true
+      serviceBus.useSecrets: true
+      serviceBus.connectionStringAliases: [TRADE_CHARGE_QUEUE_CONNECTION_STRING]
+      externalSecret.enabled: true
+      telemetry.java.enabled: true
+    documentIndex: 1
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SERVICE_BUS_CONNECTION_STRING
+            valueFrom:
+              secretKeyRef:
+                name: notification-service-servicebus
+                key: SERVICE_BUS_CONNECTION_STRING
+                optional: false
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: TRADE_CHARGE_QUEUE_CONNECTION_STRING
+            valueFrom:
+              secretKeyRef:
+                name: notification-service-servicebus
+                key: SERVICE_BUS_CONNECTION_STRING
+                optional: false
+      - equal:
+          path: spec.template.spec.containers[0].env[0].name
+          value: APPLICATIONINSIGHTS_CONFIGURATION_CONTENT
+
+  - it: reads every alias from the configured ASO export key
+    set:
+      service: notification-service
+      azure.clientId: test-client-id
+      container.image: test/image:1.0.0
+      serviceBus.enabled: true
+      serviceBus.useSecrets: true
+      serviceBus.connectionStringSecretKey: CUSTOM_BUS_CONNECTION
+      serviceBus.connectionStringAliases: [SERVICE_BUS_CONNECTION_STRING, TRADE_CHARGE_QUEUE_CONNECTION_STRING]
+    documentIndex: 1
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SERVICE_BUS_CONNECTION_STRING
+            valueFrom:
+              secretKeyRef:
+                name: notification-service-servicebus
+                key: CUSTOM_BUS_CONNECTION
+                optional: false
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: CUSTOM_BUS_CONNECTION
+            valueFrom:
+              secretKeyRef:
+                name: notification-service-servicebus
+                key: CUSTOM_BUS_CONNECTION
+                optional: false
+
+  - it: leaves externally supplied connections alone when ASO secret use is disabled
+    set:
+      service: soapsearch-service
+      azure.clientId: test-client-id
+      container.image: test/image:1.0.0
+      serviceBus.enabled: true
+      serviceBus.useSecrets: false
+      serviceBus.connectionStringAliases: [TRADE_CHARGE_QUEUE_CONNECTION_STRING]
+    documentIndex: 1
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].env
+          value:
+            - name: OTEL_SERVICE_NAME
+              value: soapsearch-service
+            - name: MANAGED_IDENTITY_USER
+              value: devimpinfrg1401-NAMESPACE-soapsearch-service-service
+
+  - it: does not require an ASO secret when Service Bus is disabled
+    set:
+      service: test-service
+      azure.clientId: test-client-id
+      container.image: test/image:1.0.0
+      serviceBus.enabled: false
+      serviceBus.useSecrets: true
+    documentIndex: 1
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SERVICE_BUS_CONNECTION_STRING
+            valueFrom:
+              secretKeyRef:
+                name: test-service-servicebus
+                key: SERVICE_BUS_CONNECTION_STRING
+                optional: false

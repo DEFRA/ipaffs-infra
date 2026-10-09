@@ -43,7 +43,7 @@ spec:
                 {{ end }}
               {{ end }}
               imagePullPolicy: {{ .Values.container.imagePullPolicy }}
-              {{- with (include "ipaffs-common.telemetry.javaEnv" .) }}
+              {{- with (list (include "ipaffs-common.telemetry.javaEnv" .) (include "ipaffs-common.serviceBus.env" .) | compact | join "\n") }}
               env:
                 {{- . | nindent 16 }}
               {{- end }}

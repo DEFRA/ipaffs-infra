@@ -61,6 +61,14 @@ for environment in dev tst pre prd; do
     "${MANIFEST_ROOT}/bootstrap/environments/${environment}.yaml"
 done
 
+# FTR is an optional overlay, not a cloud environment. Do not synthesize an
+# empty overlay when its source has not been published yet.
+if [[ -f "${bootstrap_env_root}/ftr/bootstrap-values.yaml" ]]; then
+  copy_or_default \
+    "${bootstrap_env_root}/ftr/bootstrap-values.yaml" \
+    "${MANIFEST_ROOT}/bootstrap/environments/ftr.yaml"
+fi
+
 if [[ ! -f "${chart_version_updater}" ]]; then
   echo "Chart version updater script not found: ${chart_version_updater}" >&2
   exit 1

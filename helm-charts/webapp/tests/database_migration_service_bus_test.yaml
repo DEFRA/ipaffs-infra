@@ -1,0 +1,33 @@
+suite: database migration Service Bus connection sources
+templates:
+  - templates/database-migration.yaml
+tests:
+  - it: pins migration connections to the same ASO secret as the application
+    set:
+      service: notification-service
+      database.migrations.enabled: true
+      database.migrations.image: test/migrations:1.0.0
+      database.migrations.clientId: test-client-id
+      serviceBus.enabled: true
+      serviceBus.useSecrets: true
+      serviceBus.connectionStringAliases: [TRADE_CHARGE_QUEUE_CONNECTION_STRING]
+    documentIndex: 1
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SERVICE_BUS_CONNECTION_STRING
+            valueFrom:
+              secretKeyRef:
+                name: notification-service-servicebus
+                key: SERVICE_BUS_CONNECTION_STRING
+                optional: false
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: TRADE_CHARGE_QUEUE_CONNECTION_STRING
+            valueFrom:
+              secretKeyRef:
+                name: notification-service-servicebus
+                key: SERVICE_BUS_CONNECTION_STRING
+                optional: false

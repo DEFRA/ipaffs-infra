@@ -18,6 +18,9 @@ externalSecret:
 
 serviceBus:
   enabled: false
+  useSecrets: false
+  connectionStringSecretKey: SERVICE_BUS_CONNECTION_STRING
+  connectionStringAliases: []
 
 database:
   databaseNames: []

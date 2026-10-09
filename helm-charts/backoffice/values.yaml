@@ -19,6 +19,7 @@ serviceBus:
   enabled: false
   useSecrets: false
   connectionStringSecretKey: SERVICE_BUS_CONNECTION_STRING
+  connectionStringAliases: []
 
 secretStore:
   name: "external-secrets-azure"

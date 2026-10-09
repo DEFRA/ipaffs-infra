@@ -333,6 +333,37 @@ for runtime_input in unset empty invalid; do
   done
 done
 
+# FTR values are propagated as an optional configuration overlay in both modes.
+for skip_image_update in false true; do
+  case_root="${work_dir}/feature-overlay-${skip_image_update}"
+  service_root="${case_root}/service"
+  manifest_root="${case_root}/manifest"
+  write_source_values "${service_root}"
+  mkdir -p "${service_root}/deployment/ftr" "${manifest_root}"
+  cat > "${service_root}/deployment/ftr/values.yaml" <<'EOF'
+serviceBus:
+  enabled: true
+  useSecrets: true
+externalSecret:
+  secrets: []
+EOF
+  SERVICE_NAME=example-service \
+    SERVICE_RUNTIME=java \
+    BUILD_NUMBER=new-build \
+    MANIFEST_ROOT="${manifest_root}" \
+    SERVICE_ROOT="${service_root}" \
+    SKIP_CONTAINER_IMAGE_UPDATE="${skip_image_update}" \
+    bash "${script_path}" >/dev/null
+  check "FTR values copy succeeds with skip images=${skip_image_update}" "0" "$?"
+  feature_file="${manifest_root}/environments/ftr/example-service.yaml"
+  check "FTR enables chart-managed Service Bus with skip images=${skip_image_update}" \
+    "true" "$(yq e '.serviceBus.enabled' "${feature_file}")"
+  check "FTR clears remote secret imports with skip images=${skip_image_update}" \
+    "0" "$(yq e '.externalSecret.secrets | length' "${feature_file}")"
+  check "FTR values carry the generated-file header with skip images=${skip_image_update}" \
+    "# AUTO-GENERATED FILE. DO NOT EDIT DIRECTLY." "$(head -n 1 "${feature_file}")"
+done
+
 if [[ "${failures}" -gt 0 ]]; then
   echo "${failures} test(s) failed"
   exit 1
