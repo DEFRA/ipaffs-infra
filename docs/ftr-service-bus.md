@@ -81,10 +81,11 @@ a queue-name property without a Service Bus client or imported connection.
    source change; it does not yet accept the new configuration-profile parameter.
 4. Publish the service source FTR files and run their pipelines. The service
    generator and both Java/Node staging loops now include `ftr`. Bootstrap's
-   generator also copies the optional FTR overlay. Generated manifest files in
-   this change were produced by those scripts, not maintained independently.
-5. Include the manifest pipeline/template changes and generated overlays in the
-   feature manifest branch, then run its deployment with the namespace override.
+   generator also copies the optional FTR overlay. Their manifest outputs remain
+   pipeline-owned and are excluded from manually authored source PRs.
+5. Include the manifest pipeline/template changes in the feature manifest branch.
+   Let the owning pipelines publish its FTR overlays, then run its deployment
+   with the namespace override.
 
 Helmfile and identity-value generation reject FTR in other cloud environments,
 canonical namespaces, oversized namespaces, shared Service Bus overrides, remote
