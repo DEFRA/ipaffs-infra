@@ -12,10 +12,8 @@ metadata:
 data:
   ENVIRONMENT: "{{ .Values.environment }}"
 {{- range $databaseName := $databaseNames }}
-{{- $db := dict "databaseName" $databaseName "Values" $.Values "Release" $.Release }}
-  DATABASE_DB_CONNECTION_STRING_{{ upper (snakecase $databaseName) }}: "jdbc:sqlserver://{{ template "ipaffs-common.azure.sqlServerHostname" $db }}:1433;databaseName={{ template "ipaffs-common.azure.databaseName" $db }};encrypt=true;socketTimeout=1800000;loginTimeout=15;authentication=ActiveDirectoryManagedIdentity;msiClientId={{ include "webapp.azure.serviceClientId" $ }}"
+  DATABASE_DB_CONNECTION_STRING_{{ upper (snakecase $databaseName) }}: {{ include "webapp.database.jdbcUrl" (dict "root" $ "databaseName" $databaseName "clientId" (include "webapp.azure.serviceClientId" $)) | quote }}
 {{- end }}
 {{- range $key, $val := .Values.config }}
   {{ $key }}: "{{ $val }}"
 {{- end }}
-

@@ -57,3 +57,59 @@ tests:
           content:
             configMapRef:
               name: test-job
+
+  - it: retains workload identity and the service account without a bridge in native mode
+    set:
+      service: test-job
+      environment: dev
+      azure.clientId: 00000000-0000-0000-0000-000000000001
+      schedule: "30 23 * * *"
+      container.image: test/image:1.0.0
+      database.databaseNames[0]: imports
+      database.workloadIdentity.enabled: true
+    asserts:
+      - equal:
+          path: spec.jobTemplate.spec.template.spec.serviceAccountName
+          value: test-job-service
+      - equal:
+          path: spec.jobTemplate.spec.template.metadata.labels["azure.workload.identity/use"]
+          value: "true"
+      - equal:
+          path: spec.jobTemplate.spec.template.spec.shareProcessNamespace
+          value: true
+      - notExists:
+          path: spec.jobTemplate.spec.template.spec.initContainers
+
+  - it: preserves a configured custom init container without a bridge in native mode
+    set:
+      service: test-job
+      environment: dev
+      azure.clientId: 00000000-0000-0000-0000-000000000001
+      schedule: "30 23 * * *"
+      container.image: test/image:1.0.0
+      imageRegistry: registry.example.com
+      database.databaseNames[0]: imports
+      database.workloadIdentity.enabled: true
+      initContainer:
+        enabled: true
+        image: test/init:1.0.0
+        command: ["/bin/true"]
+    asserts:
+      - equal:
+          path: spec.jobTemplate.spec.template.spec.initContainers[0].name
+          value: job-init
+      - equal:
+          path: spec.jobTemplate.spec.template.spec.initContainers[0].image
+          value: registry.example.com/test/init:1.0.0
+      - equal:
+          path: spec.jobTemplate.spec.template.spec.initContainers[0].command
+          value: ["/bin/true"]
+      - equal:
+          path: spec.jobTemplate.spec.template.spec.initContainers[0].securityContext
+          value:
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            allowPrivilegeEscalation: false
+      - notExists:
+          path: spec.jobTemplate.spec.template.spec.initContainers[1]

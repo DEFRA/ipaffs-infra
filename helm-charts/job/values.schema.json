@@ -96,6 +96,14 @@
         "connectionStringAliases"
       ],
       "properties": {
+        "workloadIdentity": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            }
+          }
+        },
         "databaseNames": {
           "type": "array",
           "items": {

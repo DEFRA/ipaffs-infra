@@ -64,3 +64,68 @@ tests:
     asserts:
       - notExists:
           path: data.JDBC_URL
+
+  - it: uses native workload identity under the canonical key in a branch namespace
+    release:
+      namespace: sqlwi-pilot
+    set:
+      service: test-job
+      project: ipaffs
+      environment: dev
+      azure.clientId: 00000000-0000-0000-0000-000000000001
+      database.databaseNames:
+        - notification-microservice
+      database.workloadIdentity.enabled: true
+    asserts:
+      - equal:
+          path: data.DATABASE_DB_CONNECTION_STRING_NOTIFICATION_MICROSERVICE
+          value: jdbc:sqlserver://devimpdbssq1401.database.windows.net:1433;databaseName=notification-microservice-sqlwi-pilot;encrypt=true;socketTimeout=1800000;loginTimeout=15;authentication=ActiveDirectoryDefault
+
+  - it: exposes the archive primary key and alias with native workload identity
+    release:
+      namespace: dev
+    set:
+      service: archive-notifications-job
+      project: ipaffs
+      environment: dev
+      azure.clientId: 00000000-0000-0000-0000-000000000001
+      database:
+        workloadIdentity:
+          enabled: true
+        databaseNames:
+          - notification-microservice
+        connectionStringSecretKey:
+          notification-microservice: MANAGED_IDENTITY_JDBC_URL
+        connectionStringAliases:
+          notification-microservice:
+            - JDBC_URL
+    asserts:
+      - equal:
+          path: data.MANAGED_IDENTITY_JDBC_URL
+          value: jdbc:sqlserver://devimpdbssq1401.database.windows.net:1433;databaseName=notification-microservice;encrypt=true;socketTimeout=1800000;loginTimeout=15;authentication=ActiveDirectoryDefault
+      - equal:
+          path: data.JDBC_URL
+          value: jdbc:sqlserver://devimpdbssq1401.database.windows.net:1433;databaseName=notification-microservice;encrypt=true;socketTimeout=1800000;loginTimeout=15;authentication=ActiveDirectoryDefault
+      - notExists:
+          path: data.DATABASE_DB_CONNECTION_STRING_NOTIFICATION_MICROSERVICE
+
+  - it: uses the existing TST host and canonical database names for multiple native connections
+    release:
+      namespace: tst
+    set:
+      service: test-job
+      project: ipaffs
+      environment: tst
+      azure.clientId: 00000000-0000-0000-0000-000000000001
+      azure.sqlServerHostname: tstimpdbssqa001.database.windows.net
+      database.databaseNames:
+        - notification-microservice
+        - permissions-blue
+      database.workloadIdentity.enabled: true
+    asserts:
+      - equal:
+          path: data.DATABASE_DB_CONNECTION_STRING_NOTIFICATION_MICROSERVICE
+          value: jdbc:sqlserver://tstimpdbssqa001.database.windows.net:1433;databaseName=notification-microservice;encrypt=true;socketTimeout=1800000;loginTimeout=15;authentication=ActiveDirectoryDefault
+      - equal:
+          path: data.DATABASE_DB_CONNECTION_STRING_PERMISSIONS_BLUE
+          value: jdbc:sqlserver://tstimpdbssqa001.database.windows.net:1433;databaseName=permissions-blue;encrypt=true;socketTimeout=1800000;loginTimeout=15;authentication=ActiveDirectoryDefault
