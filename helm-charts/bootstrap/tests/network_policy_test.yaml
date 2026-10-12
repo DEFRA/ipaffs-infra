@@ -1,0 +1,199 @@
+suite: opt-in namespace port baseline
+templates:
+  - templates/network-policy.yaml
+tests:
+  - it: leaves namespace traffic unchanged by default
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: isolates every pod in the release namespace in both directions when enabled
+    release:
+      namespace: feature-port-policy
+    set:
+      networkPolicy.enabled: true
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isAPIVersion:
+          of: networking.k8s.io/v1
+      - isKind:
+          of: NetworkPolicy
+      - equal:
+          path: metadata.namespace
+          value: feature-port-policy
+      - equal:
+          path: spec.podSelector
+          value: {}
+      - equal:
+          path: spec.policyTypes
+          value: [Ingress, Egress]
+
+  - it: permits application pod ports and limits Redis ingress to the same namespace
+    set:
+      networkPolicy.enabled: true
+    asserts:
+      - equal:
+          path: spec.ingress
+          value:
+            - ports:
+                - protocol: TCP
+                  port: 4000
+                - protocol: TCP
+                  port: 8000
+            - from:
+                - podSelector: {}
+              ports:
+                - protocol: TCP
+                  port: 6379
+
+  - it: allows TCP and UDP DNS only to matching DNS pods in the DNS namespace
+    set:
+      networkPolicy.enabled: true
+    asserts:
+      - equal:
+          path: spec.egress[0]
+          value:
+            to:
+              - namespaceSelector:
+                  matchLabels:
+                    kubernetes.io/metadata.name: kube-system
+                podSelector:
+                  matchLabels:
+                    k8s-app: kube-dns
+            ports:
+              - protocol: UDP
+                port: 53
+              - protocol: TCP
+                port: 53
+
+  - it: permits only the configured application and dependency egress ports
+    set:
+      networkPolicy.enabled: true
+    asserts:
+      - lengthEqual:
+          path: spec.egress
+          count: 2
+      - equal:
+          path: spec.egress[1]
+          value:
+            ports:
+              - protocol: TCP
+                port: 80
+              - protocol: TCP
+                port: 443
+              - protocol: TCP
+                port: 1344
+              - protocol: TCP
+                port: 1433
+              - protocol: TCP
+                port: 4000
+              - protocol: TCP
+                port: 5671
+              - protocol: TCP
+                port: 6379
+              - protocol: TCP
+                port: 6380
+              - protocol: TCP
+                port: 8000
+
+  - it: removes the application ingress rule when its port list is empty
+    set:
+      networkPolicy.enabled: true
+      networkPolicy.ingressPorts: []
+    asserts:
+      - equal:
+          path: spec.ingress
+          value:
+            - from:
+                - podSelector: {}
+              ports:
+                - protocol: TCP
+                  port: 6379
+
+  - it: removes the namespace ingress rule when its port list is empty
+    set:
+      networkPolicy.enabled: true
+      networkPolicy.sameNamespaceIngressPorts: []
+    asserts:
+      - equal:
+          path: spec.ingress
+          value:
+            - ports:
+                - protocol: TCP
+                  port: 4000
+                - protocol: TCP
+                  port: 8000
+
+  - it: denies all ingress and retains only restricted DNS egress when all port lists are empty
+    set:
+      networkPolicy.enabled: true
+      networkPolicy.ingressPorts: []
+      networkPolicy.sameNamespaceIngressPorts: []
+      networkPolicy.egressPorts: []
+    asserts:
+      - equal:
+          path: spec.ingress
+          value: []
+      - equal:
+          path: spec.egress
+          value:
+            - to:
+                - namespaceSelector:
+                    matchLabels:
+                      kubernetes.io/metadata.name: kube-system
+                  podSelector:
+                    matchLabels:
+                      k8s-app: kube-dns
+              ports:
+                - protocol: UDP
+                  port: 53
+                - protocol: TCP
+                  port: 53
+
+  - it: replaces default ports and supports an alternate DNS namespace and pod labels
+    release:
+      namespace: custom-application
+    set:
+      networkPolicy.enabled: true
+      networkPolicy.ingressPorts: [8080]
+      networkPolicy.sameNamespaceIngressPorts: [6381]
+      networkPolicy.egressPorts: [6432, 9443]
+      networkPolicy.dns.namespace: custom-dns
+      networkPolicy.dns.podLabels:
+        k8s-app: custom-dns
+    asserts:
+      - equal:
+          path: metadata.namespace
+          value: custom-application
+      - equal:
+          path: spec.ingress
+          value:
+            - ports:
+                - protocol: TCP
+                  port: 8080
+            - from:
+                - podSelector: {}
+              ports:
+                - protocol: TCP
+                  port: 6381
+      - equal:
+          path: spec.egress
+          value:
+            - to:
+                - namespaceSelector:
+                    matchLabels:
+                      kubernetes.io/metadata.name: custom-dns
+                  podSelector:
+                    matchLabels:
+                      k8s-app: custom-dns
+              ports:
+                - protocol: UDP
+                  port: 53
+                - protocol: TCP
+                  port: 53
+            - ports:
+                - protocol: TCP
+                  port: 6432
+                - protocol: TCP
+                  port: 9443

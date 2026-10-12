@@ -89,3 +89,30 @@ Things are moving along quickly. At the time of writing, migration of ipaffs-imp
 * Ensure your development VM is set up with K3S as detailed above.
 * Run `scripts/build.sh` to build the service, package a container and push to the local registry.
 * Run `scripts/deploy.sh` to deploy the latest built container image and run with remote debugger enabled.
+
+### Namespace network policy
+
+The bootstrap chart's optional `ipaffs-port-baseline` restricts ingress and egress
+for all pods in the release namespace. It is disabled by default.
+
+| Direction | Allowed traffic |
+| --- | --- |
+| Application ingress | TCP 4000/8000 from any source |
+| Redis ingress | TCP 6379 from pods in the same namespace |
+| DNS egress | UDP/TCP 53 to CoreDNS in `kube-system` |
+| Other egress | TCP 80, 443, 1344, 1433, 4000, 5671, 6379, 6380 and 8000 to any destination |
+
+Configure ports in [bootstrap values](helm-charts/bootstrap/values.yaml), with overrides
+in `helm-charts/envs/<environment>/bootstrap-values.yaml`. Add new application ports
+explicitly; the publishing pipeline generates `ipaffs-manifest/bootstrap` values.
+
+Enable with `networkPolicy.enabled: true` in a pilot namespace's Helm values.
+An environment override enables it for every namespace using those values.
+Other NetworkPolicies can grant additional traffic.
+
+SQL Proxy mode uses TCP 1433. [Private Link Redirect](https://learn.microsoft.com/en-us/azure/azure-sql/database/private-endpoint-overview?view=azuresql#use-redirect-connection-policy-with-private-endpoints)
+requires a separate TCP 1433–65535 rule scoped to the SQL endpoint.
+
+Before rollout, verify required application/dependency traffic and blocked TCP/UDP
+ports against known listening endpoints. To roll back, set `networkPolicy.enabled: false`
+and redeploy bootstrap; Helm removes the policy.

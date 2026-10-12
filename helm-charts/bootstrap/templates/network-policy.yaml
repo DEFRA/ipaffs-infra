@@ -1,0 +1,57 @@
+{{- if .Values.networkPolicy.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: ipaffs-port-baseline
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+    {{- include "ipaffs-common.labels" . | nindent 4 }}
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress
+  {{- if or .Values.networkPolicy.ingressPorts .Values.networkPolicy.sameNamespaceIngressPorts }}
+  ingress:
+    {{- with .Values.networkPolicy.ingressPorts }}
+    # Port-only application ingress also covers NGINX and external AGC traffic.
+    - ports:
+        {{- range . }}
+        - protocol: TCP
+          port: {{ . }}
+        {{- end }}
+    {{- end }}
+    {{- with .Values.networkPolicy.sameNamespaceIngressPorts }}
+    - from:
+        - podSelector: {}
+      ports:
+        {{- range . }}
+        - protocol: TCP
+          port: {{ . }}
+        {{- end }}
+    {{- end }}
+  {{- else }}
+  ingress: []
+  {{- end }}
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ .Values.networkPolicy.dns.namespace | quote }}
+          podSelector:
+            matchLabels:
+              {{- toYaml .Values.networkPolicy.dns.podLabels | nindent 14 }}
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    {{- with .Values.networkPolicy.egressPorts }}
+    # Deliberately restrict ports without pinning changing external IP addresses.
+    - ports:
+        {{- range . }}
+        - protocol: TCP
+          port: {{ . }}
+        {{- end }}
+    {{- end }}
+{{- end }}

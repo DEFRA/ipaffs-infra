@@ -21,6 +21,30 @@ externalSecret:
   secrets: []
   certs: []
 
+# Namespace-wide port baseline. Enable for a pilot namespace before rollout.
+# These lists are maintained from deployment configuration, not inferred at runtime.
+networkPolicy:
+  enabled: false
+  # Actual destination pod ports, rather than the Service's port 80.
+  ingressPorts: [4000, 8000]
+  # In-cluster Redis is reachable only from pods in this namespace.
+  sameNamespaceIngressPorts: [6379]
+  # Port 80 and the pod ports cover Service translation across policy providers.
+  egressPorts:
+    - 80    # Internal IPAFFS HTTP Services (Service port).
+    - 443   # Trade/CRM/RDS APIs, Entra ID, Application Insights and Azure Storage/Search/Key Vault.
+    - 1344  # Symantec ICAP antivirus (file-upload and file-compression).
+    - 1433  # Azure SQL databases (Private Link Proxy mode).
+    - 4000  # openidtoken-service HTTP (pod port).
+    - 5671  # Azure Service Bus / Event Hubs (TLS AMQP).
+    - 6379  # imports-proxy-cache Redis (DEV).
+    - 6380  # Azure Redis (TST/PRE/PRD, TLS).
+    - 8000  # IPAFFS webapps/microservices and identity redirect handler (pod port).
+  dns:
+    namespace: kube-system
+    podLabels:
+      k8s-app: kube-dns
+
 originIngress:
   annotations:
     nginx.ingress.kubernetes.io/ssl-redirect: "true"

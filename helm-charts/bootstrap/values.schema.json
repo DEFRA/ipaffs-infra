@@ -121,11 +121,69 @@
           }
         }
       }
+    },
+    "networkPolicy": {
+      "type": "object",
+      "required": [
+        "enabled",
+        "ingressPorts",
+        "sameNamespaceIngressPorts",
+        "egressPorts",
+        "dns"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "ingressPorts": {
+          "$ref": "#/definitions/networkPolicyPorts"
+        },
+        "sameNamespaceIngressPorts": {
+          "$ref": "#/definitions/networkPolicyPorts"
+        },
+        "egressPorts": {
+          "$ref": "#/definitions/networkPolicyPorts"
+        },
+        "dns": {
+          "type": "object",
+          "required": [
+            "namespace",
+            "podLabels"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "namespace": {
+              "type": "string",
+              "minLength": 1
+            },
+            "podLabels": {
+              "type": "object",
+              "minProperties": 1,
+              "additionalProperties": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
+      }
     }
   },
   "required": [
     "environment"
   ],
   "title": "Values",
-  "type": "object"
+  "type": "object",
+  "definitions": {
+    "networkPolicyPorts": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 65535
+      }
+    }
+  }
 }
