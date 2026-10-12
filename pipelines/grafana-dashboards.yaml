@@ -141,6 +141,9 @@ stages:
               targetType: filePath
               filePath: grafana-dashboards/tests/validate-dashboards.sh
 
+          - script: python3 grafana-dashboards/tests/test_deploy_dashboards.py
+            displayName: Test dashboard deployment variables
+
   # 2. Configure datasources (optional, one-off)
   - ${{ if eq(parameters.configureDatasources, true) }}:
     - template: stages/configure-grafana.yaml

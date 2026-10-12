@@ -15,6 +15,11 @@
 #   RESOURCE_GROUP   – Resource group of the Grafana instance
 #   ENVIRONMENT      – Environment label, e.g. "DEV" (used in datasource names)
 #
+# Required when a selected dashboard uses classic resource variables:
+#   CLASSIC_SUBSCRIPTION_ID – classicSubscriptionId from the env's ADO Library
+#   CLASSIC_RESOURCE_GROUP  – classicResourceGroupName from the env's ADO Library
+#   CLASSIC_SERVICE_BUS     – classicServiceBusNamespaceName from the env's ADO Library
+#
 # Optional environment variables:
 #   DASHBOARD_FILES  – space-separated explicit JSON files to deploy. When set,
 #                      only these are deployed (handy for testing a single
@@ -42,6 +47,36 @@ DASHBOARDS_ROOT="${SCRIPTS_DIR}"/../grafana-dashboards/dashboards
 PROM_DS_NAME="${PROM_DS_NAME:-Prometheus}"
 AZMON_DS_NAME="${AZMON_DS_NAME:-Azure Monitor}"
 DRY_RUN="${DRY_RUN:-false}"
+
+# Build and preflight the complete selection before updating any dashboard.
+declare -a files=()
+if [[ -n "${DASHBOARD_FILES:-}" ]]; then
+  for f in ${DASHBOARD_FILES}; do
+    [[ -f "${f}" ]] || { echo "ERROR: file not found: ${f}" >&2; exit 1; }
+    files+=("${f}")
+  done
+else
+  while IFS= read -r f; do files+=("${f}"); done \
+    < <(find "${DASHBOARDS_ROOT}" -name "*.json" 2>/dev/null | sort)
+fi
+
+if [[ "${#files[@]}" -eq 0 ]]; then
+  echo "No dashboards found to deploy." >&2
+  exit 1
+fi
+
+for f in "${files[@]}"; do
+  if jq -e 'any(.templating.list[]; .name == "classicSubscription" or
+      .name == "classicResourceGroup" or .name == "classicServiceBus")' "${f}" >/dev/null; then
+    for variable in CLASSIC_SUBSCRIPTION_ID CLASSIC_RESOURCE_GROUP CLASSIC_SERVICE_BUS; do
+      value="${!variable:-}"
+      if [[ -z "${value//[[:space:]]/}" || "${value}" == *"\$("* ]]; then
+        echo "ERROR: ${variable} must contain the environment's classic resource value (${f})." >&2
+        exit 1
+      fi
+    done
+  fi
+done
 
 az extension add --name amg --yes --upgrade --only-show-errors
 
@@ -72,18 +107,28 @@ deploy_dashboard() {
   title=$(jq -r '.title' "${file}")
 
   # Point each datasource template variable at this env's datasource, matched by
-  # plugin type (.query). Variables of other types — and dashboards that only
-  # use one datasource — are left untouched. The repo source file is never
-  # modified (patch is applied in-memory).
+  # plugin type (.query), and populate hidden classic constants from the ADO
+  # environment group. The repo source file is never modified; application
+  # variables continue to resolve the new subscription's resources.
   definition=$(jq \
     --arg promName "${PROM_DS_NAME}" --arg promUid "${PROM_DS_UID}" \
     --arg azName "${AZMON_DS_NAME}"  --arg azUid "${AZMON_DS_UID}" \
-    '(.templating.list[]
+    --arg classicSubscription "${CLASSIC_SUBSCRIPTION_ID:-}" \
+    --arg classicResourceGroup "${CLASSIC_RESOURCE_GROUP:-}" \
+    --arg classicServiceBus "${CLASSIC_SERVICE_BUS:-}" \
+    'def set_constant($value):
+        .query = $value
+        | .current = {selected: true, text: $value, value: $value}
+        | .options = [.current];
+     (.templating.list[]
         | select(.type == "datasource" and .query == "prometheus")) |=
         (.current = {selected: true, text: $promName, value: $promUid})
      | (.templating.list[]
         | select(.type == "datasource" and .query == "grafana-azure-monitor-datasource")) |=
-        (.current = {selected: true, text: $azName, value: $azUid})' \
+        (.current = {selected: true, text: $azName, value: $azUid})
+     | (.templating.list[] | select(.name == "classicSubscription")) |= set_constant($classicSubscription)
+     | (.templating.list[] | select(.name == "classicResourceGroup")) |= set_constant($classicResourceGroup)
+     | (.templating.list[] | select(.name == "classicServiceBus")) |= set_constant($classicServiceBus)' \
     "${file}")
 
   echo "Deploying: ${title} (uid=${uid})"
@@ -105,25 +150,6 @@ deploy_dashboard() {
     ERRORS=$((ERRORS + 1))
   fi
 }
-
-# ── Build the list of dashboards to deploy ─────────────────────────────────
-declare -a files=()
-if [[ -n "${DASHBOARD_FILES:-}" ]]; then
-  # Explicit list (e.g. testing a single dashboard)
-  for f in ${DASHBOARD_FILES}; do
-    [[ -f "${f}" ]] || { echo "ERROR: file not found: ${f}" >&2; exit 1; }
-    files+=("${f}")
-  done
-else
-  # All dashboard JSON under DASHBOARDS_ROOT (deployed to the selected env).
-  while IFS= read -r f; do files+=("${f}"); done \
-    < <(find "${DASHBOARDS_ROOT}" -name "*.json" 2>/dev/null | sort)
-fi
-
-if [[ "${#files[@]}" -eq 0 ]]; then
-  echo "No dashboards found to deploy." >&2
-  exit 1
-fi
 
 # Deploy (no subshell, so the ERROR count survives)
 for f in "${files[@]}"; do
