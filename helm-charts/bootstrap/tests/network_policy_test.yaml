@@ -7,6 +7,115 @@ tests:
       - hasDocuments:
           count: 0
 
+  - it: enables the unchanged default baseline through DEV environment values
+    release:
+      namespace: dev
+    values:
+      - ../../envs/dev/bootstrap-values.yaml
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: metadata.namespace
+          value: dev
+      - equal:
+          path: spec
+          value: &defaultPortBaseline
+            podSelector: {}
+            policyTypes: [Ingress, Egress]
+            ingress:
+              - ports:
+                  - protocol: TCP
+                    port: 4000
+                  - protocol: TCP
+                    port: 8000
+              - from:
+                  - podSelector: {}
+                ports:
+                  - protocol: TCP
+                    port: 6379
+            egress:
+              - to:
+                  - namespaceSelector:
+                      matchLabels:
+                        kubernetes.io/metadata.name: kube-system
+                    podSelector:
+                      matchLabels:
+                        k8s-app: kube-dns
+                ports:
+                  - protocol: UDP
+                    port: 53
+                  - protocol: TCP
+                    port: 53
+              - ports:
+                  - protocol: TCP
+                    port: 80
+                  - protocol: TCP
+                    port: 443
+                  - protocol: TCP
+                    port: 1344
+                  - protocol: TCP
+                    port: 1433
+                  - protocol: TCP
+                    port: 4000
+                  - protocol: TCP
+                    port: 5671
+                  - protocol: TCP
+                    port: 6379
+                  - protocol: TCP
+                    port: 6380
+                  - protocol: TCP
+                    port: 8000
+
+  - it: enables the unchanged default baseline through TST environment values
+    release:
+      namespace: tst
+    values:
+      - ../../envs/tst/bootstrap-values.yaml
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: metadata.namespace
+          value: tst
+      - equal:
+          path: spec
+          value: *defaultPortBaseline
+
+  - it: enables the unchanged default baseline through DEV then FTR environment values
+    release:
+      namespace: feature-port-policy
+    values:
+      - ../../envs/dev/bootstrap-values.yaml
+      - ../../envs/ftr/bootstrap-values.yaml
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: metadata.namespace
+          value: feature-port-policy
+      - equal:
+          path: spec
+          value: *defaultPortBaseline
+
+  - it: keeps PRE disabled through its environment values
+    release:
+      namespace: pre
+    values:
+      - ../../envs/pre/bootstrap-values.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: keeps PRD disabled through its environment values
+    release:
+      namespace: prd
+    values:
+      - ../../envs/prd/bootstrap-values.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
+
   - it: isolates every pod in the release namespace in both directions when enabled
     release:
       namespace: feature-port-policy

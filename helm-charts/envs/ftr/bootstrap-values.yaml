@@ -1,4 +1,7 @@
 # Overlay on DEV bootstrap values. Trade entities are local equivalents for feature testing.
+networkPolicy:
+  enabled: true
+
 serviceBus:
   queues:
     # IPAFFS-owned queues.

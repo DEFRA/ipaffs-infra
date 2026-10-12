@@ -3,6 +3,9 @@ service: "bootstrap"
 project: ipaffs
 environment: tst
 
+networkPolicy:
+  enabled: true
+
 azure:
   location: uksouth
   sqlServer: tstimpdbssqa001
