@@ -105,10 +105,117 @@
                   "name": {
                     "type": "string"
                   },
+                  "autoDeleteOnIdle": {
+                    "type": "string"
+                  },
+                  "defaultMessageTimeToLive": {
+                    "type": "string"
+                  },
+                  "duplicateDetectionHistoryTimeWindow": {
+                    "type": "string"
+                  },
+                  "enableBatchedOperations": {
+                    "type": "boolean"
+                  },
+                  "enablePartitioning": {
+                    "type": "boolean"
+                  },
+                  "maxSizeInMegabytes": {
+                    "type": "integer"
+                  },
+                  "requiresDuplicateDetection": {
+                    "type": "boolean"
+                  },
+                  "supportOrdering": {
+                    "type": "boolean"
+                  },
                   "subscriptions": {
                     "type": "array",
                     "items": {
-                      "type": "string"
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "name": {
+                              "type": "string"
+                            },
+                            "autoDeleteOnIdle": {
+                              "type": "string"
+                            },
+                            "deadLetteringOnFilterEvaluationExceptions": {
+                              "type": "boolean"
+                            },
+                            "deadLetteringOnMessageExpiration": {
+                              "type": "boolean"
+                            },
+                            "defaultMessageTimeToLive": {
+                              "type": "string"
+                            },
+                            "enableBatchedOperations": {
+                              "type": "boolean"
+                            },
+                            "forwardDeadLetteredMessagesTo": {
+                              "type": "string"
+                            },
+                            "forwardTo": {
+                              "type": "string"
+                            },
+                            "lockDuration": {
+                              "type": "string"
+                            },
+                            "maxDeliveryCount": {
+                              "type": "integer"
+                            },
+                            "requiresSession": {
+                              "type": "boolean"
+                            },
+                            "correlationFilter": {
+                              "type": "object",
+                              "properties": {
+                                "contentType": {
+                                  "type": "string"
+                                },
+                                "correlationId": {
+                                  "type": "string"
+                                },
+                                "label": {
+                                  "type": "string"
+                                },
+                                "messageId": {
+                                  "type": "string"
+                                },
+                                "replyTo": {
+                                  "type": "string"
+                                },
+                                "replyToSessionId": {
+                                  "type": "string"
+                                },
+                                "sessionId": {
+                                  "type": "string"
+                                },
+                                "to": {
+                                  "type": "string"
+                                },
+                                "properties": {
+                                  "type": "object",
+                                  "additionalProperties": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "additionalProperties": false,
+                              "minProperties": 1
+                            }
+                          },
+                          "required": [
+                            "name"
+                          ],
+                          "additionalProperties": false
+                        }
+                      ]
                     }
                   }
                 },
