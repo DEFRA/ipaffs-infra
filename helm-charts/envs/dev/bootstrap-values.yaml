@@ -3,6 +3,9 @@ service: "bootstrap"
 project: ipaffs
 environment: dev
 
+networkPolicy:
+  enabled: true
+
 azure:
   location: uksouth
 
