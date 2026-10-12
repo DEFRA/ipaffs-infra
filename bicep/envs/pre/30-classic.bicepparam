@@ -65,7 +65,7 @@ param sejParams = {
 }
 
 param serviceBusParams = {
-  namespaceName: 'PREIMPINFSBS002'
+  namespaceName: 'PREIMPINFSBS003'
 }
 
 param sqlParams = {
