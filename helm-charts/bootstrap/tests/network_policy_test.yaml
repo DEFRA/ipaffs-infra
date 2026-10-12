@@ -98,23 +98,35 @@ tests:
           path: spec
           value: *defaultPortBaseline
 
-  - it: keeps PRE disabled through its environment values
+  - it: enables the unchanged default baseline through PRE environment values
     release:
       namespace: pre
     values:
       - ../../envs/pre/bootstrap-values.yaml
     asserts:
       - hasDocuments:
-          count: 0
+          count: 1
+      - equal:
+          path: metadata.namespace
+          value: pre
+      - equal:
+          path: spec
+          value: *defaultPortBaseline
 
-  - it: keeps PRD disabled through its environment values
+  - it: enables the unchanged default baseline through PRD environment values
     release:
       namespace: prd
     values:
       - ../../envs/prd/bootstrap-values.yaml
     asserts:
       - hasDocuments:
-          count: 0
+          count: 1
+      - equal:
+          path: metadata.namespace
+          value: prd
+      - equal:
+          path: spec
+          value: *defaultPortBaseline
 
   - it: isolates every pod in the release namespace in both directions when enabled
     release:

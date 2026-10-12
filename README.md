@@ -93,8 +93,8 @@ Things are moving along quickly. At the time of writing, migration of ipaffs-imp
 ### Namespace network policy
 
 The bootstrap chart's optional `ipaffs-port-baseline` restricts ingress and egress
-for all pods in the release namespace. FTR, DEV and TST enable it using environment
-overrides; the shared default is disabled.
+for all pods in the release namespace. FTR, DEV, TST, PRE and PRD enable it using
+environment overrides; the shared default is disabled.
 
 | Direction | Allowed traffic |
 | --- | --- |
