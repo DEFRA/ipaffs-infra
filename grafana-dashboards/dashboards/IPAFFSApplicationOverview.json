@@ -303,9 +303,9 @@
             "resources": [
               {
                 "metricNamespace": "Microsoft.ServiceBus/namespaces",
-                "resourceGroup": "$resourceGroup",
-                "resourceName": "$serviceBus",
-                "subscription": "$subscription"
+                "resourceGroup": "$classicResourceGroup",
+                "resourceName": "$classicServiceBus",
+                "subscription": "$classicSubscription"
               }
             ],
             "timeGrain": "auto"
@@ -316,7 +316,7 @@
           },
           "queryType": "Azure Monitor",
           "refId": "A",
-          "subscription": "$subscription"
+          "subscription": "$classicSubscription"
         }
       ],
       "title": "Service Bus DLQ counts",
@@ -900,6 +900,48 @@
         "refresh": 1,
         "regex": "/.*impinfsb1401-(?:dev|tst|pre|prd)$/i",
         "type": "query"
+      },
+      {
+        "current": {
+          "selected": true,
+          "text": "",
+          "value": ""
+        },
+        "hide": 2,
+        "label": "Classic subscription",
+        "name": "classicSubscription",
+        "options": [],
+        "query": "",
+        "skipUrlSync": true,
+        "type": "constant"
+      },
+      {
+        "current": {
+          "selected": true,
+          "text": "",
+          "value": ""
+        },
+        "hide": 2,
+        "label": "Classic resource group",
+        "name": "classicResourceGroup",
+        "options": [],
+        "query": "",
+        "skipUrlSync": true,
+        "type": "constant"
+      },
+      {
+        "current": {
+          "selected": true,
+          "text": "",
+          "value": ""
+        },
+        "hide": 2,
+        "label": "Classic Service Bus namespace",
+        "name": "classicServiceBus",
+        "options": [],
+        "query": "",
+        "skipUrlSync": true,
+        "type": "constant"
       }
     ]
   },
