@@ -103,8 +103,8 @@ stages:
                       az acr import \
                         --name $(acrName) \
                         --subscription $(subscriptionName) \
-                        --source ghcr.io/external-secrets/external-secrets:v1.1.1 \
-                        --image external-secrets/external-secrets:v1.1.1 \
+                        --source ghcr.io/external-secrets/external-secrets:v2.12.0 \
+                        --image external-secrets/external-secrets:v2.12.0 \
                         --force \
                         --verbose
 
