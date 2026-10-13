@@ -1,6 +1,149 @@
 {
   "$schema": "https://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "probePort": {
+      "oneOf": [
+        { "type": "integer", "minimum": 1, "maximum": 65535 },
+        {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 15,
+          "allOf": [
+            { "pattern": "^[-a-z0-9]+$" },
+            { "pattern": "[a-z]" },
+            { "not": { "pattern": "(^-|-$|--)" } }
+          ]
+        }
+      ]
+    },
+    "probe": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "httpGet": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["port"],
+          "properties": {
+            "port": { "$ref": "#/definitions/probePort" },
+            "path": { "type": "string" },
+            "host": { "type": "string" },
+            "scheme": { "enum": ["HTTP", "HTTPS"] },
+            "httpHeaders": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["name", "value"],
+                "properties": {
+                  "name": { "type": "string", "minLength": 1 },
+                  "value": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "tcpSocket": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["port"],
+          "properties": {
+            "port": { "$ref": "#/definitions/probePort" },
+            "host": { "type": "string" }
+          }
+        },
+        "exec": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["command"],
+          "properties": {
+            "command": {
+              "type": "array",
+              "minItems": 1,
+              "items": { "type": "string" }
+            }
+          }
+        },
+        "grpc": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["port"],
+          "properties": {
+            "port": { "type": "integer", "minimum": 1, "maximum": 65535 },
+            "service": { "type": "string" }
+          }
+        },
+        "initialDelaySeconds": { "type": "integer", "minimum": 0 },
+        "periodSeconds": { "type": "integer", "minimum": 1 },
+        "timeoutSeconds": { "type": "integer", "minimum": 1 },
+        "successThreshold": { "type": "integer", "minimum": 1 },
+        "failureThreshold": { "type": "integer", "minimum": 1 },
+        "terminationGracePeriodSeconds": { "type": "integer", "minimum": 1 }
+      },
+      "oneOf": [
+        { "maxProperties": 0 },
+        {
+          "oneOf": [
+            { "required": ["httpGet"] },
+            { "required": ["tcpSocket"] },
+            { "required": ["exec"] },
+            { "required": ["grpc"] }
+          ]
+        }
+      ]
+    },
+    "disruptionBudgetValue": {
+      "oneOf": [
+        { "type": "integer", "minimum": 0 },
+        { "type": "string", "pattern": "^(100|[0-9]{1,2})%$" }
+      ]
+    }
+  },
   "properties": {
+    "readinessProbe": {
+      "description": "An empty object disables the probe; otherwise configure exactly one Kubernetes probe handler.",
+      "allOf": [
+        { "$ref": "#/definitions/probe" },
+        { "not": { "required": ["terminationGracePeriodSeconds"] } }
+      ]
+    },
+    "startupProbe": {
+      "description": "An empty object disables the probe; otherwise configure exactly one Kubernetes probe handler.",
+      "allOf": [
+        { "$ref": "#/definitions/probe" },
+        { "properties": { "successThreshold": { "const": 1 } } }
+      ]
+    },
+    "podDisruptionBudget": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Configure minAvailable or maxUnavailable. If neither is supplied, the enabled budget uses maxUnavailable: 1.",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "minAvailable": { "$ref": "#/definitions/disruptionBudgetValue" },
+        "maxUnavailable": { "$ref": "#/definitions/disruptionBudgetValue" },
+        "unhealthyPodEvictionPolicy": { "enum": ["IfHealthyBudget", "AlwaysAllow"] }
+      },
+      "not": { "required": ["minAvailable", "maxUnavailable"] }
+    },
+    "topologySpreadConstraints": {
+      "type": "array",
+      "uniqueItems": true,
+      "description": "The chart supplies the service pod selector for every spread constraint.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["maxSkew", "topologyKey", "whenUnsatisfiable"],
+        "properties": {
+          "maxSkew": { "type": "integer", "minimum": 1 },
+          "topologyKey": { "type": "string", "minLength": 1 },
+          "whenUnsatisfiable": { "enum": ["DoNotSchedule", "ScheduleAnyway"] },
+          "minDomains": { "type": "integer", "minimum": 1 }
+        },
+        "if": { "required": ["minDomains"] },
+        "then": { "properties": { "whenUnsatisfiable": { "const": "DoNotSchedule" } } }
+      }
+    },
     "azure": {
       "type": "object",
       "required": [

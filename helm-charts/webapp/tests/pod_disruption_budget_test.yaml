@@ -1,0 +1,125 @@
+suite: pod disruption budget
+templates:
+  - templates/pod-disruption-budget.yaml
+values:
+  - ci-values.yaml
+tests:
+  - it: defaults to one unavailable pod for a singleton deployment
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.maxUnavailable
+          value: 1
+      - notExists:
+          path: spec.minAvailable
+      - equal:
+          path: spec.unhealthyPodEvictionPolicy
+          value: AlwaysAllow
+      - equal:
+          path: spec.selector.matchLabels
+          value:
+            app.kubernetes.io/name: test-service
+            app.kubernetes.io/part-of: ipaffs
+
+  - it: allows the disruption budget to be explicitly disabled
+    set:
+      podDisruptionBudget.enabled: false
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: renders no disruption budget when an overlay clears its configuration
+    set:
+      podDisruptionBudget: null
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: defaults to one unavailable pod and selects a deployment with multiple replicas
+    set:
+      service: custom-service
+      project: custom-project
+      container.replicas: 3
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isAPIVersion:
+          of: policy/v1
+      - isKind:
+          of: PodDisruptionBudget
+      - equal:
+          path: spec.maxUnavailable
+          value: 1
+      - notExists:
+          path: spec.minAvailable
+      - equal:
+          path: spec.unhealthyPodEvictionPolicy
+          value: AlwaysAllow
+      - equal:
+          path: spec.selector.matchLabels
+          value:
+            app.kubernetes.io/name: custom-service
+            app.kubernetes.io/part-of: custom-project
+
+  - it: retains the eviction policy default when an overlay clears the policy
+    set:
+      container.replicas: 3
+      podDisruptionBudget.enabled: true
+      podDisruptionBudget.unhealthyPodEvictionPolicy: null
+    asserts:
+      - equal:
+          path: spec.unhealthyPodEvictionPolicy
+          value: AlwaysAllow
+
+  - it: preserves an explicit zero unavailable budget
+    set:
+      container.replicas: 3
+      podDisruptionBudget.enabled: true
+      podDisruptionBudget.maxUnavailable: 0
+    asserts:
+      - equal:
+          path: spec.maxUnavailable
+          value: 0
+      - notExists:
+          path: spec.minAvailable
+
+  - it: preserves a percentage unavailable budget as a string
+    set:
+      container.replicas: 3
+      podDisruptionBudget.enabled: true
+      podDisruptionBudget.maxUnavailable: "33%"
+    asserts:
+      - equal:
+          path: spec.maxUnavailable
+          value: "33%"
+      - notExists:
+          path: spec.minAvailable
+
+  - it: preserves an explicit zero available budget without maxUnavailable
+    set:
+      container.replicas: 3
+      podDisruptionBudget.enabled: true
+      podDisruptionBudget.minAvailable: 0
+    asserts:
+      - equal:
+          path: spec.minAvailable
+          value: 0
+      - notExists:
+          path: spec.maxUnavailable
+
+  - it: preserves a percentage available budget and eviction policy override
+    set:
+      container.replicas: 3
+      podDisruptionBudget.enabled: true
+      podDisruptionBudget.minAvailable: "50%"
+      podDisruptionBudget.unhealthyPodEvictionPolicy: IfHealthyBudget
+    asserts:
+      - equal:
+          path: spec.minAvailable
+          value: "50%"
+      - notExists:
+          path: spec.maxUnavailable
+      - equal:
+          path: spec.unhealthyPodEvictionPolicy
+          value: IfHealthyBudget

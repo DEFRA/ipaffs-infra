@@ -44,6 +44,26 @@ livenessProbe:
   initialDelaySeconds: 10
   periodSeconds: 5
 
+# Empty objects leave these probes disabled. Configure service-specific handlers.
+readinessProbe: {}
+startupProbe: {}
+
+podDisruptionBudget:
+  enabled: true
+  # If neither budget is supplied, the PDB uses maxUnavailable: 1.
+  # Set exactly one of maxUnavailable or minAvailable (integer or percentage).
+  # maxUnavailable: 1
+  # minAvailable: "67%"
+  unhealthyPodEvictionPolicy: AlwaysAllow
+
+# Each constraint automatically selects this service's Deployment pods.
+# Supply maxSkew, topologyKey and whenUnsatisfiable; minDomains is optional.
+# Set [] to omit the chart's spreading constraints.
+topologySpreadConstraints:
+  - maxSkew: 1
+    topologyKey: kubernetes.io/hostname
+    whenUnsatisfiable: ScheduleAnyway
+
 azure:
   clientId: ""
   managedIdentityName: ""

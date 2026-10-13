@@ -1,4 +1,12 @@
 {{- $databaseNames := include "webapp.database.connectionNames" . | fromJsonArray -}}
+{{- $spreadKeys := dict -}}
+{{- range .Values.topologySpreadConstraints -}}
+  {{- $key := printf "%s/%s" .topologyKey .whenUnsatisfiable -}}
+  {{- if hasKey $spreadKeys $key -}}
+    {{- fail "topologySpreadConstraints must not repeat a topologyKey/whenUnsatisfiable pair" -}}
+  {{- end -}}
+  {{- $_ := set $spreadKeys $key true -}}
+{{- end -}}
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -46,6 +54,15 @@ spec:
     spec:
       serviceAccountName: {{ .Values.service }}-service
       shareProcessNamespace: true
+      {{- with .Values.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- range . }}
+        - {{- toYaml . | nindent 10 }}
+          labelSelector:
+            matchLabels:
+              {{- include "ipaffs-common.selectorLabels" $ | nindent 14 }}
+        {{- end }}
+      {{- end }}
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ include "webapp.image.resolve" (dict "root" . "image" .Values.container.image) }}"
@@ -104,6 +121,14 @@ spec:
             - name: debug
               containerPort: 5005
               protocol: TCP
+          {{- with .Values.readinessProbe }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.startupProbe }}
+          startupProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           {{- with .Values.resources }}
           resources:
             {{- toYaml . | nindent 12 }}
