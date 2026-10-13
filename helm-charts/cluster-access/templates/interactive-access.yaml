@@ -1,0 +1,40 @@
+{{- $controls := list
+  (dict "name" "exec" "resource" "pods/exec" "enabled" .Values.kubectlExecEnabled "message" "Pod execution is disabled in this environment (kubectlExecEnabled=false).")
+  (dict "name" "port-forward" "resource" "pods/portforward" "enabled" .Values.kubectlPortForwardEnabled "message" "Pod port forwarding is disabled in this environment (kubectlPortForwardEnabled=false).")
+}}
+{{- range $controls }}
+{{- if not .enabled }}
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: ipaffs-deny-{{ .name }}
+  labels:
+    app.kubernetes.io/name: cluster-access
+    app.kubernetes.io/instance: {{ $.Release.Name }}
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["CONNECT"]
+        resources: [{{ .resource | quote }}]
+        scope: Namespaced
+  validations:
+    - expression: "false"
+      message: {{ .message | quote }}
+      reason: Forbidden
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: ipaffs-deny-{{ .name }}
+  labels:
+    app.kubernetes.io/name: cluster-access
+    app.kubernetes.io/instance: {{ $.Release.Name }}
+spec:
+  policyName: ipaffs-deny-{{ .name }}
+  validationActions: [Deny, Audit]
+{{- end }}
+{{- end }}

@@ -1,0 +1,6 @@
+apiVersion: v2
+name: cluster-access
+description: Environment controls for Kubernetes pod execution and port forwarding
+type: application
+version: 0.1.0
+kubeVersion: ">=1.30.0-0"

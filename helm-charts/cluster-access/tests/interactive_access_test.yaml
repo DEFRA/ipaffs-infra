@@ -1,0 +1,144 @@
+suite: environment pod access controls
+templates:
+  - templates/interactive-access.yaml
+tests:
+  - it: preserves access by default
+    asserts:
+      - hasDocuments:
+          count: 0
+  - it: renders no restrictions when both capabilities are explicitly enabled
+    set:
+      kubectlExecEnabled: true
+      kubectlPortForwardEnabled: true
+    asserts:
+      - hasDocuments:
+          count: 0
+  - it: disables exec independently of port forwarding
+    set:
+      kubectlExecEnabled: false
+      kubectlPortForwardEnabled: true
+    asserts:
+      - hasDocuments:
+          count: 2
+      - isKind:
+          of: ValidatingAdmissionPolicy
+        documentIndex: 0
+      - equal:
+          path: metadata.name
+          value: ipaffs-deny-exec
+        documentIndex: 0
+      - equal:
+          path: spec.matchConstraints.resourceRules
+          value:
+            - apiGroups: [""]
+              apiVersions: ["v1"]
+              operations: [CONNECT]
+              resources: [pods/exec]
+              scope: Namespaced
+        documentIndex: 0
+      - equal:
+          path: spec.validations
+          value:
+            - expression: "false"
+              message: Pod execution is disabled in this environment (kubectlExecEnabled=false).
+              reason: Forbidden
+        documentIndex: 0
+      - equal:
+          path: spec.failurePolicy
+          value: Fail
+        documentIndex: 0
+      - isKind:
+          of: ValidatingAdmissionPolicyBinding
+        documentIndex: 1
+      - equal:
+          path: spec
+          value:
+            policyName: ipaffs-deny-exec
+            validationActions: [Deny, Audit]
+        documentIndex: 1
+  - it: disables port forwarding independently of exec
+    set:
+      kubectlExecEnabled: true
+      kubectlPortForwardEnabled: false
+    asserts:
+      - hasDocuments:
+          count: 2
+      - equal:
+          path: metadata.name
+          value: ipaffs-deny-port-forward
+        documentIndex: 0
+      - equal:
+          path: spec.matchConstraints.resourceRules
+          value:
+            - apiGroups: [""]
+              apiVersions: ["v1"]
+              operations: [CONNECT]
+              resources: [pods/portforward]
+              scope: Namespaced
+        documentIndex: 0
+      - equal:
+          path: spec.validations
+          value:
+            - expression: "false"
+              message: Pod port forwarding is disabled in this environment (kubectlPortForwardEnabled=false).
+              reason: Forbidden
+        documentIndex: 0
+      - equal:
+          path: spec.failurePolicy
+          value: Fail
+        documentIndex: 0
+      - equal:
+          path: spec
+          value:
+            policyName: ipaffs-deny-port-forward
+            validationActions: [Deny, Audit]
+        documentIndex: 1
+  - it: disables both capabilities without restricting other pod operations
+    set:
+      kubectlExecEnabled: false
+      kubectlPortForwardEnabled: false
+    asserts:
+      - hasDocuments:
+          count: 4
+      - equal:
+          path: spec.matchConstraints.resourceRules[0].resources
+          value: [pods/exec]
+        documentIndex: 0
+      - equal:
+          path: spec.policyName
+          value: ipaffs-deny-exec
+        documentIndex: 1
+      - equal:
+          path: spec.matchConstraints.resourceRules[0].resources
+          value: [pods/portforward]
+        documentIndex: 2
+      - equal:
+          path: spec.policyName
+          value: ipaffs-deny-port-forward
+        documentIndex: 3
+  - it: applies across all namespaces with no identity exceptions
+    set:
+      kubectlExecEnabled: false
+      kubectlPortForwardEnabled: false
+    asserts:
+      - notExists:
+          path: spec.matchConstraints.namespaceSelector
+        documentIndex: 0
+      - notExists:
+          path: spec.matchConstraints.objectSelector
+        documentIndex: 0
+      - notExists:
+          path: spec.matchConditions
+        documentIndex: 0
+      - notExists:
+          path: spec.matchResources
+        documentIndex: 1
+      - notExists:
+          path: spec.matchConstraints.namespaceSelector
+        documentIndex: 2
+      - notExists:
+          path: spec.matchConditions
+        documentIndex: 2
+      - notExists:
+          path: spec.matchResources
+        documentIndex: 3

@@ -39,6 +39,41 @@ stages:
                       az acr login --name "$(acrName)" --subscription "$(subscriptionName)" || az acr check-health -n "$(acrName)" --yes
 
                 - task: AzureCLI@2
+                  displayName: Helm Install - cluster-access
+                  env:
+                    KUBECTL_EXEC_ENABLED: $(kubectlExecEnabled)
+                    KUBECTL_PORT_FORWARD_ENABLED: $(kubectlPortForwardEnabled)
+                    HELM_DRY_RUN: $(helmDryRun)
+                  inputs:
+                    azureSubscription: $(serviceConnection)
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      set -euo pipefail
+                      case "$KUBECTL_EXEC_ENABLED" in
+                        [Tt][Rr][Uu][Ee]) exec_enabled=true ;;
+                        [Ff][Aa][Ll][Ss][Ee]) exec_enabled=false ;;
+                        *) echo 'kubectlExecEnabled must be true or false.'; exit 1 ;;
+                      esac
+                      case "$KUBECTL_PORT_FORWARD_ENABLED" in
+                        [Tt][Rr][Uu][Ee]) port_forward_enabled=true ;;
+                        [Ff][Aa][Ll][Ss][Ee]) port_forward_enabled=false ;;
+                        *) echo 'kubectlPortForwardEnabled must be true or false.'; exit 1 ;;
+                      esac
+                      helm_args=(upgrade --install --namespace kube-system --timeout 2m)
+                      case "$HELM_DRY_RUN" in
+                        '') ;;
+                        --dry-run) helm_args+=(--dry-run) ;;
+                        *) echo 'helmDryRun must be empty or --dry-run.'; exit 1 ;;
+                      esac
+
+                      # Always upgrade: enabling either capability removes its Helm-owned restriction.
+                      helm "${helm_args[@]}" \
+                        --set "kubectlExecEnabled=$exec_enabled" \
+                        --set "kubectlPortForwardEnabled=$port_forward_enabled" \
+                        cluster-access ./helm-charts/cluster-access
+
+                - task: AzureCLI@2
                   displayName: Helm Install - alb-controller
                   env:
                     ALB_CONTROLLER_CLIENT_ID: $(albControllerClientId)
