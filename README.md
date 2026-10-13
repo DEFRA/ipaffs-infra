@@ -90,6 +90,25 @@ Things are moving along quickly. At the time of writing, migration of ipaffs-imp
 * Run `scripts/build.sh` to build the service, package a container and push to the local registry.
 * Run `scripts/deploy.sh` to deploy the latest built container image and run with remote debugger enabled.
 
+### Platform configuration pipeline
+
+Run [infra-platform](pipelines/infra-platform.yaml) manually to import platform
+images, install shared Helm controllers/configuration, and reconcile ingress
+Private Link without redeploying resource groups, networking, AKS or data services.
+Core infrastructure and its existing Library outputs must already be available.
+Run from `main` to apply; branch runs use Helm dry-run and Bicep what-if.
+Pull requests targeting `main`, including drafts, automatically preview against
+DEV when platform inputs change. Preview runs omit image imports and deployment.
+Main runs add the environment build tag in the existing Helm job.
+
+The full [infrastructure pipeline](pipelines/infrastructure.yaml) includes the
+same platform stages at the end, retaining its original bootstrap sequence and
+same-run infrastructure output handoff. Set `includePlatform: false` for a
+core-only infrastructure run; the default remains full bootstrap. Existing CI and TST/PRE/PRD release
+entrypoints remain unchanged. Schedule manual platform maintenance when core
+infrastructure deployment is idle; automatic main deployments and ordering are
+a separate change.
+
 ### Namespace network policy
 
 The bootstrap chart's optional `ipaffs-port-baseline` restricts ingress and egress
