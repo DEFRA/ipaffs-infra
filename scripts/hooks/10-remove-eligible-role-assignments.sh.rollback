@@ -1,0 +1,76 @@
+#!/usr/bin/env bash
+# Rollback for 10-remove-permanent-role-assignments.sh: removes the PIM eligible
+# role assignments Bicep created, which it never deletes itself. Disabled by the
+# .rollback suffix. Same row format: Entra access group suffix, role definition
+# id, resource type. See PIM-MIGRATION.md.
+set -euo pipefail
+
+roles='
+AksAdmin b1ff04bb-8a4e-4dc4-8eb5-8693973ce19b Microsoft.ContainerService/managedClusters
+'
+
+api_version=2020-10-01
+
+fail() {
+  echo "##vso[task.logissue type=error]$*"
+  echo "ERROR: $*" >&2
+  exit 1
+}
+
+log() {
+  echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] $*"
+}
+
+group_id() {
+  az ad group show --group "${ENTRA_ACCESS_GROUP_BASE_NAME}-${1}" --query id -o tsv
+}
+
+matching_schedules() {
+  local principal="$1" role="$2" resource_type="$3"
+  local resource_group="/subscriptions/${SUBSCRIPTION_ID}/resourceGroups/${RESOURCE_GROUP_NAME}"
+  local prefix="${resource_group}/providers/${resource_type}/"
+  az rest --method get \
+    --url "https://management.azure.com${resource_group}/providers/Microsoft.Authorization/roleEligibilitySchedules?api-version=${api_version}&\$filter=principalId eq '${principal}'" \
+    --query "value[?ends_with(properties.roleDefinitionId, '/${role}')].[properties.scope, properties.roleDefinitionId]" -o tsv \
+    | awk -v prefix="${prefix,,}" 'index(tolower($1), prefix) == 1 { print $1, $2 }'
+}
+
+remove_schedule() {
+  local principal="$1" scope="$2" role_definition_id="$3"
+  az rest --method put \
+    --url "https://management.azure.com${scope}/providers/Microsoft.Authorization/roleEligibilityScheduleRequests/$(cat /proc/sys/kernel/random/uuid)?api-version=${api_version}" \
+    --headers Content-Type=application/json \
+    --body "{\"properties\":{\"principalId\":\"${principal}\",\"roleDefinitionId\":\"${role_definition_id}\",\"requestType\":\"AdminRemove\"}}" \
+    --output none
+}
+
+for name in ENTRA_ACCESS_GROUP_BASE_NAME RESOURCE_GROUP_NAME SUBSCRIPTION_ID DRY_RUN; do
+  [[ -n "${!name:-}" ]] || fail "${name} must be set"
+done
+
+az account set --subscription "${SUBSCRIPTION_ID}"
+
+while read -r group_suffix role resource_type; do
+  [[ -n "${group_suffix}" ]] || continue
+  principal="$(group_id "${group_suffix}")"
+  mapfile -t schedules < <(matching_schedules "${principal}" "${role}" "${resource_type}")
+
+  if [[ ${#schedules[@]} -eq 0 ]]; then
+    log "No eligible assignment of ${role} to ${group_suffix} on ${resource_type}; nothing to do"
+    continue
+  fi
+
+  for schedule in "${schedules[@]}"; do
+    log "Eligible assignment of ${role} to ${group_suffix} on ${schedule%% *}"
+  done
+
+  if [[ "${DRY_RUN}" == "true" ]]; then
+    log "DRY RUN: leaving ${#schedules[@]} eligible assignment(s) in place"
+    continue
+  fi
+
+  for schedule in "${schedules[@]}"; do
+    remove_schedule "${principal}" "${schedule%% *}" "${schedule#* }"
+  done
+  log "Removed ${#schedules[@]} eligible assignment(s)"
+done <<<"${roles}"

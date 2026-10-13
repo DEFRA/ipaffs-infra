@@ -43,6 +43,7 @@ Set by the stage for every hook:
 | `DRY_RUN`             | `true` off `main`, `false` on `main` or when forced      |
 | `SUBSCRIPTION_ID`     | the environment's subscription                          |
 | `RESOURCE_GROUP_NAME` | the environment's infrastructure resource group         |
+| `ENTRA_ACCESS_GROUP_BASE_NAME` | prefix of the environment's Entra access groups |
 
 The task runs under the environment's `$(serviceConnection)` inside `AzureCLI@2`,
 so `az` is already logged in. Inputs a specific hook needs beyond the above are
@@ -51,6 +52,6 @@ added to `pipelines/stages/run-hooks.yaml` when that hook lands.
 ## Dry run
 
 Off `main` the stage always runs with `DRY_RUN=true`. The infrastructure pipeline
-has a `runHooksOnBranch` parameter that forces a real run from a branch so a new
-hook can be tested end to end. Use it sparingly and only against lower
-environments.
+has an `applyOnBranch` parameter that forces a real run from a branch, and also
+lets the infrastructure Bicep deploy run, so a hook can be tested end to end.
+Use it sparingly and only against lower environments.

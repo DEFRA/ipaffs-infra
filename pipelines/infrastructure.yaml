@@ -26,8 +26,8 @@ parameters:
     displayName: Establish Peering To Hub
     type: boolean
     default: false
-  - name: runHooksOnBranch
-    displayName: Apply hooks on non-main branch (use sparingly)
+  - name: applyOnBranch
+    displayName: Apply hooks and infrastructure Bicep on non-main branch (use sparingly)
     type: boolean
     default: false
 
@@ -66,7 +66,7 @@ stages:
   - template: stages/run-hooks.yaml
     parameters:
       environmentName: ${{ parameters.environmentName }}
-      applyOnBranch: ${{ parameters.runHooksOnBranch }}
+      applyOnBranch: ${{ parameters.applyOnBranch }}
 
   - template: stages/deploy-bicep-resource-group.yaml
     parameters:
@@ -97,6 +97,7 @@ stages:
   - template: stages/deploy-bicep-infra.yaml
     parameters:
       environmentName: ${{ parameters.environmentName }}
+      applyOnBranch: ${{ parameters.applyOnBranch }}
 
   - template: stages/deploy-bicep-infra-to-classic.yaml
     parameters:

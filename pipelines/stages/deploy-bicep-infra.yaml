@@ -2,6 +2,10 @@ parameters:
   - name: environmentName
     type: string
 
+  - name: applyOnBranch
+    type: boolean
+    default: false
+
 stages:
   - stage: ConfigureInfraDeployment
     displayName: Configure Infrastructure deployment
@@ -198,7 +202,10 @@ stages:
 
                 - task: AzureCLI@2
                   displayName: Deploy - Infrastructure
-                  condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+                  ${{ if parameters.applyOnBranch }}:
+                    condition: and(not(failed()), not(canceled()))
+                  ${{ else }}:
+                    condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
                   inputs:
                     azureSubscription: $(serviceConnection)
                     scriptType: bash
@@ -216,7 +223,10 @@ stages:
 
                 - task: AzureCLI@2
                   displayName: Wait for Deployment - Infrastructure
-                  condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+                  ${{ if parameters.applyOnBranch }}:
+                    condition: and(not(failed()), not(canceled()))
+                  ${{ else }}:
+                    condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
                   inputs:
                     azureSubscription: $(serviceConnection)
                     scriptType: bash
