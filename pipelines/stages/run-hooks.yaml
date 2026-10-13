@@ -39,7 +39,7 @@ stages:
                     HOOKS_DIR: scripts/hooks
                     SUBSCRIPTION_ID: $(subscriptionId)
                     RESOURCE_GROUP_NAME: $(resourceGroupName)
-                    ENTRA_ACCESS_GROUP_BASE_NAME: $(entraAccessGroupBaseName)
+                    AKS_ADMINS_GROUP_ID: $(aksAdminsGroupId)
                     ${{ if or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), eq(parameters.applyOnBranch, true)) }}:
                       DRY_RUN: "false"
                     ${{ else }}:

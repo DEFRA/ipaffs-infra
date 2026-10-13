@@ -43,7 +43,6 @@ Set by the stage for every hook:
 | `DRY_RUN`             | `true` off `main`, `false` on `main` or when forced      |
 | `SUBSCRIPTION_ID`     | the environment's subscription                          |
 | `RESOURCE_GROUP_NAME` | the environment's infrastructure resource group         |
-| `ENTRA_ACCESS_GROUP_BASE_NAME` | prefix of the environment's Entra access groups |
 
 The task runs under the environment's `$(serviceConnection)` inside `AzureCLI@2`,
 so `az` is already logged in. Inputs a specific hook needs beyond the above are

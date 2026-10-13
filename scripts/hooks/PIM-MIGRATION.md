@@ -9,24 +9,27 @@ close that gap.
 
 ## Migrated roles
 
-| Role                   | Group       | Resource type                                | Bicep                     |
-|------------------------|-------------|----------------------------------------------|---------------------------|
-| AKS RBAC Cluster Admin | `-AksAdmin` | `Microsoft.ContainerService/managedClusters` | `bicep/modules/aks.bicep` |
+| Role                   | Group id variable     | Resource type                                | Bicep                     |
+|------------------------|-----------------------|----------------------------------------------|---------------------------|
+| AKS RBAC Cluster Admin | `AKS_ADMINS_GROUP_ID` | `Microsoft.ContainerService/managedClusters` | `bicep/modules/aks.bicep` |
 
 ## How it works
 
 `10-remove-permanent-role-assignments.sh` runs on every deployment, before the
 Bicep stages. For each row in its `roles` table it:
 
-1. looks up the Entra group `${ENTRA_ACCESS_GROUP_BASE_NAME}-<suffix>`
+1. reads the Entra group's object id from the row's environment variable
 2. lists that group's assignments of the role across the subscription
 3. keeps those on resources of the row's type inside the environment's
    resource group
 4. deletes them, or only logs them when `DRY_RUN=true`
 
-A row is three space-separated fields: group suffix, role definition id,
-resource type. The hook needs nothing beyond what the `RunHooks` stage already
-passes, so adding a role is adding a row.
+A row is three space-separated fields: name of the environment variable
+holding the group's object id, role definition id, resource type. The
+`RunHooks` stage sets that variable from the environment's variable group,
+where the `entra-groups` stage stored the id (e.g. `$(aksAdminsGroupId)`).
+The deployment service connection cannot look groups up by name, which is why
+the id is passed in rather than resolved.
 
 Role definition ids are the GUIDs the Bicep modules use, e.g.
 `b1ff04bb-8a4e-4dc4-8eb5-8693973ce19b` from `aks.bicep`.
@@ -36,8 +39,10 @@ Role definition ids are the GUIDs the Bicep modules use, e.g.
 In one change:
 
 1. Set `roleAssignmentType: 'eligible'` on the module call in Bicep.
-2. Add the row to `10-remove-permanent-role-assignments.sh`.
-3. Add the role to the table above.
+2. Pass the group's id variable to the hook task in
+   `pipelines/stages/run-hooks.yaml`.
+3. Add the row to `10-remove-permanent-role-assignments.sh`.
+4. Add the role to the table above.
 
 ### Running it from a branch
 

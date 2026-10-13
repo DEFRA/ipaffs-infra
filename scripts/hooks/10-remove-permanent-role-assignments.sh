@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # Removes the permanent role assignments that Bicep left behind for roles it now
-# grants as PIM eligible. One row per role: Entra access group suffix, role
-# definition id, resource type. See PIM-MIGRATION.md.
+# grants as PIM eligible. One row per role: environment variable holding the
+# Entra group object id, role definition id, resource type. See PIM-MIGRATION.md.
 set -euo pipefail
 set -x
 
 roles='
-AksAdmin b1ff04bb-8a4e-4dc4-8eb5-8693973ce19b Microsoft.ContainerService/managedClusters
+AKS_ADMINS_GROUP_ID b1ff04bb-8a4e-4dc4-8eb5-8693973ce19b Microsoft.ContainerService/managedClusters
 '
 
 fail() {
@@ -19,10 +19,6 @@ log() {
   echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] $*"
 }
 
-group_id() {
-  az ad group show --group "${ENTRA_ACCESS_GROUP_BASE_NAME}-${1}" --query id -o tsv
-}
-
 matching_assignments() {
   local principal="$1" role="$2" resource_type="$3"
   local prefix="/subscriptions/${SUBSCRIPTION_ID}/resourceGroups/${RESOURCE_GROUP_NAME}/providers/${resource_type}/"
@@ -30,24 +26,25 @@ matching_assignments() {
     | awk -v prefix="${prefix,,}" 'index(tolower($2), prefix) == 1 { print $1, $2 }'
 }
 
-for name in ENTRA_ACCESS_GROUP_BASE_NAME RESOURCE_GROUP_NAME SUBSCRIPTION_ID DRY_RUN; do
+for name in RESOURCE_GROUP_NAME SUBSCRIPTION_ID DRY_RUN; do
   [[ -n "${!name:-}" ]] || fail "${name} must be set"
 done
 
 az account set --subscription "${SUBSCRIPTION_ID}"
 
-while read -r group_suffix role resource_type; do
-  [[ -n "${group_suffix}" ]] || continue
-  principal="$(group_id "${group_suffix}")"
+while read -r group_var role resource_type; do
+  [[ -n "${group_var}" ]] || continue
+  principal="${!group_var:-}"
+  [[ -n "${principal}" ]] || fail "${group_var} must be set"
   mapfile -t assignments < <(matching_assignments "${principal}" "${role}" "${resource_type}")
 
   if [[ ${#assignments[@]} -eq 0 ]]; then
-    log "No permanent assignment of ${role} to ${group_suffix} on ${resource_type}; nothing to do"
+    log "No permanent assignment of ${role} to ${group_var} on ${resource_type}; nothing to do"
     continue
   fi
 
   for assignment in "${assignments[@]}"; do
-    log "Permanent assignment of ${role} to ${group_suffix} on ${assignment#* }"
+    log "Permanent assignment of ${role} to ${group_var} on ${assignment#* }"
   done
 
   if [[ "${DRY_RUN}" == "true" ]]; then
