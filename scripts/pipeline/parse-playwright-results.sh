@@ -58,6 +58,22 @@ SKIPPED=$(jq '.stats.skipped // 0' "$REPORT_FILE")
 
 TOTAL_TESTS=$((PASSED + FAILED + FLAKY + SKIPPED))
 
+# Playwright records elapsed suite time in milliseconds, including retries.
+DURATION_SECONDS=$(jq -r '.stats.duration | if type == "number" and . >= 0 then (. / 1000 | round) else empty end' "$REPORT_FILE")
+DURATION_LABEL="Unavailable"
+if [[ -n "$DURATION_SECONDS" ]]; then
+    HOURS=$((DURATION_SECONDS / 3600))
+    MINUTES=$((DURATION_SECONDS % 3600 / 60))
+    SECONDS_REMAINDER=$((DURATION_SECONDS % 60))
+    if (( HOURS > 0 )); then
+        DURATION_LABEL="${HOURS}h ${MINUTES}m ${SECONDS_REMAINDER}s"
+    elif (( MINUTES > 0 )); then
+        DURATION_LABEL="${MINUTES}m ${SECONDS_REMAINDER}s"
+    else
+        DURATION_LABEL="${SECONDS_REMAINDER}s"
+    fi
+fi
+
 if [ "$FAILED" -gt 0 ]; then
     STATUS_TEXT="🔴- QA Test Suite Completed for ${ENVIRONMENT}"
     COLOR="#FF0000"
@@ -89,7 +105,8 @@ cat <<EOF > "$OUTPUT_PAYLOAD"
             { "type": "mrkdwn", "text": "Passed : $PASSED" },
             { "type": "mrkdwn", "text": "Failed : $FAILED" },
             { "type": "mrkdwn", "text": "Flaky : $FLAKY" },
-            { "type": "mrkdwn", "text": "Skipped : $SKIPPED" }
+            { "type": "mrkdwn", "text": "Skipped : $SKIPPED" },
+            { "type": "mrkdwn", "text": "Duration : $DURATION_LABEL" }
           ]
         },
         {
