@@ -17,13 +17,7 @@ variables:
     a-daniel.johansson@defra.onmicrosoft.com
     a-jon.shaw@defra.onmicrosoft.com
     a-marcel.vandenhof@Defra.onmicrosoft.com
-    a-ranjan.majumdar@defra.onmicrosoft.com
-    a-srinivasan.kannan@defra.onmicrosoft.com
-    a-suhas.avula@defra.onmicrosoft.com
-    a-sunil.kumar@defra.onmicrosoft.com
-    a-suresh.sundaram@defra.onmicrosoft.com
     a-tom.bamford@Defra.onmicrosoft.com
-    a-toby.steed@Defra.onmicrosoft.com
 
   # SC-cleared admin accounts only!
   higherEnvsReadersGroupMembers: >
@@ -36,23 +30,12 @@ variables:
     a-jon.shaw@defra.onmicrosoft.com
     a-marcel.vandenhof@Defra.onmicrosoft.com
     a-peter.anning@Defra.onmicrosoft.com
-    a-ranjan.majumdar@defra.onmicrosoft.com
-    a-srinivasan.kannan@defra.onmicrosoft.com
-    a-suhas.avula@defra.onmicrosoft.com
-    a-sunil.kumar@defra.onmicrosoft.com
-    a-suresh.sundaram@defra.onmicrosoft.com
     a-toby.steed@Defra.onmicrosoft.com
 
   # Note: members of admins group do not also need to be developer group members
   lowerEnvsAdminsGroupMembers: >
     a-daniel.johansson@defra.onmicrosoft.com
     a-marcel.vandenhof@defra.onmicrosoft.com
-    a-mathew.lambeth@defra.onmicrosoft.com
-    a-ranjan.majumdar@defra.onmicrosoft.com
-    a-srinivasan.kannan@defra.onmicrosoft.com
-    a-suhas.avula@defra.onmicrosoft.com
-    a-sunil.kumar@defra.onmicrosoft.com
-    a-suresh.sundaram@defra.onmicrosoft.com
     a-tom.bamford@defra.onmicrosoft.com
     andrew.hardy@defra.onmicrosoft.com
     andy.hardy@defra.gov.uk
@@ -62,12 +45,6 @@ variables:
     jon.shaw@defra.onmicrosoft.com
     marcel.vandenhof@defra.gov.uk
     marcel.vandenhof@defra.onmicrosoft.com
-    mat.lambeth@defra.gov.uk
-    mathew.lambeth@defra.onmicrosoft.com
-    ranjan.majumdar@defra.gov.uk
-    ranjan.majumdar@defra.onmicrosoft.com
-    sunil.kumar@defra.gov.uk
-    sunil.kumar@defra.onmicrosoft.com
     tom.bamford@defra.gov.uk
     tom.bamford@defra.onmicrosoft.com
 
