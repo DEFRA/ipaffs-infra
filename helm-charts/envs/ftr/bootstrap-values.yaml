@@ -4,8 +4,11 @@ networkPolicy:
 
 ipaffsConfig:
   data:
-    # Remote debugging only in feature namespaces, not the shared DEV namespace
+    # Remote debugging only in feature namespaces, not the shared DEV namespace.
+    # REMOTE_DEBUG is read by the Node frontends' entrypoint scripts; the JVM reads
+    # JAVA_TOOL_OPTIONS itself, so it works in the distroless Java images.
     REMOTE_DEBUG: "true"
+    JAVA_TOOL_OPTIONS: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"
 
 serviceBus:
   queues:
