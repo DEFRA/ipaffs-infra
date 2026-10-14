@@ -1,0 +1,70 @@
+---
+# Main deployments are manual; pull requests preview against DEV.
+# This entrypoint assumes core infrastructure is already deployed.
+trigger: none
+pr:
+  drafts: true
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - pipelines/infra-platform.yaml
+      - pipelines/stages/infra-platform.yaml
+      - pipelines/stages/import-acr-artifacts.yaml
+      - pipelines/stages/install-helm-charts.yaml
+      - pipelines/stages/deploy-bicep-privatelink.yaml
+      - pipelines/vars/common.yaml
+      - pipelines/vars/dev.yaml
+      - bicep/50-privatelink.bicep
+      - bicep/modules/privatelink.bicep
+      - bicep/envs/dev/50-privatelink.bicepparam
+      - bicep/default-tags.json
+      - bicep/bicepconfig.json
+      - helm-charts/*-values.yaml
+      - helm-charts/agc-gateway/**
+      - helm-charts/ama-metrics-settings/**
+      - helm-charts/app-routing-controller/**
+      - helm-charts/azure-service-operator-config/**
+      - helm-charts/defra-certs/**
+      - helm-charts/external-secrets-azure/**
+      - helm-charts/ms-identity-redirect-handler/**
+
+pool:
+  name: DEFRA-COMMON-ubuntu2204-SSV5
+
+parameters:
+  - name: environmentName
+    displayName: Environment
+    type: string
+    default: DEV
+    values:
+      - DEV
+      - TST
+      - PRE
+      - PRD
+
+variables:
+  - group: Common
+  - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
+    - group: HigherEnvs
+  - ${{ else }}:
+    - group: LowerEnvs
+  - group: "${{ parameters.environmentName }}"
+  - template: "/pipelines/vars/common.yaml"
+  - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
+  - name: helmDryRun
+    ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/main') }}:
+      value: ''
+    ${{ else }}:
+      value: '--dry-run'
+
+stages:
+  - template: stages/infra-platform.yaml
+    parameters:
+      environmentName: ${{ parameters.environmentName }}
+      tagBuild: true
+      # Branch runs preview Helm/Bicep only. Omit the main-only import stage so
+      # its skipped deployment jobs do not block downstream preview stages.
+      ${{ if ne(variables['Build.SourceBranch'], 'refs/heads/main') }}:
+        importImages: false

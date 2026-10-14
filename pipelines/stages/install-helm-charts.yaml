@@ -4,6 +4,9 @@ parameters:
   - name: infrastructureDeploymentName
     type: string
     default: ''
+  - name: tagBuild
+    type: boolean
+    default: false
 
 stages:
   - stage: DeployHelmCharts
@@ -18,6 +21,11 @@ stages:
             deploy:
               steps:
                 - checkout: self
+
+                - ${{ if parameters.tagBuild }}:
+                  - bash: echo "##vso[build.addbuildtag]Environment-${{ parameters.environmentName }}"
+                    displayName: Tag environment
+                    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
 
                 - task: AzureCLI@2
                   name: AuthenticateAzure
@@ -429,7 +437,7 @@ stages:
                     scriptType: bash
                     scriptLocation: inlineScript
                     inlineScript: |
-                      set -x
+                      set -ex
                       helm upgrade \
                         --install \
                         --debug \
@@ -439,6 +447,8 @@ stages:
                         --timeout 2m \
                         $(helmDryRun) \
                         ama-metrics-settings ./helm-charts/ama-metrics-settings
-                      kubectl rollout restart deployment ama-metrics-ksm -n kube-system
-                      kubectl rollout status deployment ama-metrics-ksm -n kube-system --timeout=2m
+                      if [[ -z "$(helmDryRun)" ]]; then
+                        kubectl rollout restart deployment ama-metrics-ksm -n kube-system
+                        kubectl rollout status deployment ama-metrics-ksm -n kube-system --timeout=2m
+                      fi
 

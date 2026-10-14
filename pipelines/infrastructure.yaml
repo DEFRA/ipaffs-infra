@@ -30,6 +30,10 @@ parameters:
     displayName: Apply hooks on non-main branch (use sparingly)
     type: boolean
     default: false
+  - name: includePlatform
+    displayName: Include platform configuration (full bootstrap)
+    type: boolean
+    default: true
 
 variables:
   - group: Common
@@ -110,18 +114,11 @@ stages:
     parameters:
       environmentName: ${{ parameters.environmentName }}
 
-  - template: stages/import-acr-artifacts.yaml
-    parameters:
-      environmentName: ${{ parameters.environmentName }}
-
-  - template: stages/install-helm-charts.yaml
-    parameters:
-      environmentName: ${{ parameters.environmentName }}
-      infrastructureDeploymentName: Infrastructure-$(Build.BuildId)
-
-  - template: stages/deploy-bicep-privatelink.yaml
-    parameters:
-      environmentName: ${{ parameters.environmentName }}
+  - ${{ if parameters.includePlatform }}:
+    - template: stages/infra-platform.yaml
+      parameters:
+        environmentName: ${{ parameters.environmentName }}
+        infrastructureDeploymentName: Infrastructure-$(Build.BuildId)
 
 # Temporarily disabled
 #  - template: stages/deploy-bicep-dns.yaml

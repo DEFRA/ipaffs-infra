@@ -3,8 +3,8 @@ parameters:
     type: string
 
 stages:
-  - stage: ConfigurePrivateLinkDeployment
-    displayName: Configure Private Link deployment
+  - stage: PrivateLink
+    displayName: Private Link
     variables:
       - group: Common
       - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
@@ -45,21 +45,9 @@ stages:
               artifactName: bicepparam-privatelink
               targetPath: $(Build.SourcesDirectory)/50-privatelink-runtime.bicepparam
 
-
-  - stage: DeployPrivateLink
-    displayName: Deploy Private Link
-    variables:
-      - group: Common
-      - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
-        - group: HigherEnvs
-      - ${{ else }}:
-        - group: LowerEnvs
-      - group: "${{ parameters.environmentName }}"
-      - template: "/pipelines/vars/common.yaml"
-      - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
-    jobs:
       - deployment: RunBicep
         displayName: Run Bicep
+        dependsOn: ConfigureBicep
         environment:
           name: "${{ parameters.environmentName }}"
         strategy:
