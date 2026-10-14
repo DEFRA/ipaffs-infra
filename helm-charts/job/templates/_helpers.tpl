@@ -32,6 +32,22 @@ Explicit values are still supported as a compatibility fallback.
 {{- end }}
 
 {{/*
+Render JDBC URLs consistently for the canonical key and any configured aliases.
+Native workload identity uses the credentials injected into the pod by the AKS webhook.
+*/}}
+{{- define "job.database.jdbcUrl" -}}
+{{- $db := dict "databaseName" .databaseName "Values" .root.Values "Release" .root.Release -}}
+{{- $database := .root.Values.database | default dict -}}
+{{- $workloadIdentity := get $database "workloadIdentity" | default dict -}}
+{{- $connection := printf "jdbc:sqlserver://%s:1433;databaseName=%s;encrypt=true;socketTimeout=1800000;loginTimeout=15" (include "ipaffs-common.azure.sqlServerHostname" $db) (include "ipaffs-common.azure.databaseName" $db) -}}
+{{- if (get $workloadIdentity "enabled" | default false) -}}
+{{- printf "%s;authentication=ActiveDirectoryDefault" $connection -}}
+{{- else -}}
+{{- printf "%s;authentication=ActiveDirectoryManagedIdentity;msiClientId=%s" $connection .clientId -}}
+{{- end -}}
+{{- end }}
+
+{{/*
 Resolve an image reference.
 
 If the supplied image already contains a registry host, return as-is.
