@@ -54,6 +54,7 @@ spec:
     spec:
       serviceAccountName: {{ .Values.service }}-service
       shareProcessNamespace: true
+      {{- include "ipaffs-common.filesystem.podSpec" . | nindent 6 }}
       {{- with .Values.topologySpreadConstraints }}
       topologySpreadConstraints:
         {{- range . }}
@@ -76,10 +77,7 @@ spec:
             {{- end }}
           {{- end }}
           imagePullPolicy: {{ .Values.container.imagePullPolicy }}
-          {{- with .Values.container.securityContext }}
-          securityContext:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
+          {{- include "ipaffs-common.filesystem.applicationSecurity" . | nindent 10 }}
           envFrom:
             - configMapRef:
                 name: ipaffs-config
@@ -102,6 +100,7 @@ spec:
           env:
             {{- include "ipaffs-common.telemetry.javaEnv" . | nindent 12 }}
             {{- include "ipaffs-common.serviceBus.env" . | nindent 12 }}
+            {{- include "ipaffs-common.filesystem.diagnosticsEnv" . | nindent 12 }}
             - name: OTEL_SERVICE_NAME
               value: {{ .Values.service }}
             - name: MANAGED_IDENTITY_USER

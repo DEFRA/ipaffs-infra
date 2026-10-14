@@ -1,0 +1,38 @@
+suite: scaledjob application filesystem policy
+templates:
+  - templates/scaledjob.yaml
+tests:
+  - it: enforces an immutable application root with writable temporary storage and agent diagnostics
+    set:
+      service: test-job
+      azure.clientId: 00000000-0000-0000-0000-000000000001
+      container.image: test/image:1
+      keda.enabled: true
+      keda.triggers:
+        - type: azure-servicebus
+          metadata:
+            queueName: test-queue
+    asserts:
+      - equal:
+          path: spec.jobTargetRef.template.spec.containers[0].securityContext.readOnlyRootFilesystem
+          value: true
+      - equal:
+          path: spec.jobTargetRef.template.spec.securityContext
+          value:
+            fsGroup: 1000
+      - equal:
+          path: spec.jobTargetRef.template.spec.volumes
+          value:
+            - name: temporary-files
+              emptyDir: {}
+      - equal:
+          path: spec.jobTargetRef.template.spec.containers[0].volumeMounts
+          value:
+            - name: temporary-files
+              mountPath: /tmp
+              readOnly: false
+      - equal:
+          path: spec.jobTargetRef.template.spec.containers[0].env
+          value:
+            - name: APPLICATIONINSIGHTS_SELF_DIAGNOSTICS_FILE_PATH
+              value: /tmp/applicationinsights.log

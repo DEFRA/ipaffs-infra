@@ -54,5 +54,8 @@ tests:
       serviceBus.useSecrets: false
       serviceBus.connectionStringAliases: [GVMS_QUEUE_CONNECTION_NAME]
     asserts:
-      - notExists:
+      - equal:
           path: spec.jobTargetRef.template.spec.containers[0].env
+          value:
+            - name: APPLICATIONINSIGHTS_SELF_DIAGNOSTICS_FILE_PATH
+              value: /tmp/applicationinsights.log

@@ -25,6 +25,7 @@ tests:
       - equal:
           path: spec.jobTargetRef.template.spec.containers[0].securityContext
           value:
+            readOnlyRootFilesystem: true
             runAsNonRoot: true
             runAsUser: 1000
             runAsGroup: 1000
@@ -43,6 +44,17 @@ tests:
             runAsUser: 1000
             runAsGroup: 1000
             allowPrivilegeEscalation: false
+      - notExists:
+          path: spec.jobTargetRef.template.spec.initContainers[0].volumeMounts
+      - notExists:
+          path: spec.jobTargetRef.template.spec.initContainers[1].volumeMounts
+      - equal:
+          path: spec.jobTargetRef.template.spec.initContainers[0].env
+          value:
+            - name: LOG_LEVEL
+              value: info
+      - notExists:
+          path: spec.jobTargetRef.template.spec.initContainers[1].env
   - it: supports different non-root identities without losing other security defaults
     set:
       service: test-service
@@ -72,6 +84,7 @@ tests:
       - equal:
           path: spec.jobTargetRef.template.spec.containers[0].securityContext
           value:
+            readOnlyRootFilesystem: true
             runAsNonRoot: true
             runAsUser: 2000
             runAsGroup: 2001
@@ -105,6 +118,7 @@ tests:
       - equal:
           path: spec.jobTargetRef.template.spec.containers[0].securityContext
           value:
+            readOnlyRootFilesystem: true
             runAsNonRoot: true
             runAsUser: 1000
             runAsGroup: 1000

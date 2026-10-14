@@ -1,0 +1,34 @@
+suite: cronjob application filesystem policy
+templates:
+  - templates/cronjob.yaml
+tests:
+  - it: enforces an immutable application root with writable temporary storage and agent diagnostics
+    set:
+      service: test-job
+      azure.clientId: 00000000-0000-0000-0000-000000000001
+      container.image: test/image:1
+      schedule: 0 * * * *
+    asserts:
+      - equal:
+          path: spec.jobTemplate.spec.template.spec.containers[0].securityContext.readOnlyRootFilesystem
+          value: true
+      - equal:
+          path: spec.jobTemplate.spec.template.spec.securityContext
+          value:
+            fsGroup: 1000
+      - equal:
+          path: spec.jobTemplate.spec.template.spec.volumes
+          value:
+            - name: temporary-files
+              emptyDir: {}
+      - equal:
+          path: spec.jobTemplate.spec.template.spec.containers[0].volumeMounts
+          value:
+            - name: temporary-files
+              mountPath: /tmp
+              readOnly: false
+      - equal:
+          path: spec.jobTemplate.spec.template.spec.containers[0].env
+          value:
+            - name: APPLICATIONINSIGHTS_SELF_DIAGNOSTICS_FILE_PATH
+              value: /tmp/applicationinsights.log

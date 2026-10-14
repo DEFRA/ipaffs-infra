@@ -16,8 +16,11 @@ tests:
           metadata:
             queueName: test-queue
     asserts:
-      - notExists:
+      - equal:
           path: spec.jobTargetRef.template.spec.containers[0].env
+          value:
+            - name: APPLICATIONINSIGHTS_SELF_DIAGNOSTICS_FILE_PATH
+              value: /tmp/applicationinsights.log
       - equal:
           path: spec.rollout.strategy
           value: gradual
@@ -127,8 +130,11 @@ tests:
             queueName: test-queue
       telemetry.java.enabled: false
     asserts:
-      - notExists:
+      - equal:
           path: spec.jobTargetRef.template.spec.containers[0].env
+          value:
+            - name: APPLICATIONINSIGHTS_SELF_DIAGNOSTICS_FILE_PATH
+              value: /tmp/applicationinsights.log
   - it: rejects enabling central Java telemetry without a service name
     release:
       namespace: dev
@@ -183,5 +189,8 @@ tests:
       - equal:
           path: spec.rollout.strategy
           value: gradual
-      - notExists:
+      - equal:
           path: spec.jobTargetRef.template.spec.containers[0].env
+          value:
+            - name: APPLICATIONINSIGHTS_SELF_DIAGNOSTICS_FILE_PATH
+              value: /tmp/applicationinsights.log

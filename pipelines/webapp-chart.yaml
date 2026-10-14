@@ -10,6 +10,7 @@ trigger:
       - scripts/pipeline/update-manifest-chart-version.sh
 
 pr:
+  drafts: false
   branches:
     include:
       - main
@@ -99,7 +100,7 @@ stages:
 
       - job: PackageFeatureBranch
         displayName: Package from feature branch (DEV)
-        condition: and(not(failed()), not(canceled()), ne(variables['Build.SourceBranch'], 'refs/heads/main'))
+        condition: and(not(failed()), not(canceled()), ne(variables['Build.Reason'], 'PullRequest'), ne(variables['Build.SourceBranch'], 'refs/heads/main'))
         dependsOn: TestWebappChart
         steps:
           - task: AzureCLI@2

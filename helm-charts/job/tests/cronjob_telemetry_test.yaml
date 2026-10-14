@@ -2,7 +2,7 @@ suite: cronjob Java telemetry
 templates:
   - templates/cronjob.yaml
 tests:
-  - it: leaves existing applications unchanged when central Java telemetry is disabled
+  - it: omits Java telemetry configuration when central Java telemetry is disabled
     release:
       namespace: dev
     set:
@@ -12,8 +12,11 @@ tests:
       container.image: test/image:1.0.0
       schedule: 0 0 * * *
     asserts:
-      - notExists:
+      - equal:
           path: spec.jobTemplate.spec.template.spec.containers[0].env
+          value:
+            - name: APPLICATIONINSIGHTS_SELF_DIAGNOSTICS_FILE_PATH
+              value: /tmp/applicationinsights.log
   - it: derives the canonical role from service despite a stale roleName value
     release:
       namespace: dev
@@ -97,8 +100,11 @@ tests:
       schedule: 0 0 * * *
       telemetry.java.enabled: false
     asserts:
-      - notExists:
+      - equal:
           path: spec.jobTemplate.spec.template.spec.containers[0].env
+          value:
+            - name: APPLICATIONINSIGHTS_SELF_DIAGNOSTICS_FILE_PATH
+              value: /tmp/applicationinsights.log
   - it: rejects enabling central Java telemetry without a service name
     release:
       namespace: dev

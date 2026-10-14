@@ -43,3 +43,16 @@ voluntary evictions, not Deployment updates. Single replicas remain interruptibl
 `minAvailable: 1` blocks their eviction. Soft spreading prefers separate nodes
 without guaranteeing placement. Validate readiness, replicas and spare capacity
 before promotion.
+
+## Read-only application filesystem
+
+Application containers always use a read-only root, writable disk-backed `/tmp`
+`emptyDir`, and pod `fsGroup: 1000`. Agent diagnostics are fixed at
+`/tmp/applicationinsights.log` through a direct container environment variable.
+Filesystem overrides are rejected.
+
+Database migration Jobs and workload-identity bridges retain their separate policies.
+
+Adopting the new chart version rolls every application using it. Validate one DEV
+service's startup, certificate trust, health, requests and telemetry with its actual
+image before wider promotion.
