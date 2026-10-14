@@ -15,7 +15,7 @@ tests:
       - notExists:
           path: data.APPLICATIONINSIGHTS_SELF_DIAGNOSTICS_FILE_PATH
 
-  - it: keeps managed identity authentication and the service client id by default
+  - it: uses native application authentication by default without publishing a client id
     release:
       namespace: dev
     set:
@@ -25,9 +25,11 @@ tests:
     asserts:
       - equal:
           path: data.DATABASE_DB_CONNECTION_STRING_IMPORTS
-          value: "jdbc:sqlserver://devimpdbssq1401.database.windows.net:1433;databaseName=imports;encrypt=true;socketTimeout=1800000;loginTimeout=15;authentication=ActiveDirectoryManagedIdentity;msiClientId=00000000-0000-0000-0000-000000000001"
+          value: "jdbc:sqlserver://devimpdbssq1401.database.windows.net:1433;databaseName=imports;encrypt=true;socketTimeout=1800000;loginTimeout=15;authentication=ActiveDirectoryDefault"
+      - notExists:
+          path: data.AZURE_CLIENT_ID
 
-  - it: selects native workload identity without an msi client id
+  - it: keeps native application authentication when migrations opt in to native mode
     release:
       namespace: dev
     set:
@@ -40,7 +42,7 @@ tests:
           path: data.DATABASE_DB_CONNECTION_STRING_IMPORTS
           value: "jdbc:sqlserver://devimpdbssq1401.database.windows.net:1433;databaseName=imports;encrypt=true;socketTimeout=1800000;loginTimeout=15;authentication=ActiveDirectoryDefault"
 
-  - it: applies native authentication to managed and referenced databases in an isolated namespace
+  - it: uses native application authentication for managed and referenced databases while migrations remain legacy
     release:
       namespace: sqlwi-pilot
     set:
@@ -48,7 +50,7 @@ tests:
       azure.clientId: 00000000-0000-0000-0000-000000000001
       database.managedDatabaseNames[0]: imports-primary
       database.referencedDatabaseNames[0]: imports-secondary
-      database.workloadIdentity.enabled: true
+      database.workloadIdentity.enabled: false
     asserts:
       - equal:
           path: data.DATABASE_DB_CONNECTION_STRING_IMPORTS_PRIMARY
@@ -56,3 +58,18 @@ tests:
       - equal:
           path: data.DATABASE_DB_CONNECTION_STRING_IMPORTS_SECONDARY
           value: "jdbc:sqlserver://devimpdbssq1401.database.windows.net:1433;databaseName=imports-secondary-sqlwi-pilot;encrypt=true;socketTimeout=1800000;loginTimeout=15;authentication=ActiveDirectoryDefault"
+
+  - it: keeps the existing TST host and database name with legacy migrations
+    release:
+      namespace: tst
+    set:
+      service: test-service
+      environment: tst
+      azure.clientId: 00000000-0000-0000-0000-000000000001
+      azure.sqlServerHostname: tstimpdbssqa001.database.windows.net
+      database.databaseNames[0]: imports
+      database.workloadIdentity.enabled: false
+    asserts:
+      - equal:
+          path: data.DATABASE_DB_CONNECTION_STRING_IMPORTS
+          value: "jdbc:sqlserver://tstimpdbssqa001.database.windows.net:1433;databaseName=imports;encrypt=true;socketTimeout=1800000;loginTimeout=15;authentication=ActiveDirectoryDefault"

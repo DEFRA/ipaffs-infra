@@ -2,7 +2,7 @@ suite: non-root container identities
 templates:
   - templates/deployment.yaml
 tests:
-  - it: sets explicit non-root identities on every container
+  - it: keeps the native SQL application non-root without a bridge
     set:
       service: test-service
       azure.clientId: 00000000-0000-0000-0000-000000000001
@@ -19,20 +19,16 @@ tests:
             runAsGroup: 1000
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
-      - equal:
-          path: spec.template.spec.initContainers[0].securityContext
-          value:
-            runAsNonRoot: true
-            runAsUser: 1000
-            runAsGroup: 1000
-            allowPrivilegeEscalation: false
-  - it: supports different non-root identities without losing other security defaults
+      - notExists:
+          path: spec.template.spec.initContainers
+  - it: preserves custom application identities and ignores legacy bridge identity settings
     set:
       service: test-service
       azure.clientId: 00000000-0000-0000-0000-000000000001
       container.image: test/image:1.0.0
       database.databaseNames:
         - imports
+      database.workloadIdentity.enabled: false
       container.securityContext.runAsUser: 2000
       container.securityContext.runAsGroup: 2001
       initContainers.workloadIdentityAdalBridge.securityContext.runAsUser: 3000
@@ -48,22 +44,10 @@ tests:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
       - equal:
-          path: spec.template.spec.initContainers[0].securityContext
-          value:
-            runAsNonRoot: true
-            runAsUser: 3000
-            runAsGroup: 3001
-            allowPrivilegeEscalation: false
-      - equal:
           path: spec.template.spec.securityContext.fsGroup
           value: 1000
       - notExists:
-          path: spec.template.spec.initContainers[0].volumeMounts
-      - equal:
-          path: spec.template.spec.initContainers[0].env
-          value:
-            - name: LOG_LEVEL
-              value: info
+          path: spec.template.spec.initContainers
   - it: keeps the main container non-root without a database bridge
     set:
       service: test-service

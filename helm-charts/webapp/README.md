@@ -51,8 +51,32 @@ Application containers always use a read-only root, writable disk-backed `/tmp`
 `/tmp/applicationinsights.log` through a direct container environment variable.
 Filesystem overrides are rejected.
 
-Database migration Jobs and workload-identity bridges retain their separate policies.
+Database migration Jobs and their optional SQL identity bridge retain separate
+filesystem policies.
 
 Adopting the new chart version rolls every application using it. Validate one DEV
 service's startup, certificate trust, health, requests and telemetry with its actual
 image before wider promotion.
+
+## SQL authentication
+
+Generated application JDBC URLs always use `authentication=ActiveDirectoryDefault`,
+and application Deployments omit the SQL identity bridge. Existing service accounts,
+client IDs and workload-identity labels are retained so AKS can inject federated
+credentials. Explicit connection-string overrides in `config` retain their existing
+precedence and must use compatible authentication.
+
+Application images need an MSSQL JDBC driver and Azure Identity dependencies that
+support workload identity. Retain both dependencies when removing bridge tooling.
+Source compatibility does not validate every promoted image or business workflow;
+check the actual image, identity, SQL connectivity and connection/token renewal
+before promotion.
+
+`database.workloadIdentity.enabled` controls migration Jobs only. Its default
+`false` retains managed-identity JDBC authentication and the migration bridge.
+`true` selects `ActiveDirectoryDefault` and removes that bridge. Keep it disabled
+for BCP uploads that still use the bridge's HTTP token client until their token
+acquisition is converted and tested.
+
+Scheduled and KEDA jobs use the separate Job chart, which retains its own native
+workload-identity opt-in. Validate those workloads independently.
