@@ -100,6 +100,29 @@
     }
   },
   "properties": {
+    "temporaryFilesystem": false,
+    "podSecurityContext": false,
+    "volumes": false,
+    "config": {
+      "properties": {
+        "APPLICATIONINSIGHTS_SELF_DIAGNOSTICS_FILE_PATH": false
+      }
+    },
+    "container": {
+      "type": "object",
+      "required": ["securityContext"],
+      "properties": {
+        "applicationInsightsSelfDiagnosticsFilePath": false,
+        "volumeMounts": false,
+        "securityContext": {
+          "type": "object",
+          "required": ["readOnlyRootFilesystem"],
+          "properties": {
+            "readOnlyRootFilesystem": { "const": true }
+          }
+        }
+      }
+    },
     "readinessProbe": {
       "description": "An empty object disables the probe; otherwise configure exactly one Kubernetes probe handler.",
       "allOf": [
@@ -279,7 +302,8 @@
     }
   },
   "required": [
-    "environment"
+    "environment",
+    "container"
   ],
   "title": "Values",
   "type": "object"

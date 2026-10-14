@@ -79,6 +79,8 @@ tests:
       - equal:
           path: spec.template.spec.containers[0].env
           value:
+            - name: APPLICATIONINSIGHTS_SELF_DIAGNOSTICS_FILE_PATH
+              value: /tmp/applicationinsights.log
             - name: OTEL_SERVICE_NAME
               value: soapsearch-service
             - name: MANAGED_IDENTITY_USER

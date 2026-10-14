@@ -65,8 +65,11 @@ tests:
       container.image: test/image:1.0.0
       config.TEST_CONFIG: config-value
     asserts:
-      - notExists:
+      - equal:
           path: spec.jobTargetRef.template.spec.containers[0].env
+          value:
+            - name: APPLICATIONINSIGHTS_SELF_DIAGNOSTICS_FILE_PATH
+              value: /tmp/applicationinsights.log
       - contains:
           path: spec.jobTargetRef.template.spec.containers[0].envFrom
           content:

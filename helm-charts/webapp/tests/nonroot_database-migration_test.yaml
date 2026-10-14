@@ -28,6 +28,19 @@ tests:
             runAsUser: 1000
             runAsGroup: 1000
             allowPrivilegeEscalation: false
+      - notExists:
+          path: spec.template.spec.securityContext
+      - notExists:
+          path: spec.template.spec.volumes
+      - notExists:
+          path: spec.template.spec.containers[0].volumeMounts
+      - notExists:
+          path: spec.template.spec.initContainers[0].volumeMounts
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: APPLICATIONINSIGHTS_SELF_DIAGNOSTICS_FILE_PATH
+            value: /tmp/applicationinsights.log
   - it: supports different non-root identities without losing other security defaults
     set:
       service: test-service

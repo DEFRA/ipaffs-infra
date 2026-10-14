@@ -26,6 +26,7 @@ spec:
             azure.workload.identity/use: "true"
         spec:
           serviceAccountName: {{ .Values.service }}-service
+          {{- include "ipaffs-common.filesystem.podSpec" . | nindent 10 }}
 {{- if gt (len $databaseNames) 0 }}
           shareProcessNamespace: true
 {{- end }}
@@ -43,14 +44,11 @@ spec:
                 {{ end }}
               {{ end }}
               imagePullPolicy: {{ .Values.container.imagePullPolicy }}
-              {{- with (list (include "ipaffs-common.telemetry.javaEnv" .) (include "ipaffs-common.serviceBus.env" .) | compact | join "\n") }}
+              {{- with (list (include "ipaffs-common.telemetry.javaEnv" .) (include "ipaffs-common.serviceBus.env" .) (include "ipaffs-common.filesystem.diagnosticsEnv" .) | compact | join "\n") }}
               env:
                 {{- . | nindent 16 }}
               {{- end }}
-              {{- with .Values.container.securityContext }}
-              securityContext:
-                {{- toYaml . | nindent 16 }}
-              {{- end }}
+              {{- include "ipaffs-common.filesystem.applicationSecurity" . | nindent 14 }}
               envFrom:
                 - configMapRef:
                     name: ipaffs-config

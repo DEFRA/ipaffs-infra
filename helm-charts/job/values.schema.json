@@ -229,8 +229,24 @@
           "items": {
             "type": "string"
           }
-        }
-      }
+        },
+        "securityContext": {
+          "type": "object",
+          "properties": {
+            "readOnlyRootFilesystem": {
+              "const": true
+            }
+          },
+          "required": [
+            "readOnlyRootFilesystem"
+          ]
+        },
+        "volumeMounts": false,
+        "applicationInsightsSelfDiagnosticsFilePath": false
+      },
+      "required": [
+        "securityContext"
+      ]
     },
     "initContainer": {
       "type": "object",
@@ -253,14 +269,20 @@
       ]
     },
     "config": {
-      "type": "object"
+      "properties": {
+        "APPLICATIONINSIGHTS_SELF_DIAGNOSTICS_FILE_PATH": false
+      }
     },
     "resources": {
       "type": "object"
-    }
+    },
+    "podSecurityContext": false,
+    "volumes": false,
+    "temporaryFilesystem": false
   },
   "required": [
-    "environment"
+    "environment",
+    "container"
   ],
   "allOf": [
     {

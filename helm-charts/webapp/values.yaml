@@ -21,6 +21,8 @@ container:
     runAsUser: 1000
     runAsGroup: 1000
     allowPrivilegeEscalation: false
+    # Required policy: the schema and templates enforce this value.
+    readOnlyRootFilesystem: true
 
 initContainers:
   workloadIdentityAdalBridge:

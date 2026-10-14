@@ -12,6 +12,8 @@ tests:
       - equal:
           path: data.CONFIG_ONLY
           value: config-only-value
+      - notExists:
+          path: data.APPLICATIONINSIGHTS_SELF_DIAGNOSTICS_FILE_PATH
 
   - it: exposes generated database connection strings under a configured primary key and aliases
     set:
