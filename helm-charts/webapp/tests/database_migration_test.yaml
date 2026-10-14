@@ -51,6 +51,62 @@ tests:
           path: metadata.annotations["azure.workload.identity/client-id"]
           value: 00000000-0000-0000-0000-000000000002
 
+  - it: applies migration memory defaults independently of webapp resources
+    set:
+      service: test-service
+      database.migrations.enabled: true
+      database.migrations.image: test/migrations:1.0.0
+      database.migrations.clientId: 00000000-0000-0000-0000-000000000002
+      resources.requests.memory: 64Mi
+      resources.limits.memory: 128Mi
+      resources.limits.cpu: 50m
+    documentIndex: 1
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].resources
+          value:
+            requests:
+              memory: 256Mi
+            limits:
+              memory: 2Gi
+
+  - it: allows services to override migration resources
+    set:
+      service: test-service
+      database.migrations.enabled: true
+      database.migrations.image: test/migrations:1.0.0
+      database.migrations.clientId: 00000000-0000-0000-0000-000000000002
+      database.migrations.resources.requests.cpu: 250m
+      database.migrations.resources.requests.memory: 512Mi
+      database.migrations.resources.limits.memory: 4Gi
+    documentIndex: 1
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].resources
+          value:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              memory: 4Gi
+
+  - it: retains the memory request when only the migration limit is overridden
+    set:
+      service: test-service
+      database.migrations.enabled: true
+      database.migrations.image: test/migrations:1.0.0
+      database.migrations.clientId: 00000000-0000-0000-0000-000000000002
+      database.migrations.resources.limits.memory: 4Gi
+    documentIndex: 1
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].resources
+          value:
+            requests:
+              memory: 256Mi
+            limits:
+              memory: 4Gi
+
   - it: adds expected env and secret refs to migration job
     release:
       namespace: dev
