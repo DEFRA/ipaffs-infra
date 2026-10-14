@@ -26,7 +26,7 @@ externalSecret:
 networkPolicy:
   enabled: false
   # Actual destination pod ports, rather than the Service's port 80.
-  ingressPorts: [4000, 8000]
+  ingressPorts: [4000, 6161, 8000]
   # In-cluster Redis is reachable only from pods in this namespace.
   sameNamespaceIngressPorts: [6379]
   # Port 80 and the pod ports cover Service translation across policy providers.
@@ -37,6 +37,7 @@ networkPolicy:
     - 1433  # Azure SQL databases (Private Link Proxy mode).
     - 4000  # openidtoken-service HTTP (pod port).
     - 5671  # Azure Service Bus / Event Hubs (TLS AMQP).
+    - 6161  # referencedataloader-service HTTP (pod port).
     - 6379  # imports-proxy-cache Redis (DEV).
     - 6380  # Azure Redis (TST/PRE/PRD, TLS).
     - 8000  # IPAFFS webapps/microservices and identity redirect handler (pod port).

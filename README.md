@@ -117,10 +117,10 @@ overrides; the shared default is disabled.
 
 | Direction | Allowed traffic |
 | --- | --- |
-| Application ingress | TCP 4000/8000 from any source |
+| Application ingress | TCP 4000/6161/8000 from any source |
 | Redis ingress | TCP 6379 from pods in the same namespace |
 | DNS egress | UDP/TCP 53 to CoreDNS in `kube-system` |
-| Other egress | TCP 80, 443, 1344, 1433, 4000, 5671, 6379, 6380 and 8000 to any destination |
+| Other egress | TCP 80, 443, 1344, 1433, 4000, 5671, 6161, 6379, 6380 and 8000 to any destination |
 
 Configure ports in [bootstrap values](helm-charts/bootstrap/values.yaml), with overrides
 in `helm-charts/envs/<environment>/bootstrap-values.yaml`. Add new application ports
