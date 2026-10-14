@@ -104,17 +104,18 @@ spec:
 
 {{- if $correlationFilter }}
 ---
-# Overwrites the subscription's match-all $Default rule; an additional rule would be OR'd with it and filter nothing.
+# Named rule: a PUT to the reserved $Default rule via ARM reports success but leaves the subscription with no rules.
+# Any match-all $Default rule on the subscription is OR'd with this one and must be removed for the filter to apply.
 apiVersion: servicebus.azure.com/v1api20240101
 kind: NamespacesTopicsSubscriptionsRule
 metadata:
-  name: {{ $topicResourceName }}-{{ $subscriptionResourceName }}-default-rule
+  name: {{ $topicResourceName }}-{{ $subscriptionResourceName }}-correlation-filter
   labels:
     {{- include "ipaffs-common.labels" $root | nindent 4 }}
   annotations:
     serviceoperator.azure.com/reconcile-policy: manage
 spec:
-  azureName: $Default
+  azureName: correlation_filter
   owner:
     name: {{ $subscriptionResourceName }}
   filterType: CorrelationFilter

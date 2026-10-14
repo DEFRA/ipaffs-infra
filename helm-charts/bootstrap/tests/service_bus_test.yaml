@@ -80,7 +80,7 @@ tests:
           value: commodity-file-upload
         documentIndex: 2
 
-  - it: replaces the $Default rule with the correlation filter
+  - it: renders the correlation filter as a named rule
     set:
       serviceBus.topics:
         - name: messaging-topic
@@ -109,11 +109,11 @@ tests:
         documentIndex: 3
       - equal:
           path: metadata.name
-          value: messaging-topic-commodity-file-upload-1a55a9fa-default-rule
+          value: messaging-topic-commodity-file-upload-1a55a9fa-correlation-filter
         documentIndex: 3
       - equal:
           path: spec.azureName
-          value: $Default
+          value: correlation_filter
         documentIndex: 3
       - equal:
           path: spec.owner.name
@@ -174,7 +174,7 @@ tests:
       - equal:
           path: spec
           value:
-            azureName: $Default
+            azureName: correlation_filter
             owner:
               name: commodity-file-upload-1a55a9fa
             filterType: CorrelationFilter
@@ -184,7 +184,7 @@ tests:
                 event: urn:message:IPAFFS.Messages.Events:FileUploaded
         documentSelector:
           path: metadata.name
-          value: messaging-topic-fd90158d-commodity-file-upload-1a55a9fa-default-rule
+          value: messaging-topic-fd90158d-commodity-file-upload-1a55a9fa-correlation-filter
 
   - it: renders the FTR overlay messaging topic to match DEV
     release:
@@ -220,7 +220,7 @@ tests:
       - equal:
           path: spec
           value:
-            azureName: $Default
+            azureName: correlation_filter
             owner:
               name: commodity-file-upload-1a55a9fa
             filterType: CorrelationFilter
@@ -230,4 +230,4 @@ tests:
                 event: urn:message:IPAFFS.Messages.Events:FileUploaded
         documentSelector:
           path: metadata.name
-          value: messaging-topic-fd90158d-commodity-file-upload-1a55a9fa-default-rule
+          value: messaging-topic-fd90158d-commodity-file-upload-1a55a9fa-correlation-filter
