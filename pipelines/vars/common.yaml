@@ -36,7 +36,6 @@ variables:
   lowerEnvsAdminsGroupMembers: >
     a-daniel.johansson@defra.onmicrosoft.com
     a-marcel.vandenhof@defra.onmicrosoft.com
-    a-mathew.lambeth@defra.onmicrosoft.com
     a-tom.bamford@defra.onmicrosoft.com
     andrew.hardy@defra.onmicrosoft.com
     andy.hardy@defra.gov.uk
@@ -46,8 +45,6 @@ variables:
     jon.shaw@defra.onmicrosoft.com
     marcel.vandenhof@defra.gov.uk
     marcel.vandenhof@defra.onmicrosoft.com
-    mat.lambeth@defra.gov.uk
-    mathew.lambeth@defra.onmicrosoft.com
     tom.bamford@defra.gov.uk
     tom.bamford@defra.onmicrosoft.com
 
