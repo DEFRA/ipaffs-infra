@@ -72,7 +72,6 @@ ipaffsConfig:
     EVENT_HUB_NAMESPACE: "SNDIMPSOCENS001"
     MONITORING_TYPE: "event-hub"
     B2B_CUSTOMER_USER_ID: "79f6dc68-2144-e911-a96a-000d3a29ba60"
-    REMOTE_DEBUG: "true"
     PROTOCOL: "http"
 
 externalSecret:

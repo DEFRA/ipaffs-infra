@@ -2,6 +2,11 @@
 networkPolicy:
   enabled: true
 
+ipaffsConfig:
+  data:
+    # Remote debugging only in feature namespaces, not the shared DEV namespace
+    REMOTE_DEBUG: "true"
+
 serviceBus:
   queues:
     # IPAFFS-owned queues.
