@@ -103,6 +103,13 @@ database:
     image: ""
     command: ""
     args: []
+    # Generous migration memory cap, independent of the webapp's resources.
+    # Keep a smaller request so scheduling does not reserve the full limit.
+    resources:
+      requests:
+        memory: 256Mi
+      limits:
+        memory: 2Gi
     # Liquibase 4.33 images own /opt and /liquibase as UID/GID 1001.
     securityContext:
       runAsNonRoot: true

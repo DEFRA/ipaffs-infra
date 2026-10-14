@@ -41,6 +41,10 @@ spec:
           securityContext:
             {{- toYaml . | nindent 12 }}
           {{- end }}
+          {{- with .Values.database.migrations.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           {{- if .Values.database.migrations.command }}
           command: ["{{ .Values.database.migrations.command }}"]
           {{- end }}
