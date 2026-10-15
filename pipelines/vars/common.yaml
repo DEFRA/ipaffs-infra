@@ -13,6 +13,7 @@ variables:
   # Note: Every group needs to have at least one member.
   # SC-cleared admin accounts only!
   higherEnvsAdminsGroupMembers: >
+    a-abhishek.desai@defra.onmicrosoft.com
     a-andrew.hardy@defra.onmicrosoft.com
     a-daniel.johansson@defra.onmicrosoft.com
     a-jon.shaw@defra.onmicrosoft.com
@@ -34,6 +35,7 @@ variables:
 
   # Note: members of admins group do not also need to be developer group members
   lowerEnvsAdminsGroupMembers: >
+    a-abhishek.desai@defra.onmicrosoft.com
     a-daniel.johansson@defra.onmicrosoft.com
     a-marcel.vandenhof@defra.onmicrosoft.com
     a-tom.bamford@defra.onmicrosoft.com
