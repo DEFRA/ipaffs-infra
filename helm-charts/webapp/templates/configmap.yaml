@@ -12,7 +12,7 @@ metadata:
 data:
   ENVIRONMENT: "{{ .Values.environment }}"
 {{- range $databaseName := $databaseNames }}
-  DATABASE_DB_CONNECTION_STRING_{{ upper (snakecase $databaseName) }}: {{ include "webapp.database.jdbcUrl" (dict "root" $ "databaseName" $databaseName "clientId" (include "webapp.azure.serviceClientId" $)) | quote }}
+  DATABASE_DB_CONNECTION_STRING_{{ upper (snakecase $databaseName) }}: {{ include "webapp.database.jdbcUrl" (dict "root" $ "databaseName" $databaseName) | quote }}
 {{- end }}
 {{- range $key, $val := .Values.config }}
   {{ $key }}: "{{ $val }}"

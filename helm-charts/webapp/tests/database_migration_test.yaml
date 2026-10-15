@@ -205,7 +205,7 @@ tests:
             name: AZURE_SEARCH_USER_ASSIGNED_IDENTITY
             value: "/subscriptions/00000000-0000-0000-0000-000000000003/resourcegroups/rg-dev/providers/Microsoft.ManagedIdentity/userAssignedIdentities/search-principal"
 
-  - it: renders database connection env vars from managed and referenced database lists
+  - it: retains legacy migration URLs and the bridge for managed and referenced databases
     release:
       namespace: dev
     set:
@@ -213,11 +213,27 @@ tests:
       database.principalName: test-service-principal
       database.managedDatabaseNames[0]: imports-primary
       database.referencedDatabaseNames[0]: imports-secondary
+      database.workloadIdentity.enabled: false
       database.migrations.enabled: true
+      database.migrations.runUpload: true
       database.migrations.image: test/migrations:1.0.0
       database.migrations.clientId: 00000000-0000-0000-0000-000000000002
     documentIndex: 1
     asserts:
+      - equal:
+          path: spec.template.spec.initContainers[0].name
+          value: workload-identity-adal-bridge
+      - equal:
+          path: spec.template.spec.serviceAccountName
+          value: test-service-migrations
+      - equal:
+          path: spec.template.metadata.labels["azure.workload.identity/use"]
+          value: "true"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: RUN_SQL_DATA_UPLOAD
+            value: "true"
       - contains:
           path: spec.template.spec.containers[0].env
           content:

@@ -76,16 +76,29 @@ Backwards compatibility:
 {{- end }}
 
 {{/*
-Render the JDBC URL consistently for application configuration, migrations and rollouts.
-Native workload identity uses the credentials injected into the pod by the AKS webhook.
+Render the SQL target consistently for application configuration and migrations.
+*/}}
+{{- define "webapp.database.connectionUrl" -}}
+{{- $db := dict "databaseName" .databaseName "Values" .root.Values "Release" .root.Release -}}
+{{- printf "jdbc:sqlserver://%s:1433;databaseName=%s;encrypt=true;socketTimeout=1800000;loginTimeout=15" (include "ipaffs-common.azure.sqlServerHostname" $db) (include "ipaffs-common.azure.databaseName" $db) -}}
+{{- end }}
+
+{{/*
+Applications use the workload identity credentials injected by the AKS webhook.
 */}}
 {{- define "webapp.database.jdbcUrl" -}}
-{{- $db := dict "databaseName" .databaseName "Values" .root.Values "Release" .root.Release -}}
-{{- $connection := printf "jdbc:sqlserver://%s:1433;databaseName=%s;encrypt=true;socketTimeout=1800000;loginTimeout=15" (include "ipaffs-common.azure.sqlServerHostname" $db) (include "ipaffs-common.azure.databaseName" $db) -}}
+{{- printf "%s;authentication=ActiveDirectoryDefault" (include "webapp.database.connectionUrl" .) -}}
+{{- end }}
+
+{{/*
+Migration tooling retains opt-in native authentication until bridge token clients,
+including BCP uploads, have been converted.
+*/}}
+{{- define "webapp.database.migrationsJdbcUrl" -}}
 {{- if .root.Values.database.workloadIdentity.enabled -}}
-{{- printf "%s;authentication=ActiveDirectoryDefault" $connection -}}
+{{- include "webapp.database.jdbcUrl" . -}}
 {{- else -}}
-{{- printf "%s;authentication=ActiveDirectoryManagedIdentity;msiClientId=%s" $connection .clientId -}}
+{{- printf "%s;authentication=ActiveDirectoryManagedIdentity;msiClientId=%s" (include "webapp.database.connectionUrl" .) .clientId -}}
 {{- end -}}
 {{- end }}
 
@@ -130,12 +143,16 @@ absent
 {{- $databaseNames := include "webapp.database.connectionNames" . | fromJsonArray -}}
 {{- range $databaseName := $databaseNames }}
 {{- $key := printf "DATABASE_DB_CONNECTION_STRING_%s" (upper (snakecase $databaseName)) -}}
-{{- $value := include "webapp.database.jdbcUrl" (dict "root" $ "databaseName" $databaseName "clientId" (include "webapp.azure.serviceClientId" $)) -}}
+{{- $value := include "webapp.database.jdbcUrl" (dict "root" $ "databaseName" $databaseName) -}}
 {{- $_ := set $data $key $value -}}
 {{- end }}
 {{- range $key, $val := .Values.config }}
 {{- $_ := set $data $key (printf "%v" $val) -}}
 {{- end }}
+{{- if gt (len $databaseNames) 0 -}}
+{{/* The native URL has no client ID; identity changes must still roll SQL pods. */}}
+{{- $_ := set $data "AZURE_CLIENT_ID" (include "webapp.azure.serviceClientId" .) -}}
+{{- end -}}
 {{- toJson $data | sha256sum -}}
 {{- end }}
 

@@ -90,9 +90,11 @@ config: {}
 database:
   enabled: false
   workloadIdentity:
-    # Requires a JDBC driver and Azure Identity library that support workload identity.
-    # Selects ActiveDirectoryDefault and removes the SQL identity compatibility bridge.
-    # Migration scripts must also stop using the bridge token client, including BCP uploads.
+    # Migration Jobs only; applications always use native workload identity.
+    # False retains managed identity authentication and the migration SQL bridge.
+    # True selects ActiveDirectoryDefault and removes the migration bridge.
+    # Requires compatible JDBC/Azure Identity dependencies and converted bridge token clients.
+    # Keep disabled for BCP uploads until their token acquisition is converted and tested.
     enabled: false
   sqlServerName: ""
   databaseNames: []

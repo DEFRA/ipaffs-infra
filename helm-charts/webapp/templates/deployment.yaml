@@ -1,4 +1,3 @@
-{{- $databaseNames := include "webapp.database.connectionNames" . | fromJsonArray -}}
 {{- $spreadKeys := dict -}}
 {{- range .Values.topologySpreadConstraints -}}
   {{- $key := printf "%s/%s" .topologyKey .whenUnsatisfiable -}}
@@ -132,16 +131,3 @@ spec:
           resources:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-      {{- if and (gt (len $databaseNames) 0) (not .Values.database.workloadIdentity.enabled) }}
-      initContainers:
-        - name: workload-identity-adal-bridge
-          image: "manicminer/workload-identity-adal-bridge:0.4.1"
-          restartPolicy: Always
-          {{- with .Values.initContainers.workloadIdentityAdalBridge.securityContext }}
-          securityContext:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
-          env:
-            - name: LOG_LEVEL
-              value: "info"
-      {{- end }}

@@ -72,7 +72,7 @@ spec:
           {{- range $databaseName := $databaseNames }}
           {{- $db := dict "databaseName" $databaseName "Values" $.Values "Release" $.Release }}
             - name: DATABASE_DB_CONNECTION_STRING_{{ upper (snakecase $databaseName) }}
-              value: {{ include "webapp.database.jdbcUrl" (dict "root" $ "databaseName" $databaseName "clientId" (include "webapp.azure.migrationsClientId" $)) | quote }}
+              value: {{ include "webapp.database.migrationsJdbcUrl" (dict "root" $ "databaseName" $databaseName "clientId" (include "webapp.azure.migrationsClientId" $)) | quote }}
           {{- if $.Values.search.enabled }}
             - name: AZURE_SEARCH_DB_CONNECTION_STRING_{{ upper (snakecase $databaseName) }}
               value: "Encrypt=True;Connection Timeout=30;Database={{ template "ipaffs-common.azure.databaseName" $db }};ResourceId=/subscriptions/{{ $.Values.search.subscriptionId }}/resourceGroups/{{ include "ipaffs-common.azure.searchServiceResourceGroupName" $ | trim }}/providers/Microsoft.Sql/servers/{{ template "ipaffs-common.azure.sqlServer" $db }};"
