@@ -1,5 +1,8 @@
 ---
 variables:
+  # FTR namespaces share the DEV cluster and retain these debugging capabilities.
+  kubectlExecEnabled: true
+  kubectlPortForwardEnabled: true
   acrGroupsServiceConnection: ADO-DefraGovUK-AZR-IMP-DEV1
   # Enable the shared Gateway; application HTTPRoutes remain separately opt-in.
   appGatewayForContainersGatewayEnabled: true

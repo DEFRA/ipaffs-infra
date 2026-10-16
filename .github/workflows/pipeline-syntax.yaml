@@ -110,6 +110,10 @@ jobs:
         shell: bash
         run: bash scripts/pipeline/test-agc-routing.sh
 
+      - name: Test cluster access pipeline configuration
+        shell: bash
+        run: bash scripts/pipeline/test-cluster-access.sh
+
   bicep:
     name: Bicep
     runs-on: ubuntu-latest
@@ -214,3 +218,4 @@ jobs:
           CHART_PATH=helm-charts/job bash scripts/pipeline/test-webapp-chart.sh
           helm unittest --strict helm-charts/bootstrap
           helm unittest --strict helm-charts/agc-gateway
+          helm unittest --strict helm-charts/cluster-access

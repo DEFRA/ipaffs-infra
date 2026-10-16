@@ -1,0 +1,4 @@
+# These controls apply to every namespace on the cluster, including FTR on DEV.
+# The infrastructure pipeline supplies both flags from pipelines/vars/<env>.yaml.
+kubectlExecEnabled: true
+kubectlPortForwardEnabled: true

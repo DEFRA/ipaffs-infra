@@ -7,12 +7,17 @@ trigger:
     include:
       - helm-charts/*-values.yaml
       - helm-charts/agc-gateway/**
+      - helm-charts/cluster-access/**
       - helm-charts/app-routing-controller/**
       - helm-charts/azure-service-operator-config/**
       - helm-charts/external-secrets-azure/**
       - helm-charts/ms-identity-redirect-handler/**
       - pipelines/install-helm-charts.yaml
       - pipelines/stages/install-helm-charts.yaml
+      - pipelines/vars/dev.yaml
+      - pipelines/vars/tst.yaml
+      - pipelines/vars/pre.yaml
+      - pipelines/vars/prd.yaml
 
 pr:
   branches:
@@ -22,12 +27,17 @@ pr:
     include:
       - helm-charts/*-values.yaml
       - helm-charts/agc-gateway/**
+      - helm-charts/cluster-access/**
       - helm-charts/app-routing-controller/**
       - helm-charts/azure-service-operator-config/**
       - helm-charts/external-secrets-azure/**
       - helm-charts/ms-identity-redirect-handler/**
       - pipelines/install-helm-charts.yaml
       - pipelines/stages/install-helm-charts.yaml
+      - pipelines/vars/dev.yaml
+      - pipelines/vars/tst.yaml
+      - pipelines/vars/pre.yaml
+      - pipelines/vars/prd.yaml
 
 pool:
   name: DEFRA-COMMON-ubuntu2204-SSV5

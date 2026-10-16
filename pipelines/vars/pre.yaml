@@ -1,5 +1,7 @@
 ---
 variables:
+  kubectlExecEnabled: false
+  kubectlPortForwardEnabled: false
   acrGroupsServiceConnection: ADO-DefraGovUK-AZR-IMP-PRE1
   # Enable the shared Gateway; application HTTPRoutes remain separately opt-in.
   appGatewayForContainersGatewayEnabled: false
