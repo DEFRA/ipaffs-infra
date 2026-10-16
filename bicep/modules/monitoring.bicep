@@ -2,6 +2,8 @@ targetScope = 'resourceGroup'
 
 param monitoringParams object
 param entraGroups object
+param classicSubscriptionId string
+param classicResourceGroupName string
 param deployServicePrincipalObjectId string
 param deploymentId string
 param location string
@@ -133,6 +135,16 @@ module grafanaMonitoringReader './rg-role-assignment.bicep' = {
   }
 }
 
+module classicGrafanaMonitoringReader './rg-role-assignment.bicep' = {
+  name: 'grafanaMonitoringReader-${deploymentId}'
+  scope: resourceGroup(classicSubscriptionId, classicResourceGroupName)
+  params: {
+    deploymentId: deploymentId
+    principalObjectId: grafanaDashboard.identity.principalId
+    roleDefinitionId: monitoringReaderRoleId
+  }
+}
+
 module grafanaMonitoringDataReader './prometheus-role-assignment.bicep' = {
   name: 'grafanaMonitoringDataReader-${deploymentId}'
   scope: resourceGroup()
@@ -142,6 +154,18 @@ module grafanaMonitoringDataReader './prometheus-role-assignment.bicep' = {
     principalObjectId: grafanaDashboard.identity.principalId
     principalType: 'ServicePrincipal'
     roleAssignmentType: 'permanent'
+    roleDefinitionId: monitoringDataReaderRoleId
+  }
+}
+
+module classicGrafanaMonitoringDataReader './prometheus-role-assignment.bicep' = {
+  name: 'grafanaMonitoringDataReader-${deploymentId}'
+  scope: resourceGroup(classicSubscriptionId, classicResourceGroupName)
+  params: {
+    prometheusName: monitoringParams.prometheusName
+    deploymentId: deploymentId
+    principalObjectId: grafanaDashboard.identity.principalId
+    principalType: 'ServicePrincipal'
     roleDefinitionId: monitoringDataReaderRoleId
   }
 }

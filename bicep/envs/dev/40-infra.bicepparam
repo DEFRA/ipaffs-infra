@@ -12,6 +12,8 @@ param environment = 'DEV'
 param roleAssignmentsType = 'permanent'
 param subnets = {}
 param tenantId = ''
+param classicSubscriptionId = ''
+param classicResourceGroupName = ''
 param deployServicePrincipalObjectId = ''
 param vnetName = 'DEVIMPNETVN1401'
 

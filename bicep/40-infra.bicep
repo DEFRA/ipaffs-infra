@@ -12,6 +12,8 @@ param classicResourceIds object
 param entraGroups object
 param subnets object
 param tenantId string
+param classicSubscriptionId string
+param classicResourceGroupName string
 param deployServicePrincipalObjectId string
 param vnetName string
 
@@ -238,6 +240,8 @@ module monitoring './modules/monitoring.bicep' = {
     tags: tags
     monitoringParams: monitoringParams
     entraGroups: entraGroups
+    classicSubscriptionId: classicSubscriptionId
+    classicResourceGroupName: classicResourceGroupName
     deployServicePrincipalObjectId: deployServicePrincipalObjectId
   }
 }
