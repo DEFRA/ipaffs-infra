@@ -3,6 +3,9 @@ service: "bootstrap"
 project: ipaffs
 environment: pre
 
+networkPolicy:
+  enabled: true
+
 azure:
   location: uksouth
   sqlServer: preimpdbssqa001
