@@ -1,0 +1,180 @@
+suite: resource group template
+templates:
+  - templates/resourcegroup.yaml
+tests:
+  - it: default namespace renders only the shared base resource group with no explicit reconcile policy
+    release:
+      namespace: dev
+    set:
+      service: bootstrap
+      environment: dev
+      azure.location: uksouth
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: metadata.name
+          value: devimpinfrg1401
+      - notExists:
+          path: metadata.annotations["serviceoperator.azure.com/reconcile-policy"]
+      - notExists:
+          path: spec.azureName
+
+  - it: default namespace with a mixed-case base resource group override renders the lowercase Kubernetes name and preserves the original Azure name
+    release:
+      namespace: dev
+    set:
+      service: bootstrap
+      environment: dev
+      azure.location: uksouth
+      azure.baseResourceGroupName: DEVIMPINFRG1401
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: metadata.name
+          value: devimpinfrg1401
+      - equal:
+          path: spec.azureName
+          value: DEVIMPINFRG1401
+      - notExists:
+          path: metadata.annotations["serviceoperator.azure.com/reconcile-policy"]
+
+  - it: default namespace with an explicit resource group override equal to the base resource group still renders only the base resource group
+    release:
+      namespace: dev
+    set:
+      service: bootstrap
+      environment: dev
+      azure.location: uksouth
+      azure.namespaceResourceGroupName: DEVIMPINFRG1401
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: metadata.name
+          value: devimpinfrg1401
+      - notExists:
+          path: metadata.annotations["serviceoperator.azure.com/reconcile-policy"]
+
+  - it: default namespace with a mismatched explicit resource group override fails to render
+    release:
+      namespace: dev
+    set:
+      service: bootstrap
+      environment: dev
+      azure.location: uksouth
+      azure.namespaceResourceGroupName: some-other-rg
+    asserts:
+      - failedTemplate:
+          errorMessage: 'azure.namespaceResourceGroupName "some-other-rg" must be empty or equal the base resource group "devimpinfrg1401" for the default namespace "dev".'
+
+  - it: alternative namespace without an explicit override is backwards compatible, renders only the base resource group and never sets the manage annotation
+    release:
+      namespace: pr-123
+    set:
+      service: bootstrap
+      environment: dev
+      azure.location: uksouth
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: metadata.name
+          value: devimpinfrg1401
+      - notExists:
+          path: metadata.annotations["serviceoperator.azure.com/reconcile-policy"]
+
+  - it: alternative namespace whose override equals the base resource group is also backwards compatible and never sets the manage annotation
+    release:
+      namespace: pr-123
+    set:
+      service: bootstrap
+      environment: dev
+      azure.location: uksouth
+      azure.namespaceResourceGroupName: DEVIMPINFRG1401
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: metadata.name
+          value: devimpinfrg1401
+      - notExists:
+          path: metadata.annotations["serviceoperator.azure.com/reconcile-policy"]
+
+  - it: alternative namespace with the dedicated override renders the unchanged base resource group as the first document
+    release:
+      namespace: pr-123
+    set:
+      service: bootstrap
+      environment: dev
+      azure.location: uksouth
+      azure.namespaceResourceGroupName: devimpinfrg1401-pr-123
+    documentIndex: 0
+    asserts:
+      - hasDocuments:
+          count: 2
+      - equal:
+          path: metadata.name
+          value: devimpinfrg1401
+      - notExists:
+          path: metadata.annotations["serviceoperator.azure.com/reconcile-policy"]
+      - notExists:
+          path: spec.azureName
+
+  - it: alternative namespace with the dedicated override renders a managed, tagged dedicated resource group as the second document
+    release:
+      namespace: pr-123
+    set:
+      service: bootstrap
+      environment: dev
+      azure.location: uksouth
+      azure.namespaceResourceGroupName: devimpinfrg1401-pr-123
+    documentIndex: 1
+    asserts:
+      - equal:
+          path: metadata.name
+          value: devimpinfrg1401-pr-123
+      - equal:
+          path: metadata.annotations["serviceoperator.azure.com/reconcile-policy"]
+          value: manage
+      - notExists:
+          path: spec.azureName
+      - equal:
+          path: spec.tags
+          value:
+            ManagedBy: ipaffs-manifest-pipeline
+            Namespace: pr-123
+            BaseResourceGroup: devimpinfrg1401
+
+  - it: alternative namespace with a mixed-case dedicated override renders the lowercase Kubernetes name and preserves the original Azure name
+    release:
+      namespace: pr-123
+    set:
+      service: bootstrap
+      environment: dev
+      azure.location: uksouth
+      azure.namespaceResourceGroupName: DEVIMPINFRG1401-PR-123
+    documentIndex: 1
+    asserts:
+      - equal:
+          path: metadata.name
+          value: devimpinfrg1401-pr-123
+      - equal:
+          path: spec.azureName
+          value: DEVIMPINFRG1401-PR-123
+      - equal:
+          path: metadata.annotations["serviceoperator.azure.com/reconcile-policy"]
+          value: manage
+
+  - it: alternative namespace with an override that is neither the base nor the dedicated resource group fails to render
+    release:
+      namespace: pr-123
+    set:
+      service: bootstrap
+      environment: dev
+      azure.location: uksouth
+      azure.namespaceResourceGroupName: some-other-rg
+    asserts:
+      - failedTemplate:
+          errorMessage: 'azure.namespaceResourceGroupName "some-other-rg" is invalid for namespace "pr-123": it must be empty, equal the base resource group "devimpinfrg1401", or equal the dedicated resource group "devimpinfrg1401-pr-123".'

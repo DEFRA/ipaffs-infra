@@ -1,0 +1,36 @@
+suite: bootstrap service bus namespace template
+templates:
+  - templates/service-bus.yaml
+tests:
+  - it: default namespace is owned by the shared base resource group
+    release:
+      namespace: dev
+    set:
+      service: bootstrap
+      environment: dev
+      azure.location: uksouth
+    documentIndex: 0
+    asserts:
+      - equal:
+          path: spec.owner.name
+          value: devimpinfrg1401
+      - equal:
+          path: metadata.name
+          value: devimpinfsb1401-dev
+
+  - it: alternative namespace moves into its own namespace resource group
+    release:
+      namespace: pr-123
+    set:
+      service: bootstrap
+      environment: dev
+      azure.location: uksouth
+      azure.namespaceResourceGroupName: devimpinfrg1401-pr-123
+    documentIndex: 0
+    asserts:
+      - equal:
+          path: spec.owner.name
+          value: devimpinfrg1401-pr-123
+      - equal:
+          path: metadata.name
+          value: devimpinfsb1401-pr-123

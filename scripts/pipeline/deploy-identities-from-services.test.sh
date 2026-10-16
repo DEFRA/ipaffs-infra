@@ -1,4 +1,11 @@
 #!/usr/bin/env bash
+#
+# deploy-identities-from-services.test.sh
+# Offline unit tests for deploy-identities-from-services.sh: fakes az
+# (identity list/create, federated-credential show/create) and the
+# add-entra-group-members.sh/wait-for-group-memberships.sh helpers it calls.
+# No Azure, no network.
+# Usage: bash ./deploy-identities-from-services.test.sh
 
 set -uo pipefail
 
@@ -150,6 +157,7 @@ write_services() {
 run_case() {
   local case_name="$1"
   local scenario="$2"
+  local namespace_resource_group_name="${3:-}"
   local case_root="${work_dir}/${case_name}"
   local scripts_dir="${case_root}/scripts"
   local services_root="${case_root}/services"
@@ -167,6 +175,7 @@ run_case() {
   PATH="${fake_bin}:${PATH}" \
     NAMESPACE=tst \
     RESOURCE_GROUP_NAME=TST-IMP-RG \
+    NAMESPACE_RESOURCE_GROUP_NAME="${namespace_resource_group_name}" \
     SUBSCRIPTION_NAME=test-subscription \
     AKS_ISSUER=https://issuer.example \
     SEARCH_CONTRIBUTORS_GROUP_ID=search-group \
@@ -189,6 +198,12 @@ check "each existing credential is checked" "3" "$(count_calls 'identity federat
 check "matching credentials skip every write" "0" "$(count_calls 'identity federated-credential create')"
 check_output_contains "preload reports three usable identities" "Loaded 3 existing managed identities"
 check "cached principal IDs reach group reconciliation" "true" "$(grep -qF 'alpha-service-principal' "${case_group_log}" && grep -qF 'alpha-migrations-principal' "${case_group_log}" && grep -qF 'beta-service-principal' "${case_group_log}" && printf true || printf false)"
+
+run_case "namespace-resource-group-override" all-existing "PR-123-IMP-RG"
+check "namespace resource group override deployment succeeds" "0" "${case_status}"
+check "identity list targets the namespace resource group, not the base one" "1" "$(count_calls 'identity list --subscription test-subscription --resource-group PR-123-IMP-RG')"
+check "identity list never targets the base resource group when overridden" "0" "$(count_calls 'identity list --subscription test-subscription --resource-group TST-IMP-RG')"
+check_output_contains "cached identity names still use the base resource group prefix" "tst-imp-rg-tst-alpha-migrations"
 
 run_case "null-id" null-id
 check "null-ID deployment succeeds" "0" "${case_status}"
