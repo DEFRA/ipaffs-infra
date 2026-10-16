@@ -1,4 +1,5 @@
-# Shared platform tail for full bootstrap and standalone platform maintenance.
+# Infra-owned platform tail: shared images and Azure Private Link. The chart
+# stage reports the handoff to ipaffs-manifest without changing Kubernetes.
 parameters:
   - name: environmentName
     type: string

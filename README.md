@@ -92,22 +92,60 @@ Things are moving along quickly. At the time of writing, migration of ipaffs-imp
 
 ### Platform configuration pipeline
 
-Run [infra-platform](pipelines/infra-platform.yaml) manually to import platform
-images, install shared Helm controllers/configuration, and reconcile ingress
-Private Link without redeploying resource groups, networking, AKS or data services.
-Core infrastructure and its existing Library outputs must already be available.
-Run from `main` to apply; branch runs use Helm dry-run and Bicep what-if.
-Pull requests targeting `main`, including drafts, automatically preview against
-DEV when platform inputs change. Preview runs omit image imports and deployment.
-Main runs add the environment build tag in the existing Helm job.
+Shared cluster Helm releases are deployed by
+[ipaffs-manifest](https://github.com/DEFRA/ipaffs-manifest), using its platform
+release contract. Manifest `master` deployments apply platform updates in DEV.
+Existing numeric-tag releases apply them in TST, PRE and PRD under the existing
+environment approvals. Feature branches and FTR remain plan-only.
 
-The full [infrastructure pipeline](pipelines/infrastructure.yaml) includes the
-same platform stages at the end, retaining its original bootstrap sequence and
-same-run infrastructure output handoff. Set `includePlatform: false` for a
-core-only infrastructure run; the default remains full bootstrap. Existing CI and TST/PRE/PRD release
-entrypoints remain unchanged. Schedule manual platform maintenance when core
-infrastructure deployment is idle; automatic main deployments and ordering are
-a separate change.
+| Responsibility | Owner after cutover |
+| --- | --- |
+| Install and upgrade the 13 shared platform chart releases, including AMA metrics settings | Manifest release pipeline |
+| Azure resources, identities, permissions and Private Link | Infrastructure pipelines |
+| Import shared container images, including application tools and images used by TST's shared DEV registry | Infrastructure pipelines; manifest also imports the images required by its platform contract |
+| Develop, test, package and publish bootstrap, backoffice, webapp and job charts | Existing chart producer pipelines in this repository |
+| Local platform chart source and shared values | Retained here for manifest consumers pinned to an immutable infrastructure revision |
+
+The old [standalone Helm pipeline](pipelines/install-helm-charts.yaml) no longer
+runs automatically. Manual runs print the ownership handoff. Its shared stage
+also prints the handoff when called from the full infrastructure pipeline or
+[infra-platform](pipelines/infra-platform.yaml); it performs no Azure login,
+Helm install/upgrade, rollout restart or Kubernetes changes. Installed releases
+and their resources stay in place for the manifest pipeline to adopt.
+
+Run `infra-platform` manually from `main` to import shared images and reconcile
+Azure Private Link. Core infrastructure, Library outputs and the existing
+ingress load balancer must already be available. Branch and pull request runs
+preview Bicep against DEV and omit image imports. The full
+[infrastructure pipeline](pipelines/infrastructure.yaml) includes the same tail
+when `includePlatform: true`; `false` runs only the core infrastructure stages.
+
+**Cutover order**
+
+1. Merge and validate the companion manifest change first. Confirm its canonical
+   release pipelines apply all 13 platform releases with the existing Helm
+   release names and namespaces; branch and FTR runs must remain plan-only.
+2. Prevent overlapping platform deployments while checking the first manifest
+   apply in each environment. Confirm chart readiness and application health.
+3. Merge this infrastructure retirement only after that verification. Do not
+   uninstall releases or remove cluster resources during handover.
+
+**Fresh environment bootstrap after cutover**
+
+1. Run the full infrastructure pipeline with `includePlatform: false` to create
+   the core resources and publish their Library outputs.
+2. Run the standalone image import pipeline for the environment's registry
+   (TST uses the DEV registry).
+3. Run the canonical manifest deployment (`master` for DEV; an approved numeric
+   release tag for TST, PRE or PRD) to install the platform charts and establish
+   the internal ingress load balancer.
+4. Run `infra-platform` from `main` to reconcile Private Link. Its Bicep module
+   requires the existing `kubernetes-internal` load balancer, so this step follows
+   the first platform apply.
+
+To return deployment ownership to infrastructure, first disable manifest
+platform applies, then revert this retirement. Keep a single platform writer
+throughout the handover.
 
 ### Namespace network policy
 
