@@ -1,6 +1,7 @@
 ---
-# Main deployments are manual; pull requests preview against DEV.
-# This entrypoint assumes core infrastructure is already deployed.
+# Main deployments reconcile shared images and Azure Private Link; pull requests
+# preview Bicep against DEV. Cluster chart updates belong to ipaffs-manifest.
+# Core infrastructure and the ingress load balancer must already exist.
 trigger: none
 pr:
   drafts: true
@@ -21,14 +22,6 @@ pr:
       - bicep/envs/dev/50-privatelink.bicepparam
       - bicep/default-tags.json
       - bicep/bicepconfig.json
-      - helm-charts/*-values.yaml
-      - helm-charts/agc-gateway/**
-      - helm-charts/ama-metrics-settings/**
-      - helm-charts/app-routing-controller/**
-      - helm-charts/azure-service-operator-config/**
-      - helm-charts/defra-certs/**
-      - helm-charts/external-secrets-azure/**
-      - helm-charts/ms-identity-redirect-handler/**
 
 pool:
   name: DEFRA-COMMON-ubuntu2204-SSV5
@@ -53,18 +46,13 @@ variables:
   - group: "${{ parameters.environmentName }}"
   - template: "/pipelines/vars/common.yaml"
   - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
-  - name: helmDryRun
-    ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/main') }}:
-      value: ''
-    ${{ else }}:
-      value: '--dry-run'
 
 stages:
   - template: stages/infra-platform.yaml
     parameters:
       environmentName: ${{ parameters.environmentName }}
       tagBuild: true
-      # Branch runs preview Helm/Bicep only. Omit the main-only import stage so
+      # Branch runs preview Bicep only. Omit the main-only import stage so
       # its skipped deployment jobs do not block downstream preview stages.
       ${{ if ne(variables['Build.SourceBranch'], 'refs/heads/main') }}:
         importImages: false

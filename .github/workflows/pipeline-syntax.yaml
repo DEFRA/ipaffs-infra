@@ -106,9 +106,9 @@ jobs:
         shell: bash
         run: bash scripts/pipeline/update-manifest-bootstrap-values.test.sh
 
-      - name: Test AGC Gateway pipeline configuration
+      - name: Test manifest platform ownership handoff
         shell: bash
-        run: bash scripts/pipeline/test-agc-routing.sh
+        run: bash scripts/pipeline/test-platform-handoff.sh
 
   bicep:
     name: Bicep

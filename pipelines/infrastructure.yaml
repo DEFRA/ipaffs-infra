@@ -31,7 +31,7 @@ parameters:
     type: boolean
     default: false
   - name: includePlatform
-    displayName: Include platform configuration (full bootstrap)
+    displayName: Include shared image imports and Azure Private Link
     type: boolean
     default: true
 
@@ -44,11 +44,6 @@ variables:
   - group: "${{ parameters.environmentName }}"
   - template: "/pipelines/vars/common.yaml"
   - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
-  - name: helmDryRun
-    ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/main') }}:
-      value: ''
-    ${{ else }}:
-      value: '--dry-run'
 
 resources:
   repositories:
