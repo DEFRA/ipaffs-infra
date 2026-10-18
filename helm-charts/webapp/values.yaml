@@ -69,6 +69,9 @@ topologySpreadConstraints:
 azure:
   clientId: ""
   managedIdentityName: ""
+  baseResourceGroupName: ""
+  namespaceResourceGroupName: ""
+  sqlServerResourceGroupName: ""
 
 externalSecret:
   enabled: false

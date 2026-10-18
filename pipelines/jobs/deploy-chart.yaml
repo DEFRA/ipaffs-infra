@@ -17,6 +17,10 @@ parameters:
   - name: namespace
     type: string
 
+  - name: namespaceResourceGroupName
+    type: string
+    default: ""
+
   - name: serviceClientId
     type: string
     default: ""
