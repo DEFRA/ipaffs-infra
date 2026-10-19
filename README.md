@@ -109,6 +109,29 @@ entrypoints remain unchanged. Schedule manual platform maintenance when core
 infrastructure deployment is idle; automatic main deployments and ordering are
 a separate change.
 
+### Shared ingress certificate
+
+The webapp, bootstrap origin and identity redirect handler Ingresses use the
+NGINX controller's default certificate,
+`defra-certs/star-azure-defra-cloud-cert`. They retain `spec.tls.hosts` and
+existing redirect annotations, and omit `spec.tls.secretName`. The controller
+must have this central default configured before adopting these chart changes.
+AGC already references the same Secret directly. External Secrets continues to
+refresh the central Secret from Key Vault every hour.
+
+The main chart pipelines increment the webapp and bootstrap minor versions when
+publishing: this change is intended to publish webapp `0.130.0` and bootstrap
+`0.74.0` from the current `0.129.0` and `0.73.0` metadata. Coordinate the matching
+`ipaffs-manifest` pins after publication. The identity redirect handler is
+installed from this repository by the platform pipeline.
+
+Keep namespace-local `ipaffs-tls` ExternalSecrets and values during the rollout.
+After every environment, release/feature namespace and redirect handler has
+migrated, verify the served certificate and HTTP redirect behaviour before
+removing those mappings in a separate change. Their `creationPolicy: Owner`
+means deleting an ExternalSecret can also delete its Secret. Update installed-copy
+certificate reporting with that later cleanup.
+
 ### Namespace network policy
 
 The bootstrap chart's optional `ipaffs-port-baseline` restricts ingress and egress
