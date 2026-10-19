@@ -109,6 +109,23 @@ entrypoints remain unchanged. Schedule manual platform maintenance when core
 infrastructure deployment is idle; automatic main deployments and ordering are
 a separate change.
 
+### Shared ingress certificate
+
+Configure `defra-certs/star-azure-defra-cloud-cert` as NGINX's default certificate.
+External Secrets refreshes it hourly from Key Vault; AGC references it directly.
+Webapp, origin and identity redirect handler Ingresses omit `tls[].secretName`,
+retaining TLS hosts and redirect settings.
+
+Publish the webapp/bootstrap charts before updating `ipaffs-manifest` pins.
+Deploy the identity redirect handler through the platform pipeline.
+
+Keep namespace-local `ipaffs-tls` ExternalSecrets until every namespace and the
+redirect handler has migrated and passed certificate/redirect checks. Deleting
+an owned ExternalSecret can also delete its Secret; clean these up separately.
+
+The wildcard covers `*.azure.defra.cloud`, but deeper service hostnames and
+short aliases need separate certificate coverage.
+
 ### Namespace network policy
 
 The bootstrap chart's optional `ipaffs-port-baseline` restricts ingress and egress

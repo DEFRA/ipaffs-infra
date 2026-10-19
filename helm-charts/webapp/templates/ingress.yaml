@@ -17,7 +17,6 @@ spec:
     {{- range $hostsList }}
     - hosts:
         - {{ . | quote }}
-      secretName: ipaffs-tls
     {{- end }}
   rules:
     {{- range $hostsList }}

@@ -9,7 +9,6 @@ spec:
   tls:
     - hosts:
         - {{ printf "ipaffs-redirect-%s.azure.defra.cloud" .Values.environment | quote }}
-      secretName: ipaffs-tls
   rules:
     - host: {{ printf "ipaffs-redirect-%s.azure.defra.cloud" .Values.environment | quote }}
       http:
