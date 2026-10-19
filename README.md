@@ -114,8 +114,8 @@ and Helm releases remain. The five non-platform imports are no longer needed:
 | `defradigital/node:latest-24` | Frontend builds use existing public Dockerfile defaults |
 
 Shared builds no longer force `IMAGE_ACR`. Completed images still go to ACR with
-all required layers. Existing base versions, build authentication, subscription
-fallback and explicit output overrides are unchanged.
+all required layers. Dockerfile image references, build authentication,
+subscription fallback and explicit output overrides are unchanged.
 
 **Cutover**
 
