@@ -29,9 +29,6 @@ steps:
       TAG_NAME_PARAMETER: ${{ parameters.tagName }}
       ACR_NAME_DEFAULT: $(acrName)
       TAG_NAME_DEFAULT: $(Build.BuildNumber)
-      DOCKER_FILE_PARAMETER: ${{ parameters.dockerFile }}
-      DOCKER_HUB_USER: $(dockerHubUser)
-      DOCKER_HUB_TOKEN: $(dockerHubToken)
     inputs:
       # Registry ownership differs from cluster ownership in TST, which shares DEV's ACR.
       azureSubscription: $(acrGroupsServiceConnection)
@@ -49,7 +46,7 @@ steps:
         if [[ -n "${ACR_SUBSCRIPTION_NAME_PARAMETER// /}" ]]; then
           SUBSCRIPTION_NAME="${ACR_SUBSCRIPTION_NAME_PARAMETER}"
         else
-          SUBSCRIPTION_NAME=""
+          SUBSCRIPTION_NAME="$(az account show --query id --output tsv --only-show-errors)"
         fi
 
         if [[ -n "${TAG_NAME_PARAMETER// /}" ]]; then
@@ -58,152 +55,7 @@ steps:
           TAG_NAME="${TAG_NAME_DEFAULT}"
         fi
 
-        # Read Dockerfile ARG defaults as data. Only bases redirected by IMAGE_ACR
-        # belong to this pipeline; fixed public images retain their existing source.
-        base_images="$(python3 - <<'PYTHON'
-        import os
-        import re
-        import shlex
-        import sys
-        from pathlib import Path
-
-        def fail(line_number):
-            sys.exit(
-                f"Unsupported IMAGE_ACR base on Dockerfile line {line_number}: "
-                "use a Docker Hub repository:tag with literal global "
-                "IMAGE_REPOSITORY/IMAGE_TAG defaults."
-            )
-
-        dockerfile = Path(os.environ["DOCKER_FILE_PARAMETER"])
-        try:
-            lines = dockerfile.read_text().splitlines()
-        except OSError:
-            sys.exit("Cannot read the selected Dockerfile before building its ACR bases.")
-        arguments = {}
-        first_from = False
-        pending = ""
-        pending_line = 0
-        images = []
-        variable = re.compile(r"\$(?:\{(IMAGE_ACR|IMAGE_REPOSITORY|IMAGE_TAG)\}|(IMAGE_ACR|IMAGE_REPOSITORY|IMAGE_TAG)\b)")
-        repository = r"[a-z0-9]+(?:[._-][a-z0-9]+)*(?:/[a-z0-9]+(?:[._-][a-z0-9]+)*)?"
-        reference = re.compile(repository + r":[A-Za-z0-9_][A-Za-z0-9_.-]{0,127}")
-        for line_number, line in enumerate(lines, 1):
-            if not pending:
-                pending_line = line_number
-            pending += line.strip()
-            if pending.endswith("\\"):
-                pending = pending[:-1] + " "
-                continue
-            instruction = pending
-            pending = ""
-            if not instruction or instruction.startswith("#"):
-                continue
-            parts = instruction.split(maxsplit=1)
-            command = parts[0]
-            value = parts[1] if len(parts) == 2 else ""
-            if command.upper() == "ARG" and not first_from:
-                name, separator, default = value.strip().partition("=")
-                if name in ("IMAGE_REPOSITORY", "IMAGE_TAG"):
-                    try:
-                        tokens = shlex.split(default, comments=True) if separator else []
-                    except ValueError:
-                        tokens = []
-                    arguments[name] = tokens[0] if len(tokens) == 1 else None
-            if command.upper() != "FROM":
-                continue
-            first_from = True
-            try:
-                tokens = shlex.split(value, comments=True)
-            except ValueError:
-                fail(pending_line)
-            while tokens and tokens[0].startswith("--"):
-                tokens.pop(0)
-            if not tokens:
-                fail(pending_line)
-            base = tokens[0]
-            if "IMAGE_ACR" not in base:
-                continue
-            if len(tokens) not in (1, 3) or (len(tokens) == 3 and tokens[1].upper() != "AS"):
-                fail(pending_line)
-            def resolve(match):
-                name = match.group(1) or match.group(2)
-                result = "__ACR__" if name == "IMAGE_ACR" else arguments.get(name)
-                if result is None:
-                    fail(pending_line)
-                return result
-            resolved = variable.sub(resolve, base)
-            if not resolved.startswith("__ACR__/"):
-                fail(pending_line)
-            image = resolved[len("__ACR__/"):]
-            if not reference.fullmatch(image):
-                fail(pending_line)
-            if image not in images:
-                images.append(image)
-        if pending:
-            sys.exit("Unterminated Dockerfile continuation; no base images were imported.")
-        print("\n".join(images))
-        PYTHON
-        )"
-
-        if [[ -z "${SUBSCRIPTION_NAME}" ]]; then
-          SUBSCRIPTION_NAME="$(az account show --query id --output tsv --only-show-errors)"
-        fi
-
-        # Successful empty list responses establish absence; access errors fail the
-        # build instead of being mistaken for a missing image and triggering writes.
-        image_exists() {
-          local image="$1" repository="${1%:*}" tag="${1##*:}" repositories tags
-          repositories="$(az acr repository list --name "${ACR_NAME}" --subscription "${SUBSCRIPTION_NAME}" --query "[?@ == '${repository}']" --output tsv --only-show-errors)" || return 2
-          if [[ -z "${repositories}" ]]; then
-            return 1
-          fi
-          if [[ "${repositories}" != "${repository}" ]]; then
-            echo "Unexpected ACR repository response while checking ${image}." >&2
-            return 2
-          fi
-          tags="$(az acr repository show-tags --name "${ACR_NAME}" --subscription "${SUBSCRIPTION_NAME}" --repository "${repository}" --query "[?@ == '${tag}']" --output tsv --only-show-errors)" || return 2
-          if [[ -z "${tags}" ]]; then
-            return 1
-          fi
-          if [[ "${tags}" != "${tag}" ]]; then
-            echo "Unexpected ACR tag response while checking ${image}." >&2
-            return 2
-          fi
-        }
-
-        while IFS= read -r base_image; do
-          [[ -n "${base_image}" ]] || continue
-          if image_exists "${base_image}"; then
-            echo "ACR base ${base_image} already exists."
-            continue
-          else
-            image_status=$?
-            if [[ "${image_status}" != 1 ]]; then
-              echo "Cannot verify ACR base ${base_image}; refusing to import." >&2
-              exit 1
-            fi
-          fi
-          if [[ -z "${DOCKER_HUB_USER:-}" || -z "${DOCKER_HUB_TOKEN:-}" || "${DOCKER_HUB_USER}" == '$('* || "${DOCKER_HUB_TOKEN}" == '$('* ]]; then
-            echo "Docker Hub credentials are required to import missing ACR base ${base_image}." >&2
-            exit 1
-          fi
-          echo "Importing required build base ${base_image} into ${ACR_NAME}."
-          # With no --force, a concurrent build can safely publish the same tag.
-          # Read back the tag after an import failure before accepting that race.
-          if az acr import --name "${ACR_NAME}" --subscription "${SUBSCRIPTION_NAME}" --source "docker.io/${base_image}" --image "${base_image}" --username "${DOCKER_HUB_USER}" --password "${DOCKER_HUB_TOKEN}" --only-show-errors >/dev/null 2>&1; then
-            if ! image_exists "${base_image}"; then
-              echo "Imported ACR base ${base_image} could not be verified." >&2
-              exit 1
-            fi
-          elif image_exists "${base_image}"; then
-            echo "ACR base ${base_image} was published by another build."
-          else
-            echo "Failed to import required ACR base ${base_image}; no verified tag is available." >&2
-            exit 1
-          fi
-        done <<< "${base_images}"
-
         az acr login --name "${ACR_NAME}" --subscription "${SUBSCRIPTION_NAME}"
-        docker build --platform=linux/amd64 --tag "${{ parameters.imageName }}:${TAG_NAME}" --file "${{ parameters.dockerFile }}" "${{ parameters.directory }}" --build-arg IMAGE_ACR="${ACR_NAME}.azurecr.io"
+        docker build --platform=linux/amd64 --tag "${{ parameters.imageName }}:${TAG_NAME}" --file "${{ parameters.dockerFile }}" "${{ parameters.directory }}"
         docker tag "${{ parameters.imageName }}:${TAG_NAME}" "${ACR_NAME}.azurecr.io/ipaffs/${{ parameters.imageName }}:${TAG_NAME}"
         docker push "${ACR_NAME}.azurecr.io/ipaffs/${{ parameters.imageName }}:${TAG_NAME}"

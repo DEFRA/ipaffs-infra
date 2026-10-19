@@ -100,20 +100,20 @@ remain plan-only.
 | Responsibility | Owner after cutover |
 | --- | --- |
 | Platform chart configuration, image mirrors and deployment | Manifest release pipelines |
-| Java, Node and Liquibase base images | Shared service packaging step, immediately before each build |
+| Service and migration base-image references | Service Dockerfiles; completed images are pushed to ACR |
 | Azure resources, identities, permissions and Private Link | Infrastructure pipelines |
 | Local platform chart sources and bootstrap/backoffice/webapp/job chart publishing | Retained in this repository |
 
 The standalone import and Helm installer pipelines, their stage templates and the
 old platform wrapper are removed. Existing Helm releases and ACR images are not
 deleted. See the [five-image audit](docs/platform-image-import-audit.md) for the
-three relocated imports and two unused mirrors.
+removal of all five legacy mirrors.
 
-Service packaging reads the selected Dockerfile's base-image arguments and imports
-only missing ACR bases. Public `FROM` images keep their existing behavior. TST uses
-the DEV registry connection; explicit registry/subscription overrides are preserved.
-Existing tags are not overwritten; refreshing an upstream floating tag requires
-an explicit mirror refresh or a new Dockerfile tag. Live import permissions need verification.
+Service builds use existing Dockerfile base-image references, with no registry
+override or separate base-image import. Pushing the completed image to ACR includes
+its base layers. The current image references stay in place ahead of the distroless
+migration. TST uses DEV's registry connection for the final push; explicit registry,
+subscription and tag overrides are preserved.
 
 `infra-platform` now reconciles Private Link only: `main` can apply, while branch
 and PR runs retain Bicep what-if. The full infrastructure pipeline's existing
@@ -124,7 +124,7 @@ and PR runs retain Bicep what-if. The full infrastructure pipeline's existing
 1. Merge and validate the manifest change first, including canonical applies and
    branch/FTR plan-only behavior. Prevent overlapping platform deployments.
 2. Merge this retirement after confirming chart readiness and application health.
-   The shared packaging templates then supply base images for subsequent builds.
+   The shared packaging templates then use public base defaults for subsequent builds.
 3. Retire the old ADO `import-acr-artifacts` (10054) and `install-helm-charts` (10078) definitions
    after merge; their YAML entrypoints no longer exist. Preserve build history.
 

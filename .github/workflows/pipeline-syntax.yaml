@@ -110,10 +110,6 @@ jobs:
         shell: bash
         run: bash scripts/pipeline/test-platform-handoff.sh
 
-      - name: Test service build base-image imports
-        shell: bash
-        run: bash scripts/pipeline/build-container-image.test.sh
-
   bicep:
     name: Bicep
     runs-on: ubuntu-latest
