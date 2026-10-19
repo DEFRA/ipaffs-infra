@@ -111,26 +111,20 @@ a separate change.
 
 ### Shared ingress certificate
 
-The webapp, bootstrap origin and identity redirect handler Ingresses use the
-NGINX controller's default certificate,
-`defra-certs/star-azure-defra-cloud-cert`. They retain `spec.tls.hosts` and
-existing redirect annotations, and omit `spec.tls.secretName`. The controller
-must have this central default configured before adopting these chart changes.
-AGC already references the same Secret directly. External Secrets continues to
-refresh the central Secret from Key Vault every hour.
+Configure `defra-certs/star-azure-defra-cloud-cert` as NGINX's default certificate.
+External Secrets refreshes it hourly from Key Vault; AGC references it directly.
+Webapp, origin and identity redirect handler Ingresses omit `tls[].secretName`,
+retaining TLS hosts and redirect settings.
 
-The main chart pipelines increment the webapp and bootstrap minor versions when
-publishing: this change is intended to publish webapp `0.130.0` and bootstrap
-`0.74.0` from the current `0.129.0` and `0.73.0` metadata. Coordinate the matching
-`ipaffs-manifest` pins after publication. The identity redirect handler is
-installed from this repository by the platform pipeline.
+Publish the webapp/bootstrap charts before updating `ipaffs-manifest` pins.
+Deploy the identity redirect handler through the platform pipeline.
 
-Keep namespace-local `ipaffs-tls` ExternalSecrets and values during the rollout.
-After every environment, release/feature namespace and redirect handler has
-migrated, verify the served certificate and HTTP redirect behaviour before
-removing those mappings in a separate change. Their `creationPolicy: Owner`
-means deleting an ExternalSecret can also delete its Secret. Update installed-copy
-certificate reporting with that later cleanup.
+Keep namespace-local `ipaffs-tls` ExternalSecrets until every namespace and the
+redirect handler has migrated and passed certificate/redirect checks. Deleting
+an owned ExternalSecret can also delete its Secret; clean these up separately.
+
+The wildcard covers `*.azure.defra.cloud`, but deeper service hostnames and
+short aliases need separate certificate coverage.
 
 ### Namespace network policy
 
