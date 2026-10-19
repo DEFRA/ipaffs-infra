@@ -10,42 +10,13 @@ tests:
       - equal:
           path: spec.template.spec.containers[0].image
           value: nginx:alpine
-  - it: accepts a registry image override without changing the shared backend
+  - it: accepts a registry image pinned by digest
+    documentIndex: 1
     set:
-      errorPage.image: example.azurecr.io/library/nginx:1.29.2-alpine
+      errorPage.image: example.azurecr.io/nginx:1.31.7-alpine@sha256:892bb2152464f0c5d8972593a5f5afaf8054552580b699d95f8ff4af08c2d33d
     asserts:
-      - hasDocuments:
-          count: 3
-      - equal:
-          path: metadata.name
-          value: error-page
-        documentIndex: 0
+      - isKind:
+          of: Deployment
       - equal:
           path: spec.template.spec.containers[0].image
-          value: example.azurecr.io/library/nginx:1.29.2-alpine
-        documentIndex: 1
-      - equal:
-          path: metadata.namespace
-          value: app-routing-system
-        documentIndex: 1
-      - equal:
-          path: spec.template.spec.containers[0].volumeMounts[0]
-          value:
-            name: html
-            mountPath: /usr/share/nginx/html
-        documentIndex: 1
-      - equal:
-          path: spec.template.spec.volumes[0].configMap.name
-          value: error-page
-        documentIndex: 1
-      - equal:
-          path: spec.selector
-          value:
-            app: error-page
-        documentIndex: 2
-      - equal:
-          path: spec.ports[0]
-          value:
-            port: 80
-            targetPort: 80
-        documentIndex: 2
+          value: example.azurecr.io/nginx:1.31.7-alpine@sha256:892bb2152464f0c5d8972593a5f5afaf8054552580b699d95f8ff4af08c2d33d

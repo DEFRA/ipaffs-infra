@@ -92,51 +92,45 @@ Things are moving along quickly. At the time of writing, migration of ipaffs-imp
 
 ### Platform deployment ownership
 
-[ipaffs-manifest](https://github.com/DEFRA/ipaffs-manifest) owns all 13 shared
-platform Helm releases and their image imports. DEV current `master` and numeric
-TST/PRE/PRD releases apply under existing environment approvals. FTR and branches
-remain plan-only.
+[ipaffs-manifest](https://github.com/DEFRA/ipaffs-manifest) owns configuration,
+image mirrors and deployment for all 13 shared platform Helm releases. DEV current
+`master` and numeric TST/PRE/PRD release tags apply in canonical namespaces under
+existing approvals; FTR and branches remain plan-only.
 
-| Responsibility | Owner after cutover |
+Infrastructure retains Azure provisioning, identities, permissions, Private Link,
+local chart sources and application chart publishing. `infra-platform` reconciles
+Private Link only: `main` can apply; branch/PR runs retain Bicep what-if. The full
+infrastructure pipeline's `includePlatform` flag controls this Private Link tail.
+
+The legacy import and Helm installer pipelines are removed. Existing ACR images
+and Helm releases remain. The five non-platform imports are no longer needed:
+
+| Former import | Outcome |
 | --- | --- |
-| Platform chart configuration, image mirrors and deployment | Manifest release pipelines |
-| Service and migration base-image references | Service Dockerfiles; completed images are pushed to ACR |
-| Azure resources, identities, permissions and Private Link | Infrastructure pipelines |
-| Local platform chart sources and bootstrap/backoffice/webapp/job chart publishing | Retained in this repository |
+| `manicminer/network-tools:latest` | No source consumer found; remove import |
+| `manicminer/workload-identity-adal-bridge:v0.4.2` | No mirror consumer found; preserve separate public references |
+| `liquibase/liquibase:4.33.0` | Migration builds use existing public Dockerfile defaults |
+| `defradigital/java:jre-21` | Service builds use existing public Dockerfile defaults |
+| `defradigital/node:latest-24` | Frontend builds use existing public Dockerfile defaults |
 
-The standalone import and Helm installer pipelines, their stage templates and the
-old platform wrapper are removed. Existing Helm releases and ACR images are not
-deleted. See the [five-image audit](docs/platform-image-import-audit.md) for the
-removal of all five legacy mirrors.
-
-Service builds use existing Dockerfile base-image references, with no registry
-override or separate base-image import. Pushing the completed image to ACR includes
-its base layers. The current image references stay in place ahead of the distroless
-migration. Final-image registry authentication and the default subscription retain
-the existing build configuration; explicit registry, subscription and tag overrides
-remain supported.
-
-`infra-platform` now reconciles Private Link only: `main` can apply, while branch
-and PR runs retain Bicep what-if. The full infrastructure pipeline's existing
-`includePlatform` flag now controls only this Private Link tail.
+Shared builds no longer force `IMAGE_ACR`. Completed images still go to ACR with
+all required layers. Existing base versions, build authentication, subscription
+fallback and explicit output overrides are unchanged.
 
 **Cutover**
 
-1. Merge and validate the manifest change first, including canonical applies and
-   branch/FTR plan-only behavior. Prevent overlapping platform deployments.
-2. Merge this retirement after confirming chart readiness and application health.
-   The shared packaging templates then use public base defaults for subsequent builds.
-3. Retire the old ADO `import-acr-artifacts` (10054) and `install-helm-charts` (10078) definitions
-   after merge; their YAML entrypoints no longer exist. Preserve build history.
+1. Merge and validate the manifest change, including canonical applies and
+   branch/FTR plans. Prevent overlapping platform deployments.
+2. Merge the infrastructure retirement after chart and application validation.
+3. Retire ADO definitions `import-acr-artifacts` (10054) and `install-helm-charts`
+   (10078) after merge; preserve their build history.
 
-For a fresh environment: core infrastructure (`includePlatform: false`) → eligible
-manifest platform images/charts → Private Link → application deployment. Select
-only the platform stage for the first manifest run; PRE/PRD approvals still apply.
-Private Link needs the ingress controller's internal load balancer. Normal manifest
-releases read existing infrastructure outputs without rerunning provisioning.
-
-To restore infrastructure chart ownership, disable manifest platform applies
-before reverting the retirement. Keep a single platform writer.
+For a fresh environment: core infrastructure (`includePlatform: false`) → manifest
+platform stage only → infrastructure Private Link → application deployment.
+Existing release approvals apply. Private Link needs the ingress controller's
+internal load balancer. Normal manifest releases reuse infrastructure outputs
+without rerunning provisioning. Disable manifest applies before any return to
+infrastructure chart ownership.
 
 ### Shared ingress certificate
 
