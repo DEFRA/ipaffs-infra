@@ -29,6 +29,8 @@ readiness values become active when adopting this chart; validate them first.
 
 Disable the PDB with `podDisruptionBudget.enabled: false`. To override its budget,
 supply either `maxUnavailable` or `minAvailable` as an integer or percentage.
+PDB selectors exclude Job pods, including running and completed database migrations,
+while continuing to protect existing application pods.
 
 A custom `topologySpreadConstraints` array replaces the default; `[]` disables
 explicit spreading. Each entry needs `maxSkew`, `topologyKey` and

@@ -18,4 +18,9 @@ spec:
   selector:
     matchLabels:
       {{- include "ipaffs-common.selectorLabels" . | nindent 6 }}
+    matchExpressions:
+      - key: batch.kubernetes.io/job-name
+        operator: DoesNotExist
+      - key: job-name
+        operator: DoesNotExist
 {{- end }}
