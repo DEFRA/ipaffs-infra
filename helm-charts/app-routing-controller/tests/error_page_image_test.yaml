@@ -1,0 +1,51 @@
+suite: error page image
+templates:
+  - templates/nginx-ingress-error-pages.yaml
+tests:
+  - it: retains the existing public image by default
+    documentIndex: 1
+    asserts:
+      - isKind:
+          of: Deployment
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: nginx:alpine
+  - it: accepts a registry image override without changing the shared backend
+    set:
+      errorPage.image: example.azurecr.io/library/nginx:1.29.2-alpine
+    asserts:
+      - hasDocuments:
+          count: 3
+      - equal:
+          path: metadata.name
+          value: error-page
+        documentIndex: 0
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: example.azurecr.io/library/nginx:1.29.2-alpine
+        documentIndex: 1
+      - equal:
+          path: metadata.namespace
+          value: app-routing-system
+        documentIndex: 1
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[0]
+          value:
+            name: html
+            mountPath: /usr/share/nginx/html
+        documentIndex: 1
+      - equal:
+          path: spec.template.spec.volumes[0].configMap.name
+          value: error-page
+        documentIndex: 1
+      - equal:
+          path: spec.selector
+          value:
+            app: error-page
+        documentIndex: 2
+      - equal:
+          path: spec.ports[0]
+          value:
+            port: 80
+            targetPort: 80
+        documentIndex: 2
