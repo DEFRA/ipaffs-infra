@@ -4,87 +4,100 @@ set -euo pipefail
 
 repository_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)"
 
-# Exercise the retired entrypoint locally. Any attempted Azure/Kubernetes/Helm
-# command fails the test; no credentials or network access are needed.
+# Check the deployment ownership boundary without Azure/Kubernetes access.
 ruby - "$repository_root" <<'RUBY'
 require 'yaml'
-require 'open3'
 
 repo = ARGV.fetch(0)
 load_pipeline = ->(path) { YAML.load_file("#{repo}/pipelines/#{path}") }
-installer = load_pipeline.call('stages/install-helm-charts.yaml')
-stages = installer.fetch('stages')
-abort 'Retired installer must retain one successful handoff stage' unless stages.length == 1
-stage = stages.first
-abort 'Keep the existing stage identity for downstream sequencing' unless stage.fetch('stage') == 'DeployHelmCharts'
-abort 'Handoff stage must not be skipped' if stage.key?('condition')
-jobs = stage.fetch('jobs')
-abort 'Only a normal ownership-notice job may remain' unless jobs.length == 1 && jobs.first.key?('job')
-job = jobs.first
-abort 'Handoff must not require an environment or service connection' if job.key?('environment') || job.key?('strategy')
-abort 'Ownership notice must complete on every branch' if job.key?('condition')
+retired = %w[
+  import-acr-artifacts.yaml
+  install-helm-charts.yaml
+  stages/import-acr-artifacts.yaml
+  stages/install-helm-charts.yaml
+  stages/infra-platform.yaml
+]
+retired.each do |path|
+  abort "Retired pipeline still exists: #{path}" if File.exist?("#{repo}/pipelines/#{path}")
+end
 
-expand_steps = lambda do |steps, tag_build|
-  steps.flat_map do |step|
-    if step.keys == ['${{ if parameters.tagBuild }}']
-      tag_build ? step.values.first : []
-    else
-      [step]
+# Catch callers in every pipeline, including references nested under ADO
+# compile-time expressions. Service chart deployment templates remain supported.
+walk = lambda do |value, path|
+  case value
+  when Hash
+    value.each do |key, nested|
+      if key == 'template' && retired.any? { |name| nested.sub(%r{\A/}, '') == name || nested == "stages/#{name}" }
+        abort "#{path} still calls retired template #{nested}"
+      end
+      walk.call(nested, path)
     end
+  when Array
+    value.each { |nested| walk.call(nested, path) }
   end
 end
-
-stubs = <<~'BASH'
-  set -euo pipefail
-  az() { echo 'UNEXPECTED_CLOUD_MUTATION'; return 99; }
-  kubectl() { echo 'UNEXPECTED_CLOUD_MUTATION'; return 99; }
-  helm() { echo 'UNEXPECTED_CLOUD_MUTATION'; return 99; }
-BASH
-
-%w[DEV TST PRE PRD].product(%w[refs/heads/main refs/heads/feature/platform], [false, true]).each do |environment, branch, tag_build|
-  steps = expand_steps.call(job.fetch('steps'), tag_build)
-  scripts = steps.map do |step|
-    if step.key?('checkout')
-      abort 'Handoff must not check out infrastructure code' unless step.fetch('checkout') == 'none'
-      next
-    end
-    abort 'Retired installer may only print ownership and build tags' unless step.key?('bash')
-    if step.key?('condition')
-      expected = "and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))"
-      abort 'Unexpected ownership-notice condition' unless step.fetch('condition') == expected
-      next unless branch == 'refs/heads/main'
-    end
-    step.fetch('bash').gsub('${{ parameters.environmentName }}', environment)
-  end.compact
-  stdout, stderr, status = Open3.capture3('/bin/bash', stdin_data: stubs + scripts.join("\n"), chdir: repo)
-  output = stdout + stderr
-  abort "Ownership notice failed: #{output}" unless status.success?
-  abort 'Legacy installer attempted a cloud command' if output.include?('UNEXPECTED_CLOUD_MUTATION')
-  abort 'Missing environment ownership notice' unless output.include?("charts for #{environment} are owned by DEFRA/ipaffs-manifest")
-  tagged = output.include?("##vso[build.addbuildtag]Environment-#{environment}")
-  abort 'Environment tagging changed unexpectedly' unless tagged == (tag_build && branch == 'refs/heads/main')
-  puts "PASS #{environment} #{branch} tagBuild=#{tag_build}: ownership notice only"
+Dir.glob("#{repo}/pipelines/**/*.{yaml,yml}").each do |path|
+  walk.call(YAML.load_file(path), path)
 end
 
-standalone = load_pipeline.call('install-helm-charts.yaml')
-abort 'Retired standalone installer must not run automatically' unless standalone.fetch('trigger') == 'none' && standalone.fetch('pr') == 'none'
-abort 'Retired standalone installer must not load credentials' if standalone.key?('variables')
-abort 'Standalone installer must use the handoff' unless standalone.fetch('stages').map { |item| item['template'] } == ['stages/install-helm-charts.yaml']
+infrastructure = load_pipeline.call('infrastructure.yaml')
+platform_parameter = infrastructure.fetch('parameters').find { |parameter| parameter['name'] == 'includePlatform' }
+abort 'Preserve the optional infrastructure Private Link tail' unless platform_parameter && platform_parameter.fetch('default') == true
+private_link_tail = infrastructure.fetch('stages').last
+expected_tail = {
+  '${{ if parameters.includePlatform }}' => [{
+    'template' => 'stages/deploy-bicep-privatelink.yaml',
+    'parameters' => { 'environmentName' => '${{ parameters.environmentName }}' }
+  }]
+}
+abort 'Infrastructure must end with optional Private Link only' unless private_link_tail == expected_tail
 
-tail = load_pipeline.call('stages/infra-platform.yaml').fetch('stages')
-abort 'Shared application/TST image imports must remain' unless tail.first.fetch('${{ if parameters.importImages }}').first.fetch('template') == 'import-acr-artifacts.yaml'
-abort 'Private Link must remain after the successful handoff' unless tail.drop(1).map { |item| item['template'] } == ['install-helm-charts.yaml', 'deploy-bicep-privatelink.yaml']
-%w[infrastructure.yaml infra-platform.yaml].each do |entrypoint|
-  abort "#{entrypoint} must retain the shared infrastructure tail" unless File.read("#{repo}/pipelines/#{entrypoint}").include?('template: stages/infra-platform.yaml')
+standalone = load_pipeline.call('infra-platform.yaml')
+abort 'Standalone Private Link must retain its manual trigger' unless standalone.fetch('trigger') == 'none'
+standalone_stages = standalone.fetch('stages')
+expected_tag = {
+  "${{ if eq(variables['Build.SourceBranch'], 'refs/heads/main') }}" => [{
+    'stage' => 'TagBuild',
+    'displayName' => 'Tag environment',
+    'jobs' => [{
+      'job' => 'TagEnvironment',
+      'steps' => [{ 'checkout' => 'none' }, {
+        'bash' => 'echo "##vso[build.addbuildtag]Environment-${{ parameters.environmentName }}"',
+        'displayName' => 'Tag environment'
+      }]
+    }]
+  }]
+}
+abort 'Standalone environment tagging must remain main-only' unless standalone_stages.first == expected_tag
+abort 'Standalone pipeline must invoke Private Link directly' unless standalone_stages.drop(1) == expected_tail.values.first
+abort 'Deleted stage paths must not remain in the PR filter' if standalone.fetch('pr').fetch('paths').fetch('include').any? { |path| retired.any? { |name| path == "pipelines/#{name}" } }
+
+private_link = load_pipeline.call('stages/deploy-bicep-privatelink.yaml').fetch('stages')
+abort 'Private Link stage identity must remain stable' unless private_link.length == 1 && private_link.first.fetch('stage') == 'PrivateLink'
+deployment = private_link.first.fetch('jobs').find { |job| job['deployment'] == 'RunBicep' }
+abort 'Private Link must preserve environment approvals' unless deployment.fetch('environment') == { 'name' => '${{ parameters.environmentName }}' }
+steps = deployment.fetch('strategy').fetch('runOnce').fetch('deploy').fetch('steps')
+what_if = steps.find { |step| step['displayName'] == 'WhatIf - PrivateLink' }
+abort 'Private Link what-if must run on branch previews' unless what_if && !what_if.key?('condition')
+main_only = "and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))"
+['Deploy - PrivateLink', 'Wait for Deployment - PrivateLink'].each do |name|
+  step = steps.find { |item| item['displayName'] == name }
+  abort "#{name} must remain main-only" unless step && step.fetch('condition') == main_only
 end
+%w[infrastructure.yaml infra-platform.yaml stages/deploy-bicep-privatelink.yaml].each do |path|
+  source = File.read("#{repo}/pipelines/#{path}")
+  abort "Platform image import remains in #{path}" if source.match?(/az\s+acr\s+import/)
+  abort "Platform Helm installation remains in #{path}" if source.match?(/\bhelm\s+(?:install|upgrade|uninstall)\b|HelmDeploy@/)
+end
+puts 'PASS retired entrypoints and callers removed; Private Link previews, apply guard and tagging preserved'
 
-# Runtime local charts are still consumed through pinned Git revisions. Shared
-# application chart producers remain separate from deployment ownership.
+# Pinned manifest chart sources and shared service-chart producers remain usable.
 %w[agc-gateway ama-metrics-settings app-routing-controller azure-service-operator-config defra-certs external-secrets-azure ms-identity-redirect-handler].each do |chart|
   abort "Missing retained chart source: #{chart}" unless File.file?("#{repo}/helm-charts/#{chart}/Chart.yaml")
 end
 %w[bootstrap backoffice webapp job].each do |chart|
   abort "Missing shared chart producer: #{chart}" unless File.file?("#{repo}/pipelines/#{chart}-chart.yaml")
 end
-puts 'PASS all legacy entrypoints converge on the handoff; imports, Private Link, chart sources and producers remain'
+abort 'Shared service chart deployment must remain available' unless File.file?("#{repo}/pipelines/steps/deploy-chart.yaml")
+puts 'PASS manifest chart sources and shared service chart producers retained'
 RUBY

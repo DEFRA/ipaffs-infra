@@ -31,7 +31,7 @@ parameters:
     type: boolean
     default: false
   - name: includePlatform
-    displayName: Include shared image imports and Azure Private Link
+    displayName: Include Azure Private Link
     type: boolean
     default: true
 
@@ -110,10 +110,9 @@ stages:
       environmentName: ${{ parameters.environmentName }}
 
   - ${{ if parameters.includePlatform }}:
-    - template: stages/infra-platform.yaml
+    - template: stages/deploy-bicep-privatelink.yaml
       parameters:
         environmentName: ${{ parameters.environmentName }}
-        infrastructureDeploymentName: Infrastructure-$(Build.BuildId)
 
 # Temporarily disabled
 #  - template: stages/deploy-bicep-dns.yaml

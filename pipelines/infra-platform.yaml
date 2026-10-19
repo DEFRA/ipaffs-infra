@@ -1,6 +1,6 @@
 ---
-# Main deployments reconcile shared images and Azure Private Link; pull requests
-# preview Bicep against DEV. Cluster chart updates belong to ipaffs-manifest.
+# Main deployments reconcile Azure Private Link; pull requests preview Bicep
+# against DEV. Platform images and cluster charts belong to ipaffs-manifest.
 # Core infrastructure and the ingress load balancer must already exist.
 trigger: none
 pr:
@@ -11,9 +11,6 @@ pr:
   paths:
     include:
       - pipelines/infra-platform.yaml
-      - pipelines/stages/infra-platform.yaml
-      - pipelines/stages/import-acr-artifacts.yaml
-      - pipelines/stages/install-helm-charts.yaml
       - pipelines/stages/deploy-bicep-privatelink.yaml
       - pipelines/vars/common.yaml
       - pipelines/vars/dev.yaml
@@ -48,11 +45,16 @@ variables:
   - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
 
 stages:
-  - template: stages/infra-platform.yaml
+  - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/main') }}:
+    - stage: TagBuild
+      displayName: Tag environment
+      jobs:
+        - job: TagEnvironment
+          steps:
+            - checkout: none
+            - bash: echo "##vso[build.addbuildtag]Environment-${{ parameters.environmentName }}"
+              displayName: Tag environment
+
+  - template: stages/deploy-bicep-privatelink.yaml
     parameters:
       environmentName: ${{ parameters.environmentName }}
-      tagBuild: true
-      # Branch runs preview Bicep only. Omit the main-only import stage so
-      # its skipped deployment jobs do not block downstream preview stages.
-      ${{ if ne(variables['Build.SourceBranch'], 'refs/heads/main') }}:
-        importImages: false

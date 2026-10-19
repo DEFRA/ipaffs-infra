@@ -106,9 +106,13 @@ jobs:
         shell: bash
         run: bash scripts/pipeline/update-manifest-bootstrap-values.test.sh
 
-      - name: Test manifest platform ownership handoff
+      - name: Test platform deployment ownership
         shell: bash
         run: bash scripts/pipeline/test-platform-handoff.sh
+
+      - name: Test service build base-image imports
+        shell: bash
+        run: bash scripts/pipeline/build-container-image.test.sh
 
   bicep:
     name: Bicep
