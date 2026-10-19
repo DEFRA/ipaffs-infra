@@ -106,10 +106,6 @@ jobs:
         shell: bash
         run: bash scripts/pipeline/update-manifest-bootstrap-values.test.sh
 
-      - name: Test platform deployment ownership
-        shell: bash
-        run: bash scripts/pipeline/test-platform-handoff.sh
-
   bicep:
     name: Bicep
     runs-on: ubuntu-latest

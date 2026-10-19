@@ -112,8 +112,9 @@ removal of all five legacy mirrors.
 Service builds use existing Dockerfile base-image references, with no registry
 override or separate base-image import. Pushing the completed image to ACR includes
 its base layers. The current image references stay in place ahead of the distroless
-migration. TST uses DEV's registry connection for the final push; explicit registry,
-subscription and tag overrides are preserved.
+migration. Final-image registry authentication and the default subscription retain
+the existing build configuration; explicit registry, subscription and tag overrides
+remain supported.
 
 `infra-platform` now reconciles Private Link only: `main` can apply, while branch
 and PR runs retain Bicep what-if. The full infrastructure pipeline's existing

@@ -27,8 +27,8 @@ Liquibase image repositories are unnecessary for runtime pulls. See
 
 There is no base-image parser, registry inventory, import step or Docker Hub import
 credential requirement in service packaging. Existing base-image references stay
-in place ahead of the planned distroless migration. Registry/subscription/tag
-output overrides and DEV/TST shared final-image registry behavior remain supported.
+in place ahead of the planned distroless migration. Existing build authentication,
+default subscription and registry/subscription/tag output overrides remain unchanged.
 
 Platform images remain mirrored by the manifest because Kubernetes pulls those
 images directly. Platform apply conditions and approvals are unchanged.
