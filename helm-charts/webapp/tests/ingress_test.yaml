@@ -10,7 +10,7 @@ tests:
       - hasDocuments:
           count: 0
 
-  - it: renders ingress hosts for base and aks domain when namespace matches environment
+  - it: uses the controller default certificate for base and aks hosts
     release:
       namespace: dev
     set:
@@ -29,11 +29,13 @@ tests:
           path: spec.rules[1].host
           value: test.aks.imp.dev.azure.defra.cloud
       - equal:
-          path: spec.tls[0].hosts[0]
-          value: test
+          path: spec.tls
+          value:
+            - hosts: [test]
+            - hosts: [test.aks.imp.dev.azure.defra.cloud]
       - equal:
-          path: spec.tls[1].hosts[0]
-          value: test.aks.imp.dev.azure.defra.cloud
+          path: metadata.annotations["nginx.ingress.kubernetes.io/ssl-redirect"]
+          value: "false"
 
   - it: appends namespace suffix to ingress hosts when namespace differs from environment
     release:
@@ -51,6 +53,11 @@ tests:
       - equal:
           path: spec.rules[1].host
           value: test-feature1.aks.imp.dev.azure.defra.cloud
+      - equal:
+          path: spec.tls
+          value:
+            - hosts: [test-feature1]
+            - hosts: [test-feature1.aks.imp.dev.azure.defra.cloud]
 
   - it: uses ports.service for ingress backend service port
     release:

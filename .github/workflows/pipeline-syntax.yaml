@@ -215,3 +215,4 @@ jobs:
           helm unittest --strict helm-charts/bootstrap
           helm unittest --strict helm-charts/agc-gateway
           helm unittest --strict helm-charts/app-routing-controller
+          helm unittest --strict helm-charts/ms-identity-redirect-handler

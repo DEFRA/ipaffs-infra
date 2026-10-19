@@ -137,11 +137,28 @@ releases read existing infrastructure outputs without rerunning provisioning.
 To restore infrastructure chart ownership, disable manifest platform applies
 before reverting the retirement. Keep a single platform writer.
 
+### Shared ingress certificate
+
+Configure `defra-certs/star-azure-defra-cloud-cert` as NGINX's default certificate.
+External Secrets refreshes it hourly from Key Vault; AGC references it directly.
+Webapp, origin and identity redirect handler Ingresses omit `tls[].secretName`,
+retaining TLS hosts and redirect settings.
+
+Publish the webapp/bootstrap charts before updating `ipaffs-manifest` pins.
+Deploy the identity redirect handler through the platform pipeline.
+
+Keep namespace-local `ipaffs-tls` ExternalSecrets until every namespace and the
+redirect handler has migrated and passed certificate/redirect checks. Deleting
+an owned ExternalSecret can also delete its Secret; clean these up separately.
+
+The wildcard covers `*.azure.defra.cloud`, but deeper service hostnames and
+short aliases need separate certificate coverage.
+
 ### Namespace network policy
 
 The bootstrap chart's optional `ipaffs-port-baseline` restricts ingress and egress
-for all pods in the release namespace. FTR, DEV and TST enable it using environment
-overrides; the shared default is disabled.
+for all pods in the release namespace. FTR, DEV, TST, PRE and PRD enable it using
+environment overrides; the shared default is disabled.
 
 | Direction | Allowed traffic |
 | --- | --- |
