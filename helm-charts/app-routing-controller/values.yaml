@@ -1,6 +1,9 @@
 name: nginx-internal
 ingressClassName: nginx
 
+errorPage:
+  image: nginx:alpine
+
 loadBalancerAnnotations:
   service.beta.kubernetes.io/azure-load-balancer-internal: "true"
 

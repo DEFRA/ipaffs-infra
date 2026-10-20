@@ -90,24 +90,23 @@ Things are moving along quickly. At the time of writing, migration of ipaffs-imp
 * Run `scripts/build.sh` to build the service, package a container and push to the local registry.
 * Run `scripts/deploy.sh` to deploy the latest built container image and run with remote debugger enabled.
 
-### Platform configuration pipeline
+### Platform deployment ownership
 
-Run [infra-platform](pipelines/infra-platform.yaml) manually to import platform
-images, install shared Helm controllers/configuration, and reconcile ingress
-Private Link without redeploying resource groups, networking, AKS or data services.
-Core infrastructure and its existing Library outputs must already be available.
-Run from `main` to apply; branch runs use Helm dry-run and Bicep what-if.
-Pull requests targeting `main`, including drafts, automatically preview against
-DEV when platform inputs change. Preview runs omit image imports and deployment.
-Main runs add the environment build tag in the existing Helm job.
+- **Manifest:** configuration, image mirrors and deployment of shared platform Helm
+  releases. See the [platform guide](https://github.com/DEFRA/ipaffs-manifest/blob/master/platform/README.md)
+  for configuration and apply rules.
+- **Infrastructure:** Azure resources, identities, permissions, Private Link,
+  chart sources and publishing.
 
-The full [infrastructure pipeline](pipelines/infrastructure.yaml) includes the
-same platform stages at the end, retaining its original bootstrap sequence and
-same-run infrastructure output handoff. Set `includePlatform: false` for a
-core-only infrastructure run; the default remains full bootstrap. Existing CI and TST/PRE/PRD release
-entrypoints remain unchanged. Schedule manual platform maintenance when core
-infrastructure deployment is idle; automatic main deployments and ordering are
-a separate change.
+`infra-platform` handles Private Link only: `main` applies; branches and PRs run
+what-if. `includePlatform` controls this stage in the full infrastructure pipeline.
+
+**Cutover:** validate the manifest rollout before retiring the infrastructure
+installers. Retire ADO definitions `import-acr-artifacts` (10054) and
+`install-helm-charts` (10078), preserving history. Keep one platform Helm writer.
+
+**Fresh environment:** core infrastructure (`includePlatform: false`) → manifest
+platform stage → Private Link → applications.
 
 ### Shared ingress certificate
 
