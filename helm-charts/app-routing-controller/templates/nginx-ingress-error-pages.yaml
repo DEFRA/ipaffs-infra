@@ -24,7 +24,7 @@ spec:
     spec:
       containers:
         - name: nginx
-          image: nginx:alpine
+          image: {{ .Values.errorPage.image | quote }}
           volumeMounts:
             - name: html
               mountPath: /usr/share/nginx/html

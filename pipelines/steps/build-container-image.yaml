@@ -52,6 +52,6 @@ steps:
         fi
 
         az acr login --name "${ACR_NAME}" --subscription "${SUBSCRIPTION_NAME}"
-        docker build --platform=linux/amd64 --tag "${{ parameters.imageName }}:${TAG_NAME}" --file "${{ parameters.dockerFile }}" "${{ parameters.directory }}" --build-arg IMAGE_ACR="${ACR_NAME}.azurecr.io"
+        docker build --platform=linux/amd64 --tag "${{ parameters.imageName }}:${TAG_NAME}" --file "${{ parameters.dockerFile }}" "${{ parameters.directory }}"
         docker tag "${{ parameters.imageName }}:${TAG_NAME}" "${ACR_NAME}.azurecr.io/ipaffs/${{ parameters.imageName }}:${TAG_NAME}"
         docker push "${ACR_NAME}.azurecr.io/ipaffs/${{ parameters.imageName }}:${TAG_NAME}"
