@@ -1,7 +1,0 @@
-apiVersion: v2
-name: bootstrap
-version: 0.75.0
-dependencies:
-  - name: ipaffs-common
-    version: 1.0.0
-    repository: "file://../ipaffs-common"

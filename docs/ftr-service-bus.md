@@ -17,13 +17,14 @@ serviceBus:
 Remove all external bus imports, including Trade, and retain other required
 secrets. Migration Jobs do not import the ASO bus secret.
 
-[FTR bootstrap values](../helm-charts/envs/ftr/bootstrap-values.yaml) define the
+[FTR bootstrap values](https://github.com/DEFRA/ipaffs-helm-charts/blob/main/helm-charts/envs/ftr/bootstrap-values.yaml) define the
 local queues, topics and subscription. Trade equivalents need seeded messages
 or stubs.
 
 ## Deployment
 
-1. Publish the infra templates and bootstrap, backoffice, webapp and job charts.
+1. Publish the infra templates and the bootstrap, backoffice, webapp and job charts
+   from `ipaffs-helm-charts`.
 2. Let service/bootstrap pipelines publish FTR overlays on the manifest branch.
    Generated files and chart versions remain pipeline-owned.
 3. Deploy the feature branch with a unique lowercase namespace of at most

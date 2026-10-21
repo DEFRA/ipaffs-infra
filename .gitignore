@@ -1,9 +1,5 @@
 bicep/*.bicepparam
 deploy/tls/*
-helm-charts/*/charts/
-helm-charts/*/tmpcharts*
-helm-charts/*-secrets-values.yaml
-helm-charts/*/Chart.lock
 tmp/
 **/.idea/
 *.iml

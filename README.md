@@ -95,8 +95,9 @@ Things are moving along quickly. At the time of writing, migration of ipaffs-imp
 - **Manifest:** configuration, image mirrors and deployment of shared platform Helm
   releases. See the [platform guide](https://github.com/DEFRA/ipaffs-manifest/blob/master/platform/README.md)
   for configuration and apply rules.
-- **Infrastructure:** Azure resources, identities, permissions, Private Link,
-  chart sources and publishing.
+- **Infrastructure:** Azure resources, identities, permissions and Private Link.
+- **Helm charts:** chart sources and publishing live in
+  [`ipaffs-helm-charts`](https://github.com/DEFRA/ipaffs-helm-charts).
 
 `infra-platform` handles Private Link only: `main` applies; branches and PRs run
 what-if. `includePlatform` controls this stage in the full infrastructure pipeline.
@@ -138,8 +139,8 @@ environment overrides; the shared default is disabled.
 | DNS egress | UDP/TCP 53 to CoreDNS in `kube-system` |
 | Other egress | TCP 80, 443, 1344, 1433, 4000, 5671, 6379, 6380 and 8000 to any destination |
 
-Configure ports in [bootstrap values](helm-charts/bootstrap/values.yaml), with overrides
-in `helm-charts/envs/<environment>/bootstrap-values.yaml`. Add new application ports
+Configure ports in [bootstrap values](https://github.com/DEFRA/ipaffs-helm-charts/blob/main/helm-charts/bootstrap/values.yaml), with overrides
+in the charts repository's `helm-charts/envs/<environment>/bootstrap-values.yaml`. Add new application ports
 explicitly; the publishing pipeline generates `ipaffs-manifest/bootstrap` values.
 
 Enable with `networkPolicy.enabled: true` in a pilot namespace's Helm values.

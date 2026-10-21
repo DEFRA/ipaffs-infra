@@ -1,8 +1,0 @@
-telemetry:
-  java:
-    enabled: true
-    jmxMetrics:
-      - name: GC "young" \ cycle
-        objectName: java.lang:type=GarbageCollector,name=G1 Young Generation
-        attribute: CollectionCount
-    metricIntervalSeconds: 60

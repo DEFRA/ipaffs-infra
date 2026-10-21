@@ -1,7 +1,0 @@
----
-# Do not adopt resources by default
-defaultReconcilePolicy: "skip"
-
-# Enable authentication using AKS Workload Identity (OIDC)
-useWorkloadIdentityAuth: true
-

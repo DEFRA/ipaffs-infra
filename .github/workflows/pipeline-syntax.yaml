@@ -13,7 +13,6 @@ on:
       - "bicep/*.bicepparam"
       - "bicep/**/*.bicep"
       - "bicep/**/*.bicepparam"
-      - "helm-charts/**"
   push:
     branches:
       - main
@@ -28,7 +27,6 @@ on:
       - "bicep/*.bicepparam"
       - "bicep/**/*.bicep"
       - "bicep/**/*.bicepparam"
-      - "helm-charts/**"
 
 jobs:
   ado-pipeline-yaml:
@@ -101,11 +99,6 @@ jobs:
       - name: Test generated manifest service values
         shell: bash
         run: bash scripts/pipeline/update-manifest-service-values.test.sh
-
-      - name: Test generated bootstrap profile values
-        shell: bash
-        run: bash scripts/pipeline/update-manifest-bootstrap-values.test.sh
-
   bicep:
     name: Bicep
     runs-on: ubuntu-latest
@@ -156,60 +149,3 @@ jobs:
             echo "Building ${file}"
             az bicep build-params --file "${file}" --stdout --only-show-errors > /dev/null
           done
-
-  helm:
-    name: Helm
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Lint Helm charts
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          charts=()
-          while IFS= read -r chart; do
-            charts+=("${chart}")
-          done < <(find helm-charts -mindepth 2 -maxdepth 2 -name Chart.yaml -exec dirname {} \; | sort)
-
-          if [[ ${#charts[@]} -eq 0 ]]; then
-            echo "No Helm charts found."
-            exit 0
-          fi
-
-          for chart in "${charts[@]}"; do
-            echo "Linting ${chart}"
-            helm dependency update --skip-refresh "${chart}"
-
-            if [[ "${chart}" == "helm-charts/bootstrap" ]]; then
-              helm lint "${chart}" \
-                --values helm-charts/envs/dev/bootstrap-values.yaml \
-                --set-string agc.frontDoorId=11111111-2222-3333-4444-555555555555
-            elif [[ "${chart}" == "helm-charts/job" ]]; then
-              helm lint "${chart}" \
-                --set service=test-job \
-                --set container.image=test/image:1.0.0 \
-                --set schedule="0 0 * * *" \
-                --set azure.clientId=00000000-0000-0000-0000-000000000001
-            elif [[ "${chart}" == "helm-charts/proxy-to-local" ]]; then
-              helm lint "${chart}" --set application.name=proxy-to-local --set local.port=8080
-            elif [[ "${chart}" == "helm-charts/webapp" ]]; then
-              helm lint "${chart}" --values helm-charts/webapp/tests/ci-values.yaml
-            else
-              helm lint "${chart}"
-            fi
-          done
-
-      - name: Test Helm charts
-        shell: bash
-        run: |
-          set -euo pipefail
-          bash scripts/pipeline/test-webapp-chart.sh
-          ruby helm-charts/webapp/tests/pod_selection_test.rb
-          CHART_PATH=helm-charts/job bash scripts/pipeline/test-webapp-chart.sh
-          helm unittest --strict helm-charts/bootstrap
-          helm unittest --strict helm-charts/agc-gateway
-          helm unittest --strict helm-charts/app-routing-controller
-          helm unittest --strict helm-charts/ms-identity-redirect-handler
