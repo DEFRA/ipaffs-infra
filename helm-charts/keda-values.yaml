@@ -1,3 +1,0 @@
-# KEDA install (includes CRDs) used by ScaledJob/ScaledObject resources.
-crds:
-  install: true

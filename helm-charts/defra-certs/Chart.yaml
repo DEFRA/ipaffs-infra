@@ -1,4 +1,0 @@
-apiVersion: v2
-name: defra-certs
-version: 0.1.0
-description: Defra TLS Certificates
