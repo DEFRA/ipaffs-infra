@@ -15,9 +15,10 @@
 #       bash grafana-dashboards/scripts/export-dashboard.sh
 #     The exported JSON keeps the dashboard's template variables (the
 #     namespace / datasource dropdowns), so they travel with it.
-#  3. Commit the JSON under grafana-dashboards/dashboards/
-#     (deployed to individual environment). Per-env dashboards are not
-#     supported yet and can be added later.
+#  3. Commit the JSON under grafana-dashboards/dashboards/ to deploy it to
+#     every environment, or under grafana-dashboards/dashboards/<ENV>/
+#     (e.g. DEV/) to deploy it to that environment only. A dashboard in DEV/
+#     is never promoted past DEV.
 #  4. The pipeline validates and (on main) deploys to every environment
 #     in turn.
 #

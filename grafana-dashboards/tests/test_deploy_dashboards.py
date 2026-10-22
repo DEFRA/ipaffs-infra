@@ -68,7 +68,7 @@ class DeployDashboardsTests(unittest.TestCase):
         self.run_count += 1
         capture.mkdir()
         env = os.environ.copy()
-        for name in (*CLASSIC_VARIABLES, "AZ_STUB_FAIL_UPDATE", "DRY_RUN"):
+        for name in (*CLASSIC_VARIABLES, "AZ_STUB_FAIL_UPDATE", "DRY_RUN", "LIST_ONLY", "DASHBOARDS_ROOT"):
             env.pop(name, None)
         env.update(
             PATH=f"{self.bin}{os.pathsep}{env.get('PATH', '')}",
@@ -161,6 +161,24 @@ class DeployDashboardsTests(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertEqual(len(updates), 1)
         self.assertIn("FAILED", result.stdout + result.stderr)
+
+    def test_environment_folder_dashboards_only_deploy_to_that_environment(self):
+        root = self.directory / "dashboards"
+        for path, uid in (("Shared.json", "shared"), ("DEV/DevOnly.json", "dev-only"), ("TST/TstOnly.json", "tst-only")):
+            (root / path).parent.mkdir(parents=True, exist_ok=True)
+            (root / path).write_text(json.dumps({"uid": uid, "title": uid, "templating": {"list": []}, "panels": []}))
+        expected = {"DEV": ["dev-only", "shared"], "TST": ["shared", "tst-only"], "PRE": ["shared"], "PRD": ["shared"]}
+        for environment, uids in expected.items():
+            with self.subTest(environment=environment):
+                result, updates = self.deploy([], environment=environment, DASHBOARD_FILES="", DASHBOARDS_ROOT=str(root))
+                self.assert_success(result)
+                self.assertEqual(sorted(update["uid"] for update in updates), uids)
+                result, updates = self.deploy([], environment=environment, DASHBOARD_FILES="", DASHBOARDS_ROOT=str(root),
+                                              LIST_ONLY="true")
+                self.assert_success(result)
+                self.assertEqual(updates, [])
+                listed = [json.loads(Path(line).read_text())["uid"] for line in result.stdout.splitlines()]
+                self.assertEqual(sorted(listed), uids)
 
     def test_dry_run_does_not_update_dashboards(self):
         result, updates = self.deploy([APPLICATION], self.classic_values(), DRY_RUN="true")

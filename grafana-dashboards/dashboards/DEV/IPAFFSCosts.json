@@ -1,0 +1,2512 @@
+{
+  "id": null,
+  "uid": "ipaffs-costs",
+  "title": "IPAFFS Costs",
+  "description": "What the environment is costing now: SQL from the databases deployed, AKS from the nodes running, Log Analytics from ingestion, and the other services at their standing rates. Estimates at rates from DEV's own bill; Azure Cost analysis has the actual bill.",
+  "tags": [
+    "ipaffs",
+    "cost"
+  ],
+  "editable": true,
+  "graphTooltip": 1,
+  "refresh": "15m",
+  "schemaVersion": 41,
+  "time": {
+    "from": "now-30d",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "browser",
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "templating": {
+    "list": [
+      {
+        "name": "datasource",
+        "type": "datasource",
+        "query": "prometheus",
+        "hide": 2,
+        "refresh": 1,
+        "regex": "",
+        "current": {
+          "selected": true,
+          "text": "Prometheus",
+          "value": "bfq876mzxyfi8b"
+        },
+        "options": []
+      },
+      {
+        "name": "subscription_id",
+        "type": "query",
+        "hide": 2,
+        "datasource": {
+          "type": "prometheus",
+          "uid": "${datasource}"
+        },
+        "refresh": 2,
+        "regex": "",
+        "query": {
+          "qryType": 1,
+          "query": "label_values(kube_pod_container_info, microsoft.subscriptionid)",
+          "refId": "PrometheusVariableQueryEditor-VariableQuery"
+        },
+        "definition": "label_values(kube_pod_container_info, microsoft.subscriptionid)",
+        "includeAll": false,
+        "multi": false,
+        "options": [],
+        "sort": 0
+      },
+      {
+        "name": "subscription",
+        "type": "query",
+        "hide": 2,
+        "datasource": {
+          "type": "grafana-azure-monitor-datasource",
+          "uid": "azure-monitor-oob"
+        },
+        "refresh": 1,
+        "regex": "/.*$subscription_id.*/",
+        "query": {
+          "queryType": "Azure Subscriptions",
+          "refId": "A",
+          "azureLogAnalytics": {
+            "query": "",
+            "resources": []
+          }
+        },
+        "definition": "",
+        "includeAll": false,
+        "multi": false,
+        "options": [],
+        "sort": 0
+      },
+      {
+        "name": "resourceGroup",
+        "type": "query",
+        "hide": 2,
+        "datasource": {
+          "type": "grafana-azure-monitor-datasource",
+          "uid": "azure-monitor-oob"
+        },
+        "refresh": 1,
+        "regex": "/.*IMPINFRG1401.*/i",
+        "query": {
+          "queryType": "Azure Resource Groups",
+          "refId": "A",
+          "azureLogAnalytics": {
+            "query": "",
+            "resources": []
+          },
+          "subscription": "$subscription"
+        },
+        "definition": "",
+        "includeAll": false,
+        "multi": false,
+        "options": [],
+        "sort": 0
+      },
+      {
+        "name": "appInsights",
+        "type": "query",
+        "hide": 2,
+        "datasource": {
+          "type": "grafana-azure-monitor-datasource",
+          "uid": "azure-monitor-oob"
+        },
+        "refresh": 1,
+        "regex": "",
+        "query": {
+          "queryType": "Azure Resource Names",
+          "refId": "A",
+          "azureLogAnalytics": {
+            "query": "",
+            "resources": []
+          },
+          "subscription": "$subscription",
+          "resourceGroup": "$resourceGroup",
+          "namespace": "microsoft.insights/components"
+        },
+        "definition": "",
+        "includeAll": false,
+        "multi": false,
+        "options": [],
+        "sort": 0
+      },
+      {
+        "name": "classicSubscription",
+        "type": "constant",
+        "hide": 2,
+        "label": "Classic subscription",
+        "query": "",
+        "skipUrlSync": true,
+        "current": {
+          "selected": true,
+          "text": "",
+          "value": ""
+        },
+        "options": []
+      },
+      {
+        "name": "logWorkspace",
+        "type": "query",
+        "hide": 2,
+        "datasource": {
+          "type": "grafana-azure-monitor-datasource",
+          "uid": "azure-monitor-oob"
+        },
+        "refresh": 1,
+        "regex": "/.*IMPINFLA1401$/i",
+        "query": {
+          "queryType": "Azure Resource Names",
+          "refId": "A",
+          "azureLogAnalytics": {
+            "query": "",
+            "resources": []
+          },
+          "subscription": "$subscription",
+          "resourceGroup": "$resourceGroup",
+          "namespace": "microsoft.operationalinsights/workspaces"
+        },
+        "definition": "",
+        "includeAll": false,
+        "multi": false,
+        "options": [],
+        "sort": 0
+      },
+      {
+        "name": "defaultResourceGroup",
+        "type": "query",
+        "hide": 2,
+        "datasource": {
+          "type": "grafana-azure-monitor-datasource",
+          "uid": "azure-monitor-oob"
+        },
+        "refresh": 1,
+        "regex": "/^DefaultResourceGroup-/i",
+        "query": {
+          "queryType": "Azure Resource Groups",
+          "refId": "A",
+          "azureLogAnalytics": {
+            "query": "",
+            "resources": []
+          },
+          "subscription": "$subscription"
+        },
+        "definition": "",
+        "includeAll": false,
+        "multi": false,
+        "options": [],
+        "sort": 0
+      },
+      {
+        "name": "defaultWorkspace",
+        "type": "query",
+        "hide": 2,
+        "datasource": {
+          "type": "grafana-azure-monitor-datasource",
+          "uid": "azure-monitor-oob"
+        },
+        "refresh": 1,
+        "regex": "/^DefaultWorkspace-/i",
+        "query": {
+          "queryType": "Azure Resource Names",
+          "refId": "A",
+          "azureLogAnalytics": {
+            "query": "",
+            "resources": []
+          },
+          "subscription": "$subscription",
+          "resourceGroup": "$defaultResourceGroup",
+          "namespace": "microsoft.operationalinsights/workspaces"
+        },
+        "definition": "",
+        "includeAll": false,
+        "multi": false,
+        "options": [],
+        "sort": 0
+      }
+    ]
+  },
+  "links": [
+    {
+      "title": "Service Health",
+      "type": "link",
+      "url": "/d/ipaffs-service-health?var-namespace=$namespace",
+      "keepTime": true,
+      "icon": "dashboard",
+      "targetBlank": false
+    },
+    {
+      "title": "Service Drill-down",
+      "type": "link",
+      "url": "/d/ipaffs-service-drilldown?var-namespace=$namespace",
+      "keepTime": true,
+      "icon": "dashboard",
+      "targetBlank": false
+    },
+    {
+      "title": "Messaging & Integrations",
+      "type": "link",
+      "url": "/d/ipaffs-messaging-integrations?var-namespace=$namespace",
+      "keepTime": true,
+      "icon": "dashboard",
+      "targetBlank": false
+    }
+  ],
+  "panels": [
+    {
+      "type": "text",
+      "title": "",
+      "options": {
+        "mode": "markdown",
+        "content": "**Estimates from what is deployed now**, at rates from DEV's amortised bill for 1\u201321 Oct 2026: SQL \u00a32.77 per vCore per day, AKS \u00a314.07 per user node and \u00a31.96 per system node per day, logs \u00a31.69 per GB ingested, and a standing rate for each other service. Together they cover about 99% of AZR-IMP-DEV1's cost. The AKS VMs are on a savings plan bought outside the subscription, so the Actual cost view shows them as almost nothing: compare with Amortized cost. The classic SND servers in AZR-SND are priced at Azure list prices, as their bill is not visible here. For the actual bill, which runs 8\u201324 hours behind, see [Azure Cost analysis](https://portal.azure.com/#view/Microsoft_Azure_CostManagement/Menu/~/costanalysis/scope/%2Fsubscriptions%2F$subscription)."
+      },
+      "id": 1,
+      "gridPos": {
+        "h": 4,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "type": "row",
+      "title": "Now: AZR-IMP-DEV1",
+      "id": 2,
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 4
+      },
+      "panels": []
+    },
+    {
+      "type": "stat",
+      "title": "Total \u00a3/day",
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Mixed --"
+      },
+      "targets": [
+        {
+          "refId": "S",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "azure-monitor-oob"
+          },
+          "queryType": "Azure Resource Graph",
+          "subscriptions": [
+            "$subscription"
+          ],
+          "azureResourceGraph": {
+            "query": "resources\n| where type =~ \"microsoft.sql/servers/databases\" and name != \"master\" or type =~ \"microsoft.sql/servers/elasticpools\"\n| extend isPool = type =~ \"microsoft.sql/servers/elasticpools\", pooled = isnotempty(properties.elasticPoolId)\n| extend Namespace = case(\n    isPool, \"(elastic pool)\",\n    name in (\"approvedestablishment-microservice-blue\", \"bip-microservice\", \"bordernotification-microservice\", \"bordernotification-refdata-microservice-blue\", \"checks-microservice\", \"commoditycode-microservice-blue\", \"countries-microservice-blue\", \"decision-microservice-blue\", \"economicoperator-microservice\", \"economicoperator-microservice-public-blue\", \"enotification-event-microservice\", \"fieldconfig-microservice-blue\", \"in-service-messaging-microservice\", \"laboratories-microservice-blue\", \"notification-microservice\", \"permissions-blue\", \"referencedataloader-microservice-blue\", \"soaprequest-microservice\"), \"dev\",\n    name startswith \"bordernotification-refdata-microservice-blue-\", substring(name, 45),\n    name startswith \"economicoperator-microservice-public-blue-\", substring(name, 42),\n    name startswith \"approvedestablishment-microservice-blue-\", substring(name, 40),\n    name startswith \"referencedataloader-microservice-blue-\", substring(name, 38),\n    name startswith \"in-service-messaging-microservice-\", substring(name, 34),\n    name startswith \"enotification-event-microservice-\", substring(name, 33),\n    name startswith \"bordernotification-microservice-\", substring(name, 32),\n    name startswith \"commoditycode-microservice-blue-\", substring(name, 32),\n    name startswith \"laboratories-microservice-blue-\", substring(name, 31),\n    name startswith \"economicoperator-microservice-\", substring(name, 30),\n    name startswith \"fieldconfig-microservice-blue-\", substring(name, 30),\n    name startswith \"countries-microservice-blue-\", substring(name, 28),\n    name startswith \"decision-microservice-blue-\", substring(name, 27),\n    name startswith \"notification-microservice-\", substring(name, 26),\n    name startswith \"soaprequest-microservice-\", substring(name, 25),\n    name startswith \"checks-microservice-\", substring(name, 20),\n    name startswith \"bip-microservice-\", substring(name, 17),\n    name startswith \"permissions-blue-\", substring(name, 17),\n    \"(other)\")\n| extend vCores = toint(sku.capacity), daily = iff(pooled, 0.0, todouble(sku.capacity) * 2.77)\n| summarize v = round(sum(daily), 2)\n",
+            "resultFormat": "table"
+          },
+          "hide": true
+        },
+        {
+          "refId": "K",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "(count(kube_node_info{node=~\"^aks-user-.*\"}) * 14.07 or vector(0)) + (count(kube_node_info{node=~\"^aks-system-.*\"}) * 1.96 or vector(0))",
+          "legendFormat": "__auto",
+          "range": false,
+          "instant": true,
+          "format": "table",
+          "hide": true
+        },
+        {
+          "refId": "L",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "azure-monitor-oob"
+          },
+          "queryType": "Azure Log Analytics",
+          "azureLogAnalytics": {
+            "query": "Usage\n| where TimeGenerated > ago(24h) and IsBillable\n| extend Workspace = \"App Insights\", GB = Quantity / 1024\n| summarize v = sum(GB) * 1.69\n",
+            "resources": [
+              "/subscriptions/$subscription/resourceGroups/$resourceGroup/providers/Microsoft.OperationalInsights/workspaces/$logWorkspace"
+            ],
+            "resultFormat": "table",
+            "dashboardTime": false
+          },
+          "hide": true
+        },
+        {
+          "refId": "O",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "azure-monitor-oob"
+          },
+          "queryType": "Azure Resource Graph",
+          "subscriptions": [
+            "$subscription"
+          ],
+          "azureResourceGraph": {
+            "query": "resources\n| extend Service = case(\n    type =~ \"microsoft.search/searchservices\", \"Search\",\n    type =~ \"microsoft.servicenetworking/trafficcontrollers\", \"Application Gateway for Containers\",\n    type =~ \"microsoft.monitor/accounts\", \"Managed Prometheus\",\n    type =~ \"microsoft.cache/redis\", \"Redis\",\n    type =~ \"microsoft.containerregistry/registries\", \"Container Registry\",\n    type =~ \"microsoft.containerservice/managedclusters\", \"AKS cluster\",\n    type =~ \"microsoft.dashboard/grafana\", \"Managed Grafana\",\n    type =~ \"microsoft.network/privateendpoints\", \"Private endpoints\",\n    \"\")\n| where isnotempty(Service)\n| extend daily = case(\n    type =~ \"microsoft.search/searchservices\", todouble(4.80 * toint(properties.replicaCount) * toint(properties.partitionCount)),\n    type =~ \"microsoft.servicenetworking/trafficcontrollers\", todouble(2.78),\n    type =~ \"microsoft.monitor/accounts\", todouble(2.53),\n    type =~ \"microsoft.cache/redis\", todouble(2.47),\n    type =~ \"microsoft.containerregistry/registries\", todouble(1.64),\n    type =~ \"microsoft.containerservice/managedclusters\", todouble(iff(sku.tier =~ \"Standard\", 2.46, 1.03)),\n    type =~ \"microsoft.dashboard/grafana\", todouble(1.22),\n    type =~ \"microsoft.network/privateendpoints\", todouble(0.143),\n    real(null))\n| extend Basis = case(\n    type =~ \"microsoft.search/searchservices\", \"\u00a34.80 per search unit (replicas \u00d7 partitions)\",\n    type =~ \"microsoft.servicenetworking/trafficcontrollers\", \"Gateway, its association and frontend\",\n    type =~ \"microsoft.monitor/accounts\", \"Metric samples ingested and queried, at October's average\",\n    type =~ \"microsoft.cache/redis\", \"Standard C1\",\n    type =~ \"microsoft.containerregistry/registries\", \"Premium, plus about 230 GB stored\",\n    type =~ \"microsoft.containerservice/managedclusters\", \"Standard tier uptime SLA (\u00a31.43) and its two load balancers (\u00a31.03), per cluster\",\n    type =~ \"microsoft.dashboard/grafana\", \"Standard\",\n    type =~ \"microsoft.network/privateendpoints\", \"Per endpoint\",\n    \"\")\n| summarize v = round(sum(daily), 2)\n",
+            "resultFormat": "table"
+          },
+          "hide": true
+        },
+        {
+          "refId": "Total",
+          "datasource": {
+            "type": "__expr__",
+            "uid": "__expr__"
+          },
+          "type": "math",
+          "expression": "$S + $K + $L + $O"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyGBP",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          },
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto"
+      },
+      "description": "SQL + AKS + App Insights logs (last 24h) + other services. Leaves out the classic SND servers, which are billed to AZR-SND, and the default workspace's logs, which Grafana does not have access to read.",
+      "id": 3,
+      "gridPos": {
+        "h": 4,
+        "w": 5,
+        "x": 0,
+        "y": 5
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Total \u00a3/month",
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Mixed --"
+      },
+      "targets": [
+        {
+          "refId": "S",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "azure-monitor-oob"
+          },
+          "queryType": "Azure Resource Graph",
+          "subscriptions": [
+            "$subscription"
+          ],
+          "azureResourceGraph": {
+            "query": "resources\n| where type =~ \"microsoft.sql/servers/databases\" and name != \"master\" or type =~ \"microsoft.sql/servers/elasticpools\"\n| extend isPool = type =~ \"microsoft.sql/servers/elasticpools\", pooled = isnotempty(properties.elasticPoolId)\n| extend Namespace = case(\n    isPool, \"(elastic pool)\",\n    name in (\"approvedestablishment-microservice-blue\", \"bip-microservice\", \"bordernotification-microservice\", \"bordernotification-refdata-microservice-blue\", \"checks-microservice\", \"commoditycode-microservice-blue\", \"countries-microservice-blue\", \"decision-microservice-blue\", \"economicoperator-microservice\", \"economicoperator-microservice-public-blue\", \"enotification-event-microservice\", \"fieldconfig-microservice-blue\", \"in-service-messaging-microservice\", \"laboratories-microservice-blue\", \"notification-microservice\", \"permissions-blue\", \"referencedataloader-microservice-blue\", \"soaprequest-microservice\"), \"dev\",\n    name startswith \"bordernotification-refdata-microservice-blue-\", substring(name, 45),\n    name startswith \"economicoperator-microservice-public-blue-\", substring(name, 42),\n    name startswith \"approvedestablishment-microservice-blue-\", substring(name, 40),\n    name startswith \"referencedataloader-microservice-blue-\", substring(name, 38),\n    name startswith \"in-service-messaging-microservice-\", substring(name, 34),\n    name startswith \"enotification-event-microservice-\", substring(name, 33),\n    name startswith \"bordernotification-microservice-\", substring(name, 32),\n    name startswith \"commoditycode-microservice-blue-\", substring(name, 32),\n    name startswith \"laboratories-microservice-blue-\", substring(name, 31),\n    name startswith \"economicoperator-microservice-\", substring(name, 30),\n    name startswith \"fieldconfig-microservice-blue-\", substring(name, 30),\n    name startswith \"countries-microservice-blue-\", substring(name, 28),\n    name startswith \"decision-microservice-blue-\", substring(name, 27),\n    name startswith \"notification-microservice-\", substring(name, 26),\n    name startswith \"soaprequest-microservice-\", substring(name, 25),\n    name startswith \"checks-microservice-\", substring(name, 20),\n    name startswith \"bip-microservice-\", substring(name, 17),\n    name startswith \"permissions-blue-\", substring(name, 17),\n    \"(other)\")\n| extend vCores = toint(sku.capacity), daily = iff(pooled, 0.0, todouble(sku.capacity) * 2.77)\n| summarize v = round(sum(daily), 2)\n",
+            "resultFormat": "table"
+          },
+          "hide": true
+        },
+        {
+          "refId": "K",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "(count(kube_node_info{node=~\"^aks-user-.*\"}) * 14.07 or vector(0)) + (count(kube_node_info{node=~\"^aks-system-.*\"}) * 1.96 or vector(0))",
+          "legendFormat": "__auto",
+          "range": false,
+          "instant": true,
+          "format": "table",
+          "hide": true
+        },
+        {
+          "refId": "L",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "azure-monitor-oob"
+          },
+          "queryType": "Azure Log Analytics",
+          "azureLogAnalytics": {
+            "query": "Usage\n| where TimeGenerated > ago(24h) and IsBillable\n| extend Workspace = \"App Insights\", GB = Quantity / 1024\n| summarize v = sum(GB) * 1.69\n",
+            "resources": [
+              "/subscriptions/$subscription/resourceGroups/$resourceGroup/providers/Microsoft.OperationalInsights/workspaces/$logWorkspace"
+            ],
+            "resultFormat": "table",
+            "dashboardTime": false
+          },
+          "hide": true
+        },
+        {
+          "refId": "O",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "azure-monitor-oob"
+          },
+          "queryType": "Azure Resource Graph",
+          "subscriptions": [
+            "$subscription"
+          ],
+          "azureResourceGraph": {
+            "query": "resources\n| extend Service = case(\n    type =~ \"microsoft.search/searchservices\", \"Search\",\n    type =~ \"microsoft.servicenetworking/trafficcontrollers\", \"Application Gateway for Containers\",\n    type =~ \"microsoft.monitor/accounts\", \"Managed Prometheus\",\n    type =~ \"microsoft.cache/redis\", \"Redis\",\n    type =~ \"microsoft.containerregistry/registries\", \"Container Registry\",\n    type =~ \"microsoft.containerservice/managedclusters\", \"AKS cluster\",\n    type =~ \"microsoft.dashboard/grafana\", \"Managed Grafana\",\n    type =~ \"microsoft.network/privateendpoints\", \"Private endpoints\",\n    \"\")\n| where isnotempty(Service)\n| extend daily = case(\n    type =~ \"microsoft.search/searchservices\", todouble(4.80 * toint(properties.replicaCount) * toint(properties.partitionCount)),\n    type =~ \"microsoft.servicenetworking/trafficcontrollers\", todouble(2.78),\n    type =~ \"microsoft.monitor/accounts\", todouble(2.53),\n    type =~ \"microsoft.cache/redis\", todouble(2.47),\n    type =~ \"microsoft.containerregistry/registries\", todouble(1.64),\n    type =~ \"microsoft.containerservice/managedclusters\", todouble(iff(sku.tier =~ \"Standard\", 2.46, 1.03)),\n    type =~ \"microsoft.dashboard/grafana\", todouble(1.22),\n    type =~ \"microsoft.network/privateendpoints\", todouble(0.143),\n    real(null))\n| extend Basis = case(\n    type =~ \"microsoft.search/searchservices\", \"\u00a34.80 per search unit (replicas \u00d7 partitions)\",\n    type =~ \"microsoft.servicenetworking/trafficcontrollers\", \"Gateway, its association and frontend\",\n    type =~ \"microsoft.monitor/accounts\", \"Metric samples ingested and queried, at October's average\",\n    type =~ \"microsoft.cache/redis\", \"Standard C1\",\n    type =~ \"microsoft.containerregistry/registries\", \"Premium, plus about 230 GB stored\",\n    type =~ \"microsoft.containerservice/managedclusters\", \"Standard tier uptime SLA (\u00a31.43) and its two load balancers (\u00a31.03), per cluster\",\n    type =~ \"microsoft.dashboard/grafana\", \"Standard\",\n    type =~ \"microsoft.network/privateendpoints\", \"Per endpoint\",\n    \"\")\n| summarize v = round(sum(daily), 2)\n",
+            "resultFormat": "table"
+          },
+          "hide": true
+        },
+        {
+          "refId": "Total",
+          "datasource": {
+            "type": "__expr__",
+            "uid": "__expr__"
+          },
+          "type": "math",
+          "expression": "($S + $K + $L + $O) * 30.4"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyGBP",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          },
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto"
+      },
+      "description": "Total \u00a3/day \u00d7 30.4.",
+      "id": 4,
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 5,
+        "y": 5
+      }
+    },
+    {
+      "type": "stat",
+      "title": "SQL \u00a3/day",
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "azure-monitor-oob"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "azure-monitor-oob"
+          },
+          "queryType": "Azure Resource Graph",
+          "subscriptions": [
+            "$subscription"
+          ],
+          "azureResourceGraph": {
+            "query": "resources\n| where type =~ \"microsoft.sql/servers/databases\" and name != \"master\" or type =~ \"microsoft.sql/servers/elasticpools\"\n| extend isPool = type =~ \"microsoft.sql/servers/elasticpools\", pooled = isnotempty(properties.elasticPoolId)\n| extend Namespace = case(\n    isPool, \"(elastic pool)\",\n    name in (\"approvedestablishment-microservice-blue\", \"bip-microservice\", \"bordernotification-microservice\", \"bordernotification-refdata-microservice-blue\", \"checks-microservice\", \"commoditycode-microservice-blue\", \"countries-microservice-blue\", \"decision-microservice-blue\", \"economicoperator-microservice\", \"economicoperator-microservice-public-blue\", \"enotification-event-microservice\", \"fieldconfig-microservice-blue\", \"in-service-messaging-microservice\", \"laboratories-microservice-blue\", \"notification-microservice\", \"permissions-blue\", \"referencedataloader-microservice-blue\", \"soaprequest-microservice\"), \"dev\",\n    name startswith \"bordernotification-refdata-microservice-blue-\", substring(name, 45),\n    name startswith \"economicoperator-microservice-public-blue-\", substring(name, 42),\n    name startswith \"approvedestablishment-microservice-blue-\", substring(name, 40),\n    name startswith \"referencedataloader-microservice-blue-\", substring(name, 38),\n    name startswith \"in-service-messaging-microservice-\", substring(name, 34),\n    name startswith \"enotification-event-microservice-\", substring(name, 33),\n    name startswith \"bordernotification-microservice-\", substring(name, 32),\n    name startswith \"commoditycode-microservice-blue-\", substring(name, 32),\n    name startswith \"laboratories-microservice-blue-\", substring(name, 31),\n    name startswith \"economicoperator-microservice-\", substring(name, 30),\n    name startswith \"fieldconfig-microservice-blue-\", substring(name, 30),\n    name startswith \"countries-microservice-blue-\", substring(name, 28),\n    name startswith \"decision-microservice-blue-\", substring(name, 27),\n    name startswith \"notification-microservice-\", substring(name, 26),\n    name startswith \"soaprequest-microservice-\", substring(name, 25),\n    name startswith \"checks-microservice-\", substring(name, 20),\n    name startswith \"bip-microservice-\", substring(name, 17),\n    name startswith \"permissions-blue-\", substring(name, 17),\n    \"(other)\")\n| extend vCores = toint(sku.capacity), daily = iff(pooled, 0.0, todouble(sku.capacity) * 2.77)\n| summarize v = round(sum(daily), 2)\n",
+            "resultFormat": "table"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyGBP",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          },
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto"
+      },
+      "description": "Standalone databases at their vCores, plus every elastic pool at its vCores. Changes as soon as a database is created, moved or deleted.",
+      "id": 5,
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 9,
+        "y": 5
+      }
+    },
+    {
+      "type": "stat",
+      "title": "AKS \u00a3/day",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "(count(kube_node_info{node=~\"^aks-user-.*\"}) * 14.07 or vector(0)) + (count(kube_node_info{node=~\"^aks-system-.*\"}) * 1.96 or vector(0))",
+          "legendFormat": "__auto",
+          "range": false,
+          "instant": true,
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyGBP",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          },
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto"
+      },
+      "description": "Nodes running now at each pool's rate. Changes as the autoscaler adds or removes nodes.",
+      "id": 6,
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 13,
+        "y": 5
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Logs \u00a3/day (last 24h)",
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "azure-monitor-oob"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "azure-monitor-oob"
+          },
+          "queryType": "Azure Log Analytics",
+          "azureLogAnalytics": {
+            "query": "Usage\n| where TimeGenerated > ago(24h) and IsBillable\n| extend Workspace = \"App Insights\", GB = Quantity / 1024\n| summarize v = sum(GB) * 1.69\n",
+            "resources": [
+              "/subscriptions/$subscription/resourceGroups/$resourceGroup/providers/Microsoft.OperationalInsights/workspaces/$logWorkspace"
+            ],
+            "resultFormat": "table",
+            "dashboardTime": false
+          }
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "azure-monitor-oob"
+          },
+          "queryType": "Azure Log Analytics",
+          "azureLogAnalytics": {
+            "query": "Usage\n| where TimeGenerated > ago(24h) and IsBillable\n| extend Workspace = \"Container Insights\", GB = Quantity / 1024\n| summarize v = sum(GB) * 1.69\n",
+            "resources": [
+              "/subscriptions/$subscription/resourceGroups/$defaultResourceGroup/providers/Microsoft.OperationalInsights/workspaces/$defaultWorkspace"
+            ],
+            "resultFormat": "table",
+            "dashboardTime": false
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyGBP",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          },
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto"
+      },
+      "description": "Billable Log Analytics ingestion over the last 24 hours, across both workspaces.",
+      "id": 7,
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 17,
+        "y": 5
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Other \u00a3/day",
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "azure-monitor-oob"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "azure-monitor-oob"
+          },
+          "queryType": "Azure Resource Graph",
+          "subscriptions": [
+            "$subscription"
+          ],
+          "azureResourceGraph": {
+            "query": "resources\n| extend Service = case(\n    type =~ \"microsoft.search/searchservices\", \"Search\",\n    type =~ \"microsoft.servicenetworking/trafficcontrollers\", \"Application Gateway for Containers\",\n    type =~ \"microsoft.monitor/accounts\", \"Managed Prometheus\",\n    type =~ \"microsoft.cache/redis\", \"Redis\",\n    type =~ \"microsoft.containerregistry/registries\", \"Container Registry\",\n    type =~ \"microsoft.containerservice/managedclusters\", \"AKS cluster\",\n    type =~ \"microsoft.dashboard/grafana\", \"Managed Grafana\",\n    type =~ \"microsoft.network/privateendpoints\", \"Private endpoints\",\n    \"\")\n| where isnotempty(Service)\n| extend daily = case(\n    type =~ \"microsoft.search/searchservices\", todouble(4.80 * toint(properties.replicaCount) * toint(properties.partitionCount)),\n    type =~ \"microsoft.servicenetworking/trafficcontrollers\", todouble(2.78),\n    type =~ \"microsoft.monitor/accounts\", todouble(2.53),\n    type =~ \"microsoft.cache/redis\", todouble(2.47),\n    type =~ \"microsoft.containerregistry/registries\", todouble(1.64),\n    type =~ \"microsoft.containerservice/managedclusters\", todouble(iff(sku.tier =~ \"Standard\", 2.46, 1.03)),\n    type =~ \"microsoft.dashboard/grafana\", todouble(1.22),\n    type =~ \"microsoft.network/privateendpoints\", todouble(0.143),\n    real(null))\n| extend Basis = case(\n    type =~ \"microsoft.search/searchservices\", \"\u00a34.80 per search unit (replicas \u00d7 partitions)\",\n    type =~ \"microsoft.servicenetworking/trafficcontrollers\", \"Gateway, its association and frontend\",\n    type =~ \"microsoft.monitor/accounts\", \"Metric samples ingested and queried, at October's average\",\n    type =~ \"microsoft.cache/redis\", \"Standard C1\",\n    type =~ \"microsoft.containerregistry/registries\", \"Premium, plus about 230 GB stored\",\n    type =~ \"microsoft.containerservice/managedclusters\", \"Standard tier uptime SLA (\u00a31.43) and its two load balancers (\u00a31.03), per cluster\",\n    type =~ \"microsoft.dashboard/grafana\", \"Standard\",\n    type =~ \"microsoft.network/privateendpoints\", \"Per endpoint\",\n    \"\")\n| summarize v = round(sum(daily), 2)\n",
+            "resultFormat": "table"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyGBP",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          },
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto"
+      },
+      "description": "Search, Application Gateway for Containers, Prometheus, Redis, ACR and the rest. See Other services below.",
+      "id": 8,
+      "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 21,
+        "y": 5
+      }
+    },
+    {
+      "type": "row",
+      "title": "By namespace",
+      "id": 9,
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 9
+      },
+      "panels": []
+    },
+    {
+      "type": "table",
+      "title": "Cost by namespace now",
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Mixed --"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "azure-monitor-oob"
+          },
+          "queryType": "Azure Resource Graph",
+          "subscriptions": [
+            "$subscription"
+          ],
+          "azureResourceGraph": {
+            "query": "resources\n| where type =~ \"microsoft.sql/servers/databases\" and name != \"master\" or type =~ \"microsoft.sql/servers/elasticpools\"\n| extend isPool = type =~ \"microsoft.sql/servers/elasticpools\", pooled = isnotempty(properties.elasticPoolId)\n| extend Namespace = case(\n    isPool, \"(elastic pool)\",\n    name in (\"approvedestablishment-microservice-blue\", \"bip-microservice\", \"bordernotification-microservice\", \"bordernotification-refdata-microservice-blue\", \"checks-microservice\", \"commoditycode-microservice-blue\", \"countries-microservice-blue\", \"decision-microservice-blue\", \"economicoperator-microservice\", \"economicoperator-microservice-public-blue\", \"enotification-event-microservice\", \"fieldconfig-microservice-blue\", \"in-service-messaging-microservice\", \"laboratories-microservice-blue\", \"notification-microservice\", \"permissions-blue\", \"referencedataloader-microservice-blue\", \"soaprequest-microservice\"), \"dev\",\n    name startswith \"bordernotification-refdata-microservice-blue-\", substring(name, 45),\n    name startswith \"economicoperator-microservice-public-blue-\", substring(name, 42),\n    name startswith \"approvedestablishment-microservice-blue-\", substring(name, 40),\n    name startswith \"referencedataloader-microservice-blue-\", substring(name, 38),\n    name startswith \"in-service-messaging-microservice-\", substring(name, 34),\n    name startswith \"enotification-event-microservice-\", substring(name, 33),\n    name startswith \"bordernotification-microservice-\", substring(name, 32),\n    name startswith \"commoditycode-microservice-blue-\", substring(name, 32),\n    name startswith \"laboratories-microservice-blue-\", substring(name, 31),\n    name startswith \"economicoperator-microservice-\", substring(name, 30),\n    name startswith \"fieldconfig-microservice-blue-\", substring(name, 30),\n    name startswith \"countries-microservice-blue-\", substring(name, 28),\n    name startswith \"decision-microservice-blue-\", substring(name, 27),\n    name startswith \"notification-microservice-\", substring(name, 26),\n    name startswith \"soaprequest-microservice-\", substring(name, 25),\n    name startswith \"checks-microservice-\", substring(name, 20),\n    name startswith \"bip-microservice-\", substring(name, 17),\n    name startswith \"permissions-blue-\", substring(name, 17),\n    \"(other)\")\n| extend vCores = toint(sku.capacity), daily = iff(pooled, 0.0, todouble(sku.capacity) * 2.77)\n| where not(isPool)\n| summarize Standalone = countif(not(pooled)), Pooled = countif(pooled), standaloneDaily = sum(daily) by Namespace\n| extend k = 1\n| join kind=leftouter (\n    resources\n    | where type =~ \"microsoft.sql/servers/elasticpools\"\n    | summarize poolDaily = sum(todouble(sku.capacity)) * 2.77, k = 1\n    | join kind=inner (resources | where type =~ \"microsoft.sql/servers/databases\" and isnotempty(properties.elasticPoolId) | summarize poolDbs = count(), k = 1) on k\n  ) on k\n| extend ['\u00a3/day'] = round(standaloneDaily + iff(poolDbs > 0, poolDaily * Pooled / poolDbs, 0.0), 2)\n| extend ['\u00a3/month'] = round(['\u00a3/day'] * 30.4, 0)\n| project Namespace, Standalone, Pooled, ['\u00a3/day'], ['\u00a3/month']\n| order by ['\u00a3/day'] desc\n| project Namespace, ['SQL \u00a3/day'] = ['\u00a3/day']\n",
+            "resultFormat": "table"
+          }
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "sum by (Namespace) (label_replace(0.5 * (sum by (namespace) (kube_pod_container_resource_requests{resource=\"cpu\"} * on (namespace, pod) group_left () (max by (namespace, pod) (kube_pod_status_phase{phase=~\"^(Running|Pending)$\"}) == 1)) / scalar(sum(sum by (namespace) (kube_pod_container_resource_requests{resource=\"cpu\"} * on (namespace, pod) group_left () (max by (namespace, pod) (kube_pod_status_phase{phase=~\"^(Running|Pending)$\"}) == 1)))) + sum by (namespace) (kube_pod_container_resource_requests{resource=\"memory\"} * on (namespace, pod) group_left () (max by (namespace, pod) (kube_pod_status_phase{phase=~\"^(Running|Pending)$\"}) == 1)) / scalar(sum(sum by (namespace) (kube_pod_container_resource_requests{resource=\"memory\"} * on (namespace, pod) group_left () (max by (namespace, pod) (kube_pod_status_phase{phase=~\"^(Running|Pending)$\"}) == 1))))) * scalar((count(kube_node_info{node=~\"^aks-user-.*\"}) * 14.07 or vector(0)) + (count(kube_node_info{node=~\"^aks-system-.*\"}) * 1.96 or vector(0))), \"Namespace\", \"$1\", \"namespace\", \"(.*)\"))",
+          "legendFormat": "__auto",
+          "range": false,
+          "instant": true,
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "SQL \u00a3/day"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "currencyGBP"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "AKS \u00a3/day"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "currencyGBP"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "\u00a3/day"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "currencyGBP"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "\u00a3/month"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "currencyGBP"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "sortBy": [
+          {
+            "displayName": "\u00a3/day",
+            "desc": true
+          }
+        ]
+      },
+      "description": "SQL as in SQL by namespace below, plus each namespace's share of AKS by the CPU and memory its pods request. System namespaces (kube-system and the like) carry their own share of AKS.",
+      "transformations": [
+        {
+          "id": "joinByField",
+          "options": {
+            "byField": "Namespace",
+            "mode": "outer"
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true
+            },
+            "renameByName": {
+              "Value": "AKS \u00a3/day",
+              "Value #B": "AKS \u00a3/day"
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "reduceRow",
+            "alias": "\u00a3/day",
+            "replaceFields": false,
+            "reduce": {
+              "reducer": "sum",
+              "include": [
+                "SQL \u00a3/day",
+                "AKS \u00a3/day"
+              ]
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "\u00a3/month",
+            "replaceFields": false,
+            "binary": {
+              "left": "\u00a3/day",
+              "operator": "*",
+              "right": "30.4"
+            }
+          }
+        }
+      ],
+      "id": 10,
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 0,
+        "y": 10
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "AKS \u00a3/day by namespace",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "0.5 * (sum by (namespace) (kube_pod_container_resource_requests{resource=\"cpu\"} * on (namespace, pod) group_left () (max by (namespace, pod) (kube_pod_status_phase{phase=~\"^(Running|Pending)$\"}) == 1)) / scalar(sum(sum by (namespace) (kube_pod_container_resource_requests{resource=\"cpu\"} * on (namespace, pod) group_left () (max by (namespace, pod) (kube_pod_status_phase{phase=~\"^(Running|Pending)$\"}) == 1)))) + sum by (namespace) (kube_pod_container_resource_requests{resource=\"memory\"} * on (namespace, pod) group_left () (max by (namespace, pod) (kube_pod_status_phase{phase=~\"^(Running|Pending)$\"}) == 1)) / scalar(sum(sum by (namespace) (kube_pod_container_resource_requests{resource=\"memory\"} * on (namespace, pod) group_left () (max by (namespace, pod) (kube_pod_status_phase{phase=~\"^(Running|Pending)$\"}) == 1))))) * scalar((count(kube_node_info{node=~\"^aks-user-.*\"}) * 14.07 or vector(0)) + (count(kube_node_info{node=~\"^aks-system-.*\"}) * 1.96 or vector(0)))",
+          "legendFormat": "{{namespace}}",
+          "range": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyGBP",
+          "custom": {
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "mode": "normal",
+              "group": "A"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "description": "Each namespace's share of the cluster over time, by the CPU and memory its pods request.",
+      "id": 11,
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 12,
+        "y": 10
+      }
+    },
+    {
+      "type": "row",
+      "title": "AKS",
+      "id": 12,
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 20
+      },
+      "panels": []
+    },
+    {
+      "type": "stat",
+      "title": "User nodes",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "count(kube_node_info{node=~\"^aks-user-.*\"})",
+          "legendFormat": "__auto",
+          "range": false,
+          "instant": true,
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto"
+      },
+      "description": "Standard_E16as_v6, \u00a314.07/day each.",
+      "id": 13,
+      "gridPos": {
+        "h": 7,
+        "w": 3,
+        "x": 0,
+        "y": 21
+      }
+    },
+    {
+      "type": "stat",
+      "title": "System nodes",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "count(kube_node_info{node=~\"^aks-system-.*\"})",
+          "legendFormat": "__auto",
+          "range": false,
+          "instant": true,
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto"
+      },
+      "description": "Standard_E2as_v6, \u00a31.96/day each.",
+      "id": 14,
+      "gridPos": {
+        "h": 7,
+        "w": 3,
+        "x": 3,
+        "y": 21
+      }
+    },
+    {
+      "type": "stat",
+      "title": "CPU requested",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "sum(sum by (namespace) (kube_pod_container_resource_requests{resource=\"cpu\"} * on (namespace, pod) group_left () (max by (namespace, pod) (kube_pod_status_phase{phase=~\"^(Running|Pending)$\"}) == 1))) / sum(kube_node_status_allocatable{resource=\"cpu\"})",
+          "legendFormat": "__auto",
+          "range": false,
+          "instant": true,
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          },
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto"
+      },
+      "description": "Requested CPU across all pods, of what the nodes can allocate. The autoscaler adds nodes when pods cannot fit.",
+      "id": 15,
+      "gridPos": {
+        "h": 7,
+        "w": 3,
+        "x": 6,
+        "y": 21
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Memory requested",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "sum(sum by (namespace) (kube_pod_container_resource_requests{resource=\"memory\"} * on (namespace, pod) group_left () (max by (namespace, pod) (kube_pod_status_phase{phase=~\"^(Running|Pending)$\"}) == 1))) / sum(kube_node_status_allocatable{resource=\"memory\"})",
+          "legendFormat": "__auto",
+          "range": false,
+          "instant": true,
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          },
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto"
+      },
+      "description": "Requested memory across all pods, of what the nodes can allocate.",
+      "id": 16,
+      "gridPos": {
+        "h": 7,
+        "w": 3,
+        "x": 9,
+        "y": 21
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "AKS \u00a3/day by node pool",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "count(kube_node_info{node=~\"^aks-user-.*\"}) * 14.07",
+          "legendFormat": "user",
+          "range": true
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "count(kube_node_info{node=~\"^aks-system-.*\"}) * 1.96",
+          "legendFormat": "system",
+          "range": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyGBP",
+          "custom": {
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "mode": "normal",
+              "group": "A"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "description": "Nodes running at each point, at each pool's daily rate.",
+      "id": 17,
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 21
+      }
+    },
+    {
+      "type": "row",
+      "title": "Other services",
+      "id": 18,
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 28
+      },
+      "panels": []
+    },
+    {
+      "type": "table",
+      "title": "Standing charges",
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "azure-monitor-oob"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "azure-monitor-oob"
+          },
+          "queryType": "Azure Resource Graph",
+          "subscriptions": [
+            "$subscription"
+          ],
+          "azureResourceGraph": {
+            "query": "resources\n| extend Service = case(\n    type =~ \"microsoft.search/searchservices\", \"Search\",\n    type =~ \"microsoft.servicenetworking/trafficcontrollers\", \"Application Gateway for Containers\",\n    type =~ \"microsoft.monitor/accounts\", \"Managed Prometheus\",\n    type =~ \"microsoft.cache/redis\", \"Redis\",\n    type =~ \"microsoft.containerregistry/registries\", \"Container Registry\",\n    type =~ \"microsoft.containerservice/managedclusters\", \"AKS cluster\",\n    type =~ \"microsoft.dashboard/grafana\", \"Managed Grafana\",\n    type =~ \"microsoft.network/privateendpoints\", \"Private endpoints\",\n    \"\")\n| where isnotempty(Service)\n| extend daily = case(\n    type =~ \"microsoft.search/searchservices\", todouble(4.80 * toint(properties.replicaCount) * toint(properties.partitionCount)),\n    type =~ \"microsoft.servicenetworking/trafficcontrollers\", todouble(2.78),\n    type =~ \"microsoft.monitor/accounts\", todouble(2.53),\n    type =~ \"microsoft.cache/redis\", todouble(2.47),\n    type =~ \"microsoft.containerregistry/registries\", todouble(1.64),\n    type =~ \"microsoft.containerservice/managedclusters\", todouble(iff(sku.tier =~ \"Standard\", 2.46, 1.03)),\n    type =~ \"microsoft.dashboard/grafana\", todouble(1.22),\n    type =~ \"microsoft.network/privateendpoints\", todouble(0.143),\n    real(null))\n| extend Basis = case(\n    type =~ \"microsoft.search/searchservices\", \"\u00a34.80 per search unit (replicas \u00d7 partitions)\",\n    type =~ \"microsoft.servicenetworking/trafficcontrollers\", \"Gateway, its association and frontend\",\n    type =~ \"microsoft.monitor/accounts\", \"Metric samples ingested and queried, at October's average\",\n    type =~ \"microsoft.cache/redis\", \"Standard C1\",\n    type =~ \"microsoft.containerregistry/registries\", \"Premium, plus about 230 GB stored\",\n    type =~ \"microsoft.containerservice/managedclusters\", \"Standard tier uptime SLA (\u00a31.43) and its two load balancers (\u00a31.03), per cluster\",\n    type =~ \"microsoft.dashboard/grafana\", \"Standard\",\n    type =~ \"microsoft.network/privateendpoints\", \"Per endpoint\",\n    \"\")\n| summarize Resources = count(), daily = sum(daily) by Service, Basis\n| project Service, Resources, Basis, ['\u00a3/day'] = round(daily, 2), ['\u00a3/month'] = round(daily * 30.4, 0)\n| order by ['\u00a3/day'] desc\n",
+            "resultFormat": "table"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "\u00a3/day"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "currencyGBP"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "\u00a3/month"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "currencyGBP"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "sortBy": [
+          {
+            "displayName": "\u00a3/day",
+            "desc": true
+          }
+        ]
+      },
+      "description": "Resources in the subscription with a standing charge, at the daily rate each was billed in October.",
+      "id": 19,
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 29
+      }
+    },
+    {
+      "type": "row",
+      "title": "SQL now: AKS namespaces (AZR-IMP-DEV1)",
+      "id": 20,
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 37
+      },
+      "panels": []
+    },
+    {
+      "type": "stat",
+      "title": "SQL \u00a3/month",
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "azure-monitor-oob"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "azure-monitor-oob"
+          },
+          "queryType": "Azure Resource Graph",
+          "subscriptions": [
+            "$subscription"
+          ],
+          "azureResourceGraph": {
+            "query": "resources\n| where type =~ \"microsoft.sql/servers/databases\" and name != \"master\" or type =~ \"microsoft.sql/servers/elasticpools\"\n| extend isPool = type =~ \"microsoft.sql/servers/elasticpools\", pooled = isnotempty(properties.elasticPoolId)\n| extend Namespace = case(\n    isPool, \"(elastic pool)\",\n    name in (\"approvedestablishment-microservice-blue\", \"bip-microservice\", \"bordernotification-microservice\", \"bordernotification-refdata-microservice-blue\", \"checks-microservice\", \"commoditycode-microservice-blue\", \"countries-microservice-blue\", \"decision-microservice-blue\", \"economicoperator-microservice\", \"economicoperator-microservice-public-blue\", \"enotification-event-microservice\", \"fieldconfig-microservice-blue\", \"in-service-messaging-microservice\", \"laboratories-microservice-blue\", \"notification-microservice\", \"permissions-blue\", \"referencedataloader-microservice-blue\", \"soaprequest-microservice\"), \"dev\",\n    name startswith \"bordernotification-refdata-microservice-blue-\", substring(name, 45),\n    name startswith \"economicoperator-microservice-public-blue-\", substring(name, 42),\n    name startswith \"approvedestablishment-microservice-blue-\", substring(name, 40),\n    name startswith \"referencedataloader-microservice-blue-\", substring(name, 38),\n    name startswith \"in-service-messaging-microservice-\", substring(name, 34),\n    name startswith \"enotification-event-microservice-\", substring(name, 33),\n    name startswith \"bordernotification-microservice-\", substring(name, 32),\n    name startswith \"commoditycode-microservice-blue-\", substring(name, 32),\n    name startswith \"laboratories-microservice-blue-\", substring(name, 31),\n    name startswith \"economicoperator-microservice-\", substring(name, 30),\n    name startswith \"fieldconfig-microservice-blue-\", substring(name, 30),\n    name startswith \"countries-microservice-blue-\", substring(name, 28),\n    name startswith \"decision-microservice-blue-\", substring(name, 27),\n    name startswith \"notification-microservice-\", substring(name, 26),\n    name startswith \"soaprequest-microservice-\", substring(name, 25),\n    name startswith \"checks-microservice-\", substring(name, 20),\n    name startswith \"bip-microservice-\", substring(name, 17),\n    name startswith \"permissions-blue-\", substring(name, 17),\n    \"(other)\")\n| extend vCores = toint(sku.capacity), daily = iff(pooled, 0.0, todouble(sku.capacity) * 2.77)\n| summarize v = round(sum(daily) * 30.4, 0)\n",
+            "resultFormat": "table"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyGBP",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          },
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto"
+      },
+      "description": "SQL \u00a3/day \u00d7 30.4.",
+      "id": 21,
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 38
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Standalone databases",
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "azure-monitor-oob"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "azure-monitor-oob"
+          },
+          "queryType": "Azure Resource Graph",
+          "subscriptions": [
+            "$subscription"
+          ],
+          "azureResourceGraph": {
+            "query": "resources\n| where type =~ \"microsoft.sql/servers/databases\" and name != \"master\" or type =~ \"microsoft.sql/servers/elasticpools\"\n| extend isPool = type =~ \"microsoft.sql/servers/elasticpools\", pooled = isnotempty(properties.elasticPoolId)\n| extend Namespace = case(\n    isPool, \"(elastic pool)\",\n    name in (\"approvedestablishment-microservice-blue\", \"bip-microservice\", \"bordernotification-microservice\", \"bordernotification-refdata-microservice-blue\", \"checks-microservice\", \"commoditycode-microservice-blue\", \"countries-microservice-blue\", \"decision-microservice-blue\", \"economicoperator-microservice\", \"economicoperator-microservice-public-blue\", \"enotification-event-microservice\", \"fieldconfig-microservice-blue\", \"in-service-messaging-microservice\", \"laboratories-microservice-blue\", \"notification-microservice\", \"permissions-blue\", \"referencedataloader-microservice-blue\", \"soaprequest-microservice\"), \"dev\",\n    name startswith \"bordernotification-refdata-microservice-blue-\", substring(name, 45),\n    name startswith \"economicoperator-microservice-public-blue-\", substring(name, 42),\n    name startswith \"approvedestablishment-microservice-blue-\", substring(name, 40),\n    name startswith \"referencedataloader-microservice-blue-\", substring(name, 38),\n    name startswith \"in-service-messaging-microservice-\", substring(name, 34),\n    name startswith \"enotification-event-microservice-\", substring(name, 33),\n    name startswith \"bordernotification-microservice-\", substring(name, 32),\n    name startswith \"commoditycode-microservice-blue-\", substring(name, 32),\n    name startswith \"laboratories-microservice-blue-\", substring(name, 31),\n    name startswith \"economicoperator-microservice-\", substring(name, 30),\n    name startswith \"fieldconfig-microservice-blue-\", substring(name, 30),\n    name startswith \"countries-microservice-blue-\", substring(name, 28),\n    name startswith \"decision-microservice-blue-\", substring(name, 27),\n    name startswith \"notification-microservice-\", substring(name, 26),\n    name startswith \"soaprequest-microservice-\", substring(name, 25),\n    name startswith \"checks-microservice-\", substring(name, 20),\n    name startswith \"bip-microservice-\", substring(name, 17),\n    name startswith \"permissions-blue-\", substring(name, 17),\n    \"(other)\")\n| extend vCores = toint(sku.capacity), daily = iff(pooled, 0.0, todouble(sku.capacity) * 2.77)\n| where not(isPool) and not(pooled)\n| summarize v = count()\n",
+            "resultFormat": "table"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto"
+      },
+      "description": "Databases outside the elastic pool, each billed in full. A feature namespace whose manifest branch predates backoffice chart 0.80.0 creates 18 of these.",
+      "id": 22,
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 38
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Pool vCores",
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "azure-monitor-oob"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "azure-monitor-oob"
+          },
+          "queryType": "Azure Resource Graph",
+          "subscriptions": [
+            "$subscription"
+          ],
+          "azureResourceGraph": {
+            "query": "resources\n| where type =~ \"microsoft.sql/servers/databases\" and name != \"master\" or type =~ \"microsoft.sql/servers/elasticpools\"\n| extend isPool = type =~ \"microsoft.sql/servers/elasticpools\", pooled = isnotempty(properties.elasticPoolId)\n| extend Namespace = case(\n    isPool, \"(elastic pool)\",\n    name in (\"approvedestablishment-microservice-blue\", \"bip-microservice\", \"bordernotification-microservice\", \"bordernotification-refdata-microservice-blue\", \"checks-microservice\", \"commoditycode-microservice-blue\", \"countries-microservice-blue\", \"decision-microservice-blue\", \"economicoperator-microservice\", \"economicoperator-microservice-public-blue\", \"enotification-event-microservice\", \"fieldconfig-microservice-blue\", \"in-service-messaging-microservice\", \"laboratories-microservice-blue\", \"notification-microservice\", \"permissions-blue\", \"referencedataloader-microservice-blue\", \"soaprequest-microservice\"), \"dev\",\n    name startswith \"bordernotification-refdata-microservice-blue-\", substring(name, 45),\n    name startswith \"economicoperator-microservice-public-blue-\", substring(name, 42),\n    name startswith \"approvedestablishment-microservice-blue-\", substring(name, 40),\n    name startswith \"referencedataloader-microservice-blue-\", substring(name, 38),\n    name startswith \"in-service-messaging-microservice-\", substring(name, 34),\n    name startswith \"enotification-event-microservice-\", substring(name, 33),\n    name startswith \"bordernotification-microservice-\", substring(name, 32),\n    name startswith \"commoditycode-microservice-blue-\", substring(name, 32),\n    name startswith \"laboratories-microservice-blue-\", substring(name, 31),\n    name startswith \"economicoperator-microservice-\", substring(name, 30),\n    name startswith \"fieldconfig-microservice-blue-\", substring(name, 30),\n    name startswith \"countries-microservice-blue-\", substring(name, 28),\n    name startswith \"decision-microservice-blue-\", substring(name, 27),\n    name startswith \"notification-microservice-\", substring(name, 26),\n    name startswith \"soaprequest-microservice-\", substring(name, 25),\n    name startswith \"checks-microservice-\", substring(name, 20),\n    name startswith \"bip-microservice-\", substring(name, 17),\n    name startswith \"permissions-blue-\", substring(name, 17),\n    \"(other)\")\n| extend vCores = toint(sku.capacity), daily = iff(pooled, 0.0, todouble(sku.capacity) * 2.77)\n| where isPool\n| summarize v = sum(vCores)\n",
+            "resultFormat": "table"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto"
+      },
+      "description": "What the elastic pools are sized at, which is what is billed.",
+      "id": 23,
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 12,
+        "y": 38
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Pool \u00a3/day",
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "azure-monitor-oob"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "azure-monitor-oob"
+          },
+          "queryType": "Azure Resource Graph",
+          "subscriptions": [
+            "$subscription"
+          ],
+          "azureResourceGraph": {
+            "query": "resources\n| where type =~ \"microsoft.sql/servers/databases\" and name != \"master\" or type =~ \"microsoft.sql/servers/elasticpools\"\n| extend isPool = type =~ \"microsoft.sql/servers/elasticpools\", pooled = isnotempty(properties.elasticPoolId)\n| extend Namespace = case(\n    isPool, \"(elastic pool)\",\n    name in (\"approvedestablishment-microservice-blue\", \"bip-microservice\", \"bordernotification-microservice\", \"bordernotification-refdata-microservice-blue\", \"checks-microservice\", \"commoditycode-microservice-blue\", \"countries-microservice-blue\", \"decision-microservice-blue\", \"economicoperator-microservice\", \"economicoperator-microservice-public-blue\", \"enotification-event-microservice\", \"fieldconfig-microservice-blue\", \"in-service-messaging-microservice\", \"laboratories-microservice-blue\", \"notification-microservice\", \"permissions-blue\", \"referencedataloader-microservice-blue\", \"soaprequest-microservice\"), \"dev\",\n    name startswith \"bordernotification-refdata-microservice-blue-\", substring(name, 45),\n    name startswith \"economicoperator-microservice-public-blue-\", substring(name, 42),\n    name startswith \"approvedestablishment-microservice-blue-\", substring(name, 40),\n    name startswith \"referencedataloader-microservice-blue-\", substring(name, 38),\n    name startswith \"in-service-messaging-microservice-\", substring(name, 34),\n    name startswith \"enotification-event-microservice-\", substring(name, 33),\n    name startswith \"bordernotification-microservice-\", substring(name, 32),\n    name startswith \"commoditycode-microservice-blue-\", substring(name, 32),\n    name startswith \"laboratories-microservice-blue-\", substring(name, 31),\n    name startswith \"economicoperator-microservice-\", substring(name, 30),\n    name startswith \"fieldconfig-microservice-blue-\", substring(name, 30),\n    name startswith \"countries-microservice-blue-\", substring(name, 28),\n    name startswith \"decision-microservice-blue-\", substring(name, 27),\n    name startswith \"notification-microservice-\", substring(name, 26),\n    name startswith \"soaprequest-microservice-\", substring(name, 25),\n    name startswith \"checks-microservice-\", substring(name, 20),\n    name startswith \"bip-microservice-\", substring(name, 17),\n    name startswith \"permissions-blue-\", substring(name, 17),\n    \"(other)\")\n| extend vCores = toint(sku.capacity), daily = iff(pooled, 0.0, todouble(sku.capacity) * 2.77)\n| where isPool\n| summarize v = round(sum(daily), 2)\n",
+            "resultFormat": "table"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyGBP",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          },
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto"
+      },
+      "description": "Shared by every namespace's pooled databases.",
+      "id": 24,
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 18,
+        "y": 38
+      }
+    },
+    {
+      "type": "table",
+      "title": "SQL by namespace",
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "azure-monitor-oob"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "azure-monitor-oob"
+          },
+          "queryType": "Azure Resource Graph",
+          "subscriptions": [
+            "$subscription"
+          ],
+          "azureResourceGraph": {
+            "query": "resources\n| where type =~ \"microsoft.sql/servers/databases\" and name != \"master\" or type =~ \"microsoft.sql/servers/elasticpools\"\n| extend isPool = type =~ \"microsoft.sql/servers/elasticpools\", pooled = isnotempty(properties.elasticPoolId)\n| extend Namespace = case(\n    isPool, \"(elastic pool)\",\n    name in (\"approvedestablishment-microservice-blue\", \"bip-microservice\", \"bordernotification-microservice\", \"bordernotification-refdata-microservice-blue\", \"checks-microservice\", \"commoditycode-microservice-blue\", \"countries-microservice-blue\", \"decision-microservice-blue\", \"economicoperator-microservice\", \"economicoperator-microservice-public-blue\", \"enotification-event-microservice\", \"fieldconfig-microservice-blue\", \"in-service-messaging-microservice\", \"laboratories-microservice-blue\", \"notification-microservice\", \"permissions-blue\", \"referencedataloader-microservice-blue\", \"soaprequest-microservice\"), \"dev\",\n    name startswith \"bordernotification-refdata-microservice-blue-\", substring(name, 45),\n    name startswith \"economicoperator-microservice-public-blue-\", substring(name, 42),\n    name startswith \"approvedestablishment-microservice-blue-\", substring(name, 40),\n    name startswith \"referencedataloader-microservice-blue-\", substring(name, 38),\n    name startswith \"in-service-messaging-microservice-\", substring(name, 34),\n    name startswith \"enotification-event-microservice-\", substring(name, 33),\n    name startswith \"bordernotification-microservice-\", substring(name, 32),\n    name startswith \"commoditycode-microservice-blue-\", substring(name, 32),\n    name startswith \"laboratories-microservice-blue-\", substring(name, 31),\n    name startswith \"economicoperator-microservice-\", substring(name, 30),\n    name startswith \"fieldconfig-microservice-blue-\", substring(name, 30),\n    name startswith \"countries-microservice-blue-\", substring(name, 28),\n    name startswith \"decision-microservice-blue-\", substring(name, 27),\n    name startswith \"notification-microservice-\", substring(name, 26),\n    name startswith \"soaprequest-microservice-\", substring(name, 25),\n    name startswith \"checks-microservice-\", substring(name, 20),\n    name startswith \"bip-microservice-\", substring(name, 17),\n    name startswith \"permissions-blue-\", substring(name, 17),\n    \"(other)\")\n| extend vCores = toint(sku.capacity), daily = iff(pooled, 0.0, todouble(sku.capacity) * 2.77)\n| where not(isPool)\n| summarize Standalone = countif(not(pooled)), Pooled = countif(pooled), standaloneDaily = sum(daily) by Namespace\n| extend k = 1\n| join kind=leftouter (\n    resources\n    | where type =~ \"microsoft.sql/servers/elasticpools\"\n    | summarize poolDaily = sum(todouble(sku.capacity)) * 2.77, k = 1\n    | join kind=inner (resources | where type =~ \"microsoft.sql/servers/databases\" and isnotempty(properties.elasticPoolId) | summarize poolDbs = count(), k = 1) on k\n  ) on k\n| extend ['\u00a3/day'] = round(standaloneDaily + iff(poolDbs > 0, poolDaily * Pooled / poolDbs, 0.0), 2)\n| extend ['\u00a3/month'] = round(['\u00a3/day'] * 30.4, 0)\n| project Namespace, Standalone, Pooled, ['\u00a3/day'], ['\u00a3/month']\n| order by ['\u00a3/day'] desc\n",
+            "resultFormat": "table"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "\u00a3/day"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "currencyGBP"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "\u00a3/month"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "currencyGBP"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Standalone"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "orange",
+                      "value": 1
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "sortBy": [
+          {
+            "displayName": "\u00a3/day",
+            "desc": true
+          }
+        ]
+      },
+      "description": "Each namespace's standalone databases, plus its share of the elastic pool by database count.",
+      "id": 25,
+      "gridPos": {
+        "h": 9,
+        "w": 14,
+        "x": 0,
+        "y": 42
+      }
+    },
+    {
+      "type": "table",
+      "title": "Elastic pools",
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "azure-monitor-oob"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "azure-monitor-oob"
+          },
+          "queryType": "Azure Resource Graph",
+          "subscriptions": [
+            "$subscription"
+          ],
+          "azureResourceGraph": {
+            "query": "resources\n| where type =~ \"microsoft.sql/servers/databases\" and name != \"master\" or type =~ \"microsoft.sql/servers/elasticpools\"\n| extend isPool = type =~ \"microsoft.sql/servers/elasticpools\", pooled = isnotempty(properties.elasticPoolId)\n| extend Namespace = case(\n    isPool, \"(elastic pool)\",\n    name in (\"approvedestablishment-microservice-blue\", \"bip-microservice\", \"bordernotification-microservice\", \"bordernotification-refdata-microservice-blue\", \"checks-microservice\", \"commoditycode-microservice-blue\", \"countries-microservice-blue\", \"decision-microservice-blue\", \"economicoperator-microservice\", \"economicoperator-microservice-public-blue\", \"enotification-event-microservice\", \"fieldconfig-microservice-blue\", \"in-service-messaging-microservice\", \"laboratories-microservice-blue\", \"notification-microservice\", \"permissions-blue\", \"referencedataloader-microservice-blue\", \"soaprequest-microservice\"), \"dev\",\n    name startswith \"bordernotification-refdata-microservice-blue-\", substring(name, 45),\n    name startswith \"economicoperator-microservice-public-blue-\", substring(name, 42),\n    name startswith \"approvedestablishment-microservice-blue-\", substring(name, 40),\n    name startswith \"referencedataloader-microservice-blue-\", substring(name, 38),\n    name startswith \"in-service-messaging-microservice-\", substring(name, 34),\n    name startswith \"enotification-event-microservice-\", substring(name, 33),\n    name startswith \"bordernotification-microservice-\", substring(name, 32),\n    name startswith \"commoditycode-microservice-blue-\", substring(name, 32),\n    name startswith \"laboratories-microservice-blue-\", substring(name, 31),\n    name startswith \"economicoperator-microservice-\", substring(name, 30),\n    name startswith \"fieldconfig-microservice-blue-\", substring(name, 30),\n    name startswith \"countries-microservice-blue-\", substring(name, 28),\n    name startswith \"decision-microservice-blue-\", substring(name, 27),\n    name startswith \"notification-microservice-\", substring(name, 26),\n    name startswith \"soaprequest-microservice-\", substring(name, 25),\n    name startswith \"checks-microservice-\", substring(name, 20),\n    name startswith \"bip-microservice-\", substring(name, 17),\n    name startswith \"permissions-blue-\", substring(name, 17),\n    \"(other)\")\n| extend vCores = toint(sku.capacity), daily = iff(pooled, 0.0, todouble(sku.capacity) * 2.77)\n| where isPool\n| project Pool = name, SKU = tostring(sku.name), vCores, ['\u00a3/day'] = round(daily, 2), ['\u00a3/month'] = round(daily * 30.4, 0)\n",
+            "resultFormat": "table"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "\u00a3/day"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "currencyGBP"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "\u00a3/month"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "currencyGBP"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm"
+      },
+      "id": 26,
+      "gridPos": {
+        "h": 9,
+        "w": 10,
+        "x": 14,
+        "y": 42
+      }
+    },
+    {
+      "type": "table",
+      "title": "Standalone databases",
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "azure-monitor-oob"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "azure-monitor-oob"
+          },
+          "queryType": "Azure Resource Graph",
+          "subscriptions": [
+            "$subscription"
+          ],
+          "azureResourceGraph": {
+            "query": "resources\n| where type =~ \"microsoft.sql/servers/databases\" and name != \"master\" or type =~ \"microsoft.sql/servers/elasticpools\"\n| extend isPool = type =~ \"microsoft.sql/servers/elasticpools\", pooled = isnotempty(properties.elasticPoolId)\n| extend Namespace = case(\n    isPool, \"(elastic pool)\",\n    name in (\"approvedestablishment-microservice-blue\", \"bip-microservice\", \"bordernotification-microservice\", \"bordernotification-refdata-microservice-blue\", \"checks-microservice\", \"commoditycode-microservice-blue\", \"countries-microservice-blue\", \"decision-microservice-blue\", \"economicoperator-microservice\", \"economicoperator-microservice-public-blue\", \"enotification-event-microservice\", \"fieldconfig-microservice-blue\", \"in-service-messaging-microservice\", \"laboratories-microservice-blue\", \"notification-microservice\", \"permissions-blue\", \"referencedataloader-microservice-blue\", \"soaprequest-microservice\"), \"dev\",\n    name startswith \"bordernotification-refdata-microservice-blue-\", substring(name, 45),\n    name startswith \"economicoperator-microservice-public-blue-\", substring(name, 42),\n    name startswith \"approvedestablishment-microservice-blue-\", substring(name, 40),\n    name startswith \"referencedataloader-microservice-blue-\", substring(name, 38),\n    name startswith \"in-service-messaging-microservice-\", substring(name, 34),\n    name startswith \"enotification-event-microservice-\", substring(name, 33),\n    name startswith \"bordernotification-microservice-\", substring(name, 32),\n    name startswith \"commoditycode-microservice-blue-\", substring(name, 32),\n    name startswith \"laboratories-microservice-blue-\", substring(name, 31),\n    name startswith \"economicoperator-microservice-\", substring(name, 30),\n    name startswith \"fieldconfig-microservice-blue-\", substring(name, 30),\n    name startswith \"countries-microservice-blue-\", substring(name, 28),\n    name startswith \"decision-microservice-blue-\", substring(name, 27),\n    name startswith \"notification-microservice-\", substring(name, 26),\n    name startswith \"soaprequest-microservice-\", substring(name, 25),\n    name startswith \"checks-microservice-\", substring(name, 20),\n    name startswith \"bip-microservice-\", substring(name, 17),\n    name startswith \"permissions-blue-\", substring(name, 17),\n    \"(other)\")\n| extend vCores = toint(sku.capacity), daily = iff(pooled, 0.0, todouble(sku.capacity) * 2.77)\n| where not(isPool) and not(pooled)\n| project Namespace, Database = name, SKU = tostring(sku.name), vCores, ['\u00a3/day'] = round(daily, 2)\n| order by Namespace asc, Database asc\n",
+            "resultFormat": "table"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "\u00a3/day"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "currencyGBP"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm"
+      },
+      "description": "Merging master into the namespace's ipaffs-manifest branch moves these into the pool.",
+      "id": 27,
+      "gridPos": {
+        "h": 7,
+        "w": 24,
+        "x": 0,
+        "y": 51
+      }
+    },
+    {
+      "type": "row",
+      "title": "SQL now: classic SND servers (AZR-SND)",
+      "id": 28,
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 58
+      },
+      "panels": []
+    },
+    {
+      "type": "stat",
+      "title": "Classic SQL \u00a3/day",
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "azure-monitor-oob"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "azure-monitor-oob"
+          },
+          "queryType": "Azure Resource Graph",
+          "subscriptions": [
+            "$classicSubscription"
+          ],
+          "azureResourceGraph": {
+            "query": "resources\n| where (type =~ \"microsoft.sql/servers/databases\" and name != \"master\" or type =~ \"microsoft.sql/servers/elasticpools\")\n    and id contains \"impdbssqa\"\n| extend isPool = type =~ \"microsoft.sql/servers/elasticpools\", pooled = isnotempty(properties.elasticPoolId)\n| extend server = tostring(split(id, \"/\")[8])\n| extend daily = iff(pooled, 0.0, case(\n    sku.name =~ \"StandardPool\", todouble(sku.capacity) * 0.06868,\n    sku.name =~ \"PremiumPool\", todouble(sku.capacity) * 0.16982,\n    sku.name =~ \"Standard\", todouble(sku.capacity) * 0.04566,\n    real(null)))\n| summarize v = round(sum(daily), 2)\n",
+            "resultFormat": "table"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyGBP",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          },
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto"
+      },
+      "description": "Each classic pool and standalone database at Azure's list price for its size.",
+      "id": 29,
+      "gridPos": {
+        "h": 7,
+        "w": 5,
+        "x": 0,
+        "y": 59
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Classic SQL \u00a3/month",
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "azure-monitor-oob"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "azure-monitor-oob"
+          },
+          "queryType": "Azure Resource Graph",
+          "subscriptions": [
+            "$classicSubscription"
+          ],
+          "azureResourceGraph": {
+            "query": "resources\n| where (type =~ \"microsoft.sql/servers/databases\" and name != \"master\" or type =~ \"microsoft.sql/servers/elasticpools\")\n    and id contains \"impdbssqa\"\n| extend isPool = type =~ \"microsoft.sql/servers/elasticpools\", pooled = isnotempty(properties.elasticPoolId)\n| extend server = tostring(split(id, \"/\")[8])\n| extend daily = iff(pooled, 0.0, case(\n    sku.name =~ \"StandardPool\", todouble(sku.capacity) * 0.06868,\n    sku.name =~ \"PremiumPool\", todouble(sku.capacity) * 0.16982,\n    sku.name =~ \"Standard\", todouble(sku.capacity) * 0.04566,\n    real(null)))\n| summarize v = round(sum(daily) * 30.4, 0)\n",
+            "resultFormat": "table"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyGBP",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          },
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto"
+      },
+      "description": "Classic SQL \u00a3/day \u00d7 30.4.",
+      "id": 30,
+      "gridPos": {
+        "h": 7,
+        "w": 5,
+        "x": 5,
+        "y": 59
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Pool eDTU used",
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "azure-monitor-oob"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "azure-monitor-oob"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$classicSubscription",
+          "azureMonitor": {
+            "metricName": "dtu_consumption_percent",
+            "metricNamespace": "Microsoft.Sql/servers/elasticPools",
+            "aggregation": "Average",
+            "timeGrain": "PT1H",
+            "alias": "sndimpedpsqa001",
+            "dimensionFilters": [],
+            "allowedTimeGrainsMs": [],
+            "resources": [
+              {
+                "subscription": "$classicSubscription",
+                "resourceGroup": "sndimpinfrgp001",
+                "resourceName": "sndimpdbssqa001/sndimpedpsqa001",
+                "metricNamespace": "Microsoft.Sql/servers/elasticPools"
+              }
+            ]
+          }
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "azure-monitor-oob"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$classicSubscription",
+          "azureMonitor": {
+            "metricName": "dtu_consumption_percent",
+            "metricNamespace": "Microsoft.Sql/servers/elasticPools",
+            "aggregation": "Average",
+            "timeGrain": "PT1H",
+            "alias": "sndimpedpsqa004",
+            "dimensionFilters": [],
+            "allowedTimeGrainsMs": [],
+            "resources": [
+              {
+                "subscription": "$classicSubscription",
+                "resourceGroup": "sndimpinfrgp009",
+                "resourceName": "sndimpdbssqa004/sndimpedpsqa004",
+                "metricNamespace": "Microsoft.Sql/servers/elasticPools"
+              }
+            ]
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "custom": {
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": false
+          },
+          "min": 0,
+          "max": 100
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "description": "Hourly average. A pool that stays near 0% could be shrunk or removed.",
+      "id": 31,
+      "gridPos": {
+        "h": 7,
+        "w": 14,
+        "x": 10,
+        "y": 59
+      }
+    },
+    {
+      "type": "table",
+      "title": "Classic pools and databases",
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "azure-monitor-oob"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "azure-monitor-oob"
+          },
+          "queryType": "Azure Resource Graph",
+          "subscriptions": [
+            "$classicSubscription"
+          ],
+          "azureResourceGraph": {
+            "query": "resources\n| where (type =~ \"microsoft.sql/servers/databases\" and name != \"master\" or type =~ \"microsoft.sql/servers/elasticpools\")\n    and id contains \"impdbssqa\"\n| extend isPool = type =~ \"microsoft.sql/servers/elasticpools\", pooled = isnotempty(properties.elasticPoolId)\n| extend server = tostring(split(id, \"/\")[8])\n| extend daily = iff(pooled, 0.0, case(\n    sku.name =~ \"StandardPool\", todouble(sku.capacity) * 0.06868,\n    sku.name =~ \"PremiumPool\", todouble(sku.capacity) * 0.16982,\n    sku.name =~ \"Standard\", todouble(sku.capacity) * 0.04566,\n    real(null)))\n| where isPool or not(pooled)\n| extend poolId = tolower(id)\n| join kind=leftouter (\n    resources\n    | where type =~ \"microsoft.sql/servers/databases\" and isnotempty(properties.elasticPoolId) and id contains \"impdbssqa\"\n    | summarize Databases = count() by poolId = tolower(tostring(properties.elasticPoolId))\n  ) on poolId\n| project Name = iff(isPool, name, strcat(name, \" (database)\")), Server = server, SKU = tostring(sku.name),\n    eDTU = toint(sku.capacity), Databases = iff(isPool, coalesce(Databases, 0), 1),\n    ['\u00a3/day'] = round(daily, 2), ['\u00a3/month'] = round(daily * 30.4, 0)\n| order by ['\u00a3/day'] desc\n",
+            "resultFormat": "table"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "\u00a3/day"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "currencyGBP"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "\u00a3/month"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "currencyGBP"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "sortBy": [
+          {
+            "displayName": "\u00a3/day",
+            "desc": true
+          }
+        ]
+      },
+      "description": "Everything billed on the classic IPAFFS SQL servers: each elastic pool (with how many databases it holds) and each database outside a pool.",
+      "id": 32,
+      "gridPos": {
+        "h": 6,
+        "w": 24,
+        "x": 0,
+        "y": 66
+      }
+    },
+    {
+      "type": "row",
+      "title": "Log Analytics ingestion",
+      "id": 33,
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 72
+      },
+      "panels": []
+    },
+    {
+      "type": "timeseries",
+      "title": "Ingestion cost per day, by workspace and table",
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "azure-monitor-oob"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "azure-monitor-oob"
+          },
+          "queryType": "Azure Log Analytics",
+          "azureLogAnalytics": {
+            "query": "Usage\n| where $__timeFilter(TimeGenerated) and IsBillable\n| extend Workspace = \"App Insights\", GB = Quantity / 1024\n| summarize v = sum(GB) * 1.69 by Series = strcat(Workspace, \" \u00b7 \", DataType), bin(TimeGenerated, 1d)\n| order by TimeGenerated asc\n",
+            "resources": [
+              "/subscriptions/$subscription/resourceGroups/$resourceGroup/providers/Microsoft.OperationalInsights/workspaces/$logWorkspace"
+            ],
+            "resultFormat": "time_series",
+            "dashboardTime": false
+          }
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "azure-monitor-oob"
+          },
+          "queryType": "Azure Log Analytics",
+          "azureLogAnalytics": {
+            "query": "Usage\n| where $__timeFilter(TimeGenerated) and IsBillable\n| extend Workspace = \"Container Insights\", GB = Quantity / 1024\n| summarize v = sum(GB) * 1.69 by Series = strcat(Workspace, \" \u00b7 \", DataType), bin(TimeGenerated, 1d)\n| order by TimeGenerated asc\n",
+            "resources": [
+              "/subscriptions/$subscription/resourceGroups/$defaultResourceGroup/providers/Microsoft.OperationalInsights/workspaces/$defaultWorkspace"
+            ],
+            "resultFormat": "time_series",
+            "dashboardTime": false
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyGBP",
+          "custom": {
+            "lineWidth": 1,
+            "fillOpacity": 80,
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "mode": "normal",
+              "group": "A"
+            },
+            "drawStyle": "bars"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "description": "Billable ingestion per day. The current day is still filling in.",
+      "id": 34,
+      "gridPos": {
+        "h": 10,
+        "w": 14,
+        "x": 0,
+        "y": 73
+      }
+    },
+    {
+      "type": "table",
+      "title": "Last 24h by table",
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "azure-monitor-oob"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "azure-monitor-oob"
+          },
+          "queryType": "Azure Log Analytics",
+          "azureLogAnalytics": {
+            "query": "Usage\n| where TimeGenerated > ago(24h) and IsBillable\n| extend Workspace = \"App Insights\", GB = Quantity / 1024\n| summarize GB = round(sum(GB), 2) by Workspace, Table = DataType\n| extend ['\u00a3/day'] = round(GB * 1.69, 2)\n",
+            "resources": [
+              "/subscriptions/$subscription/resourceGroups/$resourceGroup/providers/Microsoft.OperationalInsights/workspaces/$logWorkspace"
+            ],
+            "resultFormat": "table",
+            "dashboardTime": false
+          }
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "azure-monitor-oob"
+          },
+          "queryType": "Azure Log Analytics",
+          "azureLogAnalytics": {
+            "query": "Usage\n| where TimeGenerated > ago(24h) and IsBillable\n| extend Workspace = \"Container Insights\", GB = Quantity / 1024\n| summarize GB = round(sum(GB), 2) by Workspace, Table = DataType\n| extend ['\u00a3/day'] = round(GB * 1.69, 2)\n",
+            "resources": [
+              "/subscriptions/$subscription/resourceGroups/$defaultResourceGroup/providers/Microsoft.OperationalInsights/workspaces/$defaultWorkspace"
+            ],
+            "resultFormat": "table",
+            "dashboardTime": false
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "\u00a3/day"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "currencyGBP"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "GB"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "decgbytes"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "sortBy": [
+          {
+            "displayName": "\u00a3/day",
+            "desc": true
+          }
+        ]
+      },
+      "description": "The two workspaces' results are merged into one table.",
+      "id": 35,
+      "gridPos": {
+        "h": 10,
+        "w": 10,
+        "x": 14,
+        "y": 73
+      },
+      "transformations": [
+        {
+          "id": "merge",
+          "options": {}
+        }
+      ]
+    }
+  ]
+}

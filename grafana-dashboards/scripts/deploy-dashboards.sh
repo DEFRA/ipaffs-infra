@@ -23,12 +23,17 @@
 # Optional environment variables:
 #   DASHBOARD_FILES  – space-separated explicit JSON files to deploy. When set,
 #                      only these are deployed (handy for testing a single
-#                      dashboard). When unset, deploys every *.json under
-#                        <DASHBOARDS_ROOT>
+#                      dashboard). When unset, deploys this environment's
+#                      dashboards:
+#                        <DASHBOARDS_ROOT>/*.json          (every environment)
+#                        <DASHBOARDS_ROOT>/<ENV>/*.json    (this environment only)
 #   DASHBOARDS_ROOT  – default: grafana-dashboards/dashboards
 #   PROM_DS_NAME     – default: "Prometheus - <ENV>"
 #   AZMON_DS_NAME    – default: "Azure Monitor - <ENV>"
 #   DRY_RUN          – "true" to print what would happen without deploying
+#   LIST_ONLY        – "true" to print the selected files, one per line, and
+#                      exit without calling Azure (used by the pipeline's list
+#                      and verify steps so they check the same selection)
 #
 # A datasource template variable's *value* is the datasource UID (panels
 # reference it as uid: "${var}"), so the real UID is injected, not the name.
@@ -43,7 +48,7 @@ ENVIRONMENT="${ENVIRONMENT:?ENVIRONMENT must be set}"
 
 ENV_UPPER="${ENVIRONMENT^^}"
 SCRIPTS_DIR="$(cd "$(dirname "$0")"/.. && pwd)"
-DASHBOARDS_ROOT="${SCRIPTS_DIR}"/../grafana-dashboards/dashboards
+DASHBOARDS_ROOT="${DASHBOARDS_ROOT:-${SCRIPTS_DIR}/../grafana-dashboards/dashboards}"
 PROM_DS_NAME="${PROM_DS_NAME:-Prometheus}"
 AZMON_DS_NAME="${AZMON_DS_NAME:-Azure Monitor}"
 DRY_RUN="${DRY_RUN:-false}"
@@ -57,12 +62,18 @@ if [[ -n "${DASHBOARD_FILES:-}" ]]; then
   done
 else
   while IFS= read -r f; do files+=("${f}"); done \
-    < <(find "${DASHBOARDS_ROOT}" -name "*.json" 2>/dev/null | sort)
+    < <({ find "${DASHBOARDS_ROOT}" -maxdepth 1 -name "*.json"
+          find "${DASHBOARDS_ROOT}/${ENV_UPPER}" -maxdepth 1 -name "*.json"; } 2>/dev/null | sort)
 fi
 
 if [[ "${#files[@]}" -eq 0 ]]; then
   echo "No dashboards found to deploy." >&2
   exit 1
+fi
+
+if [[ "${LIST_ONLY:-false}" == "true" ]]; then
+  printf '%s\n' "${files[@]}"
+  exit 0
 fi
 
 for f in "${files[@]}"; do

@@ -8,6 +8,9 @@
 #   2. Required fields: title, uid, schemaVersion, panels
 #   3. id is null (required for portable Grafana API import)
 #   4. uid is unique across all files in the tree
+# and that every subdirectory is an environment the pipeline deploys
+# (DEV, TST, PRE, PRD), so an environment-only dashboard is never silently
+# skipped because its folder name is wrong.
 #
 # Usage:
 #   bash grafana-dashboards/tests/validate-dashboards.sh
@@ -23,6 +26,18 @@ if [[ ! -d "${DASHBOARDS_DIR}" ]]; then
   exit 1
 fi
 
+ERRORS=0
+
+while IFS= read -r dir; do
+  case "${dir#"${DASHBOARDS_DIR}"/}" in
+    DEV | TST | PRE | PRD) ;;
+    *)
+      echo "FAIL: ${dir} is not an environment folder (expected DEV, TST, PRE or PRD)"
+      ERRORS=$((ERRORS + 1))
+      ;;
+  esac
+done < <(find "${DASHBOARDS_DIR}" -mindepth 1 -type d | sort)
+
 mapfile -t dashboard_files < <(find "${DASHBOARDS_DIR}" -name "*.json" | sort)
 
 if [[ ${#dashboard_files[@]} -eq 0 ]]; then
@@ -33,7 +48,6 @@ fi
 echo "Validating ${#dashboard_files[@]} dashboard(s) under ${DASHBOARDS_DIR}/"
 echo ""
 
-ERRORS=0
 declare -A seen_uids
 
 for file in "${dashboard_files[@]}"; do
