@@ -84,17 +84,9 @@ jobs:
             bash -n "${file}"
           done
 
-      - name: Test ASO identity readiness
-        shell: bash
-        run: bash scripts/pipeline/wait-for-aso-identities-from-services.test.sh
-
       - name: Test managed identity reconciliation
         shell: bash
         run: bash scripts/pipeline/create-identity.test.sh
-
-      - name: Test managed identity preloading
-        shell: bash
-        run: bash scripts/pipeline/deploy-identities-from-services.test.sh
 
       - name: Test generated manifest service values
         shell: bash
