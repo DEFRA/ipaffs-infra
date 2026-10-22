@@ -311,7 +311,7 @@
           },
           "queryType": "Azure Log Analytics",
           "azureLogAnalytics": {
-            "query": "let j = requests\n| where $__timeFilter(timestamp)\n| where tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\"\n| where cloud_RoleName endswith \"-frontend\"\n| where name != \"GET /admin/health-check\" and name !startswith \"GET /public/\" and name !contains \"/assets/\"\n| extend role = replace_regex(cloud_RoleName, @\"^.*[.]\", \"\"), path = tostring(split(name, \" \")[1])\n| extend Journey = case(\n    role == \"notification-frontend\" and path contains \"/cloning\", \"Clone CHED\",\n    role == \"notification-frontend\" and path matches regex @\"^/protected/notifications/?$\", \"Search & dashboards\",\n    role == \"decision-frontend\" and path matches regex @\"^/protected/bip-notifications/?$\", \"Search & dashboards\",\n    role == \"control-frontend\" and path matches regex @\"^/protected/ov-notifications/?$\", \"Search & dashboards\",\n    role == \"notification-frontend\", \"Create & submit CHED\",\n    role == \"upload-frontend\", \"Document upload\",\n    role == \"decision-frontend\", \"Border checks & decision\",\n    role == \"control-frontend\", \"Control (OV)\",\n    role == \"checks-frontend\", \"FSA checks\",\n    role == \"bordernotification-frontend\", \"Border notifications\",\n    role == \"bcpadmin-frontend\", \"BCP admin\",\n    \"\")\n| where Journey != \"\"\n| extend bad = toint(resultCode) >= 500\n| summarize Requests = count(), Failed = countif(bad), p95 = percentile(duration, 95) by Journey;\ndatatable(Journey: string, Service: string, Order: int) [\n    \"Create & submit CHED\", \"notification-frontend\", 0,\n    \"Clone CHED\", \"notification-frontend\", 1,\n    \"Search & dashboards\", \"notification-frontend\", 2,\n    \"Document upload\", \"upload-frontend\", 3,\n    \"Border checks & decision\", \"decision-frontend\", 4,\n    \"Control (OV)\", \"control-frontend\", 5,\n    \"FSA checks\", \"checks-frontend\", 6,\n    \"Border notifications\", \"bordernotification-frontend\", 7,\n    \"BCP admin\", \"bcpadmin-frontend\", 8\n]\n| join kind=leftouter j on Journey\n| extend ['Success %'] = iff(Requests > 0, 100.0 * (Requests - Failed) / Requests, real(null)), ['p95 ms'] = round(p95)\n| order by Order asc\n| project Journey, Service, Requests, ['Success %'], ['p95 ms']\n| project Journey, Service, ['Success %']\n",
+            "query": "let j = requests\n| where $__timeFilter(timestamp)\n| where (tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\" or (isempty(tostring(customDimensions[\"k8s.namespace.name\"])) and \"$namespace\" in (\"tst\", \"pre\", \"prd\") and cloud_RoleName !contains \".\"))\n| where cloud_RoleName endswith \"-frontend\"\n| where name != \"GET /admin/health-check\" and name !startswith \"GET /public/\" and name !contains \"/assets/\"\n| extend role = replace_regex(cloud_RoleName, @\"^.*[.]\", \"\"), path = tostring(split(name, \" \")[1])\n| extend Journey = case(\n    role == \"notification-frontend\" and path contains \"/cloning\", \"Clone CHED\",\n    role == \"notification-frontend\" and path matches regex @\"^/protected/notifications/?$\", \"Search & dashboards\",\n    role == \"decision-frontend\" and path matches regex @\"^/protected/bip-notifications/?$\", \"Search & dashboards\",\n    role == \"control-frontend\" and path matches regex @\"^/protected/ov-notifications/?$\", \"Search & dashboards\",\n    role == \"notification-frontend\", \"Create & submit CHED\",\n    role == \"upload-frontend\", \"Document upload\",\n    role == \"decision-frontend\", \"Border checks & decision\",\n    role == \"control-frontend\", \"Control (OV)\",\n    role == \"checks-frontend\", \"FSA checks\",\n    role == \"bordernotification-frontend\", \"Border notifications\",\n    role == \"bcpadmin-frontend\", \"BCP admin\",\n    \"\")\n| where Journey != \"\"\n| extend bad = toint(resultCode) >= 500\n| summarize Requests = count(), Failed = countif(bad), p95 = percentile(duration, 95) by Journey;\ndatatable(Journey: string, Service: string, Order: int) [\n    \"Create & submit CHED\", \"notification-frontend\", 0,\n    \"Clone CHED\", \"notification-frontend\", 1,\n    \"Search & dashboards\", \"notification-frontend\", 2,\n    \"Document upload\", \"upload-frontend\", 3,\n    \"Border checks & decision\", \"decision-frontend\", 4,\n    \"Control (OV)\", \"control-frontend\", 5,\n    \"FSA checks\", \"checks-frontend\", 6,\n    \"Border notifications\", \"bordernotification-frontend\", 7,\n    \"BCP admin\", \"bcpadmin-frontend\", 8\n]\n| join kind=leftouter j on Journey\n| extend ['Success %'] = iff(Requests > 0, 100.0 * (Requests - Failed) / Requests, real(null)), ['p95 ms'] = round(p95)\n| order by Order asc\n| project Journey, Service, Requests, ['Success %'], ['p95 ms']\n| project Journey, Service, ['Success %']\n",
             "resources": [
               "/subscriptions/$subscription/resourceGroups/$resourceGroup/providers/Microsoft.Insights/components/$appInsights"
             ],
@@ -412,7 +412,7 @@
           },
           "queryType": "Azure Log Analytics",
           "azureLogAnalytics": {
-            "query": "let j = requests\n| where $__timeFilter(timestamp)\n| where tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\"\n| where cloud_RoleName endswith \"-frontend\"\n| where name != \"GET /admin/health-check\" and name !startswith \"GET /public/\" and name !contains \"/assets/\"\n| extend role = replace_regex(cloud_RoleName, @\"^.*[.]\", \"\"), path = tostring(split(name, \" \")[1])\n| extend Journey = case(\n    role == \"notification-frontend\" and path contains \"/cloning\", \"Clone CHED\",\n    role == \"notification-frontend\" and path matches regex @\"^/protected/notifications/?$\", \"Search & dashboards\",\n    role == \"decision-frontend\" and path matches regex @\"^/protected/bip-notifications/?$\", \"Search & dashboards\",\n    role == \"control-frontend\" and path matches regex @\"^/protected/ov-notifications/?$\", \"Search & dashboards\",\n    role == \"notification-frontend\", \"Create & submit CHED\",\n    role == \"upload-frontend\", \"Document upload\",\n    role == \"decision-frontend\", \"Border checks & decision\",\n    role == \"control-frontend\", \"Control (OV)\",\n    role == \"checks-frontend\", \"FSA checks\",\n    role == \"bordernotification-frontend\", \"Border notifications\",\n    role == \"bcpadmin-frontend\", \"BCP admin\",\n    \"\")\n| where Journey != \"\"\n| extend bad = toint(resultCode) >= 500\n| summarize Requests = count(), Failed = countif(bad), p95 = percentile(duration, 95) by Journey;\ndatatable(Journey: string, Service: string, Order: int) [\n    \"Create & submit CHED\", \"notification-frontend\", 0,\n    \"Clone CHED\", \"notification-frontend\", 1,\n    \"Search & dashboards\", \"notification-frontend\", 2,\n    \"Document upload\", \"upload-frontend\", 3,\n    \"Border checks & decision\", \"decision-frontend\", 4,\n    \"Control (OV)\", \"control-frontend\", 5,\n    \"FSA checks\", \"checks-frontend\", 6,\n    \"Border notifications\", \"bordernotification-frontend\", 7,\n    \"BCP admin\", \"bcpadmin-frontend\", 8\n]\n| join kind=leftouter j on Journey\n| extend ['Success %'] = iff(Requests > 0, 100.0 * (Requests - Failed) / Requests, real(null)), ['p95 ms'] = round(p95)\n| order by Order asc\n| project Journey, Service, Requests, ['Success %'], ['p95 ms']\n| project Journey, Service, ['p95 ms']\n",
+            "query": "let j = requests\n| where $__timeFilter(timestamp)\n| where (tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\" or (isempty(tostring(customDimensions[\"k8s.namespace.name\"])) and \"$namespace\" in (\"tst\", \"pre\", \"prd\") and cloud_RoleName !contains \".\"))\n| where cloud_RoleName endswith \"-frontend\"\n| where name != \"GET /admin/health-check\" and name !startswith \"GET /public/\" and name !contains \"/assets/\"\n| extend role = replace_regex(cloud_RoleName, @\"^.*[.]\", \"\"), path = tostring(split(name, \" \")[1])\n| extend Journey = case(\n    role == \"notification-frontend\" and path contains \"/cloning\", \"Clone CHED\",\n    role == \"notification-frontend\" and path matches regex @\"^/protected/notifications/?$\", \"Search & dashboards\",\n    role == \"decision-frontend\" and path matches regex @\"^/protected/bip-notifications/?$\", \"Search & dashboards\",\n    role == \"control-frontend\" and path matches regex @\"^/protected/ov-notifications/?$\", \"Search & dashboards\",\n    role == \"notification-frontend\", \"Create & submit CHED\",\n    role == \"upload-frontend\", \"Document upload\",\n    role == \"decision-frontend\", \"Border checks & decision\",\n    role == \"control-frontend\", \"Control (OV)\",\n    role == \"checks-frontend\", \"FSA checks\",\n    role == \"bordernotification-frontend\", \"Border notifications\",\n    role == \"bcpadmin-frontend\", \"BCP admin\",\n    \"\")\n| where Journey != \"\"\n| extend bad = toint(resultCode) >= 500\n| summarize Requests = count(), Failed = countif(bad), p95 = percentile(duration, 95) by Journey;\ndatatable(Journey: string, Service: string, Order: int) [\n    \"Create & submit CHED\", \"notification-frontend\", 0,\n    \"Clone CHED\", \"notification-frontend\", 1,\n    \"Search & dashboards\", \"notification-frontend\", 2,\n    \"Document upload\", \"upload-frontend\", 3,\n    \"Border checks & decision\", \"decision-frontend\", 4,\n    \"Control (OV)\", \"control-frontend\", 5,\n    \"FSA checks\", \"checks-frontend\", 6,\n    \"Border notifications\", \"bordernotification-frontend\", 7,\n    \"BCP admin\", \"bcpadmin-frontend\", 8\n]\n| join kind=leftouter j on Journey\n| extend ['Success %'] = iff(Requests > 0, 100.0 * (Requests - Failed) / Requests, real(null)), ['p95 ms'] = round(p95)\n| order by Order asc\n| project Journey, Service, Requests, ['Success %'], ['p95 ms']\n| project Journey, Service, ['p95 ms']\n",
             "resources": [
               "/subscriptions/$subscription/resourceGroups/$resourceGroup/providers/Microsoft.Insights/components/$appInsights"
             ],
@@ -512,7 +512,7 @@
           },
           "queryType": "Azure Log Analytics",
           "azureLogAnalytics": {
-            "query": "let target = 0.995;\ndatatable(SLO: string, Service: string, Order: int) [\n    \"Submit CHED\", \"notification-frontend\", 0,\n    \"Record decision\", \"decision-frontend\", 1,\n    \"Upload document\", \"upload-frontend\", 2\n]\n| join kind=leftouter (\n    requests\n    | where timestamp >= startofmonth(now())\n    | where cloud_RoleName endswith \"-frontend\"\n    | where tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\"\n    | extend SLO = case(\n        name matches regex @\"^POST /protected/notifications/[^/]+/declaration$\", \"Submit CHED\",\n        name matches regex @\"^POST /protected/bip-notifications/[^/]+/review$\", \"Record decision\",\n        name matches regex @\"^POST /protected/upload/.+/attach$\", \"Upload document\",\n        \"\")\n    | where SLO != \"\"\n    | summarize Requests = count(), Failed = countif(toint(resultCode) >= 500) by SLO\n) on SLO\n| extend ['Budget left %'] = iff(Requests > 0, round(100.0 * (1 - (todouble(Failed) / Requests) / (1 - target)), 1), real(null)),\n    ['Success %'] = iff(Requests > 0, round(100.0 * (Requests - Failed) / Requests, 3), real(null))\n| order by Order asc\n| project SLO, Service, Requests, Failed, ['Success %'], ['Budget left %']\n| project SLO, Service, ['Budget left %']\n",
+            "query": "let target = 0.995;\ndatatable(SLO: string, Service: string, Order: int) [\n    \"Submit CHED\", \"notification-frontend\", 0,\n    \"Record decision\", \"decision-frontend\", 1,\n    \"Upload document\", \"upload-frontend\", 2\n]\n| join kind=leftouter (\n    requests\n    | where timestamp >= startofmonth(now())\n    | where cloud_RoleName endswith \"-frontend\"\n    | where (tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\" or (isempty(tostring(customDimensions[\"k8s.namespace.name\"])) and \"$namespace\" in (\"tst\", \"pre\", \"prd\") and cloud_RoleName !contains \".\"))\n    | extend SLO = case(\n        name matches regex @\"^POST /protected/notifications/[^/]+/declaration$\", \"Submit CHED\",\n        name matches regex @\"^POST /protected/bip-notifications/[^/]+/review$\", \"Record decision\",\n        name matches regex @\"^POST /protected/upload/.+/attach$\", \"Upload document\",\n        \"\")\n    | where SLO != \"\"\n    | summarize Requests = count(), Failed = countif(toint(resultCode) >= 500) by SLO\n) on SLO\n| extend ['Budget left %'] = iff(Requests > 0, round(100.0 * (1 - (todouble(Failed) / Requests) / (1 - target)), 1), real(null)),\n    ['Success %'] = iff(Requests > 0, round(100.0 * (Requests - Failed) / Requests, 3), real(null))\n| order by Order asc\n| project SLO, Service, Requests, Failed, ['Success %'], ['Budget left %']\n| project SLO, Service, ['Budget left %']\n",
             "resources": [
               "/subscriptions/$subscription/resourceGroups/$resourceGroup/providers/Microsoft.Insights/components/$appInsights"
             ],
@@ -655,8 +655,12 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "#6e7079",
                 "value": null
+              },
+              {
+                "color": "green",
+                "value": -1000000000000000.0
               },
               {
                 "color": "orange",
@@ -673,6 +677,31 @@
             {
               "title": "Open Messaging & Integrations",
               "url": "/d/ipaffs-messaging-integrations?var-namespace=${namespace}&${__url_time_range}"
+            }
+          ],
+          "noValue": "No data",
+          "mappings": [
+            {
+              "type": "special",
+              "options": {
+                "match": "nan",
+                "result": {
+                  "text": "No data",
+                  "color": "#6e7079",
+                  "index": 0
+                }
+              }
+            },
+            {
+              "type": "special",
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "No data",
+                  "color": "#6e7079",
+                  "index": 1
+                }
+              }
             }
           ]
         },
@@ -748,8 +777,12 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "#6e7079",
                 "value": null
+              },
+              {
+                "color": "green",
+                "value": -1000000000000000.0
               },
               {
                 "color": "orange",
@@ -766,6 +799,31 @@
             {
               "title": "Open Messaging & Integrations",
               "url": "/d/ipaffs-messaging-integrations?var-namespace=${namespace}&${__url_time_range}"
+            }
+          ],
+          "noValue": "No data",
+          "mappings": [
+            {
+              "type": "special",
+              "options": {
+                "match": "nan",
+                "result": {
+                  "text": "No data",
+                  "color": "#6e7079",
+                  "index": 0
+                }
+              }
+            },
+            {
+              "type": "special",
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "No data",
+                  "color": "#6e7079",
+                  "index": 1
+                }
+              }
             }
           ]
         },
@@ -812,7 +870,7 @@
           },
           "queryType": "Azure Log Analytics",
           "azureLogAnalytics": {
-            "query": "customMetrics\n| where $__timeFilter(timestamp)\n| where tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\"\n| where name in (\"risk-assessment-risk-engine-fallback-count\", \"risk-assessment-risk-engine-success-count\")\n| summarize v = 100.0 * sumif(valueSum, name endswith \"fallback-count\") / sum(valueSum)\n",
+            "query": "customMetrics\n| where $__timeFilter(timestamp)\n| where (tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\" or (isempty(tostring(customDimensions[\"k8s.namespace.name\"])) and \"$namespace\" in (\"tst\", \"pre\", \"prd\") and cloud_RoleName !contains \".\"))\n| where name in (\"risk-assessment-risk-engine-fallback-count\", \"risk-assessment-risk-engine-success-count\")\n| summarize v = 100.0 * sumif(valueSum, name endswith \"fallback-count\") / sum(valueSum)\n",
             "resources": [
               "/subscriptions/$subscription/resourceGroups/$resourceGroup/providers/Microsoft.Insights/components/$appInsights"
             ],
@@ -831,8 +889,12 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "#6e7079",
                 "value": null
+              },
+              {
+                "color": "green",
+                "value": -1000000000000000.0
               },
               {
                 "color": "orange",
@@ -849,6 +911,31 @@
             {
               "title": "Open Messaging & Integrations",
               "url": "/d/ipaffs-messaging-integrations?var-namespace=${namespace}&${__url_time_range}"
+            }
+          ],
+          "noValue": "No data",
+          "mappings": [
+            {
+              "type": "special",
+              "options": {
+                "match": "nan",
+                "result": {
+                  "text": "No data",
+                  "color": "#6e7079",
+                  "index": 0
+                }
+              }
+            },
+            {
+              "type": "special",
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "No data",
+                  "color": "#6e7079",
+                  "index": 1
+                }
+              }
             }
           ]
         },
@@ -895,7 +982,7 @@
           },
           "queryType": "Azure Log Analytics",
           "azureLogAnalytics": {
-            "query": "requests\n| where $__timeFilter(timestamp)\n| where tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\"\n| where not(name matches regex \"^(GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)( |$)\") and name !contains \"cache\"\n| summarize arg_max(timestamp, success) by name\n| summarize v = countif(success == false)\n",
+            "query": "requests\n| where $__timeFilter(timestamp)\n| where (tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\" or (isempty(tostring(customDimensions[\"k8s.namespace.name\"])) and \"$namespace\" in (\"tst\", \"pre\", \"prd\") and cloud_RoleName !contains \".\"))\n| where not(name matches regex \"^(GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)( |$)\") and name !contains \"cache\"\n| summarize arg_max(timestamp, success) by name\n| summarize v = countif(success == false)\n",
             "resources": [
               "/subscriptions/$subscription/resourceGroups/$resourceGroup/providers/Microsoft.Insights/components/$appInsights"
             ],
@@ -913,8 +1000,12 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "#6e7079",
                 "value": null
+              },
+              {
+                "color": "green",
+                "value": -1000000000000000.0
               },
               {
                 "color": "red",
@@ -927,6 +1018,31 @@
             {
               "title": "Open Messaging & Integrations",
               "url": "/d/ipaffs-messaging-integrations?var-namespace=${namespace}&${__url_time_range}"
+            }
+          ],
+          "noValue": "No data",
+          "mappings": [
+            {
+              "type": "special",
+              "options": {
+                "match": "nan",
+                "result": {
+                  "text": "No data",
+                  "color": "#6e7079",
+                  "index": 0
+                }
+              }
+            },
+            {
+              "type": "special",
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "No data",
+                  "color": "#6e7079",
+                  "index": 1
+                }
+              }
             }
           ]
         },
@@ -1002,8 +1118,12 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "#6e7079",
                 "value": null
+              },
+              {
+                "color": "green",
+                "value": -1000000000000000.0
               },
               {
                 "color": "orange",
@@ -1020,6 +1140,31 @@
             {
               "title": "Open Messaging & Integrations",
               "url": "/d/ipaffs-messaging-integrations?var-namespace=${namespace}&${__url_time_range}"
+            }
+          ],
+          "noValue": "No data",
+          "mappings": [
+            {
+              "type": "special",
+              "options": {
+                "match": "nan",
+                "result": {
+                  "text": "No data",
+                  "color": "#6e7079",
+                  "index": 0
+                }
+              }
+            },
+            {
+              "type": "special",
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "No data",
+                  "color": "#6e7079",
+                  "index": 1
+                }
+              }
             }
           ]
         },
@@ -1065,7 +1210,7 @@
           },
           "queryType": "Azure Log Analytics",
           "azureLogAnalytics": {
-            "query": "dependencies\n| where $__timeFilter(timestamp)\n| where tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\"\n| where type !in (\"InProc\", \"SQL\", \"redis\") and type !has \"ServiceBus\"\n| extend partner = case(\n    target contains \"dynamics.com\" or name contains \"/trade-crm-adapter/\", \"Dynamics CRM\",\n    name contains \"/trade-risk-assessment/\" or name contains \"/commodity-risk-categorisation-decider/\", \"Risk engine\",\n    name contains \"/trade-notify/\", \"Notify (trade-notify)\",\n    name contains \"/trade-delegated-authority/\", \"Delegated authority\",\n    name contains \"/mdm/\", \"MDM\",\n    name contains \"/graphql/\", \"Approved establishments (GraphQL)\",\n    name contains \"/address-lookup\", \"Address lookup\",\n    name contains \"/trade-imports-cloning/\", \"Trade imports cloning\",\n    target matches regex @\"^ref(-[a-z]+)?[.]azure[.]defra[.]cloud\", \"Reference data (RDS)\",\n    target contains \"search.windows.net\", \"Azure AI Search\",\n    type == \"Azure blob\", \"Blob storage\",\n    target contains \"antivirus\", \"Antivirus\",\n    target contains \"login.microsoftonline.com\" or target contains \"b2clogin.com\", \"Entra ID / B2C\",\n    target contains \"gateway\", \"Trade API gateway (other)\",\n    \"\")\n| where partner != \"\"\n| extend failed = success == false and not(type == \"Azure blob\" and resultCode == \"404\")\n| summarize ['Fail %'] = round(100.0 * countif(failed) / count(), 2), Calls = count() by Partner = partner\n| order by Partner asc\n| project Partner, ['Fail %']\n",
+            "query": "dependencies\n| where $__timeFilter(timestamp)\n| where (tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\" or (isempty(tostring(customDimensions[\"k8s.namespace.name\"])) and \"$namespace\" in (\"tst\", \"pre\", \"prd\") and cloud_RoleName !contains \".\"))\n| where type !in (\"InProc\", \"SQL\", \"redis\") and type !has \"ServiceBus\"\n| extend partner = case(\n    target contains \"dynamics.com\" or name contains \"/trade-crm-adapter/\", \"Dynamics CRM\",\n    name contains \"/trade-risk-assessment/\" or name contains \"/commodity-risk-categorisation-decider/\", \"Risk engine\",\n    name contains \"/trade-notify/\", \"Notify (trade-notify)\",\n    name contains \"/trade-delegated-authority/\", \"Delegated authority\",\n    name contains \"/mdm/\", \"MDM\",\n    name contains \"/graphql/\", \"Approved establishments (GraphQL)\",\n    name contains \"/address-lookup\", \"Address lookup\",\n    name contains \"/trade-imports-cloning/\", \"Trade imports cloning\",\n    target matches regex @\"^ref(-[a-z]+)?[.]azure[.]defra[.]cloud\", \"Reference data (RDS)\",\n    target contains \"search.windows.net\", \"Azure AI Search\",\n    type == \"Azure blob\", \"Blob storage\",\n    target contains \"antivirus\", \"Antivirus\",\n    target contains \"login.microsoftonline.com\" or target contains \"b2clogin.com\", \"Entra ID / B2C\",\n    target contains \"gateway\", \"Trade API gateway (other)\",\n    \"\")\n| where partner != \"\"\n| extend failed = success == false and not(type == \"Azure blob\" and resultCode == \"404\")\n| summarize ['Fail %'] = round(100.0 * countif(failed) / count(), 2), Calls = count() by Partner = partner\n| order by Partner asc\n| project Partner, ['Fail %']\n",
             "resources": [
               "/subscriptions/$subscription/resourceGroups/$resourceGroup/providers/Microsoft.Insights/components/$appInsights"
             ],
@@ -1193,8 +1338,12 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "#6e7079",
                 "value": null
+              },
+              {
+                "color": "green",
+                "value": -1000000000000000.0
               },
               {
                 "color": "red",
@@ -1207,6 +1356,31 @@
             {
               "title": "Open Platform Overview",
               "url": "/d/ipaffs-aks-ops-v1?${__url_time_range}"
+            }
+          ],
+          "noValue": "No data",
+          "mappings": [
+            {
+              "type": "special",
+              "options": {
+                "match": "nan",
+                "result": {
+                  "text": "No data",
+                  "color": "#6e7079",
+                  "index": 0
+                }
+              }
+            },
+            {
+              "type": "special",
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "No data",
+                  "color": "#6e7079",
+                  "index": 1
+                }
+              }
             }
           ]
         },
@@ -1267,8 +1441,12 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "#6e7079",
                 "value": null
+              },
+              {
+                "color": "green",
+                "value": -1000000000000000.0
               },
               {
                 "color": "red",
@@ -1281,6 +1459,31 @@
             {
               "title": "Open Platform Overview",
               "url": "/d/ipaffs-aks-ops-v1?${__url_time_range}"
+            }
+          ],
+          "noValue": "No data",
+          "mappings": [
+            {
+              "type": "special",
+              "options": {
+                "match": "nan",
+                "result": {
+                  "text": "No data",
+                  "color": "#6e7079",
+                  "index": 0
+                }
+              }
+            },
+            {
+              "type": "special",
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "No data",
+                  "color": "#6e7079",
+                  "index": 1
+                }
+              }
             }
           ]
         },
@@ -1341,8 +1544,12 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "#6e7079",
                 "value": null
+              },
+              {
+                "color": "green",
+                "value": -1000000000000000.0
               },
               {
                 "color": "red",
@@ -1355,6 +1562,31 @@
             {
               "title": "Open Platform Overview",
               "url": "/d/ipaffs-aks-ops-v1?${__url_time_range}"
+            }
+          ],
+          "noValue": "No data",
+          "mappings": [
+            {
+              "type": "special",
+              "options": {
+                "match": "nan",
+                "result": {
+                  "text": "No data",
+                  "color": "#6e7079",
+                  "index": 0
+                }
+              }
+            },
+            {
+              "type": "special",
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "No data",
+                  "color": "#6e7079",
+                  "index": 1
+                }
+              }
             }
           ]
         },
@@ -1415,8 +1647,12 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "#6e7079",
                 "value": null
+              },
+              {
+                "color": "green",
+                "value": -1000000000000000.0
               },
               {
                 "color": "orange",
@@ -1433,6 +1669,31 @@
             {
               "title": "Open Platform Overview",
               "url": "/d/ipaffs-aks-ops-v1?${__url_time_range}"
+            }
+          ],
+          "noValue": "No data",
+          "mappings": [
+            {
+              "type": "special",
+              "options": {
+                "match": "nan",
+                "result": {
+                  "text": "No data",
+                  "color": "#6e7079",
+                  "index": 0
+                }
+              }
+            },
+            {
+              "type": "special",
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "No data",
+                  "color": "#6e7079",
+                  "index": 1
+                }
+              }
             }
           ]
         },
@@ -1493,8 +1754,12 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "#6e7079",
                 "value": null
+              },
+              {
+                "color": "green",
+                "value": -1000000000000000.0
               },
               {
                 "color": "red",
@@ -1507,6 +1772,31 @@
             {
               "title": "Open Platform Overview",
               "url": "/d/ipaffs-aks-ops-v1?${__url_time_range}"
+            }
+          ],
+          "noValue": "No data",
+          "mappings": [
+            {
+              "type": "special",
+              "options": {
+                "match": "nan",
+                "result": {
+                  "text": "No data",
+                  "color": "#6e7079",
+                  "index": 0
+                }
+              }
+            },
+            {
+              "type": "special",
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "No data",
+                  "color": "#6e7079",
+                  "index": 1
+                }
+              }
             }
           ]
         },
@@ -1566,7 +1856,7 @@
           },
           "queryType": "Azure Log Analytics",
           "azureLogAnalytics": {
-            "query": "requests\n| where $__timeFilter(timestamp)\n| where tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\"\n| where cloud_RoleName endswith \"-frontend\"\n| where name != \"GET /admin/health-check\" and name !startswith \"GET /public/\" and name !contains \"/assets/\"\n| extend role = replace_regex(cloud_RoleName, @\"^.*[.]\", \"\"), path = tostring(split(name, \" \")[1])\n| extend Journey = case(\n    role == \"notification-frontend\" and path contains \"/cloning\", \"Clone CHED\",\n    role == \"notification-frontend\" and path matches regex @\"^/protected/notifications/?$\", \"Search & dashboards\",\n    role == \"decision-frontend\" and path matches regex @\"^/protected/bip-notifications/?$\", \"Search & dashboards\",\n    role == \"control-frontend\" and path matches regex @\"^/protected/ov-notifications/?$\", \"Search & dashboards\",\n    role == \"notification-frontend\", \"Create & submit CHED\",\n    role == \"upload-frontend\", \"Document upload\",\n    role == \"decision-frontend\", \"Border checks & decision\",\n    role == \"control-frontend\", \"Control (OV)\",\n    role == \"checks-frontend\", \"FSA checks\",\n    role == \"bordernotification-frontend\", \"Border notifications\",\n    role == \"bcpadmin-frontend\", \"BCP admin\",\n    \"\")\n| where Journey != \"\"\n| extend bad = toint(resultCode) >= 500\n| summarize v = 100.0 * countif(bad) / count() by Journey, bin(timestamp, $__interval)\n| order by timestamp asc\n",
+            "query": "requests\n| where $__timeFilter(timestamp)\n| where (tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\" or (isempty(tostring(customDimensions[\"k8s.namespace.name\"])) and \"$namespace\" in (\"tst\", \"pre\", \"prd\") and cloud_RoleName !contains \".\"))\n| where cloud_RoleName endswith \"-frontend\"\n| where name != \"GET /admin/health-check\" and name !startswith \"GET /public/\" and name !contains \"/assets/\"\n| extend role = replace_regex(cloud_RoleName, @\"^.*[.]\", \"\"), path = tostring(split(name, \" \")[1])\n| extend Journey = case(\n    role == \"notification-frontend\" and path contains \"/cloning\", \"Clone CHED\",\n    role == \"notification-frontend\" and path matches regex @\"^/protected/notifications/?$\", \"Search & dashboards\",\n    role == \"decision-frontend\" and path matches regex @\"^/protected/bip-notifications/?$\", \"Search & dashboards\",\n    role == \"control-frontend\" and path matches regex @\"^/protected/ov-notifications/?$\", \"Search & dashboards\",\n    role == \"notification-frontend\", \"Create & submit CHED\",\n    role == \"upload-frontend\", \"Document upload\",\n    role == \"decision-frontend\", \"Border checks & decision\",\n    role == \"control-frontend\", \"Control (OV)\",\n    role == \"checks-frontend\", \"FSA checks\",\n    role == \"bordernotification-frontend\", \"Border notifications\",\n    role == \"bcpadmin-frontend\", \"BCP admin\",\n    \"\")\n| where Journey != \"\"\n| extend bad = toint(resultCode) >= 500\n| summarize v = 100.0 * countif(bad) / count() by Journey, bin(timestamp, $__interval)\n| order by timestamp asc\n",
             "resources": [
               "/subscriptions/$subscription/resourceGroups/$resourceGroup/providers/Microsoft.Insights/components/$appInsights"
             ],
@@ -1624,7 +1914,7 @@
           },
           "queryType": "Azure Log Analytics",
           "azureLogAnalytics": {
-            "query": "requests\n| where $__timeFilter(timestamp)\n| where tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\"\n| where cloud_RoleName endswith \"-frontend\"\n| where name != \"GET /admin/health-check\" and name !startswith \"GET /public/\" and name !contains \"/assets/\"\n| extend role = replace_regex(cloud_RoleName, @\"^.*[.]\", \"\"), path = tostring(split(name, \" \")[1])\n| extend Journey = case(\n    role == \"notification-frontend\" and path contains \"/cloning\", \"Clone CHED\",\n    role == \"notification-frontend\" and path matches regex @\"^/protected/notifications/?$\", \"Search & dashboards\",\n    role == \"decision-frontend\" and path matches regex @\"^/protected/bip-notifications/?$\", \"Search & dashboards\",\n    role == \"control-frontend\" and path matches regex @\"^/protected/ov-notifications/?$\", \"Search & dashboards\",\n    role == \"notification-frontend\", \"Create & submit CHED\",\n    role == \"upload-frontend\", \"Document upload\",\n    role == \"decision-frontend\", \"Border checks & decision\",\n    role == \"control-frontend\", \"Control (OV)\",\n    role == \"checks-frontend\", \"FSA checks\",\n    role == \"bordernotification-frontend\", \"Border notifications\",\n    role == \"bcpadmin-frontend\", \"BCP admin\",\n    \"\")\n| where Journey != \"\"\n| extend bad = toint(resultCode) >= 500\n| summarize n = count() by Journey, bin(timestamp, $__interval)\n| order by timestamp asc\n",
+            "query": "requests\n| where $__timeFilter(timestamp)\n| where (tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\" or (isempty(tostring(customDimensions[\"k8s.namespace.name\"])) and \"$namespace\" in (\"tst\", \"pre\", \"prd\") and cloud_RoleName !contains \".\"))\n| where cloud_RoleName endswith \"-frontend\"\n| where name != \"GET /admin/health-check\" and name !startswith \"GET /public/\" and name !contains \"/assets/\"\n| extend role = replace_regex(cloud_RoleName, @\"^.*[.]\", \"\"), path = tostring(split(name, \" \")[1])\n| extend Journey = case(\n    role == \"notification-frontend\" and path contains \"/cloning\", \"Clone CHED\",\n    role == \"notification-frontend\" and path matches regex @\"^/protected/notifications/?$\", \"Search & dashboards\",\n    role == \"decision-frontend\" and path matches regex @\"^/protected/bip-notifications/?$\", \"Search & dashboards\",\n    role == \"control-frontend\" and path matches regex @\"^/protected/ov-notifications/?$\", \"Search & dashboards\",\n    role == \"notification-frontend\", \"Create & submit CHED\",\n    role == \"upload-frontend\", \"Document upload\",\n    role == \"decision-frontend\", \"Border checks & decision\",\n    role == \"control-frontend\", \"Control (OV)\",\n    role == \"checks-frontend\", \"FSA checks\",\n    role == \"bordernotification-frontend\", \"Border notifications\",\n    role == \"bcpadmin-frontend\", \"BCP admin\",\n    \"\")\n| where Journey != \"\"\n| extend bad = toint(resultCode) >= 500\n| summarize n = count() by Journey, bin(timestamp, $__interval)\n| order by timestamp asc\n",
             "resources": [
               "/subscriptions/$subscription/resourceGroups/$resourceGroup/providers/Microsoft.Insights/components/$appInsights"
             ],
