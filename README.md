@@ -109,6 +109,26 @@ installers. Retire ADO definitions `import-acr-artifacts` (10054) and
 **Fresh environment:** core infrastructure (`includePlatform: false`) → manifest
 platform stage → Private Link → applications.
 
+### Operational tooling ownership
+
+Grafana dashboards, their deployment pipeline and datasource helpers, and the
+standalone routing and uptime checkers live in
+[`ipaffs-operations`](https://github.com/DEFRA/ipaffs-operations).
+Grafana, Prometheus and Log Analytics Azure instances remain defined here,
+alongside their managed identities and runtime permissions.
+
+Before merging this extraction, merge the operations implementation and repoint
+the existing **Deploy Grafana Dashboards** ADO pipeline (definition **11662**) to
+`DEFRA/ipaffs-operations`, retaining `main` and
+`pipelines/grafana-dashboards.yaml`. Validate the migrated pipeline using its
+existing approval gates before removing this repository's copy. See the
+[operations handover](https://github.com/DEFRA/ipaffs-operations#pipeline-handover)
+for the sequence. This source move does not delete deployed dashboards or Azure
+resources.
+
+Access management, runtime permissions, QA, configuration validation and classic
+maintenance/switch tooling remain here for later stages of the split.
+
 ### DEV SQL elastic pool
 
 The DEV parameters configure `DEVIMPDBSEP1401` for 4 vCores and 128 GiB of storage.
