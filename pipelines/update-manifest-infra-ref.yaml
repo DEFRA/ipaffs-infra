@@ -47,8 +47,41 @@ stages:
             persistCredentials: true
 
           - task: Bash@3
+            name: ResolveManifestBranch
+            displayName: Resolve and checkout manifest branch
+            inputs:
+              targetType: inline
+              workingDirectory: $(Pipeline.Workspace)/s/ipaffs-manifest
+              script: |
+                set -euo pipefail
+
+                target_manifest_branch="master"
+
+                git fetch origin
+
+                if ! git ls-remote --exit-code --heads origin "${target_manifest_branch}" >/dev/null; then
+                  echo "Manifest branch '${target_manifest_branch}' does not exist" >&2
+                  exit 1
+                fi
+
+                git checkout -B "${target_manifest_branch}" "origin/${target_manifest_branch}"
+                echo "##vso[task.setvariable variable=targetManifestBranch;isOutput=true]${target_manifest_branch}"
+
+          - task: Bash@3
+            name: CheckManifestInfraPin
+            displayName: Check whether manifest still requires an infra pin
+            env:
+              MANIFEST_ROOT: "$(Pipeline.Workspace)/s/ipaffs-manifest"
+            inputs:
+              targetType: filePath
+              filePath: $(Pipeline.Workspace)/s/ipaffs-infra/scripts/pipeline/update-manifest-infra-ref.sh
+              arguments: --check
+              workingDirectory: $(Pipeline.Workspace)/s/ipaffs-infra
+
+          - task: Bash@3
             name: ResolveInfraTag
             displayName: Create or resolve infra pin tag
+            condition: and(succeeded(), eq(variables['CheckManifestInfraPin.requiresInfraPin'], 'true'))
             env:
               INFRA_TAG_PREFIX: "${{ parameters.infraTagPrefix }}"
               SOURCE_VERSION: "$(Build.SourceVersion)"
@@ -81,28 +114,8 @@ stages:
                 echo "##vso[task.setvariable variable=infraRef;isOutput=true]${infra_ref}"
 
           - task: Bash@3
-            name: ResolveManifestBranch
-            displayName: Resolve and checkout manifest branch
-            inputs:
-              targetType: inline
-              workingDirectory: $(Pipeline.Workspace)/s/ipaffs-manifest
-              script: |
-                set -euo pipefail
-
-                target_manifest_branch="master"
-
-                git fetch origin
-
-                if ! git ls-remote --exit-code --heads origin "${target_manifest_branch}" >/dev/null; then
-                  echo "Manifest branch '${target_manifest_branch}' does not exist" >&2
-                  exit 1
-                fi
-
-                git checkout -B "${target_manifest_branch}" "origin/${target_manifest_branch}"
-                echo "##vso[task.setvariable variable=targetManifestBranch;isOutput=true]${target_manifest_branch}"
-
-          - task: Bash@3
             displayName: Update manifest ipaffs-infra refs
+            condition: and(succeeded(), eq(variables['CheckManifestInfraPin.requiresInfraPin'], 'true'))
             env:
               MANIFEST_ROOT: "$(Pipeline.Workspace)/s/ipaffs-manifest"
               INFRA_REF: "$(ResolveInfraTag.infraRef)"
@@ -113,6 +126,7 @@ stages:
 
           - task: Bash@3
             displayName: Commit and push manifest ref pin
+            condition: and(succeeded(), eq(variables['CheckManifestInfraPin.requiresInfraPin'], 'true'))
             env:
               MANIFEST_BRANCH: "$(ResolveManifestBranch.targetManifestBranch)"
               INFRA_TAG: "$(ResolveInfraTag.infraTag)"

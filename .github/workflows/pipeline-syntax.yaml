@@ -9,6 +9,7 @@ on:
       - "pipelines/**/*.yaml"
       - "pipelines/**/*.yml"
       - "scripts/**/*.sh"
+      - "scripts/**/*.test.py"
       - "bicep/*.bicep"
       - "bicep/*.bicepparam"
       - "bicep/**/*.bicep"
@@ -23,6 +24,7 @@ on:
       - "pipelines/**/*.yaml"
       - "pipelines/**/*.yml"
       - "scripts/**/*.sh"
+      - "scripts/**/*.test.py"
       - "bicep/*.bicep"
       - "bicep/*.bicepparam"
       - "bicep/**/*.bicep"
@@ -91,6 +93,17 @@ jobs:
       - name: Test generated manifest service values
         shell: bash
         run: bash scripts/pipeline/update-manifest-service-values.test.sh
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Test manifest infra pin retirement
+        shell: bash
+        run: |
+          python -m pip install PyYAML==6.0.3
+          python scripts/pipeline/update-manifest-infra-ref.test.py
   bicep:
     name: Bicep
     runs-on: ubuntu-latest
