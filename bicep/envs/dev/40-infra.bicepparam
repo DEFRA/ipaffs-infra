@@ -106,8 +106,9 @@ param searchParams = {
 param sqlParams = {
   serverName: 'DEVIMPDBSSQ1401'
   elasticPoolName: 'DEVIMPDBSEP1401'
-  maxSizeGiB: 10
-  vCores: 2
+  maxSizeGiB: 128
+  vCores: 4
+  maxVCorePerDatabase: 2
 }
 
 param storageParams = {

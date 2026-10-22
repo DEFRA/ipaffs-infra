@@ -44,7 +44,7 @@ resource elasticPool 'Microsoft.Sql/servers/elasticPools@2023-08-01' = {
     perDatabaseSettings: {
       autoPauseDelay: -1
       minCapacity: 0
-      maxCapacity: sqlParams.vCores
+      maxCapacity: sqlParams.?maxVCorePerDatabase ?? sqlParams.vCores
     }
     zoneRedundant: false
   }

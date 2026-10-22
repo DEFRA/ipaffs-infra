@@ -109,6 +109,23 @@ installers. Retire ADO definitions `import-acr-artifacts` (10054) and
 **Fresh environment:** core infrastructure (`includePlatform: false`) → manifest
 platform stage → Private Link → applications.
 
+### DEV SQL elastic pool
+
+The DEV parameters configure `DEVIMPDBSEP1401` for 4 vCores and 128 GiB of storage.
+At the 22 October 2026 review, 107 databases had 55.52 GiB allocated; this capacity
+accommodates that count and leaves about 72 GiB of storage headroom.
+The per-database minimum remains zero and maximum remains 2 vCores. Resizing the
+pool therefore preserves each database's existing compute ceiling. SQL licensing
+remains `BasePrice`.
+
+After review and deployment approval, resize the pool before enabling the paired
+backoffice chart's `elasticPoolReference.armId` assignments. Moving existing
+databases into the pool can briefly interrupt connections; pilot the move and
+roll out in batches, checking pool CPU, IO, workers and storage before continuing.
+The pool remains infrastructure-owned; the chart references it without adopting
+or recreating it. Recheck database count and storage before deployment; this
+capacity change alone does not move any databases into the pool.
+
 ### Shared ingress certificate
 
 Configure `defra-certs/star-azure-defra-cloud-cert` as NGINX's default certificate.
