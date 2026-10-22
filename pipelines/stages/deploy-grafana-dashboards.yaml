@@ -8,8 +8,10 @@
 # environment ends up on the same dashboard version.
 #
 # Dashboard directory layout:
-#   dashboards/*.json -> all deployed to every environment
-# (Per-env dashboards are not supported yet.)
+#   dashboards/*.json       -> deployed to every environment
+#   dashboards/<ENV>/*.json -> deployed to that environment only (e.g. DEV/)
+# deploy-dashboards.sh makes the selection; the list and verify steps ask it
+# for the same list (LIST_ONLY=true), so all three agree.
 #
 # Each dashboard's template variables (the namespace / datasource dropdowns) are
 # stored inside its JSON and travel with it. Each env's Grafana holds its own
@@ -103,7 +105,9 @@ stages:
                       set -euo pipefail
 
                       echo "=== Dashboards to deploy ==="
-                      find grafana-dashboards/dashboards -name "*.json" 2>/dev/null \
+                      ENVIRONMENT="${{ parameters.targetEnvironment }}" LIST_ONLY=true \
+                        GRAFANA_NAME=unused RESOURCE_GROUP=unused \
+                        bash grafana-dashboards/scripts/deploy-dashboards.sh \
                         | while read -r f; do
                             uid=$(jq -r '.uid' "${f}")
                             echo "  ${f}  uid=${uid}  datasources: Prometheus / Azure Monitor"
@@ -170,8 +174,12 @@ stages:
                         fi
                       }
 
-                      find grafana-dashboards/dashboards -name "*.json" 2>/dev/null \
-                        | while read -r f; do check_file "${f}"; done
+                      # Not a pipe: check_file must run in this shell so ERRORS
+                      # survives the loop.
+                      while read -r f; do check_file "${f}"; done < <(
+                        GRAFANA_NAME="${GRAFANA_NAME}" RESOURCE_GROUP="${RESOURCE_GROUP}" \
+                          ENVIRONMENT="${{ parameters.targetEnvironment }}" LIST_ONLY=true \
+                          bash grafana-dashboards/scripts/deploy-dashboards.sh)
 
                       if [[ "${ERRORS}" -gt 0 ]]; then exit 1; fi
                       echo "All dashboards verified."
