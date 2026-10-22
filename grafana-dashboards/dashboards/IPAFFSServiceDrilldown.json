@@ -232,38 +232,6 @@
       "keepTime": true,
       "icon": "dashboard",
       "targetBlank": false
-    },
-    {
-      "title": "Application Overview",
-      "type": "link",
-      "url": "/d/app-overview?var-namespace=$namespace",
-      "keepTime": true,
-      "icon": "dashboard",
-      "targetBlank": false
-    },
-    {
-      "title": "Platform Overview",
-      "type": "link",
-      "url": "/d/ipaffs-aks-ops-v1?var-namespace=$namespace",
-      "keepTime": true,
-      "icon": "dashboard",
-      "targetBlank": false
-    },
-    {
-      "title": "Service Overview",
-      "type": "link",
-      "url": "/d/dfsw5zhr4pjpce?var-namespace=$namespace",
-      "keepTime": true,
-      "icon": "dashboard",
-      "targetBlank": false
-    },
-    {
-      "title": "QA Overview",
-      "type": "link",
-      "url": "/d/ipaffs-qa-overview?var-namespace=$namespace",
-      "keepTime": true,
-      "icon": "dashboard",
-      "targetBlank": false
     }
   ],
   "panels": [
@@ -296,7 +264,7 @@
           },
           "queryType": "Azure Log Analytics",
           "azureLogAnalytics": {
-            "query": "requests\n| where $__timeFilter(timestamp)\n| where cloud_RoleName in (\"$service\", \"$namespace.$service\")\n| where (tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\" or (isempty(tostring(customDimensions[\"k8s.namespace.name\"])) and \"$namespace\" in (\"tst\", \"pre\", \"prd\") and cloud_RoleName !contains \".\"))\n| where name != \"GET /admin/health-check\" and name !startswith \"GET /public/\"\n| summarize v = count() / (($__timeTo() - $__timeFrom()) / 1m)\n",
+            "query": "requests\n| where $__timeFilter(timestamp)\n| where case(replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"imports-proxy\", \"proxy\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"permissions\", \"permissions-service\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"file-upload-microservice\", \"upload-service\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") endswith \"-microservice\", strcat(replace_string(replace_string(replace_regex(cloud_RoleName, @\"^.*[.]\", \"\"), \"-microservice\", \"\"), \"-\", \"\"), \"-service\"), replace_regex(cloud_RoleName, @\"^.*[.]\", \"\")) == \"$service\"\n| where (tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\" or (isempty(tostring(customDimensions[\"k8s.namespace.name\"])) and \"$namespace\" in (\"tst\", \"pre\", \"prd\") and cloud_RoleName !contains \".\"))\n| where name != \"GET /admin/health-check\" and name !startswith \"GET /public/\"\n| summarize v = count() / (($__timeTo() - $__timeFrom()) / 1m)\n",
             "resources": [
               "/subscriptions/$subscription/resourceGroups/$resourceGroup/providers/Microsoft.Insights/components/$appInsights"
             ],
@@ -360,7 +328,7 @@
           },
           "queryType": "Azure Log Analytics",
           "azureLogAnalytics": {
-            "query": "requests\n| where $__timeFilter(timestamp)\n| where cloud_RoleName in (\"$service\", \"$namespace.$service\")\n| where (tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\" or (isempty(tostring(customDimensions[\"k8s.namespace.name\"])) and \"$namespace\" in (\"tst\", \"pre\", \"prd\") and cloud_RoleName !contains \".\"))\n| where name != \"GET /admin/health-check\" and name !startswith \"GET /public/\"\n| summarize v = 100.0 * countif(toint(resultCode) >= 500) / count()\n",
+            "query": "requests\n| where $__timeFilter(timestamp)\n| where case(replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"imports-proxy\", \"proxy\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"permissions\", \"permissions-service\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"file-upload-microservice\", \"upload-service\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") endswith \"-microservice\", strcat(replace_string(replace_string(replace_regex(cloud_RoleName, @\"^.*[.]\", \"\"), \"-microservice\", \"\"), \"-\", \"\"), \"-service\"), replace_regex(cloud_RoleName, @\"^.*[.]\", \"\")) == \"$service\"\n| where (tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\" or (isempty(tostring(customDimensions[\"k8s.namespace.name\"])) and \"$namespace\" in (\"tst\", \"pre\", \"prd\") and cloud_RoleName !contains \".\"))\n| where name != \"GET /admin/health-check\" and name !startswith \"GET /public/\"\n| summarize v = 100.0 * countif(toint(resultCode) >= 500) / count()\n",
             "resources": [
               "/subscriptions/$subscription/resourceGroups/$resourceGroup/providers/Microsoft.Insights/components/$appInsights"
             ],
@@ -432,7 +400,7 @@
           },
           "queryType": "Azure Log Analytics",
           "azureLogAnalytics": {
-            "query": "requests\n| where $__timeFilter(timestamp)\n| where cloud_RoleName in (\"$service\", \"$namespace.$service\")\n| where (tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\" or (isempty(tostring(customDimensions[\"k8s.namespace.name\"])) and \"$namespace\" in (\"tst\", \"pre\", \"prd\") and cloud_RoleName !contains \".\"))\n| where name != \"GET /admin/health-check\" and name !startswith \"GET /public/\"\n| summarize v = percentile(duration, 95)\n",
+            "query": "requests\n| where $__timeFilter(timestamp)\n| where case(replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"imports-proxy\", \"proxy\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"permissions\", \"permissions-service\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"file-upload-microservice\", \"upload-service\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") endswith \"-microservice\", strcat(replace_string(replace_string(replace_regex(cloud_RoleName, @\"^.*[.]\", \"\"), \"-microservice\", \"\"), \"-\", \"\"), \"-service\"), replace_regex(cloud_RoleName, @\"^.*[.]\", \"\")) == \"$service\"\n| where (tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\" or (isempty(tostring(customDimensions[\"k8s.namespace.name\"])) and \"$namespace\" in (\"tst\", \"pre\", \"prd\") and cloud_RoleName !contains \".\"))\n| where name != \"GET /admin/health-check\" and name !startswith \"GET /public/\"\n| summarize v = percentile(duration, 95)\n",
             "resources": [
               "/subscriptions/$subscription/resourceGroups/$resourceGroup/providers/Microsoft.Insights/components/$appInsights"
             ],
@@ -503,7 +471,7 @@
           },
           "queryType": "Azure Log Analytics",
           "azureLogAnalytics": {
-            "query": "exceptions\n| where $__timeFilter(timestamp)\n| where cloud_RoleName in (\"$service\", \"$namespace.$service\")\n| where (tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\" or (isempty(tostring(customDimensions[\"k8s.namespace.name\"])) and \"$namespace\" in (\"tst\", \"pre\", \"prd\") and cloud_RoleName !contains \".\"))\n| summarize v = count()\n",
+            "query": "exceptions\n| where $__timeFilter(timestamp)\n| where case(replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"imports-proxy\", \"proxy\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"permissions\", \"permissions-service\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"file-upload-microservice\", \"upload-service\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") endswith \"-microservice\", strcat(replace_string(replace_string(replace_regex(cloud_RoleName, @\"^.*[.]\", \"\"), \"-microservice\", \"\"), \"-\", \"\"), \"-service\"), replace_regex(cloud_RoleName, @\"^.*[.]\", \"\")) == \"$service\"\n| where (tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\" or (isempty(tostring(customDimensions[\"k8s.namespace.name\"])) and \"$namespace\" in (\"tst\", \"pre\", \"prd\") and cloud_RoleName !contains \".\"))\n| summarize v = count()\n",
             "resources": [
               "/subscriptions/$subscription/resourceGroups/$resourceGroup/providers/Microsoft.Insights/components/$appInsights"
             ],
@@ -771,7 +739,7 @@
           },
           "queryType": "Azure Log Analytics",
           "azureLogAnalytics": {
-            "query": "let base = materialize(requests\n| where $__timeFilter(timestamp)\n| where cloud_RoleName in (\"$service\", \"$namespace.$service\")\n| where (tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\" or (isempty(tostring(customDimensions[\"k8s.namespace.name\"])) and \"$namespace\" in (\"tst\", \"pre\", \"prd\") and cloud_RoleName !contains \".\"))\n| where name != \"GET /admin/health-check\" and name !startswith \"GET /public/\"\n| extend op = replace_regex(replace_regex(replace_regex(name, @\"[A-Z]+\\.GB\\.\\d{4}\\.\\d+[A-Z]?\", \"{ref}\"), @\"[0-9a-fA-F]{8}-[0-9a-fA-F-]{27}\", \"{guid}\"), @\"/\\d+(/|$)\", @\"/{n}\\1\")\n);\nlet top = base | summarize total = count() by op | top 8 by total | project op;\nbase\n| where op in (top)\n| summarize n = count() by op, bin(timestamp, $__interval)\n| order by timestamp asc\n",
+            "query": "let base = materialize(requests\n| where $__timeFilter(timestamp)\n| where case(replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"imports-proxy\", \"proxy\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"permissions\", \"permissions-service\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"file-upload-microservice\", \"upload-service\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") endswith \"-microservice\", strcat(replace_string(replace_string(replace_regex(cloud_RoleName, @\"^.*[.]\", \"\"), \"-microservice\", \"\"), \"-\", \"\"), \"-service\"), replace_regex(cloud_RoleName, @\"^.*[.]\", \"\")) == \"$service\"\n| where (tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\" or (isempty(tostring(customDimensions[\"k8s.namespace.name\"])) and \"$namespace\" in (\"tst\", \"pre\", \"prd\") and cloud_RoleName !contains \".\"))\n| where name != \"GET /admin/health-check\" and name !startswith \"GET /public/\"\n| extend op = replace_regex(replace_regex(replace_regex(name, @\"[A-Z]+\\.GB\\.\\d{4}\\.\\d+[A-Z]?\", \"{ref}\"), @\"[0-9a-fA-F]{8}-[0-9a-fA-F-]{27}\", \"{guid}\"), @\"/\\d+(/|$)\", @\"/{n}\\1\")\n);\nlet top = base | summarize total = count() by op | top 8 by total | project op;\nbase\n| where op in (top)\n| summarize n = count() by op, bin(timestamp, $__interval)\n| order by timestamp asc\n",
             "resources": [
               "/subscriptions/$subscription/resourceGroups/$resourceGroup/providers/Microsoft.Insights/components/$appInsights"
             ],
@@ -828,7 +796,7 @@
           },
           "queryType": "Azure Log Analytics",
           "azureLogAnalytics": {
-            "query": "requests\n| where $__timeFilter(timestamp)\n| where cloud_RoleName in (\"$service\", \"$namespace.$service\")\n| where (tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\" or (isempty(tostring(customDimensions[\"k8s.namespace.name\"])) and \"$namespace\" in (\"tst\", \"pre\", \"prd\") and cloud_RoleName !contains \".\"))\n| where name != \"GET /admin/health-check\" and name !startswith \"GET /public/\"\n| extend cls = case(toint(resultCode) >= 500, \"5xx\", toint(resultCode) >= 400, \"4xx\", \"\")\n| where cls != \"\"\n| summarize n = count() by cls, bin(timestamp, $__interval)\n| order by timestamp asc\n",
+            "query": "requests\n| where $__timeFilter(timestamp)\n| where case(replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"imports-proxy\", \"proxy\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"permissions\", \"permissions-service\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"file-upload-microservice\", \"upload-service\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") endswith \"-microservice\", strcat(replace_string(replace_string(replace_regex(cloud_RoleName, @\"^.*[.]\", \"\"), \"-microservice\", \"\"), \"-\", \"\"), \"-service\"), replace_regex(cloud_RoleName, @\"^.*[.]\", \"\")) == \"$service\"\n| where (tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\" or (isempty(tostring(customDimensions[\"k8s.namespace.name\"])) and \"$namespace\" in (\"tst\", \"pre\", \"prd\") and cloud_RoleName !contains \".\"))\n| where name != \"GET /admin/health-check\" and name !startswith \"GET /public/\"\n| extend cls = case(toint(resultCode) >= 500, \"5xx\", toint(resultCode) >= 400, \"4xx\", \"\")\n| where cls != \"\"\n| summarize n = count() by cls, bin(timestamp, $__interval)\n| order by timestamp asc\n",
             "resources": [
               "/subscriptions/$subscription/resourceGroups/$resourceGroup/providers/Microsoft.Insights/components/$appInsights"
             ],
@@ -921,7 +889,7 @@
           },
           "queryType": "Azure Log Analytics",
           "azureLogAnalytics": {
-            "query": "requests\n| where $__timeFilter(timestamp)\n| where cloud_RoleName in (\"$service\", \"$namespace.$service\")\n| where (tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\" or (isempty(tostring(customDimensions[\"k8s.namespace.name\"])) and \"$namespace\" in (\"tst\", \"pre\", \"prd\") and cloud_RoleName !contains \".\"))\n| where name != \"GET /admin/health-check\" and name !startswith \"GET /public/\"\n| summarize p50 = percentile(duration, 50), p95 = percentile(duration, 95), p99 = percentile(duration, 99) by bin(timestamp, $__interval)\n| order by timestamp asc\n",
+            "query": "requests\n| where $__timeFilter(timestamp)\n| where case(replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"imports-proxy\", \"proxy\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"permissions\", \"permissions-service\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"file-upload-microservice\", \"upload-service\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") endswith \"-microservice\", strcat(replace_string(replace_string(replace_regex(cloud_RoleName, @\"^.*[.]\", \"\"), \"-microservice\", \"\"), \"-\", \"\"), \"-service\"), replace_regex(cloud_RoleName, @\"^.*[.]\", \"\")) == \"$service\"\n| where (tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\" or (isempty(tostring(customDimensions[\"k8s.namespace.name\"])) and \"$namespace\" in (\"tst\", \"pre\", \"prd\") and cloud_RoleName !contains \".\"))\n| where name != \"GET /admin/health-check\" and name !startswith \"GET /public/\"\n| summarize p50 = percentile(duration, 50), p95 = percentile(duration, 95), p99 = percentile(duration, 99) by bin(timestamp, $__interval)\n| order by timestamp asc\n",
             "resources": [
               "/subscriptions/$subscription/resourceGroups/$resourceGroup/providers/Microsoft.Insights/components/$appInsights"
             ],
@@ -977,7 +945,7 @@
           },
           "queryType": "Azure Log Analytics",
           "azureLogAnalytics": {
-            "query": "requests\n| where $__timeFilter(timestamp)\n| where cloud_RoleName in (\"$service\", \"$namespace.$service\")\n| where (tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\" or (isempty(tostring(customDimensions[\"k8s.namespace.name\"])) and \"$namespace\" in (\"tst\", \"pre\", \"prd\") and cloud_RoleName !contains \".\"))\n| where name != \"GET /admin/health-check\" and name !startswith \"GET /public/\"\n| extend op = replace_regex(replace_regex(replace_regex(name, @\"[A-Z]+\\.GB\\.\\d{4}\\.\\d+[A-Z]?\", \"{ref}\"), @\"[0-9a-fA-F]{8}-[0-9a-fA-F-]{27}\", \"{guid}\"), @\"/\\d+(/|$)\", @\"/{n}\\1\")\n| summarize Calls = count(), ['4xx %'] = round(100.0 * countif(toint(resultCode) between (400 .. 499)) / count(), 2),\n    ['5xx %'] = round(100.0 * countif(toint(resultCode) >= 500) / count(), 2),\n    ['p50 ms'] = round(percentile(duration, 50)), ['p95 ms'] = round(percentile(duration, 95)) by Operation = op\n| order by Calls desc\n| take 50\n",
+            "query": "requests\n| where $__timeFilter(timestamp)\n| where case(replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"imports-proxy\", \"proxy\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"permissions\", \"permissions-service\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"file-upload-microservice\", \"upload-service\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") endswith \"-microservice\", strcat(replace_string(replace_string(replace_regex(cloud_RoleName, @\"^.*[.]\", \"\"), \"-microservice\", \"\"), \"-\", \"\"), \"-service\"), replace_regex(cloud_RoleName, @\"^.*[.]\", \"\")) == \"$service\"\n| where (tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\" or (isempty(tostring(customDimensions[\"k8s.namespace.name\"])) and \"$namespace\" in (\"tst\", \"pre\", \"prd\") and cloud_RoleName !contains \".\"))\n| where name != \"GET /admin/health-check\" and name !startswith \"GET /public/\"\n| extend op = replace_regex(replace_regex(replace_regex(name, @\"[A-Z]+\\.GB\\.\\d{4}\\.\\d+[A-Z]?\", \"{ref}\"), @\"[0-9a-fA-F]{8}-[0-9a-fA-F-]{27}\", \"{guid}\"), @\"/\\d+(/|$)\", @\"/{n}\\1\")\n| summarize Calls = count(), ['4xx %'] = round(100.0 * countif(toint(resultCode) between (400 .. 499)) / count(), 2),\n    ['5xx %'] = round(100.0 * countif(toint(resultCode) >= 500) / count(), 2),\n    ['p50 ms'] = round(percentile(duration, 50)), ['p95 ms'] = round(percentile(duration, 95)) by Operation = op\n| order by Calls desc\n| take 50\n",
             "resources": [
               "/subscriptions/$subscription/resourceGroups/$resourceGroup/providers/Microsoft.Insights/components/$appInsights"
             ],
@@ -1088,7 +1056,7 @@
           },
           "queryType": "Azure Log Analytics",
           "azureLogAnalytics": {
-            "query": "dependencies\n| where $__timeFilter(timestamp)\n| where cloud_RoleName in (\"$service\", \"$namespace.$service\")\n| where (tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\" or (isempty(tostring(customDimensions[\"k8s.namespace.name\"])) and \"$namespace\" in (\"tst\", \"pre\", \"prd\") and cloud_RoleName !contains \".\"))\n| where type != \"InProc\"\n| extend dep = strcat(type, \" \u00b7 \", target)\n| summarize Calls = count(), ['Fail %'] = round(100.0 * countif(success == false) / count(), 2),\n    ['p95 ms'] = round(percentile(duration, 95)), ['Max ms'] = round(max(duration)) by Type = type, Target = target\n| order by Calls desc\n",
+            "query": "dependencies\n| where $__timeFilter(timestamp)\n| where case(replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"imports-proxy\", \"proxy\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"permissions\", \"permissions-service\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"file-upload-microservice\", \"upload-service\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") endswith \"-microservice\", strcat(replace_string(replace_string(replace_regex(cloud_RoleName, @\"^.*[.]\", \"\"), \"-microservice\", \"\"), \"-\", \"\"), \"-service\"), replace_regex(cloud_RoleName, @\"^.*[.]\", \"\")) == \"$service\"\n| where (tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\" or (isempty(tostring(customDimensions[\"k8s.namespace.name\"])) and \"$namespace\" in (\"tst\", \"pre\", \"prd\") and cloud_RoleName !contains \".\"))\n| where type != \"InProc\"\n| extend dep = strcat(type, \" \u00b7 \", target)\n| summarize Calls = count(), ['Fail %'] = round(100.0 * countif(success == false) / count(), 2),\n    ['p95 ms'] = round(percentile(duration, 95)), ['Max ms'] = round(max(duration)) by Type = type, Target = target\n| order by Calls desc\n",
             "resources": [
               "/subscriptions/$subscription/resourceGroups/$resourceGroup/providers/Microsoft.Insights/components/$appInsights"
             ],
@@ -1175,7 +1143,7 @@
           },
           "queryType": "Azure Log Analytics",
           "azureLogAnalytics": {
-            "query": "dependencies\n| where $__timeFilter(timestamp)\n| where cloud_RoleName in (\"$service\", \"$namespace.$service\")\n| where (tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\" or (isempty(tostring(customDimensions[\"k8s.namespace.name\"])) and \"$namespace\" in (\"tst\", \"pre\", \"prd\") and cloud_RoleName !contains \".\"))\n| where type != \"InProc\"\n| extend dep = strcat(type, \" \u00b7 \", target)\n| summarize p95 = percentile(duration, 95) by dep, bin(timestamp, $__interval)\n| order by timestamp asc\n",
+            "query": "dependencies\n| where $__timeFilter(timestamp)\n| where case(replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"imports-proxy\", \"proxy\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"permissions\", \"permissions-service\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"file-upload-microservice\", \"upload-service\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") endswith \"-microservice\", strcat(replace_string(replace_string(replace_regex(cloud_RoleName, @\"^.*[.]\", \"\"), \"-microservice\", \"\"), \"-\", \"\"), \"-service\"), replace_regex(cloud_RoleName, @\"^.*[.]\", \"\")) == \"$service\"\n| where (tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\" or (isempty(tostring(customDimensions[\"k8s.namespace.name\"])) and \"$namespace\" in (\"tst\", \"pre\", \"prd\") and cloud_RoleName !contains \".\"))\n| where type != \"InProc\"\n| extend dep = strcat(type, \" \u00b7 \", target)\n| summarize p95 = percentile(duration, 95) by dep, bin(timestamp, $__interval)\n| order by timestamp asc\n",
             "resources": [
               "/subscriptions/$subscription/resourceGroups/$resourceGroup/providers/Microsoft.Insights/components/$appInsights"
             ],
@@ -1231,7 +1199,7 @@
           },
           "queryType": "Azure Log Analytics",
           "azureLogAnalytics": {
-            "query": "dependencies\n| where $__timeFilter(timestamp)\n| where cloud_RoleName in (\"$service\", \"$namespace.$service\")\n| where (tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\" or (isempty(tostring(customDimensions[\"k8s.namespace.name\"])) and \"$namespace\" in (\"tst\", \"pre\", \"prd\") and cloud_RoleName !contains \".\"))\n| where type != \"InProc\"\n| extend dep = strcat(type, \" \u00b7 \", target)\n| where success == false\n| summarize failed = count() by dep, bin(timestamp, $__interval)\n| order by timestamp asc\n",
+            "query": "dependencies\n| where $__timeFilter(timestamp)\n| where case(replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"imports-proxy\", \"proxy\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"permissions\", \"permissions-service\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"file-upload-microservice\", \"upload-service\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") endswith \"-microservice\", strcat(replace_string(replace_string(replace_regex(cloud_RoleName, @\"^.*[.]\", \"\"), \"-microservice\", \"\"), \"-\", \"\"), \"-service\"), replace_regex(cloud_RoleName, @\"^.*[.]\", \"\")) == \"$service\"\n| where (tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\" or (isempty(tostring(customDimensions[\"k8s.namespace.name\"])) and \"$namespace\" in (\"tst\", \"pre\", \"prd\") and cloud_RoleName !contains \".\"))\n| where type != \"InProc\"\n| extend dep = strcat(type, \" \u00b7 \", target)\n| where success == false\n| summarize failed = count() by dep, bin(timestamp, $__interval)\n| order by timestamp asc\n",
             "resources": [
               "/subscriptions/$subscription/resourceGroups/$resourceGroup/providers/Microsoft.Insights/components/$appInsights"
             ],
@@ -1292,7 +1260,7 @@
           },
           "queryType": "Azure Log Analytics",
           "azureLogAnalytics": {
-            "query": "dependencies\n| where $__timeFilter(timestamp)\n| where cloud_RoleName in (\"$service\", \"$namespace.$service\")\n| where (tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\" or (isempty(tostring(customDimensions[\"k8s.namespace.name\"])) and \"$namespace\" in (\"tst\", \"pre\", \"prd\") and cloud_RoleName !contains \".\"))\n| where type != \"InProc\"\n| extend dep = strcat(type, \" \u00b7 \", target)\n| top 20 by duration desc\n| project Time = timestamp, Target = dep, Call = name, ['Duration ms'] = round(duration), OK = success, Result = resultCode, ['Operation id'] = operation_Id\n",
+            "query": "dependencies\n| where $__timeFilter(timestamp)\n| where case(replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"imports-proxy\", \"proxy\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"permissions\", \"permissions-service\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"file-upload-microservice\", \"upload-service\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") endswith \"-microservice\", strcat(replace_string(replace_string(replace_regex(cloud_RoleName, @\"^.*[.]\", \"\"), \"-microservice\", \"\"), \"-\", \"\"), \"-service\"), replace_regex(cloud_RoleName, @\"^.*[.]\", \"\")) == \"$service\"\n| where (tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\" or (isempty(tostring(customDimensions[\"k8s.namespace.name\"])) and \"$namespace\" in (\"tst\", \"pre\", \"prd\") and cloud_RoleName !contains \".\"))\n| where type != \"InProc\"\n| extend dep = strcat(type, \" \u00b7 \", target)\n| top 20 by duration desc\n| project Time = timestamp, Target = dep, Call = name, ['Duration ms'] = round(duration), OK = success, Result = resultCode, ['Operation id'] = operation_Id\n",
             "resources": [
               "/subscriptions/$subscription/resourceGroups/$resourceGroup/providers/Microsoft.Insights/components/$appInsights"
             ],
@@ -1351,7 +1319,7 @@
           },
           "queryType": "Azure Log Analytics",
           "azureLogAnalytics": {
-            "query": "customMetrics\n| where $__timeFilter(timestamp)\n| where cloud_RoleName in (\"$service\", \"$namespace.$service\")\n| where (tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\" or (isempty(tostring(customDimensions[\"k8s.namespace.name\"])) and \"$namespace\" in (\"tst\", \"pre\", \"prd\") and cloud_RoleName !contains \".\"))\n| where name == \"Heap Memory Used (MB)\"\n| summarize v = avg(value) by cloud_RoleInstance, bin(timestamp, $__interval)\n| order by timestamp asc\n",
+            "query": "customMetrics\n| where $__timeFilter(timestamp)\n| where case(replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"imports-proxy\", \"proxy\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"permissions\", \"permissions-service\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"file-upload-microservice\", \"upload-service\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") endswith \"-microservice\", strcat(replace_string(replace_string(replace_regex(cloud_RoleName, @\"^.*[.]\", \"\"), \"-microservice\", \"\"), \"-\", \"\"), \"-service\"), replace_regex(cloud_RoleName, @\"^.*[.]\", \"\")) == \"$service\"\n| where (tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\" or (isempty(tostring(customDimensions[\"k8s.namespace.name\"])) and \"$namespace\" in (\"tst\", \"pre\", \"prd\") and cloud_RoleName !contains \".\"))\n| where name == \"Heap Memory Used (MB)\" or name endswith \" - Heap Memory Used (MB)\"\n| summarize v = avg(value) by cloud_RoleInstance, bin(timestamp, $__interval)\n| order by timestamp asc\n",
             "resources": [
               "/subscriptions/$subscription/resourceGroups/$resourceGroup/providers/Microsoft.Insights/components/$appInsights"
             ],
@@ -1408,7 +1376,7 @@
           },
           "queryType": "Azure Log Analytics",
           "azureLogAnalytics": {
-            "query": "customMetrics\n| where $__timeFilter(timestamp)\n| where cloud_RoleName in (\"$service\", \"$namespace.$service\")\n| where (tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\" or (isempty(tostring(customDimensions[\"k8s.namespace.name\"])) and \"$namespace\" in (\"tst\", \"pre\", \"prd\") and cloud_RoleName !contains \".\"))\n| where name == \"% Of Max Heap Memory Used\"\n| summarize v = avg(value) by cloud_RoleInstance, bin(timestamp, $__interval)\n| order by timestamp asc\n",
+            "query": "customMetrics\n| where $__timeFilter(timestamp)\n| where case(replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"imports-proxy\", \"proxy\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"permissions\", \"permissions-service\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"file-upload-microservice\", \"upload-service\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") endswith \"-microservice\", strcat(replace_string(replace_string(replace_regex(cloud_RoleName, @\"^.*[.]\", \"\"), \"-microservice\", \"\"), \"-\", \"\"), \"-service\"), replace_regex(cloud_RoleName, @\"^.*[.]\", \"\")) == \"$service\"\n| where (tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\" or (isempty(tostring(customDimensions[\"k8s.namespace.name\"])) and \"$namespace\" in (\"tst\", \"pre\", \"prd\") and cloud_RoleName !contains \".\"))\n| where name == \"% Of Max Heap Memory Used\" or name endswith \" - % Of Max Heap Memory Used\"\n| summarize v = avg(value) by cloud_RoleInstance, bin(timestamp, $__interval)\n| order by timestamp asc\n",
             "resources": [
               "/subscriptions/$subscription/resourceGroups/$resourceGroup/providers/Microsoft.Insights/components/$appInsights"
             ],
@@ -1466,7 +1434,7 @@
           },
           "queryType": "Azure Log Analytics",
           "azureLogAnalytics": {
-            "query": "customMetrics\n| where $__timeFilter(timestamp)\n| where cloud_RoleName in (\"$service\", \"$namespace.$service\")\n| where (tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\" or (isempty(tostring(customDimensions[\"k8s.namespace.name\"])) and \"$namespace\" in (\"tst\", \"pre\", \"prd\") and cloud_RoleName !contains \".\"))\n| where name == \"GC Total Time\"\n| summarize v = sum(value) by cloud_RoleInstance, bin(timestamp, $__interval)\n| order by timestamp asc\n",
+            "query": "customMetrics\n| where $__timeFilter(timestamp)\n| where case(replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"imports-proxy\", \"proxy\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"permissions\", \"permissions-service\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"file-upload-microservice\", \"upload-service\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") endswith \"-microservice\", strcat(replace_string(replace_string(replace_regex(cloud_RoleName, @\"^.*[.]\", \"\"), \"-microservice\", \"\"), \"-\", \"\"), \"-service\"), replace_regex(cloud_RoleName, @\"^.*[.]\", \"\")) == \"$service\"\n| where (tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\" or (isempty(tostring(customDimensions[\"k8s.namespace.name\"])) and \"$namespace\" in (\"tst\", \"pre\", \"prd\") and cloud_RoleName !contains \".\"))\n| where name == \"GC Total Time\" or name endswith \" - GC Total Time\"\n| summarize v = sum(value) by cloud_RoleInstance, bin(timestamp, $__interval)\n| order by timestamp asc\n",
             "resources": [
               "/subscriptions/$subscription/resourceGroups/$resourceGroup/providers/Microsoft.Insights/components/$appInsights"
             ],
@@ -1524,7 +1492,7 @@
           },
           "queryType": "Azure Log Analytics",
           "azureLogAnalytics": {
-            "query": "customMetrics\n| where $__timeFilter(timestamp)\n| where cloud_RoleName in (\"$service\", \"$namespace.$service\")\n| where (tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\" or (isempty(tostring(customDimensions[\"k8s.namespace.name\"])) and \"$namespace\" in (\"tst\", \"pre\", \"prd\") and cloud_RoleName !contains \".\"))\n| where name == \"Thread Count\"\n| summarize v = avg(value) by cloud_RoleInstance, bin(timestamp, $__interval)\n| order by timestamp asc\n",
+            "query": "customMetrics\n| where $__timeFilter(timestamp)\n| where case(replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"imports-proxy\", \"proxy\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"permissions\", \"permissions-service\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"file-upload-microservice\", \"upload-service\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") endswith \"-microservice\", strcat(replace_string(replace_string(replace_regex(cloud_RoleName, @\"^.*[.]\", \"\"), \"-microservice\", \"\"), \"-\", \"\"), \"-service\"), replace_regex(cloud_RoleName, @\"^.*[.]\", \"\")) == \"$service\"\n| where (tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\" or (isempty(tostring(customDimensions[\"k8s.namespace.name\"])) and \"$namespace\" in (\"tst\", \"pre\", \"prd\") and cloud_RoleName !contains \".\"))\n| where name == \"Thread Count\" or name endswith \" - Thread Count\"\n| summarize v = avg(value) by cloud_RoleInstance, bin(timestamp, $__interval)\n| order by timestamp asc\n",
             "resources": [
               "/subscriptions/$subscription/resourceGroups/$resourceGroup/providers/Microsoft.Insights/components/$appInsights"
             ],
@@ -1581,7 +1549,7 @@
           },
           "queryType": "Azure Log Analytics",
           "azureLogAnalytics": {
-            "query": "customMetrics\n| where $__timeFilter(timestamp)\n| where cloud_RoleName in (\"$service\", \"$namespace.$service\")\n| where (tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\" or (isempty(tostring(customDimensions[\"k8s.namespace.name\"])) and \"$namespace\" in (\"tst\", \"pre\", \"prd\") and cloud_RoleName !contains \".\"))\n| where name in (\"hikaricp_connections_active\", \"hikaricp_connections_pending\", \"hikaricp_connections_max\")\n| summarize v = max(valueMax) by series = replace_string(name, \"hikaricp_connections_\", \"\"), bin(timestamp, $__interval)\n| order by timestamp asc\n",
+            "query": "customMetrics\n| where $__timeFilter(timestamp)\n| where case(replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"imports-proxy\", \"proxy\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"permissions\", \"permissions-service\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"file-upload-microservice\", \"upload-service\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") endswith \"-microservice\", strcat(replace_string(replace_string(replace_regex(cloud_RoleName, @\"^.*[.]\", \"\"), \"-microservice\", \"\"), \"-\", \"\"), \"-service\"), replace_regex(cloud_RoleName, @\"^.*[.]\", \"\")) == \"$service\"\n| where (tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\" or (isempty(tostring(customDimensions[\"k8s.namespace.name\"])) and \"$namespace\" in (\"tst\", \"pre\", \"prd\") and cloud_RoleName !contains \".\"))\n| where name in (\"hikaricp_connections_active\", \"hikaricp_connections_pending\", \"hikaricp_connections_max\")\n| summarize v = max(valueMax) by series = replace_string(name, \"hikaricp_connections_\", \"\"), bin(timestamp, $__interval)\n| order by timestamp asc\n",
             "resources": [
               "/subscriptions/$subscription/resourceGroups/$resourceGroup/providers/Microsoft.Insights/components/$appInsights"
             ],
@@ -2212,7 +2180,7 @@
           },
           "queryType": "Azure Log Analytics",
           "azureLogAnalytics": {
-            "query": "customMetrics\n| where $__timeFilter(timestamp)\n| where cloud_RoleName in (\"$service\", \"$namespace.$service\")\n| where (tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\" or (isempty(tostring(customDimensions[\"k8s.namespace.name\"])) and \"$namespace\" in (\"tst\", \"pre\", \"prd\") and cloud_RoleName !contains \".\"))\n| where name !startswith \"jvm_\" and name !startswith \"http\" and name !startswith \"spring_\" and name !startswith \"tomcat_\"\n    and name !startswith \"process_\" and name !startswith \"system_\" and name !startswith \"disk_\" and name !startswith \"logback_\"\n    and name !startswith \"tasks_\" and name !startswith \"application_\" and name !startswith \"executor\"\n    and name !startswith \"hikaricp_\" and name !startswith \"jdbc_\" and name != \"HeartbeatState\"\n    and name !in (\"Total Started Thread Count\", \"Peak Thread Count\", \"Heap Memory Usage\", \"Non Heap Memory Usage\", \"Thread Count\",\n      \"GC Total Time\", \"GC Total Count\", \"% Of Max Heap Memory Used\", \"Heap Memory Used (MB)\", \"Suspected Deadlocked Threads\", \"Loaded Class Count\")\n| summarize Samples = sum(valueCount), Avg = round(sum(valueSum) / sum(valueCount), 1), Max = round(max(valueMax), 1) by Metric = name\n| order by Samples desc\n",
+            "query": "customMetrics\n| where $__timeFilter(timestamp)\n| where case(replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"imports-proxy\", \"proxy\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"permissions\", \"permissions-service\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"file-upload-microservice\", \"upload-service\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") endswith \"-microservice\", strcat(replace_string(replace_string(replace_regex(cloud_RoleName, @\"^.*[.]\", \"\"), \"-microservice\", \"\"), \"-\", \"\"), \"-service\"), replace_regex(cloud_RoleName, @\"^.*[.]\", \"\")) == \"$service\"\n| where (tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\" or (isempty(tostring(customDimensions[\"k8s.namespace.name\"])) and \"$namespace\" in (\"tst\", \"pre\", \"prd\") and cloud_RoleName !contains \".\"))\n| where name !startswith \"jvm_\" and name !startswith \"http\" and name !startswith \"spring_\" and name !startswith \"tomcat_\"\n    and name !startswith \"process_\" and name !startswith \"system_\" and name !startswith \"disk_\" and name !startswith \"logback_\"\n    and name !startswith \"tasks_\" and name !startswith \"application_\" and name !startswith \"executor\"\n    and name !startswith \"hikaricp_\" and name !startswith \"jdbc_\" and name != \"HeartbeatState\"\n    and name !in (\"Total Started Thread Count\", \"Peak Thread Count\", \"Heap Memory Usage\", \"Non Heap Memory Usage\", \"Thread Count\",\n      \"GC Total Time\", \"GC Total Count\", \"% Of Max Heap Memory Used\", \"Heap Memory Used (MB)\", \"Suspected Deadlocked Threads\", \"Loaded Class Count\")\n    and name !endswith \" - Heap Memory Usage\" and name !endswith \" - Thread Count\" and name !endswith \" - Peak Thread Count\"\n    and name !endswith \" - Total Started Thread Count\"\n| summarize Samples = sum(valueCount), Avg = round(sum(valueSum) / sum(valueCount), 1), Max = round(max(valueMax), 1) by Metric = name\n| order by Samples desc\n",
             "resources": [
               "/subscriptions/$subscription/resourceGroups/$resourceGroup/providers/Microsoft.Insights/components/$appInsights"
             ],
@@ -2265,7 +2233,7 @@
           },
           "queryType": "Azure Log Analytics",
           "azureLogAnalytics": {
-            "query": "customEvents\n| where $__timeFilter(timestamp)\n| where cloud_RoleName in (\"$service\", \"$namespace.$service\")\n| where (tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\" or (isempty(tostring(customDimensions[\"k8s.namespace.name\"])) and \"$namespace\" in (\"tst\", \"pre\", \"prd\") and cloud_RoleName !contains \".\"))\n| summarize n = count() by name, bin(timestamp, $__interval)\n| order by timestamp asc\n",
+            "query": "customEvents\n| where $__timeFilter(timestamp)\n| where case(replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"imports-proxy\", \"proxy\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"permissions\", \"permissions-service\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"file-upload-microservice\", \"upload-service\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") endswith \"-microservice\", strcat(replace_string(replace_string(replace_regex(cloud_RoleName, @\"^.*[.]\", \"\"), \"-microservice\", \"\"), \"-\", \"\"), \"-service\"), replace_regex(cloud_RoleName, @\"^.*[.]\", \"\")) == \"$service\"\n| where (tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\" or (isempty(tostring(customDimensions[\"k8s.namespace.name\"])) and \"$namespace\" in (\"tst\", \"pre\", \"prd\") and cloud_RoleName !contains \".\"))\n| summarize n = count() by name, bin(timestamp, $__interval)\n| order by timestamp asc\n",
             "resources": [
               "/subscriptions/$subscription/resourceGroups/$resourceGroup/providers/Microsoft.Insights/components/$appInsights"
             ],
@@ -2341,7 +2309,7 @@
           },
           "queryType": "Azure Log Analytics",
           "azureLogAnalytics": {
-            "query": "exceptions\n| where $__timeFilter(timestamp)\n| where cloud_RoleName in (\"$service\", \"$namespace.$service\")\n| where (tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\" or (isempty(tostring(customDimensions[\"k8s.namespace.name\"])) and \"$namespace\" in (\"tst\", \"pre\", \"prd\") and cloud_RoleName !contains \".\"))\n| summarize n = count() by type, bin(timestamp, $__interval)\n| order by timestamp asc\n",
+            "query": "exceptions\n| where $__timeFilter(timestamp)\n| where case(replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"imports-proxy\", \"proxy\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"permissions\", \"permissions-service\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"file-upload-microservice\", \"upload-service\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") endswith \"-microservice\", strcat(replace_string(replace_string(replace_regex(cloud_RoleName, @\"^.*[.]\", \"\"), \"-microservice\", \"\"), \"-\", \"\"), \"-service\"), replace_regex(cloud_RoleName, @\"^.*[.]\", \"\")) == \"$service\"\n| where (tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\" or (isempty(tostring(customDimensions[\"k8s.namespace.name\"])) and \"$namespace\" in (\"tst\", \"pre\", \"prd\") and cloud_RoleName !contains \".\"))\n| summarize n = count() by type, bin(timestamp, $__interval)\n| order by timestamp asc\n",
             "resources": [
               "/subscriptions/$subscription/resourceGroups/$resourceGroup/providers/Microsoft.Insights/components/$appInsights"
             ],
@@ -2403,7 +2371,7 @@
           },
           "queryType": "Azure Log Analytics",
           "azureLogAnalytics": {
-            "query": "exceptions\n| where timestamp between (($__timeFrom() - 7d) .. $__timeTo())\n| where cloud_RoleName in (\"$service\", \"$namespace.$service\")\n| where (tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\" or (isempty(tostring(customDimensions[\"k8s.namespace.name\"])) and \"$namespace\" in (\"tst\", \"pre\", \"prd\") and cloud_RoleName !contains \".\"))\n| summarize Count = countif(timestamp >= $__timeFrom()), Before = countif(timestamp < $__timeFrom()),\n    ['Last seen'] = max(timestamp), Message = take_any(outerMessage) by Type = type, ['Problem id'] = problemId\n| where Count > 0\n| extend New = iff(Before == 0, \"new\", \"\")\n| project New, Count, Type, Message, ['Last seen'], ['Problem id']\n| order by Count desc\n| take 25\n",
+            "query": "exceptions\n| where timestamp between (($__timeFrom() - 7d) .. $__timeTo())\n| where case(replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"imports-proxy\", \"proxy\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"permissions\", \"permissions-service\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"file-upload-microservice\", \"upload-service\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") endswith \"-microservice\", strcat(replace_string(replace_string(replace_regex(cloud_RoleName, @\"^.*[.]\", \"\"), \"-microservice\", \"\"), \"-\", \"\"), \"-service\"), replace_regex(cloud_RoleName, @\"^.*[.]\", \"\")) == \"$service\"\n| where (tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\" or (isempty(tostring(customDimensions[\"k8s.namespace.name\"])) and \"$namespace\" in (\"tst\", \"pre\", \"prd\") and cloud_RoleName !contains \".\"))\n| summarize Count = countif(timestamp >= $__timeFrom()), Before = countif(timestamp < $__timeFrom()),\n    ['Last seen'] = max(timestamp), Message = take_any(outerMessage) by Type = type, ['Problem id'] = problemId\n| where Count > 0\n| extend New = iff(Before == 0, \"new\", \"\")\n| project New, Count, Type, Message, ['Last seen'], ['Problem id']\n| order by Count desc\n| take 25\n",
             "resources": [
               "/subscriptions/$subscription/resourceGroups/$resourceGroup/providers/Microsoft.Insights/components/$appInsights"
             ],
