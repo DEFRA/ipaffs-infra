@@ -10,6 +10,9 @@ param subnets object
 param tags object
 param vnetName string
 
+// Shared pin for the control plane and both node pools in every environment.
+var kubernetesVersion = '1.34.7'
+
 var fortinetCA = loadFileAsBase64('../files/PAsubca.crt')
 
 resource userAssignedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2024-11-30' = {
@@ -47,7 +50,7 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2025-10-01' = {
 
   properties: {
     dnsPrefix: aksParams.dnsPrefix
-    kubernetesVersion: aksParams.version
+    kubernetesVersion: kubernetesVersion
     nodeResourceGroup: aksParams.nodeResourceGroup
     publicNetworkAccess: 'Disabled'
 
@@ -70,6 +73,7 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2025-10-01' = {
     agentPoolProfiles: [
       {
         name: 'system'
+        orchestratorVersion: kubernetesVersion
         enableAutoScaling: true
         enableNodePublicIP: false
         minCount: aksParams.nodePools.system.minCount
@@ -88,6 +92,7 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2025-10-01' = {
       }
       {
         name: 'user'
+        orchestratorVersion: kubernetesVersion
         enableAutoScaling: true
         enableNodePublicIP: false
         minCount: aksParams.nodePools.user.minCount

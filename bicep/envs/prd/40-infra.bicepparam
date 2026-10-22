@@ -29,7 +29,6 @@ param aksParams = {
   nodeResourceGroup: 'PRDIMPINFRG1402'
   sku: 'Standard'
   userAssignedIdentityName: 'PRDIMPINFAK1401'
-  version: '1.34'
 
   dnsServiceIp: '172.18.255.250'
   podCidrs: ['172.16.0.0/16']

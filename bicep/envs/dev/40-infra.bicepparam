@@ -29,7 +29,6 @@ param aksParams = {
   nodeResourceGroup: 'DEVIMPINFRG1402'
   sku: 'Standard'
   userAssignedIdentityName: 'DEVIMPINFAK1401'
-  version: '1.34'
 
   dnsServiceIp: '172.18.255.250'
   podCidrs: ['172.16.0.0/16']
