@@ -279,38 +279,6 @@
       "keepTime": true,
       "icon": "dashboard",
       "targetBlank": false
-    },
-    {
-      "title": "Application Overview",
-      "type": "link",
-      "url": "/d/app-overview?var-namespace=$namespace",
-      "keepTime": true,
-      "icon": "dashboard",
-      "targetBlank": false
-    },
-    {
-      "title": "Platform Overview",
-      "type": "link",
-      "url": "/d/ipaffs-aks-ops-v1?var-namespace=$namespace",
-      "keepTime": true,
-      "icon": "dashboard",
-      "targetBlank": false
-    },
-    {
-      "title": "Service Overview",
-      "type": "link",
-      "url": "/d/dfsw5zhr4pjpce?var-namespace=$namespace",
-      "keepTime": true,
-      "icon": "dashboard",
-      "targetBlank": false
-    },
-    {
-      "title": "QA Overview",
-      "type": "link",
-      "url": "/d/ipaffs-qa-overview?var-namespace=$namespace",
-      "keepTime": true,
-      "icon": "dashboard",
-      "targetBlank": false
     }
   ],
   "panels": [
@@ -1739,7 +1707,7 @@
           },
           "queryType": "Azure Log Analytics",
           "azureLogAnalytics": {
-            "query": "dependencies\n| where $__timeFilter(timestamp)\n| where (tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\" or (isempty(tostring(customDimensions[\"k8s.namespace.name\"])) and \"$namespace\" in (\"tst\", \"pre\", \"prd\") and cloud_RoleName !contains \".\"))\n| where type == \"Microsoft.ServiceBus\"\n| extend entity = tostring(split(target, \"/\")[0]), op = tostring(split(name, \".\")[1])\n| summarize Sent = countif(op == \"send\"), [\"Send failures\"] = countif(op == \"send\" and success == false),\n    Completed = countif(op == \"complete\"), Senders = make_set_if(replace_regex(cloud_RoleName, @\"^.*[.]\", \"\"), op == \"send\"),\n    Consumers = make_set_if(replace_regex(cloud_RoleName, @\"^.*[.]\", \"\"), op in (\"receiveMessages\", \"complete\")) by Entity = entity\n| extend Senders = strcat_array(Senders, \", \"), Consumers = strcat_array(Consumers, \", \")\n| order by Sent desc\n",
+            "query": "dependencies\n| where $__timeFilter(timestamp)\n| where (tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\" or (isempty(tostring(customDimensions[\"k8s.namespace.name\"])) and \"$namespace\" in (\"tst\", \"pre\", \"prd\") and cloud_RoleName !contains \".\"))\n| where type == \"Microsoft.ServiceBus\"\n| extend entity = tostring(split(target, \"/\")[0]), op = tostring(split(name, \".\")[1])\n| summarize Sent = countif(op == \"send\"), [\"Send failures\"] = countif(op == \"send\" and success == false),\n    Completed = countif(op == \"complete\"), Senders = make_set_if(case(replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"imports-proxy\", \"proxy\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"permissions\", \"permissions-service\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"file-upload-microservice\", \"upload-service\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") endswith \"-microservice\", strcat(replace_string(replace_string(replace_regex(cloud_RoleName, @\"^.*[.]\", \"\"), \"-microservice\", \"\"), \"-\", \"\"), \"-service\"), replace_regex(cloud_RoleName, @\"^.*[.]\", \"\")), op == \"send\"),\n    Consumers = make_set_if(case(replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"imports-proxy\", \"proxy\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"permissions\", \"permissions-service\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"file-upload-microservice\", \"upload-service\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") endswith \"-microservice\", strcat(replace_string(replace_string(replace_regex(cloud_RoleName, @\"^.*[.]\", \"\"), \"-microservice\", \"\"), \"-\", \"\"), \"-service\"), replace_regex(cloud_RoleName, @\"^.*[.]\", \"\")), op in (\"receiveMessages\", \"complete\")) by Entity = entity\n| extend Senders = strcat_array(Senders, \", \"), Consumers = strcat_array(Consumers, \", \")\n| order by Sent desc\n",
             "resources": [
               "/subscriptions/$subscription/resourceGroups/$resourceGroup/providers/Microsoft.Insights/components/$appInsights"
             ],
@@ -1896,7 +1864,7 @@
           },
           "queryType": "Azure Log Analytics",
           "azureLogAnalytics": {
-            "query": "dependencies\n| where $__timeFilter(timestamp)\n| where (tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\" or (isempty(tostring(customDimensions[\"k8s.namespace.name\"])) and \"$namespace\" in (\"tst\", \"pre\", \"prd\") and cloud_RoleName !contains \".\"))\n| where type !in (\"InProc\", \"SQL\", \"redis\") and type !has \"ServiceBus\"\n| extend partner = case(\n    target contains \"dynamics.com\" or name contains \"/trade-crm-adapter/\", \"Dynamics CRM\",\n    name contains \"/trade-risk-assessment/\" or name contains \"/commodity-risk-categorisation-decider/\", \"Risk engine\",\n    name contains \"/trade-notify/\", \"Notify (trade-notify)\",\n    name contains \"/trade-delegated-authority/\", \"Delegated authority\",\n    name contains \"/mdm/\", \"MDM\",\n    name contains \"/graphql/\", \"Approved establishments (GraphQL)\",\n    name contains \"/address-lookup\", \"Address lookup\",\n    name contains \"/trade-imports-cloning/\", \"Trade imports cloning\",\n    target matches regex @\"^ref(-[a-z]+)?[.]azure[.]defra[.]cloud\", \"Reference data (RDS)\",\n    target contains \"search.windows.net\", \"Azure AI Search\",\n    type == \"Azure blob\", \"Blob storage\",\n    target contains \"antivirus\", \"Antivirus\",\n    target contains \"login.microsoftonline.com\" or target contains \"b2clogin.com\", \"Entra ID / B2C\",\n    target contains \"gateway\", \"Trade API gateway (other)\",\n    \"\")\n| where partner != \"\"\n| extend failed = success == false and not(type == \"Azure blob\" and resultCode == \"404\")\n| summarize Calls = count(), ['Fail %'] = round(100.0 * countif(failed) / count(), 2), ['p95 ms'] = round(percentile(duration, 95)),\n    ['Last failure'] = maxif(timestamp, failed), Codes = strcat_array(make_set_if(resultCode, failed, 5), \", \"),\n    ['Called by'] = strcat_array(make_set(replace_regex(cloud_RoleName, @\"^.*[.]\", \"\"), 5), \", \") by Partner = partner\n| order by ['Fail %'] desc, Calls desc\n",
+            "query": "dependencies\n| where $__timeFilter(timestamp)\n| where (tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\" or (isempty(tostring(customDimensions[\"k8s.namespace.name\"])) and \"$namespace\" in (\"tst\", \"pre\", \"prd\") and cloud_RoleName !contains \".\"))\n| where type !in (\"InProc\", \"SQL\", \"redis\") and type !has \"ServiceBus\"\n| extend partner = case(\n    target contains \"dynamics.com\" or name contains \"/trade-crm-adapter/\", \"Dynamics CRM\",\n    name contains \"/trade-risk-assessment/\" or name contains \"/commodity-risk-categorisation-decider/\", \"Risk engine\",\n    name contains \"/trade-notify/\", \"Notify (trade-notify)\",\n    name contains \"/trade-delegated-authority/\", \"Delegated authority\",\n    name contains \"/mdm/\", \"MDM\",\n    name contains \"/graphql/\", \"Approved establishments (GraphQL)\",\n    name contains \"/address-lookup\", \"Address lookup\",\n    name contains \"/trade-imports-cloning/\", \"Trade imports cloning\",\n    target matches regex @\"^ref(-[a-z]+)?[.]azure[.]defra[.]cloud\", \"Reference data (RDS)\",\n    target contains \"search.windows.net\", \"Azure AI Search\",\n    type == \"Azure blob\", \"Blob storage\",\n    target contains \"antivirus\", \"Antivirus\",\n    target contains \"login.microsoftonline.com\" or target contains \"b2clogin.com\", \"Entra ID / B2C\",\n    target contains \"gateway\", \"Trade API gateway (other)\",\n    \"\")\n| where partner != \"\"\n| extend failed = success == false and not(type == \"Azure blob\" and resultCode == \"404\")\n| summarize Calls = count(), ['Fail %'] = round(100.0 * countif(failed) / count(), 2), ['p95 ms'] = round(percentile(duration, 95)),\n    ['Last failure'] = maxif(timestamp, failed), Codes = strcat_array(make_set_if(resultCode, failed, 5), \", \"),\n    ['Called by'] = strcat_array(make_set(case(replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"imports-proxy\", \"proxy\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"permissions\", \"permissions-service\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"file-upload-microservice\", \"upload-service\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") endswith \"-microservice\", strcat(replace_string(replace_string(replace_regex(cloud_RoleName, @\"^.*[.]\", \"\"), \"-microservice\", \"\"), \"-\", \"\"), \"-service\"), replace_regex(cloud_RoleName, @\"^.*[.]\", \"\")), 5), \", \") by Partner = partner\n| order by ['Fail %'] desc, Calls desc\n",
             "resources": [
               "/subscriptions/$subscription/resourceGroups/$resourceGroup/providers/Microsoft.Insights/components/$appInsights"
             ],
@@ -2221,7 +2189,7 @@
           },
           "queryType": "Azure Log Analytics",
           "azureLogAnalytics": {
-            "query": "requests\n| where $__timeFilter(timestamp)\n| where (tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\" or (isempty(tostring(customDimensions[\"k8s.namespace.name\"])) and \"$namespace\" in (\"tst\", \"pre\", \"prd\") and cloud_RoleName !contains \".\"))\n| where not(name matches regex \"^(GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)( |$)\") and name !contains \"cache\"\n| summarize Runs = count(), Failed = countif(success == false), ['p95 s'] = round(percentile(duration, 95) / 1000, 1),\n    ['Last run'] = max(timestamp), ['Last success'] = maxif(timestamp, success == true), Service = take_any(replace_regex(cloud_RoleName, @\"^.*[.]\", \"\")) by Job = name\n| extend Status = case(Failed == Runs, \"failing\", Failed > 0, \"some failures\", \"ok\")\n| project Status, Job, Service, Runs, Failed, ['p95 s'], ['Last run'], ['Last success']\n| order by Failed desc, Runs desc\n",
+            "query": "requests\n| where $__timeFilter(timestamp)\n| where (tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\" or (isempty(tostring(customDimensions[\"k8s.namespace.name\"])) and \"$namespace\" in (\"tst\", \"pre\", \"prd\") and cloud_RoleName !contains \".\"))\n| where not(name matches regex \"^(GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)( |$)\") and name !contains \"cache\"\n| summarize Runs = count(), Failed = countif(success == false), ['p95 s'] = round(percentile(duration, 95) / 1000, 1),\n    ['Last run'] = max(timestamp), ['Last success'] = maxif(timestamp, success == true), Service = take_any(case(replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"imports-proxy\", \"proxy\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"permissions\", \"permissions-service\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"file-upload-microservice\", \"upload-service\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") endswith \"-microservice\", strcat(replace_string(replace_string(replace_regex(cloud_RoleName, @\"^.*[.]\", \"\"), \"-microservice\", \"\"), \"-\", \"\"), \"-service\"), replace_regex(cloud_RoleName, @\"^.*[.]\", \"\"))) by Job = name\n| extend Status = case(Failed == Runs, \"failing\", Failed > 0, \"some failures\", \"ok\")\n| project Status, Job, Service, Runs, Failed, ['p95 s'], ['Last run'], ['Last success']\n| order by Failed desc, Runs desc\n",
             "resources": [
               "/subscriptions/$subscription/resourceGroups/$resourceGroup/providers/Microsoft.Insights/components/$appInsights"
             ],

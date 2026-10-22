@@ -247,38 +247,6 @@
       "keepTime": true,
       "icon": "dashboard",
       "targetBlank": false
-    },
-    {
-      "title": "Application Overview",
-      "type": "link",
-      "url": "/d/app-overview?var-namespace=$namespace",
-      "keepTime": true,
-      "icon": "dashboard",
-      "targetBlank": false
-    },
-    {
-      "title": "Platform Overview",
-      "type": "link",
-      "url": "/d/ipaffs-aks-ops-v1?var-namespace=$namespace",
-      "keepTime": true,
-      "icon": "dashboard",
-      "targetBlank": false
-    },
-    {
-      "title": "Service Overview",
-      "type": "link",
-      "url": "/d/dfsw5zhr4pjpce?var-namespace=$namespace",
-      "keepTime": true,
-      "icon": "dashboard",
-      "targetBlank": false
-    },
-    {
-      "title": "QA Overview",
-      "type": "link",
-      "url": "/d/ipaffs-qa-overview?var-namespace=$namespace",
-      "keepTime": true,
-      "icon": "dashboard",
-      "targetBlank": false
     }
   ],
   "panels": [
@@ -311,7 +279,7 @@
           },
           "queryType": "Azure Log Analytics",
           "azureLogAnalytics": {
-            "query": "let j = requests\n| where $__timeFilter(timestamp)\n| where (tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\" or (isempty(tostring(customDimensions[\"k8s.namespace.name\"])) and \"$namespace\" in (\"tst\", \"pre\", \"prd\") and cloud_RoleName !contains \".\"))\n| where cloud_RoleName endswith \"-frontend\"\n| where name != \"GET /admin/health-check\" and name !startswith \"GET /public/\" and name !contains \"/assets/\"\n| extend role = replace_regex(cloud_RoleName, @\"^.*[.]\", \"\"), path = tostring(split(name, \" \")[1])\n| extend Journey = case(\n    role == \"notification-frontend\" and path contains \"/cloning\", \"Clone CHED\",\n    role == \"notification-frontend\" and path matches regex @\"^/protected/notifications/?$\", \"Search & dashboards\",\n    role == \"decision-frontend\" and path matches regex @\"^/protected/bip-notifications/?$\", \"Search & dashboards\",\n    role == \"control-frontend\" and path matches regex @\"^/protected/ov-notifications/?$\", \"Search & dashboards\",\n    role == \"notification-frontend\", \"Create & submit CHED\",\n    role == \"upload-frontend\", \"Document upload\",\n    role == \"decision-frontend\", \"Border checks & decision\",\n    role == \"control-frontend\", \"Control (OV)\",\n    role == \"checks-frontend\", \"FSA checks\",\n    role == \"bordernotification-frontend\", \"Border notifications\",\n    role == \"bcpadmin-frontend\", \"BCP admin\",\n    \"\")\n| where Journey != \"\"\n| extend bad = toint(resultCode) >= 500\n| summarize Requests = count(), Failed = countif(bad), p95 = percentile(duration, 95) by Journey;\ndatatable(Journey: string, Service: string, Order: int) [\n    \"Create & submit CHED\", \"notification-frontend\", 0,\n    \"Clone CHED\", \"notification-frontend\", 1,\n    \"Search & dashboards\", \"notification-frontend\", 2,\n    \"Document upload\", \"upload-frontend\", 3,\n    \"Border checks & decision\", \"decision-frontend\", 4,\n    \"Control (OV)\", \"control-frontend\", 5,\n    \"FSA checks\", \"checks-frontend\", 6,\n    \"Border notifications\", \"bordernotification-frontend\", 7,\n    \"BCP admin\", \"bcpadmin-frontend\", 8\n]\n| join kind=leftouter j on Journey\n| extend ['Success %'] = iff(Requests > 0, 100.0 * (Requests - Failed) / Requests, real(null)), ['p95 ms'] = round(p95)\n| order by Order asc\n| project Journey, Service, Requests, ['Success %'], ['p95 ms']\n| project Journey, Service, ['Success %']\n",
+            "query": "let j = requests\n| where $__timeFilter(timestamp)\n| where (tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\" or (isempty(tostring(customDimensions[\"k8s.namespace.name\"])) and \"$namespace\" in (\"tst\", \"pre\", \"prd\") and cloud_RoleName !contains \".\"))\n| where cloud_RoleName endswith \"-frontend\"\n| where name != \"GET /admin/health-check\" and name !startswith \"GET /public/\" and name !contains \"/assets/\"\n| extend role = case(replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"imports-proxy\", \"proxy\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"permissions\", \"permissions-service\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"file-upload-microservice\", \"upload-service\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") endswith \"-microservice\", strcat(replace_string(replace_string(replace_regex(cloud_RoleName, @\"^.*[.]\", \"\"), \"-microservice\", \"\"), \"-\", \"\"), \"-service\"), replace_regex(cloud_RoleName, @\"^.*[.]\", \"\")), path = tostring(split(name, \" \")[1])\n| extend Journey = case(\n    role == \"notification-frontend\" and path contains \"/cloning\", \"Clone CHED\",\n    role == \"notification-frontend\" and path matches regex @\"^/protected/notifications/?$\", \"Search & dashboards\",\n    role == \"decision-frontend\" and path matches regex @\"^/protected/bip-notifications/?$\", \"Search & dashboards\",\n    role == \"control-frontend\" and path matches regex @\"^/protected/ov-notifications/?$\", \"Search & dashboards\",\n    role == \"notification-frontend\", \"Create & submit CHED\",\n    role == \"upload-frontend\", \"Document upload\",\n    role == \"decision-frontend\", \"Border checks & decision\",\n    role == \"control-frontend\", \"Control (OV)\",\n    role == \"checks-frontend\", \"FSA checks\",\n    role == \"bordernotification-frontend\", \"Border notifications\",\n    role == \"bcpadmin-frontend\", \"BCP admin\",\n    \"\")\n| where Journey != \"\"\n| extend bad = toint(resultCode) >= 500\n| summarize Requests = count(), Failed = countif(bad), p95 = percentile(duration, 95) by Journey;\ndatatable(Journey: string, Service: string, Order: int) [\n    \"Create & submit CHED\", \"notification-frontend\", 0,\n    \"Clone CHED\", \"notification-frontend\", 1,\n    \"Search & dashboards\", \"notification-frontend\", 2,\n    \"Document upload\", \"upload-frontend\", 3,\n    \"Border checks & decision\", \"decision-frontend\", 4,\n    \"Control (OV)\", \"control-frontend\", 5,\n    \"FSA checks\", \"checks-frontend\", 6,\n    \"Border notifications\", \"bordernotification-frontend\", 7,\n    \"BCP admin\", \"bcpadmin-frontend\", 8\n]\n| join kind=leftouter j on Journey\n| extend ['Success %'] = iff(Requests > 0, 100.0 * (Requests - Failed) / Requests, real(null)), ['p95 ms'] = round(p95)\n| order by Order asc\n| project Journey, Service, Requests, ['Success %'], ['p95 ms']\n| project Journey, Service, ['Success %']\n",
             "resources": [
               "/subscriptions/$subscription/resourceGroups/$resourceGroup/providers/Microsoft.Insights/components/$appInsights"
             ],
@@ -412,7 +380,7 @@
           },
           "queryType": "Azure Log Analytics",
           "azureLogAnalytics": {
-            "query": "let j = requests\n| where $__timeFilter(timestamp)\n| where (tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\" or (isempty(tostring(customDimensions[\"k8s.namespace.name\"])) and \"$namespace\" in (\"tst\", \"pre\", \"prd\") and cloud_RoleName !contains \".\"))\n| where cloud_RoleName endswith \"-frontend\"\n| where name != \"GET /admin/health-check\" and name !startswith \"GET /public/\" and name !contains \"/assets/\"\n| extend role = replace_regex(cloud_RoleName, @\"^.*[.]\", \"\"), path = tostring(split(name, \" \")[1])\n| extend Journey = case(\n    role == \"notification-frontend\" and path contains \"/cloning\", \"Clone CHED\",\n    role == \"notification-frontend\" and path matches regex @\"^/protected/notifications/?$\", \"Search & dashboards\",\n    role == \"decision-frontend\" and path matches regex @\"^/protected/bip-notifications/?$\", \"Search & dashboards\",\n    role == \"control-frontend\" and path matches regex @\"^/protected/ov-notifications/?$\", \"Search & dashboards\",\n    role == \"notification-frontend\", \"Create & submit CHED\",\n    role == \"upload-frontend\", \"Document upload\",\n    role == \"decision-frontend\", \"Border checks & decision\",\n    role == \"control-frontend\", \"Control (OV)\",\n    role == \"checks-frontend\", \"FSA checks\",\n    role == \"bordernotification-frontend\", \"Border notifications\",\n    role == \"bcpadmin-frontend\", \"BCP admin\",\n    \"\")\n| where Journey != \"\"\n| extend bad = toint(resultCode) >= 500\n| summarize Requests = count(), Failed = countif(bad), p95 = percentile(duration, 95) by Journey;\ndatatable(Journey: string, Service: string, Order: int) [\n    \"Create & submit CHED\", \"notification-frontend\", 0,\n    \"Clone CHED\", \"notification-frontend\", 1,\n    \"Search & dashboards\", \"notification-frontend\", 2,\n    \"Document upload\", \"upload-frontend\", 3,\n    \"Border checks & decision\", \"decision-frontend\", 4,\n    \"Control (OV)\", \"control-frontend\", 5,\n    \"FSA checks\", \"checks-frontend\", 6,\n    \"Border notifications\", \"bordernotification-frontend\", 7,\n    \"BCP admin\", \"bcpadmin-frontend\", 8\n]\n| join kind=leftouter j on Journey\n| extend ['Success %'] = iff(Requests > 0, 100.0 * (Requests - Failed) / Requests, real(null)), ['p95 ms'] = round(p95)\n| order by Order asc\n| project Journey, Service, Requests, ['Success %'], ['p95 ms']\n| project Journey, Service, ['p95 ms']\n",
+            "query": "let j = requests\n| where $__timeFilter(timestamp)\n| where (tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\" or (isempty(tostring(customDimensions[\"k8s.namespace.name\"])) and \"$namespace\" in (\"tst\", \"pre\", \"prd\") and cloud_RoleName !contains \".\"))\n| where cloud_RoleName endswith \"-frontend\"\n| where name != \"GET /admin/health-check\" and name !startswith \"GET /public/\" and name !contains \"/assets/\"\n| extend role = case(replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"imports-proxy\", \"proxy\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"permissions\", \"permissions-service\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"file-upload-microservice\", \"upload-service\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") endswith \"-microservice\", strcat(replace_string(replace_string(replace_regex(cloud_RoleName, @\"^.*[.]\", \"\"), \"-microservice\", \"\"), \"-\", \"\"), \"-service\"), replace_regex(cloud_RoleName, @\"^.*[.]\", \"\")), path = tostring(split(name, \" \")[1])\n| extend Journey = case(\n    role == \"notification-frontend\" and path contains \"/cloning\", \"Clone CHED\",\n    role == \"notification-frontend\" and path matches regex @\"^/protected/notifications/?$\", \"Search & dashboards\",\n    role == \"decision-frontend\" and path matches regex @\"^/protected/bip-notifications/?$\", \"Search & dashboards\",\n    role == \"control-frontend\" and path matches regex @\"^/protected/ov-notifications/?$\", \"Search & dashboards\",\n    role == \"notification-frontend\", \"Create & submit CHED\",\n    role == \"upload-frontend\", \"Document upload\",\n    role == \"decision-frontend\", \"Border checks & decision\",\n    role == \"control-frontend\", \"Control (OV)\",\n    role == \"checks-frontend\", \"FSA checks\",\n    role == \"bordernotification-frontend\", \"Border notifications\",\n    role == \"bcpadmin-frontend\", \"BCP admin\",\n    \"\")\n| where Journey != \"\"\n| extend bad = toint(resultCode) >= 500\n| summarize Requests = count(), Failed = countif(bad), p95 = percentile(duration, 95) by Journey;\ndatatable(Journey: string, Service: string, Order: int) [\n    \"Create & submit CHED\", \"notification-frontend\", 0,\n    \"Clone CHED\", \"notification-frontend\", 1,\n    \"Search & dashboards\", \"notification-frontend\", 2,\n    \"Document upload\", \"upload-frontend\", 3,\n    \"Border checks & decision\", \"decision-frontend\", 4,\n    \"Control (OV)\", \"control-frontend\", 5,\n    \"FSA checks\", \"checks-frontend\", 6,\n    \"Border notifications\", \"bordernotification-frontend\", 7,\n    \"BCP admin\", \"bcpadmin-frontend\", 8\n]\n| join kind=leftouter j on Journey\n| extend ['Success %'] = iff(Requests > 0, 100.0 * (Requests - Failed) / Requests, real(null)), ['p95 ms'] = round(p95)\n| order by Order asc\n| project Journey, Service, Requests, ['Success %'], ['p95 ms']\n| project Journey, Service, ['p95 ms']\n",
             "resources": [
               "/subscriptions/$subscription/resourceGroups/$resourceGroup/providers/Microsoft.Insights/components/$appInsights"
             ],
@@ -1352,12 +1320,7 @@
             ]
           },
           "decimals": 0,
-          "links": [
-            {
-              "title": "Open Platform Overview",
-              "url": "/d/ipaffs-aks-ops-v1?${__url_time_range}"
-            }
-          ],
+          "links": [],
           "noValue": "No data",
           "mappings": [
             {
@@ -1455,12 +1418,7 @@
             ]
           },
           "decimals": 0,
-          "links": [
-            {
-              "title": "Open Platform Overview",
-              "url": "/d/ipaffs-aks-ops-v1?${__url_time_range}"
-            }
-          ],
+          "links": [],
           "noValue": "No data",
           "mappings": [
             {
@@ -1558,12 +1516,7 @@
             ]
           },
           "decimals": 0,
-          "links": [
-            {
-              "title": "Open Platform Overview",
-              "url": "/d/ipaffs-aks-ops-v1?${__url_time_range}"
-            }
-          ],
+          "links": [],
           "noValue": "No data",
           "mappings": [
             {
@@ -1665,12 +1618,7 @@
             ]
           },
           "decimals": 0,
-          "links": [
-            {
-              "title": "Open Platform Overview",
-              "url": "/d/ipaffs-aks-ops-v1?${__url_time_range}"
-            }
-          ],
+          "links": [],
           "noValue": "No data",
           "mappings": [
             {
@@ -1768,12 +1716,7 @@
             ]
           },
           "decimals": 0,
-          "links": [
-            {
-              "title": "Open Platform Overview",
-              "url": "/d/ipaffs-aks-ops-v1?${__url_time_range}"
-            }
-          ],
+          "links": [],
           "noValue": "No data",
           "mappings": [
             {
@@ -1856,7 +1799,7 @@
           },
           "queryType": "Azure Log Analytics",
           "azureLogAnalytics": {
-            "query": "requests\n| where $__timeFilter(timestamp)\n| where (tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\" or (isempty(tostring(customDimensions[\"k8s.namespace.name\"])) and \"$namespace\" in (\"tst\", \"pre\", \"prd\") and cloud_RoleName !contains \".\"))\n| where cloud_RoleName endswith \"-frontend\"\n| where name != \"GET /admin/health-check\" and name !startswith \"GET /public/\" and name !contains \"/assets/\"\n| extend role = replace_regex(cloud_RoleName, @\"^.*[.]\", \"\"), path = tostring(split(name, \" \")[1])\n| extend Journey = case(\n    role == \"notification-frontend\" and path contains \"/cloning\", \"Clone CHED\",\n    role == \"notification-frontend\" and path matches regex @\"^/protected/notifications/?$\", \"Search & dashboards\",\n    role == \"decision-frontend\" and path matches regex @\"^/protected/bip-notifications/?$\", \"Search & dashboards\",\n    role == \"control-frontend\" and path matches regex @\"^/protected/ov-notifications/?$\", \"Search & dashboards\",\n    role == \"notification-frontend\", \"Create & submit CHED\",\n    role == \"upload-frontend\", \"Document upload\",\n    role == \"decision-frontend\", \"Border checks & decision\",\n    role == \"control-frontend\", \"Control (OV)\",\n    role == \"checks-frontend\", \"FSA checks\",\n    role == \"bordernotification-frontend\", \"Border notifications\",\n    role == \"bcpadmin-frontend\", \"BCP admin\",\n    \"\")\n| where Journey != \"\"\n| extend bad = toint(resultCode) >= 500\n| summarize v = 100.0 * countif(bad) / count() by Journey, bin(timestamp, $__interval)\n| order by timestamp asc\n",
+            "query": "requests\n| where $__timeFilter(timestamp)\n| where (tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\" or (isempty(tostring(customDimensions[\"k8s.namespace.name\"])) and \"$namespace\" in (\"tst\", \"pre\", \"prd\") and cloud_RoleName !contains \".\"))\n| where cloud_RoleName endswith \"-frontend\"\n| where name != \"GET /admin/health-check\" and name !startswith \"GET /public/\" and name !contains \"/assets/\"\n| extend role = case(replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"imports-proxy\", \"proxy\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"permissions\", \"permissions-service\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"file-upload-microservice\", \"upload-service\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") endswith \"-microservice\", strcat(replace_string(replace_string(replace_regex(cloud_RoleName, @\"^.*[.]\", \"\"), \"-microservice\", \"\"), \"-\", \"\"), \"-service\"), replace_regex(cloud_RoleName, @\"^.*[.]\", \"\")), path = tostring(split(name, \" \")[1])\n| extend Journey = case(\n    role == \"notification-frontend\" and path contains \"/cloning\", \"Clone CHED\",\n    role == \"notification-frontend\" and path matches regex @\"^/protected/notifications/?$\", \"Search & dashboards\",\n    role == \"decision-frontend\" and path matches regex @\"^/protected/bip-notifications/?$\", \"Search & dashboards\",\n    role == \"control-frontend\" and path matches regex @\"^/protected/ov-notifications/?$\", \"Search & dashboards\",\n    role == \"notification-frontend\", \"Create & submit CHED\",\n    role == \"upload-frontend\", \"Document upload\",\n    role == \"decision-frontend\", \"Border checks & decision\",\n    role == \"control-frontend\", \"Control (OV)\",\n    role == \"checks-frontend\", \"FSA checks\",\n    role == \"bordernotification-frontend\", \"Border notifications\",\n    role == \"bcpadmin-frontend\", \"BCP admin\",\n    \"\")\n| where Journey != \"\"\n| extend bad = toint(resultCode) >= 500\n| summarize v = 100.0 * countif(bad) / count() by Journey, bin(timestamp, $__interval)\n| order by timestamp asc\n",
             "resources": [
               "/subscriptions/$subscription/resourceGroups/$resourceGroup/providers/Microsoft.Insights/components/$appInsights"
             ],
@@ -1914,7 +1857,7 @@
           },
           "queryType": "Azure Log Analytics",
           "azureLogAnalytics": {
-            "query": "requests\n| where $__timeFilter(timestamp)\n| where (tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\" or (isempty(tostring(customDimensions[\"k8s.namespace.name\"])) and \"$namespace\" in (\"tst\", \"pre\", \"prd\") and cloud_RoleName !contains \".\"))\n| where cloud_RoleName endswith \"-frontend\"\n| where name != \"GET /admin/health-check\" and name !startswith \"GET /public/\" and name !contains \"/assets/\"\n| extend role = replace_regex(cloud_RoleName, @\"^.*[.]\", \"\"), path = tostring(split(name, \" \")[1])\n| extend Journey = case(\n    role == \"notification-frontend\" and path contains \"/cloning\", \"Clone CHED\",\n    role == \"notification-frontend\" and path matches regex @\"^/protected/notifications/?$\", \"Search & dashboards\",\n    role == \"decision-frontend\" and path matches regex @\"^/protected/bip-notifications/?$\", \"Search & dashboards\",\n    role == \"control-frontend\" and path matches regex @\"^/protected/ov-notifications/?$\", \"Search & dashboards\",\n    role == \"notification-frontend\", \"Create & submit CHED\",\n    role == \"upload-frontend\", \"Document upload\",\n    role == \"decision-frontend\", \"Border checks & decision\",\n    role == \"control-frontend\", \"Control (OV)\",\n    role == \"checks-frontend\", \"FSA checks\",\n    role == \"bordernotification-frontend\", \"Border notifications\",\n    role == \"bcpadmin-frontend\", \"BCP admin\",\n    \"\")\n| where Journey != \"\"\n| extend bad = toint(resultCode) >= 500\n| summarize n = count() by Journey, bin(timestamp, $__interval)\n| order by timestamp asc\n",
+            "query": "requests\n| where $__timeFilter(timestamp)\n| where (tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\" or (isempty(tostring(customDimensions[\"k8s.namespace.name\"])) and \"$namespace\" in (\"tst\", \"pre\", \"prd\") and cloud_RoleName !contains \".\"))\n| where cloud_RoleName endswith \"-frontend\"\n| where name != \"GET /admin/health-check\" and name !startswith \"GET /public/\" and name !contains \"/assets/\"\n| extend role = case(replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"imports-proxy\", \"proxy\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"permissions\", \"permissions-service\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") == \"file-upload-microservice\", \"upload-service\", replace_regex(cloud_RoleName, @\"^.*[.]\", \"\") endswith \"-microservice\", strcat(replace_string(replace_string(replace_regex(cloud_RoleName, @\"^.*[.]\", \"\"), \"-microservice\", \"\"), \"-\", \"\"), \"-service\"), replace_regex(cloud_RoleName, @\"^.*[.]\", \"\")), path = tostring(split(name, \" \")[1])\n| extend Journey = case(\n    role == \"notification-frontend\" and path contains \"/cloning\", \"Clone CHED\",\n    role == \"notification-frontend\" and path matches regex @\"^/protected/notifications/?$\", \"Search & dashboards\",\n    role == \"decision-frontend\" and path matches regex @\"^/protected/bip-notifications/?$\", \"Search & dashboards\",\n    role == \"control-frontend\" and path matches regex @\"^/protected/ov-notifications/?$\", \"Search & dashboards\",\n    role == \"notification-frontend\", \"Create & submit CHED\",\n    role == \"upload-frontend\", \"Document upload\",\n    role == \"decision-frontend\", \"Border checks & decision\",\n    role == \"control-frontend\", \"Control (OV)\",\n    role == \"checks-frontend\", \"FSA checks\",\n    role == \"bordernotification-frontend\", \"Border notifications\",\n    role == \"bcpadmin-frontend\", \"BCP admin\",\n    \"\")\n| where Journey != \"\"\n| extend bad = toint(resultCode) >= 500\n| summarize n = count() by Journey, bin(timestamp, $__interval)\n| order by timestamp asc\n",
             "resources": [
               "/subscriptions/$subscription/resourceGroups/$resourceGroup/providers/Microsoft.Insights/components/$appInsights"
             ],
