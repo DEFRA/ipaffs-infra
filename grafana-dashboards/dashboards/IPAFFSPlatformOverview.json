@@ -19,7 +19,56 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
-  "links": [],
+  "links": [
+    {
+      "title": "Service Health",
+      "type": "link",
+      "url": "/d/ipaffs-service-health?var-namespace=$namespace",
+      "keepTime": true,
+      "icon": "dashboard",
+      "targetBlank": false
+    },
+    {
+      "title": "Service Drill-down",
+      "type": "link",
+      "url": "/d/ipaffs-service-drilldown?var-namespace=$namespace",
+      "keepTime": true,
+      "icon": "dashboard",
+      "targetBlank": false
+    },
+    {
+      "title": "Messaging & Integrations",
+      "type": "link",
+      "url": "/d/ipaffs-messaging-integrations?var-namespace=$namespace",
+      "keepTime": true,
+      "icon": "dashboard",
+      "targetBlank": false
+    },
+    {
+      "title": "Application Overview",
+      "type": "link",
+      "url": "/d/app-overview?var-namespace=$namespace",
+      "keepTime": true,
+      "icon": "dashboard",
+      "targetBlank": false
+    },
+    {
+      "title": "Service Overview",
+      "type": "link",
+      "url": "/d/dfsw5zhr4pjpce?var-namespace=$namespace",
+      "keepTime": true,
+      "icon": "dashboard",
+      "targetBlank": false
+    },
+    {
+      "title": "QA Overview",
+      "type": "link",
+      "url": "/d/ipaffs-qa-overview?var-namespace=$namespace",
+      "keepTime": true,
+      "icon": "dashboard",
+      "targetBlank": false
+    }
+  ],
   "panels": [
     {
       "collapsed": false,

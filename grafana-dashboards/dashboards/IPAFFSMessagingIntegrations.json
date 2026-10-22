@@ -1,0 +1,2360 @@
+{
+  "id": null,
+  "uid": "ipaffs-messaging-integrations",
+  "title": "IPAFFS Messaging & Integrations",
+  "description": "Is anything stuck between IPAFFS and its partners? Service Bus backlogs and dead letters, partner calls, integration jobs.",
+  "tags": [
+    "ipaffs",
+    "layer-2"
+  ],
+  "editable": true,
+  "graphTooltip": 1,
+  "refresh": "",
+  "schemaVersion": 41,
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "browser",
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "templating": {
+    "list": [
+      {
+        "name": "datasource",
+        "type": "datasource",
+        "query": "prometheus",
+        "hide": 2,
+        "refresh": 1,
+        "regex": "",
+        "current": {
+          "selected": true,
+          "text": "Prometheus",
+          "value": "bfq876mzxyfi8b"
+        },
+        "options": []
+      },
+      {
+        "name": "subscription_id",
+        "type": "query",
+        "hide": 2,
+        "datasource": {
+          "type": "prometheus",
+          "uid": "${datasource}"
+        },
+        "refresh": 2,
+        "regex": "",
+        "query": {
+          "qryType": 1,
+          "query": "label_values(kube_pod_container_info, microsoft.subscriptionid)",
+          "refId": "PrometheusVariableQueryEditor-VariableQuery"
+        },
+        "definition": "label_values(kube_pod_container_info, microsoft.subscriptionid)",
+        "includeAll": false,
+        "multi": false,
+        "options": [],
+        "sort": 0
+      },
+      {
+        "name": "subscription",
+        "type": "query",
+        "hide": 2,
+        "datasource": {
+          "type": "grafana-azure-monitor-datasource",
+          "uid": "azure-monitor-oob"
+        },
+        "refresh": 1,
+        "regex": "/.*$subscription_id.*/",
+        "query": {
+          "queryType": "Azure Subscriptions",
+          "refId": "A",
+          "azureLogAnalytics": {
+            "query": "",
+            "resources": []
+          }
+        },
+        "definition": "",
+        "includeAll": false,
+        "multi": false,
+        "options": [],
+        "sort": 0
+      },
+      {
+        "name": "resourceGroup",
+        "type": "query",
+        "hide": 2,
+        "datasource": {
+          "type": "grafana-azure-monitor-datasource",
+          "uid": "azure-monitor-oob"
+        },
+        "refresh": 1,
+        "regex": "/.*IMPINFRG1401.*/i",
+        "query": {
+          "queryType": "Azure Resource Groups",
+          "refId": "A",
+          "azureLogAnalytics": {
+            "query": "",
+            "resources": []
+          },
+          "subscription": "$subscription"
+        },
+        "definition": "",
+        "includeAll": false,
+        "multi": false,
+        "options": [],
+        "sort": 0
+      },
+      {
+        "name": "appInsights",
+        "type": "query",
+        "hide": 2,
+        "datasource": {
+          "type": "grafana-azure-monitor-datasource",
+          "uid": "azure-monitor-oob"
+        },
+        "refresh": 1,
+        "regex": "",
+        "query": {
+          "queryType": "Azure Resource Names",
+          "refId": "A",
+          "azureLogAnalytics": {
+            "query": "",
+            "resources": []
+          },
+          "subscription": "$subscription",
+          "resourceGroup": "$resourceGroup",
+          "namespace": "microsoft.insights/components"
+        },
+        "definition": "",
+        "includeAll": false,
+        "multi": false,
+        "options": [],
+        "sort": 0
+      },
+      {
+        "name": "namespace",
+        "type": "query",
+        "hide": 0,
+        "datasource": {
+          "type": "prometheus",
+          "uid": "${datasource}"
+        },
+        "refresh": 2,
+        "regex": "",
+        "query": {
+          "qryType": 1,
+          "query": "label_values(kube_pod_container_info{image=~\".+/ipaffs/.+\"}, namespace)",
+          "refId": "PrometheusVariableQueryEditor-VariableQuery"
+        },
+        "definition": "label_values(kube_pod_container_info{image=~\".+/ipaffs/.+\"}, namespace)",
+        "includeAll": false,
+        "multi": false,
+        "options": [],
+        "sort": 1,
+        "label": "Namespace",
+        "current": {
+          "selected": true,
+          "text": "dev",
+          "value": "dev"
+        }
+      },
+      {
+        "name": "serviceBus",
+        "type": "query",
+        "hide": 2,
+        "datasource": {
+          "type": "grafana-azure-monitor-datasource",
+          "uid": "azure-monitor-oob"
+        },
+        "refresh": 1,
+        "regex": "/.*impinfsb1401-$namespace$/i",
+        "query": {
+          "queryType": "Azure Resource Names",
+          "refId": "A",
+          "azureLogAnalytics": {
+            "query": "",
+            "resources": []
+          },
+          "subscription": "$subscription",
+          "resourceGroup": "$resourceGroup",
+          "namespace": "Microsoft.ServiceBus/namespaces"
+        },
+        "definition": "",
+        "includeAll": false,
+        "multi": false,
+        "options": [],
+        "sort": 0
+      },
+      {
+        "name": "classicSubscription",
+        "type": "constant",
+        "hide": 2,
+        "label": "Classic subscription",
+        "query": "",
+        "skipUrlSync": true,
+        "current": {
+          "selected": true,
+          "text": "",
+          "value": ""
+        },
+        "options": []
+      },
+      {
+        "name": "classicResourceGroup",
+        "type": "constant",
+        "hide": 2,
+        "label": "Classic resource group",
+        "query": "",
+        "skipUrlSync": true,
+        "current": {
+          "selected": true,
+          "text": "",
+          "value": ""
+        },
+        "options": []
+      },
+      {
+        "name": "classicServiceBus",
+        "type": "constant",
+        "hide": 2,
+        "label": "Classic Service Bus namespace",
+        "query": "",
+        "skipUrlSync": true,
+        "current": {
+          "selected": true,
+          "text": "",
+          "value": ""
+        },
+        "options": []
+      },
+      {
+        "name": "entity",
+        "type": "textbox",
+        "label": "Queue or topic (* for all)",
+        "query": "*",
+        "hide": 0,
+        "current": {
+          "selected": true,
+          "text": "*",
+          "value": "*"
+        },
+        "options": [
+          {
+            "selected": true,
+            "text": "*",
+            "value": "*"
+          }
+        ]
+      }
+    ]
+  },
+  "links": [
+    {
+      "title": "Service Health",
+      "type": "link",
+      "url": "/d/ipaffs-service-health?var-namespace=$namespace",
+      "keepTime": true,
+      "icon": "dashboard",
+      "targetBlank": false
+    },
+    {
+      "title": "Service Drill-down",
+      "type": "link",
+      "url": "/d/ipaffs-service-drilldown?var-namespace=$namespace",
+      "keepTime": true,
+      "icon": "dashboard",
+      "targetBlank": false
+    },
+    {
+      "title": "Application Overview",
+      "type": "link",
+      "url": "/d/app-overview?var-namespace=$namespace",
+      "keepTime": true,
+      "icon": "dashboard",
+      "targetBlank": false
+    },
+    {
+      "title": "Platform Overview",
+      "type": "link",
+      "url": "/d/ipaffs-aks-ops-v1?var-namespace=$namespace",
+      "keepTime": true,
+      "icon": "dashboard",
+      "targetBlank": false
+    },
+    {
+      "title": "Service Overview",
+      "type": "link",
+      "url": "/d/dfsw5zhr4pjpce?var-namespace=$namespace",
+      "keepTime": true,
+      "icon": "dashboard",
+      "targetBlank": false
+    },
+    {
+      "title": "QA Overview",
+      "type": "link",
+      "url": "/d/ipaffs-qa-overview?var-namespace=$namespace",
+      "keepTime": true,
+      "icon": "dashboard",
+      "targetBlank": false
+    }
+  ],
+  "panels": [
+    {
+      "type": "row",
+      "title": "At a glance",
+      "id": 1,
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "panels": []
+    },
+    {
+      "type": "stat",
+      "title": "Waiting (shared Service Bus)",
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "azure-monitor-oob"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "azure-monitor-oob"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$classicSubscription",
+          "azureMonitor": {
+            "metricName": "ActiveMessages",
+            "metricNamespace": "Microsoft.ServiceBus/namespaces",
+            "aggregation": "Maximum",
+            "timeGrain": "auto",
+            "top": "10",
+            "alias": "{{dimensionvalue}}",
+            "dimensionFilters": [],
+            "allowedTimeGrainsMs": [],
+            "resources": [
+              {
+                "subscription": "$classicSubscription",
+                "resourceGroup": "$classicResourceGroup",
+                "resourceName": "$classicServiceBus",
+                "metricNamespace": "Microsoft.ServiceBus/namespaces"
+              }
+            ]
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 100
+              },
+              {
+                "color": "red",
+                "value": 1000
+              }
+            ]
+          },
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto"
+      },
+      "description": "Messages waiting to be consumed across the whole classic namespace, now.",
+      "id": 2,
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 0,
+        "y": 1
+      }
+    },
+    {
+      "type": "stat",
+      "title": "New dead letters in range",
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "azure-monitor-oob"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "azure-monitor-oob"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$classicSubscription",
+          "azureMonitor": {
+            "metricName": "DeadletteredMessages",
+            "metricNamespace": "Microsoft.ServiceBus/namespaces",
+            "aggregation": "Maximum",
+            "timeGrain": "auto",
+            "top": "10",
+            "alias": "{{dimensionvalue}}",
+            "dimensionFilters": [],
+            "allowedTimeGrainsMs": [],
+            "resources": [
+              {
+                "subscription": "$classicSubscription",
+                "resourceGroup": "$classicResourceGroup",
+                "resourceName": "$classicServiceBus",
+                "metricNamespace": "Microsoft.ServiceBus/namespaces"
+              }
+            ]
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 100
+              }
+            ]
+          },
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "diff"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto"
+      },
+      "description": "Change in the dead-letter count over the selected range, classic namespace. Negative means someone cleared a DLQ.",
+      "id": 3,
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 4,
+        "y": 1
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Service Bus server errors",
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "azure-monitor-oob"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "azure-monitor-oob"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$classicSubscription",
+          "azureMonitor": {
+            "metricName": "ServerErrors",
+            "metricNamespace": "Microsoft.ServiceBus/namespaces",
+            "aggregation": "Total",
+            "timeGrain": "auto",
+            "top": "10",
+            "alias": "classic",
+            "dimensionFilters": [],
+            "allowedTimeGrainsMs": [],
+            "resources": [
+              {
+                "subscription": "$classicSubscription",
+                "resourceGroup": "$classicResourceGroup",
+                "resourceName": "$classicServiceBus",
+                "metricNamespace": "Microsoft.ServiceBus/namespaces"
+              }
+            ]
+          }
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "azure-monitor-oob"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$subscription",
+          "azureMonitor": {
+            "metricName": "ServerErrors",
+            "metricNamespace": "Microsoft.ServiceBus/namespaces",
+            "aggregation": "Total",
+            "timeGrain": "auto",
+            "top": "10",
+            "alias": "own",
+            "dimensionFilters": [],
+            "allowedTimeGrainsMs": [],
+            "resources": [
+              {
+                "subscription": "$subscription",
+                "resourceGroup": "$resourceGroup",
+                "resourceName": "$serviceBus",
+                "metricNamespace": "Microsoft.ServiceBus/namespaces"
+              }
+            ]
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 100
+              }
+            ]
+          },
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto"
+      },
+      "description": "Errors on the Service Bus side in range, classic plus this namespace's own.",
+      "id": 4,
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 8,
+        "y": 1
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Partner call failures",
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "azure-monitor-oob"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "azure-monitor-oob"
+          },
+          "queryType": "Azure Log Analytics",
+          "azureLogAnalytics": {
+            "query": "dependencies\n| where $__timeFilter(timestamp)\n| where tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\"\n| where type !in (\"InProc\", \"SQL\", \"redis\") and type !has \"ServiceBus\"\n| extend partner = case(\n    target contains \"dynamics.com\" or name contains \"/trade-crm-adapter/\", \"Dynamics CRM\",\n    name contains \"/trade-risk-assessment/\" or name contains \"/commodity-risk-categorisation-decider/\", \"Risk engine\",\n    name contains \"/trade-notify/\", \"Notify (trade-notify)\",\n    name contains \"/trade-delegated-authority/\", \"Delegated authority\",\n    name contains \"/mdm/\", \"MDM\",\n    name contains \"/graphql/\", \"Approved establishments (GraphQL)\",\n    name contains \"/address-lookup\", \"Address lookup\",\n    name contains \"/trade-imports-cloning/\", \"Trade imports cloning\",\n    target matches regex @\"^ref(-[a-z]+)?[.]azure[.]defra[.]cloud\", \"Reference data (RDS)\",\n    target contains \"search.windows.net\", \"Azure AI Search\",\n    type == \"Azure blob\", \"Blob storage\",\n    target contains \"antivirus\", \"Antivirus\",\n    target contains \"login.microsoftonline.com\" or target contains \"b2clogin.com\", \"Entra ID / B2C\",\n    target contains \"gateway\", \"Trade API gateway (other)\",\n    \"\")\n| where partner != \"\"\n| extend failed = success == false and not(type == \"Azure blob\" and resultCode == \"404\")\n| summarize v = 100.0 * countif(failed) / count()\n",
+            "resources": [
+              "/subscriptions/$subscription/resourceGroups/$resourceGroup/providers/Microsoft.Insights/components/$appInsights"
+            ],
+            "resultFormat": "table",
+            "dashboardTime": false
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 5
+              }
+            ]
+          },
+          "decimals": 2
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto"
+      },
+      "description": "Failed outbound calls to external partners from this namespace. Blob 404s (existence checks) are not counted.",
+      "id": 5,
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 12,
+        "y": 1
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Risk engine fallback",
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "azure-monitor-oob"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "azure-monitor-oob"
+          },
+          "queryType": "Azure Log Analytics",
+          "azureLogAnalytics": {
+            "query": "customMetrics\n| where $__timeFilter(timestamp)\n| where tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\"\n| where name in (\"risk-assessment-risk-engine-fallback-count\", \"risk-assessment-risk-engine-success-count\")\n| summarize v = 100.0 * sumif(valueSum, name endswith \"fallback-count\") / sum(valueSum)\n",
+            "resources": [
+              "/subscriptions/$subscription/resourceGroups/$resourceGroup/providers/Microsoft.Insights/components/$appInsights"
+            ],
+            "resultFormat": "table",
+            "dashboardTime": false
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 10
+              }
+            ]
+          },
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto"
+      },
+      "description": "Share of risk assessments that fell back to the default because the risk engine call failed.",
+      "id": 6,
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 16,
+        "y": 1
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Integration jobs failing",
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "azure-monitor-oob"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "azure-monitor-oob"
+          },
+          "queryType": "Azure Log Analytics",
+          "azureLogAnalytics": {
+            "query": "requests\n| where $__timeFilter(timestamp)\n| where tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\"\n| where not(name matches regex \"^(GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)( |$)\") and name !contains \"cache\"\n| summarize arg_max(timestamp, success) by name\n| summarize v = countif(success == false)\n",
+            "resources": [
+              "/subscriptions/$subscription/resourceGroups/$resourceGroup/providers/Microsoft.Insights/components/$appInsights"
+            ],
+            "resultFormat": "table",
+            "dashboardTime": false
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          },
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto"
+      },
+      "description": "Scheduled jobs whose most recent run in range failed. See the jobs table below.",
+      "id": 7,
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 20,
+        "y": 1
+      }
+    },
+    {
+      "type": "row",
+      "title": "Service Bus: shared namespace $classicServiceBus",
+      "id": 8,
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 5
+      },
+      "panels": []
+    },
+    {
+      "type": "bargauge",
+      "title": "Waiting messages by entity",
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "azure-monitor-oob"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "azure-monitor-oob"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$classicSubscription",
+          "azureMonitor": {
+            "metricName": "ActiveMessages",
+            "metricNamespace": "Microsoft.ServiceBus/namespaces",
+            "aggregation": "Maximum",
+            "timeGrain": "auto",
+            "top": "15",
+            "alias": "{{dimensionvalue}}",
+            "dimensionFilters": [
+              {
+                "dimension": "EntityName",
+                "operator": "eq",
+                "filters": [
+                  "$entity"
+                ]
+              }
+            ],
+            "allowedTimeGrainsMs": [],
+            "resources": [
+              {
+                "subscription": "$classicSubscription",
+                "resourceGroup": "$classicResourceGroup",
+                "resourceName": "$classicServiceBus",
+                "metricNamespace": "Microsoft.ServiceBus/namespaces"
+              }
+            ]
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 100
+              },
+              {
+                "color": "red",
+                "value": 1000
+              }
+            ]
+          },
+          "noValue": "Nothing waiting"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "horizontal",
+        "displayMode": "basic",
+        "showUnfilled": true,
+        "valueMode": "color",
+        "namePlacement": "left",
+        "sizing": "manual",
+        "minVizHeight": 14,
+        "maxVizHeight": 18
+      },
+      "description": "Now, largest first. A topic's figure is the sum over its subscriptions: Azure Monitor does not split by subscription.",
+      "id": 9,
+      "gridPos": {
+        "h": 9,
+        "w": 8,
+        "x": 0,
+        "y": 6
+      }
+    },
+    {
+      "type": "bargauge",
+      "title": "Dead-lettered by entity",
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "azure-monitor-oob"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "azure-monitor-oob"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$classicSubscription",
+          "azureMonitor": {
+            "metricName": "DeadletteredMessages",
+            "metricNamespace": "Microsoft.ServiceBus/namespaces",
+            "aggregation": "Maximum",
+            "timeGrain": "auto",
+            "top": "15",
+            "alias": "{{dimensionvalue}}",
+            "dimensionFilters": [
+              {
+                "dimension": "EntityName",
+                "operator": "eq",
+                "filters": [
+                  "$entity"
+                ]
+              }
+            ],
+            "allowedTimeGrainsMs": [],
+            "resources": [
+              {
+                "subscription": "$classicSubscription",
+                "resourceGroup": "$classicResourceGroup",
+                "resourceName": "$classicServiceBus",
+                "metricNamespace": "Microsoft.ServiceBus/namespaces"
+              }
+            ]
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 100
+              }
+            ]
+          },
+          "noValue": "No dead letters"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "horizontal",
+        "displayMode": "basic",
+        "showUnfilled": true,
+        "valueMode": "color",
+        "namePlacement": "left",
+        "sizing": "manual",
+        "minVizHeight": 14,
+        "maxVizHeight": 18
+      },
+      "id": 10,
+      "gridPos": {
+        "h": 9,
+        "w": 8,
+        "x": 8,
+        "y": 6
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Dead-lettered over time (top 8)",
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "azure-monitor-oob"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "azure-monitor-oob"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$classicSubscription",
+          "azureMonitor": {
+            "metricName": "DeadletteredMessages",
+            "metricNamespace": "Microsoft.ServiceBus/namespaces",
+            "aggregation": "Maximum",
+            "timeGrain": "auto",
+            "top": "8",
+            "alias": "{{dimensionvalue}}",
+            "dimensionFilters": [
+              {
+                "dimension": "EntityName",
+                "operator": "eq",
+                "filters": [
+                  "$entity"
+                ]
+              }
+            ],
+            "allowedTimeGrainsMs": [],
+            "resources": [
+              {
+                "subscription": "$classicSubscription",
+                "resourceGroup": "$classicResourceGroup",
+                "resourceName": "$classicServiceBus",
+                "metricNamespace": "Microsoft.ServiceBus/namespaces"
+              }
+            ]
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": false
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "description": "A rising line is a consumer rejecting messages now; a flat one is old dead letters nobody has cleared.",
+      "id": 11,
+      "gridPos": {
+        "h": 9,
+        "w": 8,
+        "x": 16,
+        "y": 6
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Waiting over time (top 8)",
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "azure-monitor-oob"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "azure-monitor-oob"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$classicSubscription",
+          "azureMonitor": {
+            "metricName": "ActiveMessages",
+            "metricNamespace": "Microsoft.ServiceBus/namespaces",
+            "aggregation": "Maximum",
+            "timeGrain": "auto",
+            "top": "8",
+            "alias": "{{dimensionvalue}}",
+            "dimensionFilters": [
+              {
+                "dimension": "EntityName",
+                "operator": "eq",
+                "filters": [
+                  "$entity"
+                ]
+              }
+            ],
+            "allowedTimeGrainsMs": [],
+            "resources": [
+              {
+                "subscription": "$classicSubscription",
+                "resourceGroup": "$classicResourceGroup",
+                "resourceName": "$classicServiceBus",
+                "metricNamespace": "Microsoft.ServiceBus/namespaces"
+              }
+            ]
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": false
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "description": "Rising while incoming is flat or zero means a stuck or missing consumer.",
+      "id": 12,
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 15
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Incoming by entity (top 8)",
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "azure-monitor-oob"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "azure-monitor-oob"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$classicSubscription",
+          "azureMonitor": {
+            "metricName": "IncomingMessages",
+            "metricNamespace": "Microsoft.ServiceBus/namespaces",
+            "aggregation": "Total",
+            "timeGrain": "auto",
+            "top": "8",
+            "alias": "{{dimensionvalue}}",
+            "dimensionFilters": [
+              {
+                "dimension": "EntityName",
+                "operator": "eq",
+                "filters": [
+                  "$entity"
+                ]
+              }
+            ],
+            "allowedTimeGrainsMs": [],
+            "resources": [
+              {
+                "subscription": "$classicSubscription",
+                "resourceGroup": "$classicResourceGroup",
+                "resourceName": "$classicServiceBus",
+                "metricNamespace": "Microsoft.ServiceBus/namespaces"
+              }
+            ]
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": false
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "id": 13,
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 15
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Completed by entity (top 8)",
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "azure-monitor-oob"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "azure-monitor-oob"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$classicSubscription",
+          "azureMonitor": {
+            "metricName": "CompleteMessage",
+            "metricNamespace": "Microsoft.ServiceBus/namespaces",
+            "aggregation": "Total",
+            "timeGrain": "auto",
+            "top": "8",
+            "alias": "{{dimensionvalue}}",
+            "dimensionFilters": [
+              {
+                "dimension": "EntityName",
+                "operator": "eq",
+                "filters": [
+                  "$entity"
+                ]
+              }
+            ],
+            "allowedTimeGrainsMs": [],
+            "resources": [
+              {
+                "subscription": "$classicSubscription",
+                "resourceGroup": "$classicResourceGroup",
+                "resourceName": "$classicServiceBus",
+                "metricNamespace": "Microsoft.ServiceBus/namespaces"
+              }
+            ]
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": false
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "description": "Messages consumers settled successfully.",
+      "id": 14,
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 15
+      }
+    },
+    {
+      "type": "row",
+      "title": "Service Bus: this namespace's own $serviceBus",
+      "id": 15,
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 23
+      },
+      "panels": []
+    },
+    {
+      "type": "bargauge",
+      "title": "Waiting messages by entity",
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "azure-monitor-oob"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "azure-monitor-oob"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$subscription",
+          "azureMonitor": {
+            "metricName": "ActiveMessages",
+            "metricNamespace": "Microsoft.ServiceBus/namespaces",
+            "aggregation": "Maximum",
+            "timeGrain": "auto",
+            "top": "15",
+            "alias": "{{dimensionvalue}}",
+            "dimensionFilters": [
+              {
+                "dimension": "EntityName",
+                "operator": "eq",
+                "filters": [
+                  "$entity"
+                ]
+              }
+            ],
+            "allowedTimeGrainsMs": [],
+            "resources": [
+              {
+                "subscription": "$subscription",
+                "resourceGroup": "$resourceGroup",
+                "resourceName": "$serviceBus",
+                "metricNamespace": "Microsoft.ServiceBus/namespaces"
+              }
+            ]
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 100
+              },
+              {
+                "color": "red",
+                "value": 1000
+              }
+            ]
+          },
+          "noValue": "Nothing waiting"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "horizontal",
+        "displayMode": "basic",
+        "showUnfilled": true,
+        "valueMode": "color",
+        "namePlacement": "left",
+        "sizing": "manual",
+        "minVizHeight": 14,
+        "maxVizHeight": 18
+      },
+      "id": 16,
+      "gridPos": {
+        "h": 9,
+        "w": 8,
+        "x": 0,
+        "y": 24
+      }
+    },
+    {
+      "type": "bargauge",
+      "title": "Dead-lettered by entity",
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "azure-monitor-oob"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "azure-monitor-oob"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$subscription",
+          "azureMonitor": {
+            "metricName": "DeadletteredMessages",
+            "metricNamespace": "Microsoft.ServiceBus/namespaces",
+            "aggregation": "Maximum",
+            "timeGrain": "auto",
+            "top": "15",
+            "alias": "{{dimensionvalue}}",
+            "dimensionFilters": [
+              {
+                "dimension": "EntityName",
+                "operator": "eq",
+                "filters": [
+                  "$entity"
+                ]
+              }
+            ],
+            "allowedTimeGrainsMs": [],
+            "resources": [
+              {
+                "subscription": "$subscription",
+                "resourceGroup": "$resourceGroup",
+                "resourceName": "$serviceBus",
+                "metricNamespace": "Microsoft.ServiceBus/namespaces"
+              }
+            ]
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 100
+              }
+            ]
+          },
+          "noValue": "No dead letters"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "horizontal",
+        "displayMode": "basic",
+        "showUnfilled": true,
+        "valueMode": "color",
+        "namePlacement": "left",
+        "sizing": "manual",
+        "minVizHeight": 14,
+        "maxVizHeight": 18
+      },
+      "id": 17,
+      "gridPos": {
+        "h": 9,
+        "w": 8,
+        "x": 8,
+        "y": 24
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Incoming vs completed",
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "azure-monitor-oob"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "azure-monitor-oob"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$subscription",
+          "azureMonitor": {
+            "metricName": "IncomingMessages",
+            "metricNamespace": "Microsoft.ServiceBus/namespaces",
+            "aggregation": "Total",
+            "timeGrain": "auto",
+            "top": "10",
+            "alias": "incoming",
+            "dimensionFilters": [],
+            "allowedTimeGrainsMs": [],
+            "resources": [
+              {
+                "subscription": "$subscription",
+                "resourceGroup": "$resourceGroup",
+                "resourceName": "$serviceBus",
+                "metricNamespace": "Microsoft.ServiceBus/namespaces"
+              }
+            ]
+          }
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "azure-monitor-oob"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$subscription",
+          "azureMonitor": {
+            "metricName": "CompleteMessage",
+            "metricNamespace": "Microsoft.ServiceBus/namespaces",
+            "aggregation": "Total",
+            "timeGrain": "auto",
+            "top": "10",
+            "alias": "completed",
+            "dimensionFilters": [],
+            "allowedTimeGrainsMs": [],
+            "resources": [
+              {
+                "subscription": "$subscription",
+                "resourceGroup": "$resourceGroup",
+                "resourceName": "$serviceBus",
+                "metricNamespace": "Microsoft.ServiceBus/namespaces"
+              }
+            ]
+          }
+        },
+        {
+          "refId": "C",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "azure-monitor-oob"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$subscription",
+          "azureMonitor": {
+            "metricName": "ServerErrors",
+            "metricNamespace": "Microsoft.ServiceBus/namespaces",
+            "aggregation": "Total",
+            "timeGrain": "auto",
+            "top": "10",
+            "alias": "server errors",
+            "dimensionFilters": [],
+            "allowedTimeGrainsMs": [],
+            "resources": [
+              {
+                "subscription": "$subscription",
+                "resourceGroup": "$resourceGroup",
+                "resourceName": "$serviceBus",
+                "metricNamespace": "Microsoft.ServiceBus/namespaces"
+              }
+            ]
+          }
+        },
+        {
+          "refId": "D",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "azure-monitor-oob"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$subscription",
+          "azureMonitor": {
+            "metricName": "ThrottledRequests",
+            "metricNamespace": "Microsoft.ServiceBus/namespaces",
+            "aggregation": "Total",
+            "timeGrain": "auto",
+            "top": "10",
+            "alias": "throttled",
+            "dimensionFilters": [],
+            "allowedTimeGrainsMs": [],
+            "resources": [
+              {
+                "subscription": "$subscription",
+                "resourceGroup": "$resourceGroup",
+                "resourceName": "$serviceBus",
+                "metricNamespace": "Microsoft.ServiceBus/namespaces"
+              }
+            ]
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": false
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "server errors"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "red"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "throttled"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "orange"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "id": 18,
+      "gridPos": {
+        "h": 9,
+        "w": 8,
+        "x": 16,
+        "y": 24
+      }
+    },
+    {
+      "type": "row",
+      "title": "Messaging seen from the apps (App Insights, this namespace only)",
+      "id": 19,
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 33
+      },
+      "panels": []
+    },
+    {
+      "type": "table",
+      "title": "Who sends and who consumes",
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "azure-monitor-oob"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "azure-monitor-oob"
+          },
+          "queryType": "Azure Log Analytics",
+          "azureLogAnalytics": {
+            "query": "dependencies\n| where $__timeFilter(timestamp)\n| where tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\"\n| where type == \"Microsoft.ServiceBus\"\n| extend entity = tostring(split(target, \"/\")[0]), op = tostring(split(name, \".\")[1])\n| summarize Sent = countif(op == \"send\"), [\"Send failures\"] = countif(op == \"send\" and success == false),\n    Completed = countif(op == \"complete\"), Senders = make_set_if(replace_regex(cloud_RoleName, @\"^.*[.]\", \"\"), op == \"send\"),\n    Consumers = make_set_if(replace_regex(cloud_RoleName, @\"^.*[.]\", \"\"), op in (\"receiveMessages\", \"complete\")) by Entity = entity\n| extend Senders = strcat_array(Senders, \", \"), Consumers = strcat_array(Consumers, \", \")\n| order by Sent desc\n",
+            "resources": [
+              "/subscriptions/$subscription/resourceGroups/$resourceGroup/providers/Microsoft.Insights/components/$appInsights"
+            ],
+            "resultFormat": "table",
+            "dashboardTime": false
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto"
+          },
+          "noValue": "No Service Bus traffic from this namespace"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Send failures"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "orange",
+                      "value": 1
+                    },
+                    {
+                      "color": "red",
+                      "value": 100
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "sortBy": [
+          {
+            "displayName": "Sent",
+            "desc": true
+          }
+        ]
+      },
+      "description": "Unlike the metrics above, this is only this namespace's pods. An entity with senders and no consumers here is consumed elsewhere (Logic App, BTMS, another namespace) or not at all.",
+      "id": 20,
+      "gridPos": {
+        "h": 8,
+        "w": 14,
+        "x": 0,
+        "y": 34
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Sent and completed",
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "azure-monitor-oob"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "azure-monitor-oob"
+          },
+          "queryType": "Azure Log Analytics",
+          "azureLogAnalytics": {
+            "query": "dependencies\n| where $__timeFilter(timestamp)\n| where tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\"\n| where type == \"Microsoft.ServiceBus\"\n| extend entity = tostring(split(target, \"/\")[0]), op = tostring(split(name, \".\")[1])\n| where op in (\"send\", \"complete\")\n| summarize n = count() by series = strcat(entity, \" \", op), bin(timestamp, $__interval)\n| order by timestamp asc\n",
+            "resources": [
+              "/subscriptions/$subscription/resourceGroups/$resourceGroup/providers/Microsoft.Insights/components/$appInsights"
+            ],
+            "resultFormat": "time_series",
+            "dashboardTime": false
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": false
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "id": 21,
+      "gridPos": {
+        "h": 8,
+        "w": 10,
+        "x": 14,
+        "y": 34
+      }
+    },
+    {
+      "type": "row",
+      "title": "External partners (App Insights, this namespace only)",
+      "id": 22,
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 42
+      },
+      "panels": []
+    },
+    {
+      "type": "table",
+      "title": "Calls by partner",
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "azure-monitor-oob"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "azure-monitor-oob"
+          },
+          "queryType": "Azure Log Analytics",
+          "azureLogAnalytics": {
+            "query": "dependencies\n| where $__timeFilter(timestamp)\n| where tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\"\n| where type !in (\"InProc\", \"SQL\", \"redis\") and type !has \"ServiceBus\"\n| extend partner = case(\n    target contains \"dynamics.com\" or name contains \"/trade-crm-adapter/\", \"Dynamics CRM\",\n    name contains \"/trade-risk-assessment/\" or name contains \"/commodity-risk-categorisation-decider/\", \"Risk engine\",\n    name contains \"/trade-notify/\", \"Notify (trade-notify)\",\n    name contains \"/trade-delegated-authority/\", \"Delegated authority\",\n    name contains \"/mdm/\", \"MDM\",\n    name contains \"/graphql/\", \"Approved establishments (GraphQL)\",\n    name contains \"/address-lookup\", \"Address lookup\",\n    name contains \"/trade-imports-cloning/\", \"Trade imports cloning\",\n    target matches regex @\"^ref(-[a-z]+)?[.]azure[.]defra[.]cloud\", \"Reference data (RDS)\",\n    target contains \"search.windows.net\", \"Azure AI Search\",\n    type == \"Azure blob\", \"Blob storage\",\n    target contains \"antivirus\", \"Antivirus\",\n    target contains \"login.microsoftonline.com\" or target contains \"b2clogin.com\", \"Entra ID / B2C\",\n    target contains \"gateway\", \"Trade API gateway (other)\",\n    \"\")\n| where partner != \"\"\n| extend failed = success == false and not(type == \"Azure blob\" and resultCode == \"404\")\n| summarize Calls = count(), ['Fail %'] = round(100.0 * countif(failed) / count(), 2), ['p95 ms'] = round(percentile(duration, 95)),\n    ['Last failure'] = maxif(timestamp, failed), Codes = strcat_array(make_set_if(resultCode, failed, 5), \", \"),\n    ['Called by'] = strcat_array(make_set(replace_regex(cloud_RoleName, @\"^.*[.]\", \"\"), 5), \", \") by Partner = partner\n| order by ['Fail %'] desc, Calls desc\n",
+            "resources": [
+              "/subscriptions/$subscription/resourceGroups/$resourceGroup/providers/Microsoft.Insights/components/$appInsights"
+            ],
+            "resultFormat": "table",
+            "dashboardTime": false
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto"
+          },
+          "noValue": "No partner calls from this namespace"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Fail %"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "orange",
+                      "value": 1
+                    },
+                    {
+                      "color": "red",
+                      "value": 5
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "p95 ms"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "ms"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm"
+      },
+      "description": "Codes are the result codes of failed calls. 0 usually means a timeout or connection failure.",
+      "id": 23,
+      "gridPos": {
+        "h": 9,
+        "w": 14,
+        "x": 0,
+        "y": 43
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Failed calls by partner",
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "azure-monitor-oob"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "azure-monitor-oob"
+          },
+          "queryType": "Azure Log Analytics",
+          "azureLogAnalytics": {
+            "query": "dependencies\n| where $__timeFilter(timestamp)\n| where tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\"\n| where type !in (\"InProc\", \"SQL\", \"redis\") and type !has \"ServiceBus\"\n| extend partner = case(\n    target contains \"dynamics.com\" or name contains \"/trade-crm-adapter/\", \"Dynamics CRM\",\n    name contains \"/trade-risk-assessment/\" or name contains \"/commodity-risk-categorisation-decider/\", \"Risk engine\",\n    name contains \"/trade-notify/\", \"Notify (trade-notify)\",\n    name contains \"/trade-delegated-authority/\", \"Delegated authority\",\n    name contains \"/mdm/\", \"MDM\",\n    name contains \"/graphql/\", \"Approved establishments (GraphQL)\",\n    name contains \"/address-lookup\", \"Address lookup\",\n    name contains \"/trade-imports-cloning/\", \"Trade imports cloning\",\n    target matches regex @\"^ref(-[a-z]+)?[.]azure[.]defra[.]cloud\", \"Reference data (RDS)\",\n    target contains \"search.windows.net\", \"Azure AI Search\",\n    type == \"Azure blob\", \"Blob storage\",\n    target contains \"antivirus\", \"Antivirus\",\n    target contains \"login.microsoftonline.com\" or target contains \"b2clogin.com\", \"Entra ID / B2C\",\n    target contains \"gateway\", \"Trade API gateway (other)\",\n    \"\")\n| where partner != \"\"\n| extend failed = success == false and not(type == \"Azure blob\" and resultCode == \"404\")\n| where failed\n| summarize n = count() by partner, bin(timestamp, $__interval)\n| order by timestamp asc\n",
+            "resources": [
+              "/subscriptions/$subscription/resourceGroups/$resourceGroup/providers/Microsoft.Insights/components/$appInsights"
+            ],
+            "resultFormat": "time_series",
+            "dashboardTime": false
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "lineWidth": 1,
+            "fillOpacity": 80,
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "mode": "normal",
+              "group": "A"
+            },
+            "drawStyle": "bars"
+          },
+          "noValue": "No failed partner calls"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "id": 24,
+      "gridPos": {
+        "h": 9,
+        "w": 10,
+        "x": 14,
+        "y": 43
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Partner latency p95",
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "azure-monitor-oob"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "azure-monitor-oob"
+          },
+          "queryType": "Azure Log Analytics",
+          "azureLogAnalytics": {
+            "query": "dependencies\n| where $__timeFilter(timestamp)\n| where tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\"\n| where type !in (\"InProc\", \"SQL\", \"redis\") and type !has \"ServiceBus\"\n| extend partner = case(\n    target contains \"dynamics.com\" or name contains \"/trade-crm-adapter/\", \"Dynamics CRM\",\n    name contains \"/trade-risk-assessment/\" or name contains \"/commodity-risk-categorisation-decider/\", \"Risk engine\",\n    name contains \"/trade-notify/\", \"Notify (trade-notify)\",\n    name contains \"/trade-delegated-authority/\", \"Delegated authority\",\n    name contains \"/mdm/\", \"MDM\",\n    name contains \"/graphql/\", \"Approved establishments (GraphQL)\",\n    name contains \"/address-lookup\", \"Address lookup\",\n    name contains \"/trade-imports-cloning/\", \"Trade imports cloning\",\n    target matches regex @\"^ref(-[a-z]+)?[.]azure[.]defra[.]cloud\", \"Reference data (RDS)\",\n    target contains \"search.windows.net\", \"Azure AI Search\",\n    type == \"Azure blob\", \"Blob storage\",\n    target contains \"antivirus\", \"Antivirus\",\n    target contains \"login.microsoftonline.com\" or target contains \"b2clogin.com\", \"Entra ID / B2C\",\n    target contains \"gateway\", \"Trade API gateway (other)\",\n    \"\")\n| where partner != \"\"\n| extend failed = success == false and not(type == \"Azure blob\" and resultCode == \"404\")\n| summarize p95 = percentile(duration, 95) by partner, bin(timestamp, $__interval)\n| order by timestamp asc\n",
+            "resources": [
+              "/subscriptions/$subscription/resourceGroups/$resourceGroup/providers/Microsoft.Insights/components/$appInsights"
+            ],
+            "resultFormat": "time_series",
+            "dashboardTime": false
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "custom": {
+            "lineWidth": 1,
+            "fillOpacity": 0,
+            "showPoints": "never",
+            "spanNulls": true,
+            "scaleDistribution": {
+              "type": "log",
+              "log": 10
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "description": "Log scale: partners range from milliseconds (search) to minutes (RDS timeouts).",
+      "id": 25,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 52
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Risk engine: answered vs fallback",
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "azure-monitor-oob"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "azure-monitor-oob"
+          },
+          "queryType": "Azure Log Analytics",
+          "azureLogAnalytics": {
+            "query": "customMetrics\n| where $__timeFilter(timestamp)\n| where tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\"\n| where name in (\"risk-assessment-risk-engine-fallback-count\", \"risk-assessment-risk-engine-success-count\")\n| summarize n = sum(valueSum) by series = iff(name endswith \"fallback-count\", \"fallback\", \"answered\"), bin(timestamp, $__interval)\n| order by timestamp asc\n",
+            "resources": [
+              "/subscriptions/$subscription/resourceGroups/$resourceGroup/providers/Microsoft.Insights/components/$appInsights"
+            ],
+            "resultFormat": "time_series",
+            "dashboardTime": false
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "lineWidth": 1,
+            "fillOpacity": 80,
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "mode": "normal",
+              "group": "A"
+            },
+            "drawStyle": "bars"
+          },
+          "noValue": "No risk assessments in range"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "n fallback"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "red"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "n answered"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "green"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "description": "From riskassessment-service's own counters. Fallback means the CHED got the default risk decision.",
+      "id": 26,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 52
+      }
+    },
+    {
+      "type": "row",
+      "title": "Integration jobs and retry events",
+      "id": 27,
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 60
+      },
+      "panels": []
+    },
+    {
+      "type": "table",
+      "title": "Scheduled jobs",
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "azure-monitor-oob"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "azure-monitor-oob"
+          },
+          "queryType": "Azure Log Analytics",
+          "azureLogAnalytics": {
+            "query": "requests\n| where $__timeFilter(timestamp)\n| where tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\"\n| where not(name matches regex \"^(GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)( |$)\") and name !contains \"cache\"\n| summarize Runs = count(), Failed = countif(success == false), ['p95 s'] = round(percentile(duration, 95) / 1000, 1),\n    ['Last run'] = max(timestamp), ['Last success'] = maxif(timestamp, success == true), Service = take_any(replace_regex(cloud_RoleName, @\"^.*[.]\", \"\")) by Job = name\n| extend Status = case(Failed == Runs, \"failing\", Failed > 0, \"some failures\", \"ok\")\n| project Status, Job, Service, Runs, Failed, ['p95 s'], ['Last run'], ['Last success']\n| order by Failed desc, Runs desc\n",
+            "resources": [
+              "/subscriptions/$subscription/resourceGroups/$resourceGroup/providers/Microsoft.Insights/components/$appInsights"
+            ],
+            "resultFormat": "table",
+            "dashboardTime": false
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto"
+          },
+          "noValue": "No scheduled jobs ran in range"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Status"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 110
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "failing": {
+                        "color": "red",
+                        "index": 0
+                      },
+                      "some failures": {
+                        "color": "orange",
+                        "index": 1
+                      },
+                      "ok": {
+                        "color": "green",
+                        "index": 2
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm"
+      },
+      "description": "Scheduled tasks reported as requests (reference data sync, MDM download, archiving). Cache-clearing tasks are left out.",
+      "id": 28,
+      "gridPos": {
+        "h": 9,
+        "w": 14,
+        "x": 0,
+        "y": 61
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Retry and failure events",
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "azure-monitor-oob"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "azure-monitor-oob"
+          },
+          "queryType": "Azure Log Analytics",
+          "azureLogAnalytics": {
+            "query": "union\n (customEvents\n | where $__timeFilter(timestamp)\n | where tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\"\n | where name matches regex \"(?i)(retry|fail|error|poll|timeout|deadletter)\"\n | summarize n = count() by series = name, bin(timestamp, $__interval)),\n (customMetrics\n | where $__timeFilter(timestamp)\n | where tostring(customDimensions[\"k8s.namespace.name\"]) == \"$namespace\"\n | where name == \"Item_Retry_Count\"\n | summarize n = sum(valueSum) by series = name, bin(timestamp, $__interval))\n| order by timestamp asc\n",
+            "resources": [
+              "/subscriptions/$subscription/resourceGroups/$resourceGroup/providers/Microsoft.Insights/components/$appInsights"
+            ],
+            "resultFormat": "time_series",
+            "dashboardTime": false
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "lineWidth": 1,
+            "fillOpacity": 80,
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "mode": "normal",
+              "group": "A"
+            },
+            "drawStyle": "bars"
+          },
+          "noValue": "No retry or failure events"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "description": "BIP, checks and decision retry events, *FailedEvent, SOAP search poll failures and Item_Retry_Count.",
+      "id": 29,
+      "gridPos": {
+        "h": 9,
+        "w": 10,
+        "x": 14,
+        "y": 61
+      }
+    }
+  ]
+}
