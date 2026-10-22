@@ -951,5 +951,55 @@
   },
   "timezone": "browser",
   "title": "IPAFFS Application Overview",
-  "uid": "app-overview"
+  "uid": "app-overview",
+  "links": [
+    {
+      "title": "Service Health",
+      "type": "link",
+      "url": "/d/ipaffs-service-health?var-namespace=$namespace",
+      "keepTime": true,
+      "icon": "dashboard",
+      "targetBlank": false
+    },
+    {
+      "title": "Service Drill-down",
+      "type": "link",
+      "url": "/d/ipaffs-service-drilldown?var-namespace=$namespace",
+      "keepTime": true,
+      "icon": "dashboard",
+      "targetBlank": false
+    },
+    {
+      "title": "Messaging & Integrations",
+      "type": "link",
+      "url": "/d/ipaffs-messaging-integrations?var-namespace=$namespace",
+      "keepTime": true,
+      "icon": "dashboard",
+      "targetBlank": false
+    },
+    {
+      "title": "Platform Overview",
+      "type": "link",
+      "url": "/d/ipaffs-aks-ops-v1?var-namespace=$namespace",
+      "keepTime": true,
+      "icon": "dashboard",
+      "targetBlank": false
+    },
+    {
+      "title": "Service Overview",
+      "type": "link",
+      "url": "/d/dfsw5zhr4pjpce?var-namespace=$namespace",
+      "keepTime": true,
+      "icon": "dashboard",
+      "targetBlank": false
+    },
+    {
+      "title": "QA Overview",
+      "type": "link",
+      "url": "/d/ipaffs-qa-overview?var-namespace=$namespace",
+      "keepTime": true,
+      "icon": "dashboard",
+      "targetBlank": false
+    }
+  ]
 }
