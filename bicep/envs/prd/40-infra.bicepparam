@@ -28,6 +28,9 @@ param aksParams = {
   dnsPrefix: 'prdimpinfak1401'
   nodeResourceGroup: 'PRDIMPINFRG1402'
   sku: 'Standard'
+
+  // Container Insights collection (logs and inventory); not collected here yet
+  containerInsights: false
   userAssignedIdentityName: 'PRDIMPINFAK1401'
 
   dnsServiceIp: '172.18.255.250'

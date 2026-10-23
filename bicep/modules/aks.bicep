@@ -173,7 +173,59 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2025-10-01' = {
   }
 }
 
-var aksRbacClusterAdminRoleId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b1ff04bb-8a4e-4dc4-8eb5-8693973ce19b')
+// Container Insights data (container logs, pod and node inventory, perf) goes wherever the cluster's
+// data collection rule sends it; the omsAgent workspace above is not used for that with useAADAuth.
+// The name and association match what the portal creates, so an existing hand-made rule is taken over
+// in place rather than duplicated.
+resource containerInsightsRule 'Microsoft.Insights/dataCollectionRules@2023-03-11' = if (aksParams.containerInsights) {
+  name: 'MSCI-${location}-${toLower(aksParams.name)}'
+  location: location
+  tags: tags
+  kind: 'Linux'
+  properties: {
+    dataSources: {
+      extensions: [
+        {
+          name: 'ContainerInsightsExtension'
+          extensionName: 'ContainerInsights'
+          streams: ['Microsoft-ContainerInsights-Group-Default']
+          extensionSettings: {
+            dataCollectionSettings: {
+              enableContainerLogV2: true
+              interval: '1m'
+              namespaceFilteringMode: 'Off'
+            }
+          }
+        }
+      ]
+    }
+    destinations: {
+      logAnalytics: [
+        {
+          name: 'ciworkspace'
+          workspaceResourceId: logAnalyticsId
+        }
+      ]
+    }
+    dataFlows: [
+      {
+        streams: ['Microsoft-ContainerInsights-Group-Default']
+        destinations: ['ciworkspace']
+      }
+    ]
+  }
+}
+
+resource containerInsightsRuleAssociation 'Microsoft.Insights/dataCollectionRuleAssociations@2023-03-11' = if (aksParams.containerInsights) {
+  name: 'ContainerInsightsExtension'
+  scope: aksCluster
+  properties: {
+    dataCollectionRuleId: containerInsightsRule.id
+    description: 'Association of data collection rule. Deleting this association will break the data collection for this AKS Cluster.'
+  }
+}
+
+var aksRbacClusterAdminRoleId =subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b1ff04bb-8a4e-4dc4-8eb5-8693973ce19b')
 var aksRbacWriterRoleId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'a7ffa36f-339b-4b5c-8bdf-e2c188b2c0eb')
 var aksRbacReaderRoleId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '7f6c6a51-bcf8-42ba-9220-52d62157d7db')
 
