@@ -360,5 +360,17 @@ stages:
                     exit 0
                   fi
 
-                  git pull --rebase origin "${MANIFEST_BRANCH}"
-                  git push origin "HEAD:${MANIFEST_BRANCH}"
+                  # Concurrent service pipelines all push to the same manifest branch, so a push can
+                  # lose the race between pull --rebase and push ("cannot lock ref"). Each run only
+                  # touches its own service's files, so rebasing and retrying is always safe.
+                  for attempt in 1 2 3 4 5 6; do
+                    git pull --rebase origin "${MANIFEST_BRANCH}"
+                    if git push origin "HEAD:${MANIFEST_BRANCH}"; then
+                      exit 0
+                    fi
+                    echo "Push to ${MANIFEST_BRANCH} rejected (attempt ${attempt} of 6); another pipeline updated it, retrying"
+                    sleep $(( (RANDOM % 10) + 5 * attempt ))
+                  done
+
+                  echo "Could not push manifest changes to ${MANIFEST_BRANCH} after 6 attempts" >&2
+                  exit 1
