@@ -28,6 +28,9 @@ param aksParams = {
   dnsPrefix: 'tstimpinfak1401'
   nodeResourceGroup: 'TSTIMPINFRG1402'
   sku: 'Standard'
+
+  // Container Insights collection (logs and inventory) into this environment's Log Analytics workspace
+  containerInsights: true
   userAssignedIdentityName: 'TSTIMPINFAK1401'
 
   dnsServiceIp: '172.18.255.250'
