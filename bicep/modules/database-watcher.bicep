@@ -61,17 +61,6 @@ resource kustoDataStore 'Microsoft.Kusto/Clusters/Databases@2024-04-13' = {
   }
 }
 
-resource kustoDataStoreGroupAdmin 'Microsoft.Kusto/Clusters/Databases/PrincipalAssignments@2024-04-13' = {
-  parent: kustoDataStore
-  name: dbwParams.adminEntraGroup
-  properties: {
-    principalId: dbwParams.adminEntraGroup
-    role: 'Admin'
-    principalType: 'Group'
-    tenantId: '770a2450-0227-4c62-90c7-4e38537f1102'
-  }
-}
-
 resource kustoDataStoreWatcherAdmin 'Microsoft.Kusto/Clusters/Databases/PrincipalAssignments@2024-04-13' = {
   parent: kustoDataStore
   name: 'bb83bb91-7227-53a0-8c2e-84c080085433'

@@ -39,14 +39,6 @@ stages:
                 using '30-classic.bicep'
                 extends 'envs/${{ lower(parameters.classicEnvironmentName) }}/30-classic.bicepparam'
                 param entraGroups = {
-                  searchContributors: {
-                    id: '$(searchContributorsGroupId)'
-                    name: '$(searchContributorsGroupName)'
-                  }
-                  searchReaders: {
-                    id: '$(searchReadersGroupId)'
-                    name: '$(searchReadersGroupName)'
-                  }
                   sqlAdmins: {
                     id: '$(sqlAdminGroupId)'
                     name: '$(sqlAdminGroupName)'

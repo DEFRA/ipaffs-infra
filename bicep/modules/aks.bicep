@@ -2,10 +2,8 @@ targetScope = 'resourceGroup'
 
 param aksParams object
 param deploymentId string
-param entraGroups object
 param location string
 param logAnalyticsId string
-param roleAssignmentsType string
 param subnets object
 param tags object
 param vnetName string
@@ -222,49 +220,6 @@ resource containerInsightsRuleAssociation 'Microsoft.Insights/dataCollectionRule
   properties: {
     dataCollectionRuleId: containerInsightsRule.id
     description: 'Association of data collection rule. Deleting this association will break the data collection for this AKS Cluster.'
-  }
-}
-
-var aksRbacClusterAdminRoleId =subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b1ff04bb-8a4e-4dc4-8eb5-8693973ce19b')
-var aksRbacWriterRoleId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'a7ffa36f-339b-4b5c-8bdf-e2c188b2c0eb')
-var aksRbacReaderRoleId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '7f6c6a51-bcf8-42ba-9220-52d62157d7db')
-
-module aksAdmin './aks-role-assignment.bicep' = {
-  name: 'aksAdmin-${deploymentId}'
-  scope: resourceGroup()
-  params: {
-    aksName: aksParams.name
-    deploymentId: deploymentId
-    principalObjectId: entraGroups.aksAdmins.id
-    principalType: 'Group'
-    roleAssignmentType: roleAssignmentsType
-    roleDefinitionId: aksRbacClusterAdminRoleId
-  }
-}
-
-module aksWriter './aks-role-assignment.bicep' = {
-  name: 'aksWriter-${deploymentId}'
-  scope: resourceGroup()
-  params: {
-    aksName: aksParams.name
-    deploymentId: deploymentId
-    principalObjectId: entraGroups.aksContributors.id
-    principalType: 'Group'
-    roleAssignmentType: roleAssignmentsType
-    roleDefinitionId: aksRbacWriterRoleId
-  }
-}
-
-module aksReader './aks-role-assignment.bicep' = {
-  name: 'aksReader-${deploymentId}'
-  scope: resourceGroup()
-  params: {
-    aksName: aksParams.name
-    deploymentId: deploymentId
-    principalObjectId: entraGroups.aksReaders.id
-    principalType: 'Group'
-    roleAssignmentType: roleAssignmentsType
-    roleDefinitionId: aksRbacReaderRoleId
   }
 }
 

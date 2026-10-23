@@ -58,7 +58,7 @@ stages:
       tags:
         - Environment-${{ parameters.environmentName }}
 
-  - template: stages/entra-groups.yaml
+  - template: stages/validate-access-contract.yaml
     parameters:
       environmentName: ${{ parameters.environmentName }}
 

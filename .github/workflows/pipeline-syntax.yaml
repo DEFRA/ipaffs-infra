@@ -10,6 +10,7 @@ on:
       - "pipelines/**/*.yml"
       - "scripts/**/*.sh"
       - "scripts/**/*.test.py"
+      - "scripts/pipeline/validate-access-contract.py"
       - "bicep/*.bicep"
       - "bicep/*.bicepparam"
       - "bicep/**/*.bicep"
@@ -25,6 +26,7 @@ on:
       - "pipelines/**/*.yml"
       - "scripts/**/*.sh"
       - "scripts/**/*.test.py"
+      - "scripts/pipeline/validate-access-contract.py"
       - "bicep/*.bicep"
       - "bicep/*.bicepparam"
       - "bicep/**/*.bicep"
@@ -62,10 +64,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Test Entra group membership reconciliation
-        shell: bash
-        run: bash scripts/pipeline/add-entra-group-members.test.sh
-
       - name: Check Bash syntax
         shell: bash
         run: |
@@ -98,6 +96,9 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+
+      - name: Test operations access-group contract
+        run: python scripts/pipeline/validate-access-contract.test.py
 
       - name: Test manifest infra pin retirement
         shell: bash

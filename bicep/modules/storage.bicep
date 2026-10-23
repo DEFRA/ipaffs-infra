@@ -1,9 +1,7 @@
 targetScope = 'resourceGroup'
 
 param deploymentId string
-param entraGroups object
 param location string
-param roleAssignmentsType string
 param storageParams object
 param subnets object
 param tags object
@@ -105,35 +103,6 @@ resource blobService 'Microsoft.Storage/storageAccounts/blobServices@2025-01-01'
       days: 30
     }
     isVersioningEnabled: true
-  }
-}
-
-var storageBlobDataContributorRoleId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'ba92f5b4-2d11-453d-a403-e96b0029c9fe')
-var storageBlobDataReaderRoleId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '2a2b9908-6ea1-4ae2-8e65-a410df84e7d1')
-
-module blobStorageContributor './storage-role-assignment.bicep' = {
-  name: 'blobStorageContributor-${deploymentId}'
-  scope: resourceGroup()
-  params: {
-    storageAccountName: storageParams.name
-    deploymentId: deploymentId
-    principalObjectId: entraGroups.blobStorageContributors.id
-    principalType: 'Group'
-    roleAssignmentType: roleAssignmentsType
-    roleDefinitionId: storageBlobDataContributorRoleId
-  }
-}
-
-module blobStorageReader './storage-role-assignment.bicep' = {
-  name: 'blobStorageReader-${deploymentId}'
-  scope: resourceGroup()
-  params: {
-    storageAccountName: storageParams.name
-    deploymentId: deploymentId
-    principalObjectId: entraGroups.blobStorageReaders.id
-    principalType: 'Group'
-    roleAssignmentType: roleAssignmentsType
-    roleDefinitionId: storageBlobDataReaderRoleId
   }
 }
 

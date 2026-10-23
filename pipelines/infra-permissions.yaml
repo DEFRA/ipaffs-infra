@@ -43,6 +43,10 @@ stages:
       tags:
         - Environment-${{ parameters.environmentName }}
 
+  - template: stages/validate-access-contract.yaml
+    parameters:
+      environmentName: ${{ parameters.environmentName }}
+
   - template: stages/infra-permissions.yaml
     parameters:
       environmentName: ${{ parameters.environmentName }}

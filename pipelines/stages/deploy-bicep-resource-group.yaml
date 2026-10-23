@@ -30,16 +30,6 @@ stages:
                 cat <<- 'EOF' >'$(Build.SourcesDirectory)/10-resource-group-runtime.bicepparam'
                 using '10-resource-group.bicep'
                 extends 'envs/${{ lower(parameters.environmentName) }}/10-resource-group.bicepparam'
-                param entraGroups = {
-                  pimOwners: {
-                    id: '$(pimOwnersGroupId)'
-                    name: '$(pimOwnersGroupName)'
-                  }
-                  pimContributors: {
-                    id: '$(pimContributorsGroupId)'
-                    name: '$(pimContributorsGroupName)'
-                  }
-                }
                 EOF
                 cat '$(Build.SourcesDirectory)/10-resource-group-runtime.bicepparam'
 
