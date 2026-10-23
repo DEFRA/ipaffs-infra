@@ -110,9 +110,7 @@ module search './modules/search-classic.bicep' = {
   scope: resourceGroup()
   params: {
     deploymentId: deploymentId
-    entraGroups: entraGroups
     location: location
-    roleAssignmentsType: roleAssignmentsType
     searchParams: searchParams
     sqlServerName: sql.outputs.sqlServerName
     tags: tags

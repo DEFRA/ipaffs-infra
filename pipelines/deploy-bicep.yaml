@@ -9,6 +9,8 @@ trigger:
       - bicep/**/*.bicep
       - pipelines/deploy-bicep.yaml
       - pipelines/stages/deploy-bicep-*.yaml
+      - pipelines/stages/validate-access-contract.yaml
+      - scripts/pipeline/validate-access-contract.py
 
 pr:
   branches:
@@ -20,6 +22,8 @@ pr:
       - bicep/**/*.bicep
       - pipelines/deploy-bicep.yaml
       - pipelines/stages/deploy-bicep-*.yaml
+      - pipelines/stages/validate-access-contract.yaml
+      - scripts/pipeline/validate-access-contract.py
 
 pool:
   name: DEFRA-COMMON-ubuntu2204-SSV5
@@ -54,6 +58,10 @@ stages:
     parameters:
       tags:
         - Environment-${{ parameters.environmentName }}
+
+  - template: stages/validate-access-contract.yaml
+    parameters:
+      environmentName: ${{ parameters.environmentName }}
 
   - template: stages/deploy-bicep-resource-group.yaml
     parameters:

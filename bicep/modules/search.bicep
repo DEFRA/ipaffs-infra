@@ -1,9 +1,7 @@
 targetScope = 'resourceGroup'
 
 param deploymentId string
-param entraGroups object
 param location string
-param roleAssignmentsType string
 param searchParams object
 param sqlServerName string
 param subnets object
@@ -102,48 +100,6 @@ resource searchServicePrivateEndpoint 'Microsoft.Network/privateEndpoints@2024-1
   }
 }
 
-var searchServiceContributorRoleId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '7ca78c08-252a-4471-8644-bb5ff32d4ba0')
-var searchIndexDataContributorRoleId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '8ebe5a00-799e-43f5-93ac-243d3dce84a7')
-var searchIndexDataReaderRoleId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '1407120a-92aa-4202-b7e9-c0e197c71c8f')
-
-module searchServiceContributor './search-role-assignment.bicep' = {
-  name: 'searchServiceContributor-${deploymentId}'
-  scope: resourceGroup()
-  params: {
-    searchServiceName: searchParams.name
-    deploymentId: deploymentId
-    principalObjectId: entraGroups.searchContributors.id
-    principalType: 'Group'
-    roleAssignmentType: roleAssignmentsType
-    roleDefinitionId: searchServiceContributorRoleId
-  }
-}
-
-module searchContributor './search-role-assignment.bicep' = {
-  name: 'searchContributor-${deploymentId}'
-  scope: resourceGroup()
-  params: {
-    searchServiceName: searchParams.name
-    deploymentId: deploymentId
-    principalObjectId: entraGroups.searchContributors.id
-    principalType: 'Group'
-    roleAssignmentType: roleAssignmentsType
-    roleDefinitionId: searchIndexDataContributorRoleId
-  }
-}
-
-module searchReader './search-role-assignment.bicep' = {
-  name: 'searchReader-${deploymentId}'
-  scope: resourceGroup()
-  params: {
-    searchServiceName: searchParams.name
-    deploymentId: deploymentId
-    principalObjectId: entraGroups.searchReaders.id
-    principalType: 'Group'
-    roleAssignmentType: roleAssignmentsType
-    roleDefinitionId: searchIndexDataReaderRoleId
-  }
-}
 
 output searchServiceSubscriptionId string = subscription().subscriptionId
 output searchServiceResourceGroupName string = resourceGroup().name

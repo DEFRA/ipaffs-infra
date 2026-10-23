@@ -95,7 +95,8 @@ Things are moving along quickly. At the time of writing, migration of ipaffs-imp
 - **Manifest:** configuration, image mirrors and deployment of shared platform Helm
   releases. See the [platform guide](https://github.com/DEFRA/ipaffs-manifest/blob/master/platform/README.md)
   for configuration and apply rules.
-- **Infrastructure:** Azure resources, identities, permissions and Private Link.
+- **Infrastructure:** Azure resources, workload identities, runtime permissions and Private Link.
+- **Operations:** human/team groups, membership, human RBAC and PIM eligibility, plus operational tooling. See [`ipaffs-operations`](https://github.com/DEFRA/ipaffs-operations).
 - **Helm charts:** chart sources and publishing live in
   [`ipaffs-helm-charts`](https://github.com/DEFRA/ipaffs-helm-charts).
 
@@ -117,17 +118,39 @@ standalone routing and uptime checkers live in
 Grafana, Prometheus and Log Analytics Azure instances remain defined here,
 alongside their managed identities and runtime permissions.
 
-Before merging this extraction, merge the operations implementation and repoint
-the existing **Deploy Grafana Dashboards** ADO pipeline (definition **11662**) to
-`DEFRA/ipaffs-operations`, retaining `main` and
-`pipelines/grafana-dashboards.yaml`. Validate the migrated pipeline using its
-existing approval gates before removing this repository's copy. See the
-[operations handover](https://github.com/DEFRA/ipaffs-operations#pipeline-handover)
-for the sequence. This source move does not delete deployed dashboards or Azure
-resources.
+The Grafana definition **11662** now reads `ipaffs-operations/main` in the
+Azure DevOps `\Operations` folder.
 
-Access management, runtime permissions, QA, configuration validation and classic
-maintenance/switch tooling remain here for later stages of the split.
+### Human access ownership
+
+Human/team membership, access-group creation, human Azure RBAC and PIM eligibility
+move to [`pipelines/access-management.yaml`](https://github.com/DEFRA/ipaffs-operations/blob/main/pipelines/access-management.yaml)
+in `ipaffs-operations`. Infrastructure no longer writes those grants or reconciles
+human membership. Existing group names, object IDs and assignment names are retained.
+
+Infrastructure still owns SQL's Entra administrator configuration, SQL Directory
+Readers, kubelet/ACR and External Secrets memberships, automation grants, workload
+identities and all Azure parent resources. The SQLAdmins and ACR pull groups have
+machine members: operations adds its nested human groups without removing those
+machine identities. The exceptional `remove-entra-group-members` pipeline remains
+here for its existing targeted service-principal cleanup.
+
+Before deployment, `ValidateAccessContract` checks the existing `sqlAdminGroupId`,
+`sqlAdminGroupName`, `acrPullGroupId` and `defraCertificateReadersGroupId` Library
+variables. The check is local and fails before provisioning if the contract is
+missing. For a fresh environment, run operations with `groupsOnly: true`, provision
+infrastructure, then run the full operations access pipeline. Bootstrap DEV before
+TST and PRD before PRE because their team groups are shared.
+
+Merge the operations PR first, repoint the existing **entra-groups** definition
+**10313** to operations and its new YAML path, then validate the handover before
+merging this cleanup. Reuse its existing definition/history and keep one active
+human-access writer. See the
+[access handover](https://github.com/DEFRA/ipaffs-operations/blob/main/access/README.md)
+for the exact order. These incremental source removals do not delete deployed
+role assignments, groups or Azure resources.
+
+QA, configuration validation and classic maintenance/switch tooling remain here.
 
 ### DEV SQL elastic pool
 

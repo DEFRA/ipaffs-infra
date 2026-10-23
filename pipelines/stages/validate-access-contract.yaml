@@ -1,0 +1,26 @@
+parameters:
+  - name: environmentName
+    type: string
+
+stages:
+  - stage: ValidateAccessContract
+    displayName: Validate operations access-group contract
+    variables:
+      - group: Common
+      - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
+        - group: HigherEnvs
+      - ${{ else }}:
+        - group: LowerEnvs
+      - group: "${{ parameters.environmentName }}"
+    jobs:
+      - job: ValidateGroups
+        displayName: Check existing group identifiers
+        steps:
+          - checkout: self
+          - script: python3 scripts/pipeline/validate-access-contract.py
+            displayName: Validate the shared group-ID contract
+            env:
+              ACCESS_SQL_ADMINS_GROUP_ID: $(sqlAdminGroupId)
+              ACCESS_SQL_ADMINS_GROUP_NAME: $(sqlAdminGroupName)
+              ACCESS_ACR_PULL_GROUP_ID: $(acrPullGroupId)
+              ACCESS_CERTIFICATE_READERS_GROUP_ID: $(defraCertificateReadersGroupId)

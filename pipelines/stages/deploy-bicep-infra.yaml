@@ -15,10 +15,6 @@ stages:
       - template: "/pipelines/vars/common.yaml"
       - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
       - ${{ if ne(parameters.environmentName, 'TST') }}:
-        - name: qaKeyVaultSecretsOfficersGroupId
-          value: ''
-        - name: qaKeyVaultSecretsOfficersGroupName
-          value: ''
         - name: qaAutomationServiceConnectionPrincipalId
           value: ''
     jobs:
@@ -45,58 +41,6 @@ stages:
                   sqlServer: '$(classicSqlServerResourceId)'
                 }
                 param entraGroups = {
-                  aksAdmins: {
-                    id: '$(aksAdminsGroupId)'
-                    name: '$(aksAdminsGroupName)'
-                  }
-                  aksContributors: {
-                    id: '$(aksContributorsGroupId)'
-                    name: '$(aksContributorsGroupName)'
-                  }
-                  aksReaders: {
-                    id: '$(aksReadersGroupId)'
-                    name: '$(aksReadersGroupName)'
-                  }
-                  keyVaultAdmins: {
-                    id: '$(keyVaultAdminsGroupId)'
-                    name: '$(keyVaultAdminsGroupName)'
-                  }
-                  keyVaultSecretsReaders: {
-                    id: '$(keyVaultSecretsReadersGroupId)'
-                    name: '$(keyVaultSecretsReadersGroupName)'
-                  }
-                  qaKeyVaultSecretsOfficers: {
-                    id: '$(qaKeyVaultSecretsOfficersGroupId)'
-                    name: '$(qaKeyVaultSecretsOfficersGroupName)'
-                  }
-                  searchContributors: {
-                    id: '$(searchContributorsGroupId)'
-                    name: '$(searchContributorsGroupName)'
-                  }
-                  searchReaders: {
-                    id: '$(searchReadersGroupId)'
-                    name: '$(searchReadersGroupName)'
-                  }
-                  grafanaAdmins: {
-                    id: '$(grafanaAdminsGroupId)'
-                    name: '$(grafanaAdminsGroupName)'
-                  }
-                  grafanaEditors: {
-                    id: '$(grafanaEditorsGroupId)'
-                    name: '$(grafanaEditorsGroupName)'
-                  }
-                  grafanaViewers: {
-                    id: '$(grafanaViewersGroupId)'
-                    name: '$(grafanaViewersGroupName)'
-                  }
-                  blobStorageContributors: {
-                    id: '$(blobStorageContributorsGroupId)'
-                    name: '$(blobStorageContributorsGroupName)'
-                  }
-                  blobStorageReaders: {
-                    id: '$(blobStorageReadersGroupId)'
-                    name: '$(blobStorageReadersGroupName)'
-                  }
                   sqlAdmins: {
                     id: '$(sqlAdminGroupId)'
                     name: '$(sqlAdminGroupName)'

@@ -50,10 +50,8 @@ module aks './modules/aks.bicep' = {
   params: {
     aksParams: aksParams
     deploymentId: deploymentId
-    entraGroups: entraGroups
     location: location
     logAnalyticsId: monitoring.outputs.logAnalyticsId
-    roleAssignmentsType: roleAssignmentsType
     subnets: subnets
     tags: tags
     vnetName: vnetName
@@ -111,8 +109,6 @@ module externalSecrets './modules/external-secrets-identity.bicep' = {
   }
 }
 
-var keyVaultAdministratorRoleId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '00482a5a-887f-4fb3-b363-3b7fe8e74483')
-var keyVaultSecretsOfficerRoleId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b86a8fe4-44ce-4948-aee5-eccb2c155cd7')
 var keyVaultSecretsUserRoleId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '4633458b-17de-408a-b874-0445c86b69e6')
 
 module keyVault './modules/keyvault.bicep' = {
@@ -125,52 +121,22 @@ module keyVault './modules/keyvault.bicep' = {
     subnets: subnets
     tags: tags
     tenantId: tenantId
-    roleAssignments: [
-      {
-        principalObjectId: entraGroups.keyVaultAdmins.id
-        principalType: 'Group'
-        roleAssignmentType: 'permanent'
-        roleDefinitionId: keyVaultAdministratorRoleId
-      }
-      {
-        principalObjectId: entraGroups.keyVaultSecretsReaders.id
-        principalType: 'Group'
-        roleAssignmentType: 'permanent'
-        roleDefinitionId: keyVaultSecretsUserRoleId
-      }
-    ]
+    // Human grants are managed by ipaffs-operations.
+    roleAssignments: []
   }
 }
 
 // Only deployed when an environment supplies qaKeyVaultParams (currently just envs/tst/40-infra.bicepparam).
 var deployQaKeyVault = !empty(qaKeyVaultParams)
-var qaSecretsOfficerObjectId = contains(entraGroups, 'qaKeyVaultSecretsOfficers') ? entraGroups.qaKeyVaultSecretsOfficers.id : ''
-var qaKeyVaultRoleAssignments = concat(
-  [
-    {
-      principalObjectId: entraGroups.keyVaultAdmins.id
-      principalType: 'Group'
-      roleAssignmentType: 'permanent'
-      roleDefinitionId: keyVaultAdministratorRoleId
-    }
-  ],
-  empty(qaSecretsOfficerObjectId) ? [] : [
-    {
-      principalObjectId: qaSecretsOfficerObjectId
-      principalType: 'Group'
-      roleAssignmentType: 'permanent'
-      roleDefinitionId: keyVaultSecretsOfficerRoleId
-    }
-  ],
-  empty(qaAutomationPrincipalObjectId) ? [] : [
-    {
-      principalObjectId: qaAutomationPrincipalObjectId
-      principalType: 'ServicePrincipal'
-      roleAssignmentType: 'permanent'
-      roleDefinitionId: keyVaultSecretsUserRoleId
-    }
-  ]
-)
+// Keep the QA automation principal's runtime access with the vault infrastructure.
+var qaKeyVaultRoleAssignments = empty(qaAutomationPrincipalObjectId) ? [] : [
+  {
+    principalObjectId: qaAutomationPrincipalObjectId
+    principalType: 'ServicePrincipal'
+    roleAssignmentType: 'permanent'
+    roleDefinitionId: keyVaultSecretsUserRoleId
+  }
+]
 
 module qaKeyVault './modules/keyvault.bicep' = if (deployQaKeyVault) {
   name: 'qaKeyVault-${deploymentId}'
@@ -204,10 +170,8 @@ module search './modules/search.bicep' = {
   scope: resourceGroup()
   params: {
     deploymentId: deploymentId
-    entraGroups: entraGroups
     searchParams: searchParams
     location: location
-    roleAssignmentsType: roleAssignmentsType
     sqlServerName: sql.outputs.sqlServerName
     subnets: subnets
     tags: tags
@@ -237,7 +201,6 @@ module monitoring './modules/monitoring.bicep' = {
     location: location
     tags: tags
     monitoringParams: monitoringParams
-    entraGroups: entraGroups
     deployServicePrincipalObjectId: deployServicePrincipalObjectId
   }
 }
@@ -259,9 +222,7 @@ module storage './modules/storage.bicep' = {
   scope: resourceGroup()
   params: {
     deploymentId: deploymentId
-    entraGroups: entraGroups
     location: location
-    roleAssignmentsType: roleAssignmentsType
     storageParams: storageParams
     subnets: subnets
     tags: tags
