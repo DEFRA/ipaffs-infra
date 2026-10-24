@@ -26,7 +26,7 @@ class TargetTests(unittest.TestCase):
             "QA_ENVIRONMENT": "DEV",
             "QA_FEATURE_NAMESPACE": "true",
             "QA_TARGET_NAMESPACE": "imta-21857",
-            **{key: f"https://{key.lower().replace('_', '-')}-imta-21857.example.test/path" for key in target.FEATURE_URLS},
+            **{key: f"https://{key.lower().replace('_', '-')}-imta-21857.example.test" for key in target.FEATURE_URLS},
         }
 
     def test_canonical_environments_keep_defaults(self):
@@ -60,6 +60,12 @@ class TargetTests(unittest.TestCase):
         values = self.feature()
         values["QA_ENVIRONMENT"] = "TST"
         with self.assertRaises(ValueError):
+            target.resolve_target(values)
+
+    def test_frontend_urls_cannot_contain_an_application_path(self):
+        values = self.feature()
+        values["B2B_BASE_URL"] += "/notification/dev"
+        with self.assertRaisesRegex(ValueError, "origin without an application path"):
             target.resolve_target(values)
 
     def test_urls_cannot_inject_dotenv_or_embed_credentials(self):

@@ -58,6 +58,8 @@ def resolve_target(environ):
             valid = False
         if not valid:
             raise ValueError(f"{name} must be an HTTP(S) URL without credentials, query or fragment")
+        if name in ("B2B_BASE_URL", "B2C_BASE_URL") and url.path not in ("", "/"):
+            raise ValueError(f"{name} must be an origin without an application path")
         overrides[name] = value
     return environment, namespace, feature, overrides
 
