@@ -1,5 +1,5 @@
 ---
-# Shared execution and reporting for the fixed DEV and TST QA entry points.
+# Shared execution and reporting for DEV, TST and manual FTR QA entry points.
 parameters:
   - name: environmentName
     displayName: Environment
@@ -50,6 +50,43 @@ parameters:
     type: boolean
     default: false
 
+  # FTR reuses DEV credentials and configuration, with explicit namespace endpoints.
+  - name: featureNamespace
+    type: boolean
+    default: false
+
+  - name: targetNamespace
+    type: string
+    default: ''
+
+  - name: b2bBaseUrl
+    type: string
+    default: ''
+
+  - name: b2cBaseUrl
+    type: string
+    default: ''
+
+  - name: soapBaseUrl
+    type: string
+    default: ''
+
+  - name: openIdTokenUrl
+    type: string
+    default: ''
+
+  - name: bipBaseUrl
+    type: string
+    default: ''
+
+  - name: notificationBaseUrl
+    type: string
+    default: ''
+
+  - name: riskEngineBaseUrl
+    type: string
+    default: ''
+
 variables:
   - group: Common
   - template: "/pipelines/vars/common.yaml"
@@ -84,7 +121,10 @@ stages:
       name: DEFRA-COMMON-ubuntu2204-SSV5
     jobs:
       - job: RunAndPublishTests
-        displayName: Playwright tests - $(resources.pipeline.deployment.runName)
+        ${{ if eq(parameters.featureNamespace, true) }}:
+          displayName: Playwright tests - FTR ${{ parameters.targetNamespace }}
+        ${{ else }}:
+          displayName: Playwright tests - $(resources.pipeline.deployment.runName)
         timeoutInMinutes: 180
         steps:
           - checkout: self
@@ -97,9 +137,21 @@ stages:
           - task: Bash@3
             displayName: Name QA run and record context
             env:
-              QA_DEPLOYMENT_NAME: $(resources.pipeline.deployment.runName)
+              ${{ if eq(parameters.featureNamespace, true) }}:
+                QA_DEPLOYMENT_NAME: FTR-${{ parameters.targetNamespace }}
+              ${{ else }}:
+                QA_DEPLOYMENT_NAME: $(resources.pipeline.deployment.runName)
               QA_RUN_NUMBER: $(Build.BuildNumber)
               QA_ENVIRONMENT: ${{ parameters.environmentName }}
+              QA_FEATURE_NAMESPACE: ${{ parameters.featureNamespace }}
+              QA_TARGET_NAMESPACE: ${{ parameters.targetNamespace }}
+              B2B_BASE_URL: ${{ parameters.b2bBaseUrl }}
+              B2C_BASE_URL: ${{ parameters.b2cBaseUrl }}
+              SOAP_BASE_URL: ${{ parameters.soapBaseUrl }}
+              OPEN_ID_TOKEN_URL: ${{ parameters.openIdTokenUrl }}
+              BIP_BASE_URL: ${{ parameters.bipBaseUrl }}
+              NOTIFICATION_BASE_URL: ${{ parameters.notificationBaseUrl }}
+              RISK_ENGINE_BASE_URL: ${{ parameters.riskEngineBaseUrl }}
               QA_TEST_SUITE: ${{ parameters.testSuite }}
               QA_TEST_FILTER: $(effectivePlaywrightTag)
               QA_IMAGE_TAG: ${{ parameters.imageTag }}
@@ -114,6 +166,8 @@ stages:
             inputs:
               targetType: inline
               script: |
+                set -euo pipefail
+                python3 "$(Pipeline.Workspace)/s/ipaffs-infra/scripts/pipeline/prepare-qa-target.py" "$(Pipeline.Workspace)/s/ipaffs-qa-automation/.env-target"
                 filter="${QA_TEST_FILTER//[@ ]/}"
                 name="$(printf '%s' "${QA_DEPLOYMENT_NAME}${filter:+-$filter}" | tr -cs 'A-Za-z0-9._-' '-')"
                 echo "##vso[build.updatebuildnumber]${name:0:200}-${QA_RUN_NUMBER##*-}"
@@ -136,14 +190,14 @@ stages:
               AKS_NAME: $(kubernetesCluster)
               AKS_RESOURCE_GROUP_NAME: $(resourceGroupName)
               AKS_SUBSCRIPTION_NAME: $(subscriptionName)
-              ENVIRONMENT_NAME: ${{ lower(parameters.environmentName) }}
+              TARGET_NAMESPACE: $(qaTargetNamespace)
             inputs:
               azureSubscription: $(serviceConnection)
               scriptType: bash
               scriptLocation: inlineScript
               inlineScript: |
                 set -x
-                K8S_ENV="${ENVIRONMENT_NAME}"
+                K8S_ENV="${TARGET_NAMESPACE}"
                 az aks install-cli --client-version v1.36.1 --kubelogin-version v0.2.18
                 az aks get-credentials \
                   --name "${AKS_NAME}" \
@@ -163,6 +217,7 @@ stages:
               PLAYWRIGHT_TAG: $(effectivePlaywrightTag)
               TEST_SUITE: ${{ parameters.testSuite }}
               QA_AUTOMATION_ENV: ${{ lower(parameters.environmentName) }}
+              QA_FEATURE_NAMESPACE: ${{ parameters.featureNamespace }}
             inputs:
               azureSubscription: $(qaAutomationServiceConnection)
               scriptType: bash
@@ -170,31 +225,40 @@ stages:
               workingDirectory: $(Pipeline.Workspace)/s/ipaffs-qa-automation
               inlineScript: |
                 set -euo pipefail
-                readonly DOCKER_RUN="docker run --init --volume "${PWD}/playwright-report:/app/playwright-report:rw" --volume "${PWD}/test-results:/app/test-results:rw" --env-file .env-substituted --env ENV=$QA_AUTOMATION_ENV "$(acrLoginServer)/ipaffs/qa-automation:${IMAGE_TAG}""
+                DOCKER_RUN=(docker run --init --rm
+                  --volume "${PWD}/playwright-report:/app/playwright-report:rw"
+                  --volume "${PWD}/test-results:/app/test-results:rw"
+                  --env-file .env-substituted --env-file .env-target
+                  "$(acrLoginServer)/ipaffs/qa-automation:${IMAGE_TAG}")
                 echo "Executing QA automation framework for environment ${QA_AUTOMATION_ENV}"
 
                 mkdir -p playwright-report test-results
                 az acr login --name "$(qaAutomationAcrName)" --subscription "$(qaAutomationSubscriptionName)"
                 docker pull "$(qaAutomationAcrName).azurecr.io/ipaffs/qa-automation:${IMAGE_TAG}"
 
+                # Old images do not understand endpoint overrides. Fail before running tests.
+                if [[ "${QA_FEATURE_NAMESPACE,,}" == "true" ]]; then
+                  "${DOCKER_RUN[@]}" npm run config:validate
+                fi
+
                 if [[ -n "${PLAYWRIGHT_TAG// /}" ]]; then
-                  ${DOCKER_RUN} npm test -- --grep "${PLAYWRIGHT_TAG}" --workers="${WORKERS}"
+                  "${DOCKER_RUN[@]}" npm test -- --grep "${PLAYWRIGHT_TAG}" --workers="${WORKERS}"
                 else
                   case "${TEST_SUITE}" in
                     "test")
-                      ${DOCKER_RUN} npm test -- --workers="${WORKERS}"
+                      "${DOCKER_RUN[@]}" npm test -- --workers="${WORKERS}"
                       ;;
                     "test:a11y")
-                      ${DOCKER_RUN} npm run test:a11y -- --workers="${WORKERS}"
+                      "${DOCKER_RUN[@]}" npm run test:a11y -- --workers="${WORKERS}"
                       ;;
                     "test:visual")
-                      ${DOCKER_RUN} npm run test:visual -- --workers="${WORKERS}"
+                      "${DOCKER_RUN[@]}" npm run test:visual -- --workers="${WORKERS}"
                       ;;
                     "test:visual:update")
-                      ${DOCKER_RUN} npm run test:visual:update -- --workers="${WORKERS}"
+                      "${DOCKER_RUN[@]}" npm run test:visual:update -- --workers="${WORKERS}"
                       ;;
                     "test:cross-browser")
-                      ${DOCKER_RUN} npm run test:browserstack -- --workers="${WORKERS}"
+                      "${DOCKER_RUN[@]}" npm run test:browserstack -- --workers="${WORKERS}"
                       ;;
                     *)
                       echo "Unknown test suite tag: ${TEST_SUITE}" >&2
@@ -208,6 +272,7 @@ stages:
             env:
               IMAGE_TAG: ${{ parameters.imageTag }}
               QA_AUTOMATION_ENV: ${{ lower(parameters.environmentName) }}
+              QA_FEATURE_NAMESPACE: ${{ parameters.featureNamespace }}
             inputs:
               azureSubscription: $(qaAutomationServiceConnection)
               scriptType: bash
@@ -215,8 +280,12 @@ stages:
               workingDirectory: $(Pipeline.Workspace)/s/ipaffs-qa-automation
               inlineScript: |
                 set -euo pipefail
-                readonly DOCKER_RUN="docker run --init --volume "${PWD}/playwright-report:/app/playwright-report:rw" --volume "${PWD}/test-results:/app/test-results:rw" --env-file .env-substituted --env ENV=$QA_AUTOMATION_ENV "$(acrLoginServer)/ipaffs/qa-automation:${IMAGE_TAG}""
-                ${DOCKER_RUN} npm run report:release-csv
+                DOCKER_RUN=(docker run --init --rm
+                  --volume "${PWD}/playwright-report:/app/playwright-report:rw"
+                  --volume "${PWD}/test-results:/app/test-results:rw"
+                  --env-file .env-substituted --env-file .env-target
+                  "$(acrLoginServer)/ipaffs/qa-automation:${IMAGE_TAG}")
+                "${DOCKER_RUN[@]}" npm run report:release-csv
             condition: and(succeededOrFailed(), eq('${{ parameters.csvReport }}', true))
 
           - task: PublishPipelineArtifact@1
@@ -261,7 +330,10 @@ stages:
             env:
               SLACK_QA_CHANNEL_WEBHOOK_URL: $(slackQAChannelWebhookUrl)
               PLAYWRIGHT_DASHBOARD: $(System.CollectionUri)$(System.TeamProject)/_build/results?buildId=$(Build.BuildId)&view=ms.vss-test-web.build-test-results-tab
-              K8S_ENVIRONMENT: ${{ parameters.environmentName }}
+              ${{ if eq(parameters.featureNamespace, true) }}:
+                K8S_ENVIRONMENT: FTR / ${{ parameters.targetNamespace }}
+              ${{ else }}:
+                K8S_ENVIRONMENT: ${{ parameters.environmentName }}
               QA_TEST_SUITE: ${{ parameters.testSuite }}
               QA_TEST_FILTER: $(effectivePlaywrightTag)
             inputs:

@@ -41,6 +41,14 @@ def context():
     return {
         "schemaVersion": 1,
         "environment": value("QA_ENVIRONMENT"),
+        "targetKind": "feature" if (value("QA_FEATURE_NAMESPACE") or "").lower() == "true" else "canonical",
+        "targetNamespace": value("QA_TARGET_NAMESPACE") or (value("QA_ENVIRONMENT") or "").lower(),
+        "targetUrlOverrides": {
+            name: value(name) for name in (
+                "B2B_BASE_URL", "B2C_BASE_URL", "SOAP_BASE_URL", "OPEN_ID_TOKEN_URL",
+                "BIP_BASE_URL", "NOTIFICATION_BASE_URL", "RISK_ENGINE_BASE_URL",
+            ) if value(name)
+        },
         "qaRunId": identifier("QA_RUN_ID"),
         "qaPipelineId": identifier("QA_PIPELINE_ID"),
         "buildReason": reason,
