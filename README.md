@@ -152,6 +152,10 @@ role assignments, groups or Azure resources.
 
 QA, configuration validation and classic maintenance/switch tooling remain here.
 
+Run QA against an existing feature namespace using the manual
+[Playwright FTR pipeline](docs/playwright-ftr.md), with explicit frontend and
+service URL parameters and DEV credentials.
+
 ### DEV SQL elastic pool
 
 The DEV parameters configure `DEVIMPDBSEP1401` for 4 vCores and 128 GiB of storage.
