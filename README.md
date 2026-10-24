@@ -150,11 +150,14 @@ human-access writer. See the
 for the exact order. These incremental source removals do not delete deployed
 role assignments, groups or Azure resources.
 
-QA, configuration validation and classic maintenance/switch tooling remain here.
+QA test execution pipelines, their configuration and supporting scripts live in
+[`ipaffs-qa-automation`](https://github.com/DEFRA/ipaffs-qa-automation).
+Infrastructure retains Azure provisioning, QA runtime permissions, shared image
+build helpers and service-local Playwright build tests. Configuration validation
+and classic maintenance/switch tooling remain here.
 
-Run QA against an existing feature namespace using the manual
-[Playwright FTR pipeline](docs/playwright-ftr.md), with explicit frontend and
-service URL parameters and DEV credentials.
+See the [QA pipeline handover](https://github.com/DEFRA/ipaffs-qa-automation/blob/main/docs/qa-pipeline-handover.md)
+for the existing DEV/TST pipeline repository switch and manual FTR entry point.
 
 ### DEV SQL elastic pool
 
