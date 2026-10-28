@@ -172,9 +172,55 @@ Enabling real deletion needs a reviewed change to both. When enabled, delete als
 refuses any plan without the `ipaffs-disabled` tag.
 
 Before acting, the script checks that the subscription is `AZR-SND`, and that every
-listed resource group exists, starts with `SNDIMP` and has no locks. To restore a
-plan, scale it back to its `ipaffs-original-sku` and `ipaffs-original-capacity`,
+listed resource group exists, starts with `SNDIMP` and has no `ReadOnly` lock. To
+restore a plan, scale it back to its `ipaffs-original-sku` and `ipaffs-original-capacity`,
 re-enable autoscale if `ipaffs-autoscale-enabled` is `true`, then start its apps.
+
+#### Run locks
+
+Every run, `disable` or `delete`, adds a `CanNotDelete` lock named
+`ipaffs-pipeline-run` to each listed resource group before changing anything, and
+removes it when the run ends, including when the run fails or is cancelled. While
+the lock is in place, stopping, scaling, tagging and autoscale changes still work,
+but any delete in those resource groups fails with `ScopeLocked`, whether it comes
+from a script bug, another tool or a person.
+
+The lock only protects for the duration of a run; the pipeline itself adds and
+removes it. Other locks on the resource groups are left alone. If a run is killed
+before it can clean up, rerun the pipeline (it adopts and removes the leftover
+lock) or remove it by hand:
+
+```bash
+az lock delete --subscription AZR-SND --resource-group <resource-group> --name ipaffs-pipeline-run
+```
+
+The `ADO-DefraGovUK-AZR-IMP-SND1` service connection needs lock permissions, which
+Contributor does not include. An Owner creates this role once and assigns it on each
+listed resource group:
+
+```json
+{
+  "Name": "IPAFFS SND Lock Operator",
+  "Description": "Add and remove management locks for the SND App Services pipeline",
+  "Actions": [
+    "Microsoft.Authorization/locks/read",
+    "Microsoft.Authorization/locks/write",
+    "Microsoft.Authorization/locks/delete"
+  ],
+  "NotActions": [],
+  "AssignableScopes": ["/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6"]
+}
+```
+
+```bash
+az role definition create --role-definition @ipaffs-snd-lock-operator.json
+az role assignment create \
+  --assignee <service-connection-app-id> \
+  --role "IPAFFS SND Lock Operator" \
+  --scope /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/<resource-group>
+```
+
+Without this role a run fails at the first `az lock create`, before any change.
 
 Shared SND resources in `SNDIMPINFRGP009` are managed by `bicep/envs/snd/30-classic.bicepparam`;
 change those through Bicep instead.

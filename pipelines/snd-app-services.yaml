@@ -36,6 +36,7 @@ stages:
         steps:
           - checkout: self
 
+          # The script locks the resource groups against deletion for the whole run
           - task: AzureCLI@2
             displayName: Run ${{ parameters.action }}
             env:

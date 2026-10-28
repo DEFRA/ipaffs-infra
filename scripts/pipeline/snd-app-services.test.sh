@@ -44,6 +44,24 @@ count_calls() {
   grep -cF -- "${pattern}" "${case_az_log}" 2>/dev/null || true
 }
 
+count_resource_deletes() {
+  grep -v '^lock ' "${case_az_log}" 2>/dev/null | grep -cF -- " delete" || true
+}
+
+# Line number of the first az call containing a pattern
+first_line() {
+  grep -nF -- "$1" "${case_az_log}" | head -1 | cut -d: -f1
+}
+
+# Line number of the last az call containing a pattern
+last_line() {
+  grep -nF -- "$1" "${case_az_log}" | tail -1 | cut -d: -f1
+}
+
+before() {
+  [[ -n "$1" && -n "$2" && "$1" -lt "$2" ]] && printf true || printf false
+}
+
 count_exact_calls() {
   local line="$1"
 
@@ -71,7 +89,20 @@ case "$*" in
     exit 0
     ;;
   "lock list"*)
-    if [[ "${FAKE_AZ_SCENARIO}" == "locked" ]]; then echo 1; else echo 0; fi
+    case "${FAKE_AZ_SCENARIO}" in
+      other-lock) echo '[{"name":"team-no-delete","level":"CanNotDelete"}]' ;;
+      orphaned-lock) echo '[{"name":"ipaffs-pipeline-run","level":"CanNotDelete"}]' ;;
+      read-only) echo '[{"name":"freeze","level":"ReadOnly"}]' ;;
+      *) echo '[]' ;;
+    esac
+    ;;
+  "appservice plan update"*)
+    [[ "${FAKE_AZ_SCENARIO}" == "fail-scale" ]] && exit 1
+    exit 0
+    ;;
+  "lock delete"*)
+    [[ "${FAKE_AZ_SCENARIO}" == "fail-unlock" ]] && exit 1
+    exit 0
     ;;
   "resource list"*"Microsoft.Insights/autoscalesettings"*)
     echo "SNDIMPTEST-RG"
@@ -140,7 +171,11 @@ check "stops running function app" "1" "$(count_calls "functionapp stop --ids /s
 check "skips stopped app" "0" "$(count_calls "sites/site-b")"
 check "scales slot plan to S1" "1" "$(count_calls "serverfarms/plan-a --sku S1 --number-of-workers 1")"
 check "scales plain plan to B1" "1" "$(count_calls "serverfarms/plan-b --sku B1 --number-of-workers 1")"
-check "never deletes" "0" "$(count_calls " delete")"
+check "never deletes" "0" "$(count_resource_deletes)"
+check "locks resource group once" "1" "$(count_calls "lock create --subscription AZR-SND --resource-group SNDIMPTEST-RG --name ipaffs-pipeline-run --lock-type CanNotDelete")"
+check "locks before first stop" "true" "$(before "$(first_line "lock create")" "$(first_line " stop ")")"
+check "unlocks resource group once" "1" "$(count_calls "lock delete --subscription AZR-SND --resource-group SNDIMPTEST-RG --name ipaffs-pipeline-run")"
+check "unlocks after last scale" "true" "$(before "$(last_line "plan update")" "$(last_line "lock delete")")"
 
 echo "disable dry run"
 run_case disable-dry-run disable DRY_RUN=true
@@ -149,6 +184,8 @@ check "dry run makes no tag change" "0" "$(count_calls "tag update")"
 check "dry run makes no stop" "0" "$(count_calls " stop ")"
 check "dry run makes no scale" "0" "$(count_calls "plan update")"
 check "dry run makes no autoscale change" "0" "$(count_calls "autoscale update")"
+check "dry run makes no lock call" "0" "$(( $(count_calls "lock create") + $(count_calls "lock delete") ))"
+check_output_contains "dry run prints lock" "DRY RUN: az lock create"
 check_output_contains "dry run prints scale" "DRY RUN: az appservice plan update"
 
 echo "disable rerun"
@@ -160,7 +197,11 @@ check "rerun tags untagged plan" "1" "$(count_calls "serverfarms/plan-b --operat
 echo "delete is always a dry run"
 run_case delete delete DRY_RUN=false
 check "delete succeeds" "0" "${case_status}"
-check "delete runs no az delete" "0" "$(count_calls " delete")"
+check "delete runs no az delete" "0" "$(count_resource_deletes)"
+check "delete locks resource group" "1" "$(count_calls "lock create")"
+check "delete locks before listing" "true" "$(before "$(first_line "lock create")" "$(first_line "appservice plan list")")"
+check "delete unlocks resource group" "1" "$(count_calls "lock delete")"
+check_output_contains "delete reports lock" "is locked for this run, delete commands are printed only"
 check "delete makes no change" "0" "$(count_calls " stop ")"
 check_output_contains "delete prints slot" "DRY RUN: az webapp deployment slot delete"
 check_output_contains "delete prints web app" "DRY RUN: az webapp delete --ids /subscriptions/sub/resourceGroups/SNDIMPTEST-RG/providers/Microsoft.Web/sites/site-a --keep-empty-plan"
@@ -181,10 +222,39 @@ printf 'SNDIMPTEST-RG\nSNDIMPMISSING-RG\n' > "${work_dir}/missing-targets.txt"
 TARGETS_FILE="${work_dir}/missing-targets.txt" run_case missing-rg disable DRY_RUN=false
 check "rejects missing resource group" "1" "${case_status}"
 check "missing resource group makes no change" "0" "$(count_calls " stop ")"
+check "missing resource group adds no lock" "0" "$(count_calls "lock create")"
 
-FAKE_AZ_SCENARIO=locked run_case locked disable DRY_RUN=false
-check "rejects locked resource group" "1" "${case_status}"
-check "locked resource group makes no change" "0" "$(count_calls " stop ")"
+echo "locks"
+FAKE_AZ_SCENARIO=read-only run_case read-only disable DRY_RUN=false
+check "rejects ReadOnly lock" "1" "${case_status}"
+check "ReadOnly lock adds no lock" "0" "$(count_calls "lock create")"
+check "ReadOnly lock makes no change" "0" "$(count_calls " stop ")"
+
+FAKE_AZ_SCENARIO=other-lock run_case other-lock disable DRY_RUN=false
+check "works alongside another lock" "0" "${case_status}"
+check "still stops apps with another lock" "1" "$(count_calls "functionapp stop")"
+check "never removes another lock" "0" "$(count_calls "team-no-delete")"
+
+FAKE_AZ_SCENARIO=orphaned-lock run_case orphaned-lock disable DRY_RUN=false
+check "adopts orphaned run lock" "0" "${case_status}"
+check "adopted lock is not created again" "0" "$(count_calls "lock create")"
+check "adopted lock is removed" "1" "$(count_calls "lock delete")"
+
+FAKE_AZ_SCENARIO=fail-scale run_case fail-scale disable DRY_RUN=false
+check "failed run exits non zero" "1" "$(( case_status != 0 ))"
+check "failed run still unlocks" "1" "$(count_calls "lock delete")"
+
+FAKE_AZ_SCENARIO=fail-unlock run_case fail-unlock disable DRY_RUN=false
+check "failed unlock fails the run" "1" "${case_status}"
+check_output_contains "failed unlock is reported" "Could not remove lock 'ipaffs-pipeline-run'"
+
+never_unlocks_other=0
+for log_file in "${work_dir}"/*.az.log; do
+  if grep -q "^lock delete" "${log_file}" && grep "^lock delete" "${log_file}" | grep -qv -- "--name ipaffs-pipeline-run"; then
+    never_unlocks_other=$((never_unlocks_other + 1))
+  fi
+done
+check "only the run lock is ever removed" "0" "${never_unlocks_other}"
 
 run_case bad-action stop DRY_RUN=false
 check "rejects unknown action" "1" "${case_status}"

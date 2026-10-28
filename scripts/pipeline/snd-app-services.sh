@@ -11,6 +11,9 @@ Actions:
   delete   List the slots, apps and plans that would be deleted.
            Always a dry run until DELETE_ENABLED is changed in this script.
 
+Each run adds a CanNotDelete lock named ipaffs-pipeline-run to every listed
+resource group before any change, and removes it when the run ends.
+
 Environment:
   SUBSCRIPTION_NAME  Must be AZR-SND.
   TARGETS_FILE       Resource group allowlist; defaults to snd-app-services-targets.txt.
@@ -27,6 +30,13 @@ readonly TAG_ORIGINAL_SKU="ipaffs-original-sku"
 readonly TAG_ORIGINAL_CAPACITY="ipaffs-original-capacity"
 readonly TAG_AUTOSCALE_ENABLED="ipaffs-autoscale-enabled"
 readonly TAG_DISABLED="ipaffs-disabled"
+
+# Each run locks its resource groups against deletion and unlocks them at the end
+readonly RUN_LOCK_NAME="ipaffs-pipeline-run"
+readonly RUN_LOCK_NOTES="Added by the SND App Services pipeline for the duration of a run"
+
+LOCKED_GROUPS=""
+ORPHANED_LOCK_GROUPS=""
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
@@ -98,7 +108,7 @@ read_targets() {
 
 validate_resource_group() {
   local resource_group="${1}"
-  local lock_count
+  local locks_json read_only_locks delete_locks
 
   [[ "${resource_group}" == "${RESOURCE_GROUP_PREFIX}"* ]] \
     || fail "Resource group '${resource_group}' does not start with '${RESOURCE_GROUP_PREFIX}'"
@@ -106,12 +116,107 @@ validate_resource_group() {
   az group show --subscription "${SUBSCRIPTION_NAME}" --name "${resource_group}" --output none >/dev/null 2>&1 \
     || fail "Resource group '${resource_group}' was not found in subscription '${SUBSCRIPTION_NAME}'"
 
-  lock_count="$(az lock list \
+  locks_json="$(az lock list \
     --subscription "${SUBSCRIPTION_NAME}" \
     --resource-group "${resource_group}" \
-    --query "length(@)" \
-    --output tsv)"
-  [[ "${lock_count}" == "0" ]] || fail "Resource group '${resource_group}' has ${lock_count} lock(s)"
+    --query "[].{name:name, level:level}" \
+    --output json)"
+
+  # A ReadOnly lock would block stopping and scaling
+  read_only_locks="$(jq -r '[.[] | select(.level == "ReadOnly") | .name] | join(", ")' <<<"${locks_json}")"
+  [[ -z "${read_only_locks}" ]] \
+    || fail "Resource group '${resource_group}' has ReadOnly lock(s) ${read_only_locks}"
+
+  # Real deletion cannot work while any lock is present
+  if [[ "${ACTION}" == "delete" && "${DELETE_ENABLED}" == "true" ]]; then
+    delete_locks="$(jq -r '[.[] | .name] | join(", ")' <<<"${locks_json}")"
+    [[ -z "${delete_locks}" ]] \
+      || fail "Resource group '${resource_group}' has lock(s) ${delete_locks}; an Owner must remove them before deleting"
+  fi
+
+  # A run lock left by a killed run is adopted and removed at the end
+  if jq -e --arg name "${RUN_LOCK_NAME}" 'any(.[]; .name == $name)' <<<"${locks_json}" >/dev/null; then
+    ORPHANED_LOCK_GROUPS+="${resource_group}"$'\n'
+  fi
+}
+
+group_in_list() {
+  local resource_group="${1}"
+  local list="${2}"
+
+  grep -qxF -- "${resource_group}" <<<"${list}"
+}
+
+# Locks are real for pipeline runs and only printed for a local disable dry run
+lock_mode() {
+  if [[ "${ACTION}" == "delete" && "${DELETE_ENABLED}" == "true" ]]; then
+    echo none
+  elif [[ "${ACTION}" == "disable" && "${DRY_RUN_ENABLED}" == "true" ]]; then
+    echo print
+  else
+    echo apply
+  fi
+}
+
+lock_resource_groups() {
+  local resource_group
+  local -a lock_command
+
+  while IFS= read -r resource_group; do
+    [[ -n "${resource_group}" ]] || continue
+
+    lock_command=(az lock create
+      --subscription "${SUBSCRIPTION_NAME}"
+      --resource-group "${resource_group}"
+      --name "${RUN_LOCK_NAME}"
+      --lock-type CanNotDelete
+      --notes "${RUN_LOCK_NOTES}"
+      --output none)
+
+    case "$(lock_mode)" in
+      print)
+        printf "DRY RUN: "
+        print_command "${lock_command[@]}"
+        ;;
+      apply)
+        if group_in_list "${resource_group}" "${ORPHANED_LOCK_GROUPS}"; then
+          log "Adopting existing lock '${RUN_LOCK_NAME}' on resource group '${resource_group}'"
+        else
+          log "Locking resource group '${resource_group}' with CanNotDelete lock '${RUN_LOCK_NAME}'"
+          "${lock_command[@]}"
+        fi
+        LOCKED_GROUPS+="${resource_group}"$'\n'
+        ;;
+    esac
+  done <<<"${1}"
+}
+
+# Removes only the locks this run added or adopted, even when the run fails
+unlock_resource_groups() {
+  local status=$?
+  local resource_group unlock_failed=false
+
+  trap - EXIT
+  set +e
+
+  while IFS= read -r resource_group; do
+    [[ -n "${resource_group}" ]] || continue
+    log "Removing lock '${RUN_LOCK_NAME}' from resource group '${resource_group}'"
+    if ! az lock delete \
+      --subscription "${SUBSCRIPTION_NAME}" \
+      --resource-group "${resource_group}" \
+      --name "${RUN_LOCK_NAME}" \
+      --output none; then
+      echo "ERROR: Could not remove lock '${RUN_LOCK_NAME}' from resource group '${resource_group}'; remove it manually" >&2
+      unlock_failed=true
+    fi
+  done <<<"${LOCKED_GROUPS}"
+
+  if [[ "${status}" -eq 0 && "${unlock_failed}" == "true" ]]; then
+    status=1
+  fi
+
+  exit "${status}"
 }
 
 load_autoscale_settings() {
@@ -335,6 +440,10 @@ process_resource_group() {
 
   log "Found $(jq 'length' <<<"${plans_json}") plan(s), $(jq 'length' <<<"${sites_json}") app(s) and $(grep -c . <<<"${slot_ids}" || true) slot(s)"
 
+  if [[ "${ACTION}" == "delete" ]] && group_in_list "${resource_group}" "${LOCKED_GROUPS}"; then
+    log "Resource group '${resource_group}' is locked for this run, delete commands are printed only"
+  fi
+
   while IFS= read -r plan_json; do
     [[ -n "${plan_json}" ]] || continue
     case "${ACTION}" in
@@ -387,6 +496,12 @@ done <<<"${targets}"
 if [[ "${ACTION}" == "disable" ]]; then
   load_autoscale_settings
 fi
+
+# Unlock on any exit so a failed or cancelled run does not leave locks behind
+trap unlock_resource_groups EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
+lock_resource_groups "${targets}"
 
 while IFS= read -r resource_group; do
   process_resource_group "${resource_group}"
