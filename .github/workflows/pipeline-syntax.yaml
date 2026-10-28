@@ -92,6 +92,10 @@ jobs:
         shell: bash
         run: bash scripts/pipeline/update-manifest-service-values.test.sh
 
+      - name: Test SND App Services disable and delete
+        shell: bash
+        run: bash scripts/pipeline/snd-app-services.test.sh
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:

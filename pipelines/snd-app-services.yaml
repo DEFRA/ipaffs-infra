@@ -1,0 +1,54 @@
+---
+name: snd-app-services-$(Date:yyyyMMdd)$(Rev:.r)
+
+trigger: none
+pr: none
+
+pool:
+  name: DEFRA-COMMON-ubuntu2204-SSV5
+
+parameters:
+  - name: action
+    displayName: Action
+    type: string
+    default: disable
+    values:
+      - disable
+      - delete
+
+variables:
+  - template: "/pipelines/vars/common.yaml"
+  - template: "/pipelines/vars/snd.yaml"
+
+stages:
+  - template: stages/tag-build.yaml
+    parameters:
+      tags:
+        - Environment-SND
+        - Action-${{ parameters.action }}
+
+  - stage: SndAppServices
+    displayName: ${{ upper(parameters.action) }} SND App Services
+    jobs:
+      - job: SndAppServices
+        displayName: ${{ parameters.action }} App Services in listed resource groups
+        timeoutInMinutes: 120
+        steps:
+          - checkout: self
+
+          - task: AzureCLI@2
+            displayName: Run ${{ parameters.action }}
+            env:
+              SUBSCRIPTION_NAME: $(classicSubscriptionName)
+              ${{ if eq(parameters.action, 'delete') }}:
+                # Delete is hardcoded to dry run for now
+                DRY_RUN: "true"
+              ${{ else }}:
+                DRY_RUN: "false"
+            inputs:
+              azureSubscription: $(classicServiceConnection)
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                set -euo pipefail
+                bash scripts/pipeline/snd-app-services.sh ${{ parameters.action }}

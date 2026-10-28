@@ -152,6 +152,33 @@ role assignments, groups or Azure resources.
 
 QA, configuration validation and classic maintenance/switch tooling remain here.
 
+### SND App Services
+
+`pipelines/snd-app-services.yaml` cuts the cost of the legacy App Services in
+AZR-SND. It acts only on the resource groups listed in
+`scripts/pipeline/snd-app-services-targets.txt`, and has one parameter, `action`:
+
+| Action | What it does |
+| --- | --- |
+| `disable` | Records each plan's original SKU, instance count and autoscale state as `ipaffs-*` tags, turns its autoscale off, stops its apps and slots, then scales it to B1 x1 (S1 x1 when it hosts slots, which Basic does not support). Safe to rerun; the original tags are never overwritten. |
+| `delete` | **Dry run only.** Logs the slots, apps and plans it would delete as `DRY RUN: az ...` lines and changes nothing. Resource groups are never deleted. |
+
+App Service is billed per plan instance, so stopped apps on a Premium plan still
+cost the full price; the saving comes from scaling the plans down.
+
+Delete is locked to dry run in two places: the pipeline hardcodes `DRY_RUN: "true"`
+for it, and the script only prints delete commands while `DELETE_ENABLED=false`.
+Enabling real deletion needs a reviewed change to both. When enabled, delete also
+refuses any plan without the `ipaffs-disabled` tag.
+
+Before acting, the script checks that the subscription is `AZR-SND`, and that every
+listed resource group exists, starts with `SNDIMP` and has no locks. To restore a
+plan, scale it back to its `ipaffs-original-sku` and `ipaffs-original-capacity`,
+re-enable autoscale if `ipaffs-autoscale-enabled` is `true`, then start its apps.
+
+Shared SND resources in `SNDIMPINFRGP009` are managed by `bicep/envs/snd/30-classic.bicepparam`;
+change those through Bicep instead.
+
 ### DEV SQL elastic pool
 
 The DEV parameters configure `DEVIMPDBSEP1401` for 4 vCores and 128 GiB of storage.
