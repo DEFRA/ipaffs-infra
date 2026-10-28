@@ -11,8 +11,8 @@ Actions:
   delete   List the slots, apps and plans that would be deleted.
            Always a dry run until DELETE_ENABLED is changed in this script.
 
-Each run adds a CanNotDelete lock named ipaffs-pipeline-run to every listed
-resource group before any change, and removes it when the run ends.
+A delete run adds a CanNotDelete lock named ipaffs-pipeline-run to every listed
+resource group before listing, and removes it when the run ends. Disable adds no lock.
 
 Environment:
   SUBSCRIPTION_NAME  Must be AZR-SND.
@@ -31,7 +31,7 @@ readonly TAG_ORIGINAL_CAPACITY="ipaffs-original-capacity"
 readonly TAG_AUTOSCALE_ENABLED="ipaffs-autoscale-enabled"
 readonly TAG_DISABLED="ipaffs-disabled"
 
-# Each run locks its resource groups against deletion and unlocks them at the end
+# A delete run locks its resource groups against deletion and unlocks them at the end
 readonly RUN_LOCK_NAME="ipaffs-pipeline-run"
 readonly RUN_LOCK_NOTES="Added by the SND App Services pipeline for the duration of a run"
 
@@ -136,26 +136,18 @@ validate_resource_group() {
 # Creating the lock again over one left by a killed run is harmless
 lock_resource_groups() {
   local resource_group
-  local -a lock_command
 
   [[ "${LOCK_MODE}" != "none" ]] || return 0
 
   while IFS= read -r resource_group; do
-    lock_command=(az lock create
-      --subscription "${SUBSCRIPTION_NAME}"
-      --resource-group "${resource_group}"
-      --name "${RUN_LOCK_NAME}"
-      --lock-type CanNotDelete
-      --notes "${RUN_LOCK_NOTES}"
-      --output none)
-
-    if [[ "${LOCK_MODE}" == "print" ]]; then
-      print_dry_run "${lock_command[@]}"
-      continue
-    fi
-
     log "Locking resource group '${resource_group}' with CanNotDelete lock '${RUN_LOCK_NAME}'"
-    "${lock_command[@]}"
+    az lock create \
+      --subscription "${SUBSCRIPTION_NAME}" \
+      --resource-group "${resource_group}" \
+      --name "${RUN_LOCK_NAME}" \
+      --lock-type CanNotDelete \
+      --notes "${RUN_LOCK_NOTES}" \
+      --output none
     LOCKED_GROUPS+="${resource_group}"$'\n'
   done <<<"${1}"
 }
@@ -447,13 +439,11 @@ if [[ "${ACTION}" == "delete" && "${DELETE_ENABLED}" == "true" && "${DRY_RUN_ENA
 fi
 readonly REAL_DELETE
 
-# A real delete cannot run under a lock and a local disable dry run only prints it
-if [[ "${REAL_DELETE}" == "true" ]]; then
-  LOCK_MODE=none
-elif [[ "${ACTION}" == "disable" && "${DRY_RUN_ENABLED}" == "true" ]]; then
-  LOCK_MODE=print
-else
+# Only the delete dry run is locked because a real delete cannot run under a lock
+if [[ "${ACTION}" == "delete" && "${REAL_DELETE}" != "true" ]]; then
   LOCK_MODE=apply
+else
+  LOCK_MODE=none
 fi
 readonly LOCK_MODE
 

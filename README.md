@@ -178,12 +178,11 @@ re-enable autoscale if `ipaffs-autoscale-enabled` is `true`, then start its apps
 
 #### Run locks
 
-Every run, `disable` or `delete`, adds a `CanNotDelete` lock named
-`ipaffs-pipeline-run` to each listed resource group before changing anything, and
-removes it when the run ends, including when the run fails or is cancelled. While
-the lock is in place, stopping, scaling, tagging and autoscale changes still work,
-but any delete in those resource groups fails with `ScopeLocked`, whether it comes
-from a script bug, another tool or a person.
+A `delete` run adds a `CanNotDelete` lock named `ipaffs-pipeline-run` to each
+listed resource group before listing anything, and removes it when the run ends,
+including when the run fails or is cancelled. While the lock is in place, any delete
+in those resource groups fails with `ScopeLocked`, whether it comes from a script
+bug, another tool or a person. `disable` does not add a lock.
 
 The lock only protects for the duration of a run; the pipeline itself adds and
 removes it. Other locks on the resource groups are left alone. If a run is killed
@@ -220,7 +219,8 @@ az role assignment create \
   --scope /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/<resource-group>
 ```
 
-Without this role a run fails at the first `az lock create`, before any change.
+Without this role a `delete` run fails at the first `az lock create`, before it
+lists anything. `disable` does not need it.
 
 Shared SND resources in `SNDIMPINFRGP009` are managed by `bicep/envs/snd/30-classic.bicepparam`;
 change those through Bicep instead.

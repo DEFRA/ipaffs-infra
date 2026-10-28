@@ -96,10 +96,6 @@ case "$*" in
       *) echo '[]' ;;
     esac
     ;;
-  "appservice plan update"*)
-    [[ "${FAKE_AZ_SCENARIO}" == "fail-scale" ]] && exit 1
-    exit 0
-    ;;
   "lock delete"*)
     [[ "${FAKE_AZ_SCENARIO}" == "fail-unlock" ]] && exit 1
     exit 0
@@ -114,6 +110,7 @@ case "$*" in
     printf '[{"name":"plan-a-autoscale","resourceGroup":"SNDIMPTEST-RG","enabled":true,"target":"%s"}]\n' "${plan_a_upper}"
     ;;
   "appservice plan list"*)
+    [[ "${FAKE_AZ_SCENARIO}" == "fail-list" ]] && exit 1
     if [[ "${FAKE_AZ_SCENARIO}" == "tagged" ]]; then
       tags_a='{"ipaffs-disabled":"2026-10-01","ipaffs-original-sku":"P2v3"}'
     else
@@ -172,10 +169,8 @@ check "skips stopped app" "0" "$(count_calls "sites/site-b")"
 check "scales slot plan to S1" "1" "$(count_calls "serverfarms/plan-a --sku S1 --number-of-workers 1")"
 check "scales plain plan to B1" "1" "$(count_calls "serverfarms/plan-b --sku B1 --number-of-workers 1")"
 check "never deletes" "0" "$(count_resource_deletes)"
-check "locks resource group once" "1" "$(count_calls "lock create --subscription AZR-SND --resource-group SNDIMPTEST-RG --name ipaffs-pipeline-run --lock-type CanNotDelete")"
-check "locks before first stop" "true" "$(before "$(first_line "lock create")" "$(first_line " stop ")")"
-check "unlocks resource group once" "1" "$(count_calls "lock delete --subscription AZR-SND --resource-group SNDIMPTEST-RG --name ipaffs-pipeline-run")"
-check "unlocks after last scale" "true" "$(before "$(last_line "plan update")" "$(last_line "lock delete")")"
+check "disable adds no lock" "0" "$(count_calls "lock create")"
+check "disable removes no lock" "0" "$(count_calls "lock delete")"
 
 echo "disable dry run"
 run_case disable-dry-run disable DRY_RUN=true
@@ -185,7 +180,6 @@ check "dry run makes no stop" "0" "$(count_calls " stop ")"
 check "dry run makes no scale" "0" "$(count_calls "plan update")"
 check "dry run makes no autoscale change" "0" "$(count_calls "autoscale update")"
 check "dry run makes no lock call" "0" "$(( $(count_calls "lock create") + $(count_calls "lock delete") ))"
-check_output_contains "dry run prints lock" "DRY RUN: az lock create"
 check_output_contains "dry run prints scale" "DRY RUN: az appservice plan update"
 
 echo "disable rerun"
@@ -198,9 +192,10 @@ echo "delete is always a dry run"
 run_case delete delete DRY_RUN=false
 check "delete succeeds" "0" "${case_status}"
 check "delete runs no az delete" "0" "$(count_resource_deletes)"
-check "delete locks resource group" "1" "$(count_calls "lock create")"
+check "delete locks resource group" "1" "$(count_calls "lock create --subscription AZR-SND --resource-group SNDIMPTEST-RG --name ipaffs-pipeline-run --lock-type CanNotDelete")"
 check "delete locks before listing" "true" "$(before "$(first_line "lock create")" "$(first_line "appservice plan list")")"
-check "delete unlocks resource group" "1" "$(count_calls "lock delete")"
+check "delete unlocks resource group" "1" "$(count_calls "lock delete --subscription AZR-SND --resource-group SNDIMPTEST-RG --name ipaffs-pipeline-run")"
+check "delete unlocks after listing" "true" "$(before "$(last_line "appservice plan list")" "$(last_line "lock delete")")"
 check_output_contains "delete reports lock" "Locking resource group 'SNDIMPTEST-RG' with CanNotDelete lock"
 check "delete makes no change" "0" "$(count_calls " stop ")"
 check_output_contains "delete prints slot" "DRY RUN: az webapp deployment slot delete"
@@ -230,21 +225,24 @@ check "rejects ReadOnly lock" "1" "${case_status}"
 check "ReadOnly lock adds no lock" "0" "$(count_calls "lock create")"
 check "ReadOnly lock makes no change" "0" "$(count_calls " stop ")"
 
-FAKE_AZ_SCENARIO=other-lock run_case other-lock disable DRY_RUN=false
-check "works alongside another lock" "0" "${case_status}"
+FAKE_AZ_SCENARIO=other-lock run_case other-lock-disable disable DRY_RUN=false
+check "disable works alongside another lock" "0" "${case_status}"
 check "still stops apps with another lock" "1" "$(count_calls "functionapp stop")"
+
+FAKE_AZ_SCENARIO=other-lock run_case other-lock delete
+check "delete works alongside another lock" "0" "${case_status}"
 check "never removes another lock" "0" "$(count_calls "team-no-delete")"
 
-FAKE_AZ_SCENARIO=orphaned-lock run_case orphaned-lock disable DRY_RUN=false
+FAKE_AZ_SCENARIO=orphaned-lock run_case orphaned-lock delete
 check "handles leftover run lock" "0" "${case_status}"
 check "leftover lock is recreated" "1" "$(count_calls "lock create")"
 check "leftover lock is removed" "1" "$(count_calls "lock delete")"
 
-FAKE_AZ_SCENARIO=fail-scale run_case fail-scale disable DRY_RUN=false
+FAKE_AZ_SCENARIO=fail-list run_case fail-list delete
 check "failed run exits non zero" "1" "$(( case_status != 0 ))"
 check "failed run still unlocks" "1" "$(count_calls "lock delete")"
 
-FAKE_AZ_SCENARIO=fail-unlock run_case fail-unlock disable DRY_RUN=false
+FAKE_AZ_SCENARIO=fail-unlock run_case fail-unlock delete
 check "failed unlock fails the run" "1" "${case_status}"
 check_output_contains "failed unlock is reported" "Could not remove lock 'ipaffs-pipeline-run'"
 
