@@ -36,12 +36,15 @@ readonly RUN_LOCK_NAME="ipaffs-pipeline-run"
 readonly RUN_LOCK_NOTES="Added by the SND App Services pipeline for the duration of a run"
 
 LOCKED_GROUPS=""
-ORPHANED_LOCK_GROUPS=""
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-fail() {
+error() {
   echo "ERROR: $*" >&2
+}
+
+fail() {
+  error "$@"
   exit 1
 }
 
@@ -72,10 +75,14 @@ print_command() {
   printf "\n"
 }
 
+print_dry_run() {
+  printf "DRY RUN: "
+  print_command "$@"
+}
+
 run_cmd() {
   if [[ "${DRY_RUN_ENABLED}" == "true" ]]; then
-    printf "DRY RUN: "
-    print_command "$@"
+    print_dry_run "$@"
     return 0
   fi
 
@@ -84,9 +91,8 @@ run_cmd() {
 
 # Only prints unless deletion has been enabled in code
 run_delete_cmd() {
-  if [[ "${DELETE_ENABLED}" != "true" || "${DRY_RUN_ENABLED}" == "true" ]]; then
-    printf "DRY RUN: "
-    print_command "$@"
+  if [[ "${REAL_DELETE}" != "true" ]]; then
+    print_dry_run "$@"
     return 0
   fi
 
@@ -108,7 +114,7 @@ read_targets() {
 
 validate_resource_group() {
   local resource_group="${1}"
-  local locks_json read_only_locks delete_locks
+  local blocking_locks
 
   [[ "${resource_group}" == "${RESOURCE_GROUP_PREFIX}"* ]] \
     || fail "Resource group '${resource_group}' does not start with '${RESOURCE_GROUP_PREFIX}'"
@@ -116,55 +122,25 @@ validate_resource_group() {
   az group show --subscription "${SUBSCRIPTION_NAME}" --name "${resource_group}" --output none >/dev/null 2>&1 \
     || fail "Resource group '${resource_group}' was not found in subscription '${SUBSCRIPTION_NAME}'"
 
-  locks_json="$(az lock list \
+  # ReadOnly blocks stop and scale and real deletion is blocked by any lock
+  blocking_locks="$(az lock list \
     --subscription "${SUBSCRIPTION_NAME}" \
     --resource-group "${resource_group}" \
     --query "[].{name:name, level:level}" \
-    --output json)"
-
-  # A ReadOnly lock would block stopping and scaling
-  read_only_locks="$(jq -r '[.[] | select(.level == "ReadOnly") | .name] | join(", ")' <<<"${locks_json}")"
-  [[ -z "${read_only_locks}" ]] \
-    || fail "Resource group '${resource_group}' has ReadOnly lock(s) ${read_only_locks}"
-
-  # Real deletion cannot work while any lock is present
-  if [[ "${ACTION}" == "delete" && "${DELETE_ENABLED}" == "true" ]]; then
-    delete_locks="$(jq -r '[.[] | .name] | join(", ")' <<<"${locks_json}")"
-    [[ -z "${delete_locks}" ]] \
-      || fail "Resource group '${resource_group}' has lock(s) ${delete_locks}; an Owner must remove them before deleting"
-  fi
-
-  # A run lock left by a killed run is adopted and removed at the end
-  if jq -e --arg name "${RUN_LOCK_NAME}" 'any(.[]; .name == $name)' <<<"${locks_json}" >/dev/null; then
-    ORPHANED_LOCK_GROUPS+="${resource_group}"$'\n'
-  fi
+    --output json \
+    | jq -r --argjson any "${REAL_DELETE}" '[.[] | select($any or .level == "ReadOnly") | .name] | join(", ")')"
+  [[ -z "${blocking_locks}" ]] \
+    || fail "Resource group '${resource_group}' has blocking lock(s) ${blocking_locks}"
 }
 
-group_in_list() {
-  local resource_group="${1}"
-  local list="${2}"
-
-  grep -qxF -- "${resource_group}" <<<"${list}"
-}
-
-# Locks are real for pipeline runs and only printed for a local disable dry run
-lock_mode() {
-  if [[ "${ACTION}" == "delete" && "${DELETE_ENABLED}" == "true" ]]; then
-    echo none
-  elif [[ "${ACTION}" == "disable" && "${DRY_RUN_ENABLED}" == "true" ]]; then
-    echo print
-  else
-    echo apply
-  fi
-}
-
+# Creating the lock again over one left by a killed run is harmless
 lock_resource_groups() {
   local resource_group
   local -a lock_command
 
-  while IFS= read -r resource_group; do
-    [[ -n "${resource_group}" ]] || continue
+  [[ "${LOCK_MODE}" != "none" ]] || return 0
 
+  while IFS= read -r resource_group; do
     lock_command=(az lock create
       --subscription "${SUBSCRIPTION_NAME}"
       --resource-group "${resource_group}"
@@ -173,28 +149,21 @@ lock_resource_groups() {
       --notes "${RUN_LOCK_NOTES}"
       --output none)
 
-    case "$(lock_mode)" in
-      print)
-        printf "DRY RUN: "
-        print_command "${lock_command[@]}"
-        ;;
-      apply)
-        if group_in_list "${resource_group}" "${ORPHANED_LOCK_GROUPS}"; then
-          log "Adopting existing lock '${RUN_LOCK_NAME}' on resource group '${resource_group}'"
-        else
-          log "Locking resource group '${resource_group}' with CanNotDelete lock '${RUN_LOCK_NAME}'"
-          "${lock_command[@]}"
-        fi
-        LOCKED_GROUPS+="${resource_group}"$'\n'
-        ;;
-    esac
+    if [[ "${LOCK_MODE}" == "print" ]]; then
+      print_dry_run "${lock_command[@]}"
+      continue
+    fi
+
+    log "Locking resource group '${resource_group}' with CanNotDelete lock '${RUN_LOCK_NAME}'"
+    "${lock_command[@]}"
+    LOCKED_GROUPS+="${resource_group}"$'\n'
   done <<<"${1}"
 }
 
-# Removes only the locks this run added or adopted, even when the run fails
+# Removes only the run lock, even when the run fails
 unlock_resource_groups() {
   local status=$?
-  local resource_group unlock_failed=false
+  local resource_group
 
   trap - EXIT
   set +e
@@ -207,14 +176,10 @@ unlock_resource_groups() {
       --resource-group "${resource_group}" \
       --name "${RUN_LOCK_NAME}" \
       --output none; then
-      echo "ERROR: Could not remove lock '${RUN_LOCK_NAME}' from resource group '${resource_group}'; remove it manually" >&2
-      unlock_failed=true
+      error "Could not remove lock '${RUN_LOCK_NAME}' from resource group '${resource_group}'; remove it manually"
+      [[ "${status}" -ne 0 ]] || status=1
     fi
   done <<<"${LOCKED_GROUPS}"
-
-  if [[ "${status}" -eq 0 && "${unlock_failed}" == "true" ]]; then
-    status=1
-  fi
 
   exit "${status}"
 }
@@ -391,7 +356,7 @@ delete_plan() {
 
   # Only plans that went through disable may be deleted
   if [[ -z "${disabled_tag}" ]]; then
-    [[ "${DELETE_ENABLED}" != "true" ]] || fail "Plan '${plan_name}' has not been disabled; run disable first"
+    [[ "${REAL_DELETE}" != "true" ]] || fail "Plan '${plan_name}' has not been disabled; run disable first"
     log "WARNING: plan '${plan_name}' has not been disabled yet and would be refused"
   fi
 
@@ -440,10 +405,6 @@ process_resource_group() {
 
   log "Found $(jq 'length' <<<"${plans_json}") plan(s), $(jq 'length' <<<"${sites_json}") app(s) and $(grep -c . <<<"${slot_ids}" || true) slot(s)"
 
-  if [[ "${ACTION}" == "delete" ]] && group_in_list "${resource_group}" "${LOCKED_GROUPS}"; then
-    log "Resource group '${resource_group}' is locked for this run, delete commands are printed only"
-  fi
-
   while IFS= read -r plan_json; do
     [[ -n "${plan_json}" ]] || continue
     case "${ACTION}" in
@@ -480,12 +441,28 @@ TARGETS_FILE="${TARGETS_FILE:-${script_dir}/snd-app-services-targets.txt}"
 
 DRY_RUN_ENABLED="$(normalise_bool "${DRY_RUN:-true}")"
 
+REAL_DELETE=false
+if [[ "${ACTION}" == "delete" && "${DELETE_ENABLED}" == "true" && "${DRY_RUN_ENABLED}" == "false" ]]; then
+  REAL_DELETE=true
+fi
+readonly REAL_DELETE
+
+# A real delete cannot run under a lock and a local disable dry run only prints it
+if [[ "${REAL_DELETE}" == "true" ]]; then
+  LOCK_MODE=none
+elif [[ "${ACTION}" == "disable" && "${DRY_RUN_ENABLED}" == "true" ]]; then
+  LOCK_MODE=print
+else
+  LOCK_MODE=apply
+fi
+readonly LOCK_MODE
+
 targets="$(read_targets)"
 [[ -n "${targets}" ]] || fail "Targets file '${TARGETS_FILE}' has no resource groups"
 
-log "Action=${ACTION} Subscription=${SUBSCRIPTION_NAME} DryRun=${DRY_RUN_ENABLED} DeleteEnabled=${DELETE_ENABLED}"
-if [[ "${ACTION}" == "delete" && "${DELETE_ENABLED}" != "true" ]]; then
-  log "Delete is locked to dry run, nothing will be deleted"
+log "Action=${ACTION} Subscription=${SUBSCRIPTION_NAME} DryRun=${DRY_RUN_ENABLED} DeleteEnabled=${DELETE_ENABLED} Locks=${LOCK_MODE}"
+if [[ "${ACTION}" == "delete" && "${REAL_DELETE}" != "true" ]]; then
+  log "Delete is a dry run, nothing will be deleted"
 fi
 
 # Check every target before changing anything

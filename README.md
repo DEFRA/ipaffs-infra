@@ -187,7 +187,7 @@ from a script bug, another tool or a person.
 
 The lock only protects for the duration of a run; the pipeline itself adds and
 removes it. Other locks on the resource groups are left alone. If a run is killed
-before it can clean up, rerun the pipeline (it adopts and removes the leftover
+before it can clean up, rerun the pipeline (it takes over and removes the leftover
 lock) or remove it by hand:
 
 ```bash

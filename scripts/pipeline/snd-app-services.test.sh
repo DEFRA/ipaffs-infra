@@ -201,7 +201,7 @@ check "delete runs no az delete" "0" "$(count_resource_deletes)"
 check "delete locks resource group" "1" "$(count_calls "lock create")"
 check "delete locks before listing" "true" "$(before "$(first_line "lock create")" "$(first_line "appservice plan list")")"
 check "delete unlocks resource group" "1" "$(count_calls "lock delete")"
-check_output_contains "delete reports lock" "is locked for this run, delete commands are printed only"
+check_output_contains "delete reports lock" "Locking resource group 'SNDIMPTEST-RG' with CanNotDelete lock"
 check "delete makes no change" "0" "$(count_calls " stop ")"
 check_output_contains "delete prints slot" "DRY RUN: az webapp deployment slot delete"
 check_output_contains "delete prints web app" "DRY RUN: az webapp delete --ids /subscriptions/sub/resourceGroups/SNDIMPTEST-RG/providers/Microsoft.Web/sites/site-a --keep-empty-plan"
@@ -236,9 +236,9 @@ check "still stops apps with another lock" "1" "$(count_calls "functionapp stop"
 check "never removes another lock" "0" "$(count_calls "team-no-delete")"
 
 FAKE_AZ_SCENARIO=orphaned-lock run_case orphaned-lock disable DRY_RUN=false
-check "adopts orphaned run lock" "0" "${case_status}"
-check "adopted lock is not created again" "0" "$(count_calls "lock create")"
-check "adopted lock is removed" "1" "$(count_calls "lock delete")"
+check "handles leftover run lock" "0" "${case_status}"
+check "leftover lock is recreated" "1" "$(count_calls "lock create")"
+check "leftover lock is removed" "1" "$(count_calls "lock delete")"
 
 FAKE_AZ_SCENARIO=fail-scale run_case fail-scale disable DRY_RUN=false
 check "failed run exits non zero" "1" "$(( case_status != 0 ))"
