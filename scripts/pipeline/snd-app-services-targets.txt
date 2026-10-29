@@ -1,7 +1,7 @@
 # Resource groups in AZR SND whose App Services are disabled or deleted
 # One resource group per line
 SNDIMPINFRGP001-Pool-7
-# SNDIMPINFRGP001-imports-static-integration
-# SNDIMPINFRGP001-imports-static-test
-# SNDIMPINFRGP001-imports-static-vnet
-# SNDIMPINFRGP010
+SNDIMPINFRGP001-imports-static-integration
+SNDIMPINFRGP001-imports-static-test
+SNDIMPINFRGP001-imports-static-vnet
+SNDIMPINFRGP010
