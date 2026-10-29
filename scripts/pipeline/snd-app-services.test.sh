@@ -129,6 +129,8 @@ case "$*" in
     [[ "${FAKE_AZ_SCENARIO}" == "fail-list" ]] && exit 1
     sku_a="P2v3"
     capacity_a=3
+    zone_a=false
+    [[ "${FAKE_AZ_SCENARIO}" == "zone-redundant" ]] && zone_a=true
     case "${FAKE_AZ_SCENARIO}" in
       tagged)
         tags_a='{"ipaffs-disabled":"2026-10-01","ipaffs-original-sku":"P2v3"}'
@@ -142,7 +144,7 @@ case "$*" in
         tags_a='null'
         ;;
     esac
-    printf '[{"id":"%s","name":"plan-a","resourceGroup":"SNDIMPTEST-RG","sku":"%s","capacity":%s,"tags":%s},' "${plan_a}" "${sku_a}" "${capacity_a}" "${tags_a}"
+    printf '[{"id":"%s","name":"plan-a","resourceGroup":"SNDIMPTEST-RG","sku":"%s","capacity":%s,"zoneRedundant":%s,"tags":%s},' "${plan_a}" "${sku_a}" "${capacity_a}" "${zone_a}" "${tags_a}"
     printf '{"id":"%s","name":"plan-b","resourceGroup":"SNDIMPTEST-RG","sku":"P1v3","capacity":1,"tags":null}]\n' "${plan_b}"
     ;;
   "monitor diagnostic-settings list --resource ${site_a} "*)
@@ -262,6 +264,13 @@ check_output_contains "dry run prints scale" "DRY RUN: az appservice plan update
 check_output_contains "dry run prints audit logs off" "DRY RUN: az monitor diagnostic-settings update"
 
 echo "disable rerun"
+FAKE_AZ_SCENARIO=zone-redundant run_case zone-redundant disable DRY_RUN=false
+check "scales zone redundant plan to smallest Premium" "1" "$(count_calls "serverfarms/plan-a --sku P0v3 --number-of-workers 3")"
+check "zone redundant plan never goes below Premium" "0" "$(count_calls "serverfarms/plan-a --sku S1")"
+check "zone redundant plan keeps Premium logs" "0" "$(count_calls "diagnostic-settings update")"
+check "zone redundant plan still stops apps" "1" "$(count_exact_calls "webapp stop --ids /subscriptions/sub/resourceGroups/SNDIMPTEST-RG/providers/Microsoft.Web/sites/site-a")"
+check "other plan still scales to B1" "1" "$(count_calls "serverfarms/plan-b --sku B1 --number-of-workers 1")"
+
 FAKE_AZ_SCENARIO=tagged run_case disable-tagged disable DRY_RUN=false
 check "rerun succeeds" "0" "${case_status}"
 check "rerun keeps original tags" "0" "$(count_calls "serverfarms/plan-a --operation Merge --tags ipaffs-original")"

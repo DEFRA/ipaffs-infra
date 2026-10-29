@@ -160,7 +160,7 @@ AZR-SND. It acts only on the resource groups listed in
 
 | Action | What it does |
 | --- | --- |
-| `disable` | Records each plan's original SKU, instance count and the autoscale settings it turns off as `ipaffs-*` tags, turns that autoscale off, lists its running apps and slots on the plan and stops them, turns off Premium only logs (File Change Audit and Antivirus Scan), then scales it to B1 x1 (S1 x1 when it hosts slots, which Basic does not support). Safe to rerun; the original tags are never overwritten. |
+| `disable` | Records each plan's original SKU, instance count and the autoscale settings it turns off as `ipaffs-*` tags, turns that autoscale off, lists its running apps and slots on the plan and stops them, turns off Premium only logs (File Change Audit and Antivirus Scan), then scales it to B1 x1 (S1 x1 when it hosts slots, which Basic does not support). Zone redundant plans must stay Premium, so they scale to P0v3 at their current instance count and keep their Premium only logs. Safe to rerun; the original tags are never overwritten. |
 | `restore` | Undoes `disable` on plans with the `ipaffs-disabled` tag: scales each back to its original SKU and instance count, turns the Premium only logs and the recorded autoscale settings back on, starts only the apps and slots listed in the plan's `ipaffs-stopped-*` tags, then removes the `ipaffs-*` tags. Plans without the tag are left alone. Safe to rerun. |
 | `delete` | **Dry run only.** Logs the slots, apps and plans it would delete as `DRY RUN: az ...` lines and changes nothing. Resource groups are never deleted. |
 

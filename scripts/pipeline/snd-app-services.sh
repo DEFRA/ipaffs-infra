@@ -9,6 +9,8 @@ Actions:
   disable  Record the original plan size as tags, turn autoscale off, stop
            all apps and slots, turn off File Change Audit logs that need a
            Premium plan, then scale each plan to B1 (S1 when it hosts slots).
+           Zone redundant plans keep their instance count and Premium logs
+           and scale to P0v3 instead.
   restore  Undo disable on plans tagged by it. Scale each plan back to its
            original size, turn File Change Audit logs and autoscale back on,
            start only the apps and slots disable stopped, then remove the tags.
@@ -47,6 +49,8 @@ readonly TAG_VALUE_LIMIT=256
 
 # These log categories need a Premium plan so they are turned off before scaling down
 # Azure hides them on smaller plans and only shows them again after scaling back up
+# Zone redundant plans must stay Premium so they drop to the smallest Premium size
+readonly ZONE_REDUNDANT_SKU="P0v3"
 readonly PREMIUM_LOG_CATEGORIES='["AppServiceFileAuditLogs","AppServiceAntivirusScanAuditLogs"]'
 readonly TAG_FILE_AUDIT_OFF="ipaffs-file-audit-off"
 readonly RESTORE_LOG_ATTEMPTS="${RESTORE_LOG_ATTEMPTS:-18}"
@@ -399,7 +403,7 @@ disable_premium_logs() {
   done <<<"${settings}"
 }
 
-# Runs in the background and reads slot_ids and scale_needed from disable_plan
+# Runs in the background and reads slot_ids and premium_logs_off from disable_plan
 disable_site() {
   local site_json="${1}"
   local site_id site_name site_state app_cli slot_id site_slots
@@ -423,7 +427,7 @@ disable_site() {
     run_cmd az "${app_cli}" stop --ids "${site_id}"
   fi
 
-  [[ "${scale_needed}" == "true" ]] || return 0
+  [[ "${premium_logs_off}" == "true" ]] || return 0
   disable_premium_logs "${site_id}" "$(jq -r --arg tag "${TAG_FILE_AUDIT_OFF}" '.tags[$tag] // ""' <<<"${site_json}")"
   while IFS= read -r slot_id; do
     [[ -n "${slot_id}" ]] || continue
@@ -435,7 +439,8 @@ disable_plan() {
   local plan_json="${1}"
   local sites_json="${2}"
   local slot_ids="${3}"
-  local plan_id plan_name sku capacity disabled_tag plan_sites plan_slots target_sku scale_needed
+  local plan_id plan_name sku capacity disabled_tag plan_sites plan_slots target_sku target_capacity
+  local scale_needed premium_logs_off
   local autoscale_enabled autoscale_off autoscale_name autoscale_group site_json
   local recorded to_stop tag
   local plan_tags=()
@@ -457,6 +462,13 @@ disable_plan() {
   # Basic plans do not support slots so those plans use Standard
   target_sku="B1"
   [[ -z "${plan_slots}" ]] || target_sku="S1"
+  target_capacity=1
+  premium_logs_off=true
+  if [[ "$(jq -r '.zoneRedundant // false' <<<"${plan_json}")" == "true" ]]; then
+    target_sku="${ZONE_REDUNDANT_SKU}"
+    target_capacity="${capacity}"
+    premium_logs_off=false
+  fi
 
   autoscale_off="$(jq -r --arg plan "$(lowercase "${plan_id}")" \
     '[.[] | select((.target // "" | ascii_downcase) == $plan and .enabled == true) | "\(.resourceGroup)/\(.name)"] | join(",")' \
@@ -464,7 +476,7 @@ disable_plan() {
   autoscale_enabled=false
   [[ -z "${autoscale_off}" ]] || autoscale_enabled=true
 
-  log "Disabling plan '${plan_name}' (${sku} x${capacity}, autoscale ${autoscale_enabled}) to ${target_sku} x1"
+  log "Disabling plan '${plan_name}' (${sku} x${capacity}, autoscale ${autoscale_enabled}) to ${target_sku} x${target_capacity}"
 
   # Running apps and every slot are added to what earlier runs recorded
   recorded="$(recorded_stops "${plan_json}")"
@@ -511,18 +523,19 @@ disable_plan() {
     <<<"${AUTOSCALE_JSON}")
 
   scale_needed=true
-  [[ "${sku}" != "${target_sku}" || "${capacity}" != "1" ]] || scale_needed=false
+  [[ "${sku}" != "${target_sku}" || "${capacity}" != "${target_capacity}" ]] || scale_needed=false
+  [[ "${scale_needed}" == "true" ]] || premium_logs_off=false
 
   # Every app must be done before the plan is scaled
   run_parallel disable_site "Could not disable every app on plan '${plan_name}'; it was not scaled down" <<<"${plan_sites}"
 
   if [[ "${scale_needed}" != "true" ]]; then
-    log "Plan '${plan_name}' is already ${target_sku} x1"
+    log "Plan '${plan_name}' is already ${target_sku} x${target_capacity}"
   else
     run_cmd az appservice plan update \
       --ids "${plan_id}" \
       --sku "${target_sku}" \
-      --number-of-workers 1 \
+      --number-of-workers "${target_capacity}" \
       --output none
   fi
 }
@@ -726,7 +739,7 @@ process_resource_group() {
   plans_json="$(az appservice plan list \
     --subscription "${SUBSCRIPTION_NAME}" \
     --resource-group "${resource_group}" \
-    --query "[].{id:id, name:name, resourceGroup:resourceGroup, sku:sku.name, capacity:sku.capacity, tags:tags}" \
+    --query "[].{id:id, name:name, resourceGroup:resourceGroup, sku:sku.name, capacity:sku.capacity, zoneRedundant:zoneRedundant, tags:tags}" \
     --output json)"
   sites_json="$(list_sites "${resource_group}")"
   slot_ids="$(list_slot_ids "${resource_group}")"
