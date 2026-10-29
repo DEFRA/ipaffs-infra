@@ -160,8 +160,8 @@ AZR-SND. It acts only on the resource groups listed in
 
 | Action | What it does |
 | --- | --- |
-| `disable` | Records each plan's original SKU, instance count and the autoscale settings it turns off as `ipaffs-*` tags, turns that autoscale off, tags and stops its running apps and slots, turns off File Change Audit logs, then scales it to B1 x1 (S1 x1 when it hosts slots, which Basic does not support). Safe to rerun; the original tags are never overwritten. |
-| `restore` | Undoes `disable` on plans with the `ipaffs-disabled` tag: scales each back to its original SKU and instance count, turns File Change Audit logs and the recorded autoscale settings back on, starts only the apps and slots tagged `ipaffs-stopped-by-pipeline`, then removes the `ipaffs-*` tags. Plans without the tag are left alone. Safe to rerun. |
+| `disable` | Records each plan's original SKU, instance count and the autoscale settings it turns off as `ipaffs-*` tags, turns that autoscale off, lists its running apps and slots on the plan and stops them, turns off Premium only logs (File Change Audit and Antivirus Scan), then scales it to B1 x1 (S1 x1 when it hosts slots, which Basic does not support). Safe to rerun; the original tags are never overwritten. |
+| `restore` | Undoes `disable` on plans with the `ipaffs-disabled` tag: scales each back to its original SKU and instance count, turns the Premium only logs and the recorded autoscale settings back on, starts only the apps and slots listed in the plan's `ipaffs-stopped-*` tags, then removes the `ipaffs-*` tags. Plans without the tag are left alone. Safe to rerun. |
 | `delete` | **Dry run only.** Logs the slots, apps and plans it would delete as `DRY RUN: az ...` lines and changes nothing. Resource groups are never deleted. |
 
 App Service is billed per plan instance, so stopped apps on a Premium plan still
@@ -180,11 +180,19 @@ listed resource group exists, starts with `SNDIMP` and has no `ReadOnly` lock.
 | `ipaffs-disabled` | plan | the date it was disabled |
 | `ipaffs-original-sku`, `ipaffs-original-capacity` | plan | its size before disable |
 | `ipaffs-autoscale-off` | plan | `group/name` of each autoscale setting it turned off, or `none` |
-| `ipaffs-stopped-by-pipeline` | app or slot | the date it was stopped; apps already stopped are not tagged |
-| `ipaffs-file-audit-off` | app or slot | the diagnostic settings where it turned off File Change Audit logs |
+| `ipaffs-stopped-1`, `ipaffs-stopped-2`, ... | plan | the apps and slots it stopped, comma separated and split to fit the 256 character tag limit; apps already stopped are not listed |
+| `ipaffs-file-audit-off` | app or slot | `setting:category` for each Premium only log category it turned off |
 
 `restore` scales the plan up before anything else, because File Change Audit logs
 need the Premium plan back, and removes the plan tags last so a failed run can be rerun.
+
+Within each plan, the per app work runs 4 apps at a time (set `PARALLEL_JOBS` to
+change it). The plan is only scaled once every app on it has finished, and if any
+app fails the run stops before scaling that plan. When Azure throttles the
+subscription (HTTP 429) a change is retried up to 6 times with a growing wait.
+
+`restore` waits up to 3 minutes after scaling a plan up for Azure to show the Premium
+only log categories again, and fails without removing the app's tag if one stays hidden.
 
 File Change Audit logs (`AppServiceFileAuditLogs`) need a Premium plan, so Azure
 refuses to scale a plan to B1 or S1 while any of its apps sends them. Before scaling,

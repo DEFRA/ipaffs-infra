@@ -42,6 +42,8 @@ stages:
             displayName: Run ${{ parameters.action }}
             env:
               SUBSCRIPTION_NAME: $(classicSubscriptionName)
+              # Lets the script sign in again during runs longer than the federated token lasts
+              SYSTEM_ACCESSTOKEN: $(System.AccessToken)
               ${{ if eq(parameters.action, 'delete') }}:
                 # Delete is hardcoded to dry run for now
                 DRY_RUN: "true"

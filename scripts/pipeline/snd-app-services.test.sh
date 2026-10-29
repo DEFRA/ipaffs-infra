@@ -96,6 +96,22 @@ case "$*" in
       *) echo '[]' ;;
     esac
     ;;
+  "webapp stop --ids ${site_a}")
+    [[ "${FAKE_AZ_SCENARIO}" == "fail-stop" ]] && exit 1
+    if [[ "${FAKE_AZ_SCENARIO}" == throttle* ]]; then
+      throttle_file="${FAKE_AZ_LOG}.throttled"
+      if [[ "${FAKE_AZ_SCENARIO}" == "throttle-always" || ! -f "${throttle_file}" ]]; then
+        touch "${throttle_file}"
+        echo 'ERROR: (ProviderError) {"Code":"429","Message":"PATCH Operation is currently throttled"}' >&2
+        exit 1
+      fi
+    fi
+    exit 0
+    ;;
+  "webapp start --ids ${site_a}")
+    [[ "${FAKE_AZ_SCENARIO}" == *fail-start ]] && exit 1
+    exit 0
+    ;;
   "lock delete"*)
     [[ "${FAKE_AZ_SCENARIO}" == "fail-unlock" ]] && exit 1
     exit 0
@@ -117,8 +133,8 @@ case "$*" in
       tagged)
         tags_a='{"ipaffs-disabled":"2026-10-01","ipaffs-original-sku":"P2v3"}'
         ;;
-      disabled)
-        tags_a='{"ipaffs-disabled":"2026-10-01","ipaffs-original-sku":"P2v3","ipaffs-original-capacity":"3","ipaffs-autoscale-off":"SNDIMPTEST-RG/plan-a-autoscale"}'
+      disabled*)
+        tags_a='{"ipaffs-disabled":"2026-10-01","ipaffs-original-sku":"P2v3","ipaffs-original-capacity":"3","ipaffs-autoscale-off":"SNDIMPTEST-RG/plan-a-autoscale","ipaffs-stopped-1":"site-a,site-a/slots/staging"}'
         sku_a="S1"
         capacity_a=1
         ;;
@@ -130,7 +146,7 @@ case "$*" in
     printf '{"id":"%s","name":"plan-b","resourceGroup":"SNDIMPTEST-RG","sku":"P1v3","capacity":1,"tags":null}]\n' "${plan_b}"
     ;;
   "monitor diagnostic-settings list --resource ${site_a} "*)
-    echo '[{"name":"send-all","logs":[{"category":"AppServiceHTTPLogs","enabled":true},{"category":"AppServiceFileAuditLogs","enabled":true}]}]'
+    echo '[{"name":"send-all","logs":[{"category":"AppServiceHTTPLogs","enabled":true},{"category":"AppServiceFileAuditLogs","enabled":true},{"category":"AppServiceAntivirusScanAuditLogs","enabled":true}]}]'
     ;;
   "monitor diagnostic-settings list"*"sites/func-b "*)
     echo '[{"name":"send-all","logs":[{"category":"AppServiceFileAuditLogs","enabled":false}]}]'
@@ -139,22 +155,31 @@ case "$*" in
     echo '[]'
     ;;
   "monitor diagnostic-settings show"*)
-    echo '{"name":"send-all","logs":[{"category":"AppServiceHTTPLogs","enabled":true},{"category":"AppServiceFileAuditLogs","enabled":false}]}'
-    ;;
-  "tag list --resource-id ${site_a}/slots/staging"*"ipaffs-stopped-by-pipeline"*)
-    [[ "${FAKE_AZ_SCENARIO}" == "disabled" ]] && echo "2026-10-01"
-    exit 0
+    # Azure hides Premium only categories while the plan is small
+    if [[ "${FAKE_AZ_SCENARIO}" == *hidden-logs ]]; then
+      echo '{"name":"send-all","logs":[{"category":"AppServiceHTTPLogs","enabled":true}]}'
+    else
+      echo '{"name":"send-all","logs":[{"category":"AppServiceHTTPLogs","enabled":true},{"category":"AppServiceFileAuditLogs","enabled":false},{"category":"AppServiceAntivirusScanAuditLogs","enabled":false}]}'
+    fi
     ;;
   "webapp list"*)
     case "${FAKE_AZ_SCENARIO}" in
-      audit-tagged) tags_site_a='{"ipaffs-file-audit-off":"older-setting"}' ;;
-      disabled) tags_site_a='{"ipaffs-file-audit-off":"send-all","ipaffs-stopped-by-pipeline":"2026-10-01"}' ;;
+      audit-tagged) tags_site_a='{"ipaffs-file-audit-off":"older-setting:AppServiceFileAuditLogs"}' ;;
+      disabled*) tags_site_a='{"ipaffs-file-audit-off":"send-all:AppServiceAntivirusScanAuditLogs,send-all:AppServiceFileAuditLogs"}' ;;
       *) tags_site_a='null' ;;
     esac
     printf '[{"id":"%s","name":"site-a","kind":"app,linux,container","state":"Running","plan":"%s","tags":%s},' "${site_a}" "${plan_a_upper}" "${tags_site_a}"
     printf '{"id":"%s/providers/Microsoft.Web/sites/site-b","name":"site-b","kind":"app,linux","state":"Stopped","plan":"%s"}]\n' "${rg_id}" "${plan_b}"
     ;;
   "functionapp list"*)
+    if [[ "${FAKE_AZ_SCENARIO}" == "many-apps" ]]; then
+      printf '['
+      for n in 01 02 03 04 05 06 07 08 09 10 11 12; do
+        printf '{"id":"%s/providers/Microsoft.Web/sites/very-long-application-name-for-chunking-%s","name":"very-long-application-name-for-chunking-%s","kind":"functionapp","state":"Running","plan":"%s"},' "${rg_id}" "${n}" "${n}" "${plan_b}"
+      done
+      printf '{"id":"%s/providers/Microsoft.Web/sites/func-b","name":"func-b","kind":"functionapp,linux","state":"Running","plan":"%s"}]\n' "${rg_id}" "${plan_b}"
+      exit 0
+    fi
     printf '[{"id":"%s/providers/Microsoft.Web/sites/func-b","name":"func-b","kind":"functionapp,linux","state":"Running","plan":"%s"}]\n' "${rg_id}" "${plan_b}"
     ;;
   *)
@@ -163,6 +188,14 @@ case "$*" in
 esac
 EOF
 chmod +x "${fake_bin}/az"
+
+# Fake curl serving the Azure DevOps OIDC token endpoint
+cat > "${fake_bin}/curl" <<'EOF'
+#!/usr/bin/env bash
+printf 'curl %s\n' "$*" >> "${FAKE_AZ_LOG}"
+echo '{"oidcToken":"fake-oidc-token"}'
+EOF
+chmod +x "${fake_bin}/curl"
 
 targets_file="${work_dir}/targets.txt"
 printf '# test targets\n\nSNDIMPTEST-RG  # trailing comment\n' > "${targets_file}"
@@ -202,18 +235,19 @@ check "scales plain plan to B1" "1" "$(count_calls "serverfarms/plan-b --sku B1 
 check "never deletes" "0" "$(count_resource_deletes)"
 check "disable adds no lock" "0" "$(count_calls "lock create")"
 check "disable removes no lock" "0" "$(count_calls "lock delete")"
-check "tags app before turning off audit logs" "1" "$(count_exact_calls "tag update --resource-id /subscriptions/sub/resourceGroups/SNDIMPTEST-RG/providers/Microsoft.Web/sites/site-a --operation Merge --tags ipaffs-file-audit-off=send-all --output none")"
+check "tags app before turning off audit logs" "1" "$(count_exact_calls "tag update --resource-id /subscriptions/sub/resourceGroups/SNDIMPTEST-RG/providers/Microsoft.Web/sites/site-a --operation Merge --tags ipaffs-file-audit-off=send-all:AppServiceAntivirusScanAuditLogs,send-all:AppServiceFileAuditLogs --output none")"
 check "turns off audit logs" "1" "$(count_exact_calls "monitor diagnostic-settings update --resource /subscriptions/sub/resourceGroups/SNDIMPTEST-RG/providers/Microsoft.Web/sites/site-a --name send-all --set logs[1].enabled=false --output none")"
+check "turns off antivirus logs" "1" "$(count_exact_calls "monitor diagnostic-settings update --resource /subscriptions/sub/resourceGroups/SNDIMPTEST-RG/providers/Microsoft.Web/sites/site-a --name send-all --set logs[2].enabled=false --output none")"
 check "audit logs off before scaling" "true" "$(before "$(first_line "diagnostic-settings update")" "$(first_line "serverfarms/plan-a --sku")")"
 check "tag before audit logs off" "true" "$(before "$(first_line "ipaffs-file-audit-off")" "$(first_line "diagnostic-settings update")")"
 check "leaves audit logs already off" "0" "$(count_calls "sites/func-b --name")"
 check "checks slot audit logs" "1" "$(count_calls "diagnostic-settings list --resource /subscriptions/sub/resourceGroups/SNDIMPTEST-RG/providers/Microsoft.Web/sites/site-a/slots/staging")"
-check "changes only audit logs" "1" "$(count_calls "diagnostic-settings update")"
-check "marks stopped web app" "1" "$(count_calls "sites/site-a --operation Merge --tags ipaffs-stopped-by-pipeline=")"
-check "marks stopped slot" "1" "$(count_calls "slots/staging --operation Merge --tags ipaffs-stopped-by-pipeline=")"
-check "marks stopped function app" "1" "$(count_calls "sites/func-b --operation Merge --tags ipaffs-stopped-by-pipeline=")"
-check "does not mark app already stopped" "0" "$(count_calls "sites/site-b --operation Merge")"
-check "marks app before stopping it" "true" "$(before "$(first_line "sites/func-b --operation Merge")" "$(first_line "functionapp stop")")"
+check "changes only premium logs" "2" "$(count_calls "diagnostic-settings update")"
+check "lists stopped app and slot on the plan" "1" "$(count_calls "serverfarms/plan-a --operation Merge --tags ipaffs-original-sku=P2v3 ipaffs-original-capacity=3 ipaffs-autoscale-off=SNDIMPTEST-RG/plan-a-autoscale ipaffs-disabled=")"
+check "plan a stop list" "1" "$(count_calls "ipaffs-stopped-1=site-a,site-a/slots/staging --output none")"
+check "plan b stop list leaves out app already stopped" "1" "$(count_calls "ipaffs-stopped-1=func-b --output none")"
+check "tags no app for stopping" "0" "$(grep -F "tag update" "${case_az_log}" | grep -F "/sites/" | grep -cF "ipaffs-stopped" || true)"
+check "records stops before stopping" "true" "$(before "$(first_line "ipaffs-stopped-1=func-b")" "$(first_line "functionapp stop")")"
 
 echo "disable dry run"
 run_case disable-dry-run disable DRY_RUN=true
@@ -230,11 +264,20 @@ check_output_contains "dry run prints audit logs off" "DRY RUN: az monitor diagn
 echo "disable rerun"
 FAKE_AZ_SCENARIO=tagged run_case disable-tagged disable DRY_RUN=false
 check "rerun succeeds" "0" "${case_status}"
-check "rerun keeps original tags" "0" "$(count_calls "serverfarms/plan-a --operation Merge")"
+check "rerun keeps original tags" "0" "$(count_calls "serverfarms/plan-a --operation Merge --tags ipaffs-original")"
+check "rerun adds stop list to tagged plan" "1" "$(count_calls "serverfarms/plan-a --operation Merge --tags ipaffs-stopped-1=site-a,site-a/slots/staging")"
+
+FAKE_AZ_SCENARIO=disabled run_case disable-recorded disable DRY_RUN=false
+check "rerun with nothing new writes no plan tag" "0" "$(count_calls "serverfarms/plan-a --operation Merge")"
+
+FAKE_AZ_SCENARIO=many-apps run_case many-apps disable DRY_RUN=false
+check "long stop list is split" "true" "$(grep -qF "ipaffs-stopped-2=" "${case_az_log}" && printf true || printf false)"
+check "every stop tag fits" "0" "$(grep -F "serverfarms/plan-b --operation Merge" "${case_az_log}" | tr ' ' '\n' | grep '^ipaffs-stopped-' | awk '{ sub(/^[^=]*=/, ""); if (length($0) > 256) n++ } END { print n + 0 }')"
+check "split stop list keeps every app" "13" "$(grep -F "serverfarms/plan-b --operation Merge" "${case_az_log}" | tr ' ' '\n' | grep '^ipaffs-stopped-' | sed 's/^[^=]*=//' | tr ',' '\n' | grep -c .)"
 check "rerun tags untagged plan" "1" "$(count_calls "serverfarms/plan-b --operation Merge")"
 
 FAKE_AZ_SCENARIO=audit-tagged run_case disable-audit-tagged disable DRY_RUN=false
-check "rerun keeps recorded audit settings" "1" "$(count_calls "ipaffs-file-audit-off=older-setting,send-all")"
+check "rerun keeps recorded audit settings" "1" "$(count_calls "ipaffs-file-audit-off=older-setting:AppServiceFileAuditLogs,send-all:AppServiceAntivirusScanAuditLogs,send-all:AppServiceFileAuditLogs")"
 
 echo "restore"
 FAKE_AZ_SCENARIO=disabled run_case restore restore DRY_RUN=false
@@ -243,15 +286,28 @@ check "restores plan size" "1" "$(count_exact_calls "appservice plan update --id
 check "leaves plan not disabled alone" "0" "$(count_calls "serverfarms/plan-b --")"
 check "turns autoscale back on" "1" "$(count_exact_calls "monitor autoscale update --subscription AZR-SND --resource-group SNDIMPTEST-RG --name plan-a-autoscale --enabled true --output none")"
 check "turns audit logs back on" "1" "$(count_exact_calls "monitor diagnostic-settings update --resource /subscriptions/sub/resourceGroups/SNDIMPTEST-RG/providers/Microsoft.Web/sites/site-a --name send-all --set logs[1].enabled=true --output none")"
+check "turns antivirus logs back on" "1" "$(count_exact_calls "monitor diagnostic-settings update --resource /subscriptions/sub/resourceGroups/SNDIMPTEST-RG/providers/Microsoft.Web/sites/site-a --name send-all --set logs[2].enabled=true --output none")"
 check "scales up before audit logs" "true" "$(before "$(first_line "plan update")" "$(first_line "diagnostic-settings update")")"
 check "starts app disable stopped" "1" "$(count_exact_calls "webapp start --ids /subscriptions/sub/resourceGroups/SNDIMPTEST-RG/providers/Microsoft.Web/sites/site-a")"
 check "starts slot disable stopped" "1" "$(count_exact_calls "webapp start --ids /subscriptions/sub/resourceGroups/SNDIMPTEST-RG/providers/Microsoft.Web/sites/site-a/slots/staging")"
 check "starts nothing else" "2" "$(count_calls " start ")"
-check "removes app tags" "1" "$(count_calls "sites/site-a --operation Delete --tags ipaffs-stopped-by-pipeline")"
+check "removes stop list with plan tags" "1" "$(count_calls "serverfarms/plan-a --operation Delete --tags ipaffs-original-sku ipaffs-original-capacity ipaffs-autoscale-off ipaffs-disabled ipaffs-stopped-1 --output none")"
 check "removes audit tag" "1" "$(count_calls "sites/site-a --operation Delete --tags ipaffs-file-audit-off")"
 check "removes plan tags last" "true" "$(before "$(last_line " start ")" "$(first_line "serverfarms/plan-a --operation Delete")")"
 check "restore never deletes" "0" "$(grep -v -- '--operation Delete' "${case_az_log}" | grep -v '^lock ' | grep -cF " delete" || true)"
 check "restore adds no lock" "0" "$(count_calls "lock create")"
+
+FAKE_AZ_SCENARIO=disabled-hidden-logs run_case restore-hidden restore DRY_RUN=false RESTORE_LOG_ATTEMPTS=2 RESTORE_LOG_DELAY_SECONDS=0
+check "hidden logs fail restore" "1" "${case_status}"
+check_output_contains "hidden logs are reported" "did not come back in diagnostic setting 'send-all'"
+check "hidden logs are retried" "true" "$( (( $(count_calls "diagnostic-settings show") >= 2 )) && printf true || printf false)"
+check "hidden logs keep the audit tag" "0" "$(count_calls "sites/site-a --operation Delete --tags ipaffs-file-audit-off")"
+check "hidden logs keep the plan tags" "0" "$(count_calls "serverfarms/plan-a --operation Delete")"
+
+FAKE_AZ_SCENARIO=disabled-hidden-logs run_case restore-hidden-dry-run restore DRY_RUN=true RESTORE_LOG_ATTEMPTS=3 RESTORE_LOG_DELAY_SECONDS=5
+check "hidden logs dry run succeeds" "0" "${case_status}"
+check "hidden logs dry run does not wait" "2" "$(count_calls "diagnostic-settings show")"
+check_output_contains "hidden logs dry run explains" "is hidden until the plan is scaled up"
 
 FAKE_AZ_SCENARIO=disabled run_case restore-dry-run restore DRY_RUN=true
 check "restore dry run succeeds" "0" "${case_status}"
@@ -260,6 +316,57 @@ check_output_contains "restore dry run prints scale" "DRY RUN: az appservice pla
 
 run_case restore-nothing restore DRY_RUN=false
 check "restore with nothing disabled changes nothing" "0" "$(( $(count_calls " start ") + $(count_calls "plan update") + $(count_calls "tag update") ))"
+
+echo "parallel"
+FAKE_AZ_SCENARIO=fail-stop run_case fail-stop disable DRY_RUN=false
+check "failed stop fails the run" "1" "${case_status}"
+check_output_contains "failed stop is reported" "Could not disable every app on plan 'plan-a'"
+check "failed stop leaves plan unscaled" "0" "$(count_calls "plan update")"
+check "failed stop skips audit logs for that app" "0" "$(count_calls "diagnostic-settings list --resource /subscriptions/sub/resourceGroups/SNDIMPTEST-RG/providers/Microsoft.Web/sites/site-a ")"
+
+FAKE_AZ_SCENARIO=disabled-fail-start run_case fail-start restore DRY_RUN=false
+check "failed start fails restore" "1" "${case_status}"
+check "failed start keeps plan tags" "0" "$(count_calls "serverfarms/plan-a --operation Delete")"
+
+run_case one-job disable DRY_RUN=false PARALLEL_JOBS=1
+check "one job at a time works" "0" "${case_status}"
+check "one job at a time stops the same apps" "3" "$(count_calls " stop --ids")"
+
+run_case bad-jobs disable DRY_RUN=false PARALLEL_JOBS=0
+check "rejects bad PARALLEL_JOBS" "1" "${case_status}"
+
+FAKE_AZ_SCENARIO=throttle-once run_case throttle-once disable DRY_RUN=false THROTTLE_DELAY_SECONDS=0
+check "throttled change is retried" "0" "${case_status}"
+check "throttled stop runs twice" "2" "$(count_exact_calls "webapp stop --ids /subscriptions/sub/resourceGroups/SNDIMPTEST-RG/providers/Microsoft.Web/sites/site-a")"
+check_output_contains "throttling is reported" "Azure is throttling, retrying 'az webapp'"
+
+FAKE_AZ_SCENARIO=throttle-always run_case throttle-always disable DRY_RUN=false THROTTLE_DELAY_SECONDS=0 THROTTLE_ATTEMPTS=3
+check "endless throttling fails the run" "1" "${case_status}"
+check "endless throttling gives up after the limit" "3" "$(count_exact_calls "webapp stop --ids /subscriptions/sub/resourceGroups/SNDIMPTEST-RG/providers/Microsoft.Web/sites/site-a")"
+check "endless throttling leaves plan unscaled" "0" "$(count_calls "serverfarms/plan-a --sku")"
+
+check "other errors are not retried" "1" "$(grep -cxF "webapp stop --ids /subscriptions/sub/resourceGroups/SNDIMPTEST-RG/providers/Microsoft.Web/sites/site-a" "${work_dir}/fail-stop.az.log")"
+
+echo "sign in refresh"
+run_case no-refresh disable DRY_RUN=false
+check "no sign in outside the pipeline" "0" "$(count_calls "login --service-principal")"
+
+pipeline_env=(SYSTEM_OIDCREQUESTURI=https://dev.azure.com/org/project/_apis/distributedtask/hubs/build/plans/plan/jobs/job/oidctoken
+  SYSTEM_ACCESSTOKEN=fake-access-token AZURESUBSCRIPTION_SERVICE_CONNECTION_ID=conn-id
+  AZURESUBSCRIPTION_CLIENT_ID=client-id AZURESUBSCRIPTION_TENANT_ID=tenant-id)
+run_case refresh disable DRY_RUN=false "${pipeline_env[@]}" LOGIN_REFRESH_SECONDS=0
+check "refresh succeeds" "0" "${case_status}"
+check "signs in again before each plan" "2" "$(count_calls "login --service-principal --username client-id --tenant tenant-id --federated-token fake-oidc-token")"
+check "asks for token for the service connection" "2" "$(count_calls "oidctoken?api-version=7.1&serviceConnectionId=conn-id")"
+check "selects the subscription after sign in" "2" "$(count_calls "account set --subscription AZR-SND")"
+check_output_contains "never prints the token" "Signing in to Azure again"
+check "token is not in the output" "false" "$(grep -qF fake-oidc-token "${case_output}" && printf true || printf false)"
+
+run_case no-refresh-yet disable DRY_RUN=false "${pipeline_env[@]}"
+check "no sign in before the interval" "0" "$(count_calls "login --service-principal")"
+
+run_case refresh-missing disable DRY_RUN=false SYSTEM_OIDCREQUESTURI=https://example
+check_output_contains "warns when refresh is not possible" "sign in cannot be refreshed"
 
 echo "delete is always a dry run"
 run_case delete delete DRY_RUN=false
