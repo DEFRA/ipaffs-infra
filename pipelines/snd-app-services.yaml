@@ -14,6 +14,7 @@ parameters:
     default: disable
     values:
       - disable
+      - restore
       - delete
 
 variables:

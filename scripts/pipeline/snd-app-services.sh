@@ -9,16 +9,20 @@ Actions:
   disable  Record the original plan size as tags, turn autoscale off, stop
            all apps and slots, turn off File Change Audit logs that need a
            Premium plan, then scale each plan to B1 (S1 when it hosts slots).
+  restore  Undo disable on plans tagged by it. Scale each plan back to its
+           original size, turn File Change Audit logs and autoscale back on,
+           start only the apps and slots disable stopped, then remove the tags.
   delete   List the slots, apps and plans that would be deleted.
            Always a dry run until DELETE_ENABLED is changed in this script.
 
 A delete run adds a CanNotDelete lock named ipaffs-pipeline-run to every listed
-resource group before listing, and removes it when the run ends. Disable adds no lock.
+resource group before listing, and removes it when the run ends. Disable and
+restore add no lock.
 
 Environment:
   SUBSCRIPTION_NAME  Must be AZR-SND.
   TARGETS_FILE       Resource group allowlist; defaults to snd-app-services-targets.txt.
-  DRY_RUN            true or false for disable; defaults to true.
+  DRY_RUN            true or false for disable and restore; defaults to true.
 USAGE
 }
 
@@ -29,8 +33,9 @@ readonly EXPECTED_SUBSCRIPTION="AZR-SND"
 readonly RESOURCE_GROUP_PREFIX="SNDIMP"
 readonly TAG_ORIGINAL_SKU="ipaffs-original-sku"
 readonly TAG_ORIGINAL_CAPACITY="ipaffs-original-capacity"
-readonly TAG_AUTOSCALE_ENABLED="ipaffs-autoscale-enabled"
+readonly TAG_AUTOSCALE_OFF="ipaffs-autoscale-off"
 readonly TAG_DISABLED="ipaffs-disabled"
+readonly TAG_STOPPED="ipaffs-stopped-by-pipeline"
 
 # File change audit logs need a Premium plan so they are turned off before scaling down
 readonly PREMIUM_LOG_CATEGORY="AppServiceFileAuditLogs"
@@ -248,6 +253,23 @@ app_cli_for_kind() {
   fi
 }
 
+resource_tag() {
+  az tag list --resource-id "${1}" --query "properties.tags.\"${2}\"" --output tsv
+}
+
+# Marks an app or slot so restore starts only what disable stopped
+stop_resource() {
+  local app_cli="${1}"
+  local resource_id="${2}"
+
+  run_cmd az tag update \
+    --resource-id "${resource_id}" \
+    --operation Merge \
+    --tags "${TAG_STOPPED}=$(date -u +"%Y-%m-%d")" \
+    --output none
+  run_cmd az "${app_cli}" stop --ids "${resource_id}"
+}
+
 # Tags the app with the settings it changes so a rerun keeps the full list
 disable_premium_logs() {
   local resource_id="${1}"
@@ -280,7 +302,7 @@ disable_plan() {
   local sites_json="${2}"
   local slot_ids="${3}"
   local plan_id plan_name sku capacity disabled_tag plan_sites plan_slots target_sku
-  local autoscale_enabled autoscale_name autoscale_group site_json site_id site_name site_kind site_state slot_id app_cli
+  local autoscale_enabled autoscale_off autoscale_name autoscale_group site_json site_id site_name site_kind site_state slot_id app_cli
 
   plan_id="$(jq -r '.id' <<<"${plan_json}")"
   plan_name="$(jq -r '.name' <<<"${plan_json}")"
@@ -300,8 +322,11 @@ disable_plan() {
   target_sku="B1"
   [[ -z "${plan_slots}" ]] || target_sku="S1"
 
-  autoscale_enabled="$(jq -r --arg plan "$(lowercase "${plan_id}")" \
-    'any(.[]; (.target // "" | ascii_downcase) == $plan and .enabled == true)' <<<"${AUTOSCALE_JSON}")"
+  autoscale_off="$(jq -r --arg plan "$(lowercase "${plan_id}")" \
+    '[.[] | select((.target // "" | ascii_downcase) == $plan and .enabled == true) | "\(.resourceGroup)/\(.name)"] | join(",")' \
+    <<<"${AUTOSCALE_JSON}")"
+  autoscale_enabled=false
+  [[ -z "${autoscale_off}" ]] || autoscale_enabled=true
 
   log "Disabling plan '${plan_name}' (${sku} x${capacity}, autoscale ${autoscale_enabled}) to ${target_sku} x1"
 
@@ -313,7 +338,7 @@ disable_plan() {
       --tags \
         "${TAG_ORIGINAL_SKU}=${sku}" \
         "${TAG_ORIGINAL_CAPACITY}=${capacity}" \
-        "${TAG_AUTOSCALE_ENABLED}=${autoscale_enabled}" \
+        "${TAG_AUTOSCALE_OFF}=${autoscale_off:-none}" \
         "${TAG_DISABLED}=$(date -u +"%Y-%m-%d")" \
       --output none
   else
@@ -345,14 +370,14 @@ disable_plan() {
     while IFS= read -r slot_id; do
       [[ -n "${slot_id}" ]] || continue
       log "Stopping slot '${slot_id##*/sites/}'"
-      run_cmd az "${app_cli}" stop --ids "${slot_id}"
+      stop_resource "${app_cli}" "${slot_id}"
     done < <(slots_for_site "${site_id}" "${slot_ids}")
 
     if [[ "$(lowercase "${site_state}")" == "stopped" ]]; then
       log "App '${site_name}' is already stopped"
     else
       log "Stopping ${app_cli} '${site_name}'"
-      run_cmd az "${app_cli}" stop --ids "${site_id}"
+      stop_resource "${app_cli}" "${site_id}"
     fi
   done <<<"${plan_sites}"
 
@@ -375,6 +400,126 @@ disable_plan() {
       --number-of-workers 1 \
       --output none
   fi
+}
+
+# Turns the audit category back on in the settings disable recorded
+restore_premium_logs() {
+  local resource_id="${1}"
+  local recorded="${2}"
+  local setting_name log_index
+
+  [[ -n "${recorded}" ]] || return 0
+
+  while IFS= read -r setting_name; do
+    [[ -n "${setting_name}" ]] || continue
+    log_index="$(az monitor diagnostic-settings show --resource "${resource_id}" --name "${setting_name}" --output json \
+      | jq -r --arg category "${PREMIUM_LOG_CATEGORY}" '.logs | map(.category) | index($category) // empty')"
+    if [[ -z "${log_index}" ]]; then
+      log "WARNING: diagnostic setting '${setting_name}' on '${resource_id##*/sites/}' has no ${PREMIUM_LOG_CATEGORY}"
+      continue
+    fi
+    log "Turning on ${PREMIUM_LOG_CATEGORY} in diagnostic setting '${setting_name}' on '${resource_id##*/sites/}'"
+    run_cmd az monitor diagnostic-settings update \
+      --resource "${resource_id}" \
+      --name "${setting_name}" \
+      --set "logs[${log_index}].enabled=true" \
+      --output none
+  done < <(tr ',' '\n' <<<"${recorded}")
+
+  run_cmd az tag update --resource-id "${resource_id}" --operation Delete --tags "${TAG_FILE_AUDIT_OFF}" --output none
+}
+
+# Starts an app or slot only when disable stopped it
+restore_resource() {
+  local app_cli="${1}"
+  local resource_id="${2}"
+  local stopped="${3}"
+  local recorded_logs="${4}"
+
+  restore_premium_logs "${resource_id}" "${recorded_logs}"
+
+  [[ -n "${stopped}" ]] || return 0
+  log "Starting ${app_cli} '${resource_id##*/sites/}'"
+  run_cmd az "${app_cli}" start --ids "${resource_id}"
+  run_cmd az tag update --resource-id "${resource_id}" --operation Delete --tags "${TAG_STOPPED}" --output none
+}
+
+restore_plan() {
+  local plan_json="${1}"
+  local sites_json="${2}"
+  local slot_ids="${3}"
+  local plan_id plan_name sku capacity disabled_tag original_sku original_capacity autoscale_off
+  local autoscale autoscale_name autoscale_group plan_sites site_json site_id app_cli slot_id
+
+  plan_id="$(jq -r '.id' <<<"${plan_json}")"
+  plan_name="$(jq -r '.name' <<<"${plan_json}")"
+  sku="$(jq -r '.sku' <<<"${plan_json}")"
+  capacity="$(jq -r '.capacity' <<<"${plan_json}")"
+  disabled_tag="$(jq -r --arg tag "${TAG_DISABLED}" '.tags[$tag] // empty' <<<"${plan_json}")"
+
+  if [[ -z "${disabled_tag}" ]]; then
+    log "Plan '${plan_name}' was not disabled by this pipeline, leaving it alone"
+    return 0
+  fi
+
+  original_sku="$(jq -r --arg tag "${TAG_ORIGINAL_SKU}" '.tags[$tag] // empty' <<<"${plan_json}")"
+  original_capacity="$(jq -r --arg tag "${TAG_ORIGINAL_CAPACITY}" '.tags[$tag] // empty' <<<"${plan_json}")"
+  autoscale_off="$(jq -r --arg tag "${TAG_AUTOSCALE_OFF}" '.tags[$tag] // "none"' <<<"${plan_json}")"
+  [[ -n "${original_sku}" && -n "${original_capacity}" ]] \
+    || fail "Plan '${plan_name}' is missing ${TAG_ORIGINAL_SKU} or ${TAG_ORIGINAL_CAPACITY}"
+
+  log "Restoring plan '${plan_name}' (${sku} x${capacity}) to ${original_sku} x${original_capacity}, disabled on ${disabled_tag}"
+
+  # Audit logs need the Premium plan back first
+  if [[ "${sku}" == "${original_sku}" && "${capacity}" == "${original_capacity}" ]]; then
+    log "Plan '${plan_name}' is already ${original_sku} x${original_capacity}"
+  else
+    run_cmd az appservice plan update \
+      --ids "${plan_id}" \
+      --sku "${original_sku}" \
+      --number-of-workers "${original_capacity}" \
+      --output none
+  fi
+
+  if [[ "${autoscale_off}" != "none" ]]; then
+    while IFS= read -r autoscale; do
+      [[ -n "${autoscale}" ]] || continue
+      autoscale_group="${autoscale%%/*}"
+      autoscale_name="${autoscale#*/}"
+      log "Turning on autoscale setting '${autoscale_name}'"
+      run_cmd az monitor autoscale update \
+        --subscription "${SUBSCRIPTION_NAME}" \
+        --resource-group "${autoscale_group}" \
+        --name "${autoscale_name}" \
+        --enabled true \
+        --output none
+    done < <(tr ',' '\n' <<<"${autoscale_off}")
+  fi
+
+  plan_sites="$(sites_on_plan "${plan_id}" "${sites_json}")"
+  while IFS= read -r site_json; do
+    [[ -n "${site_json}" ]] || continue
+    site_id="$(jq -r '.id' <<<"${site_json}")"
+    app_cli="$(app_cli_for_kind "$(jq -r '.kind // ""' <<<"${site_json}")")"
+
+    # Slot tags are not in the app listing so they are read one by one
+    while IFS= read -r slot_id; do
+      [[ -n "${slot_id}" ]] || continue
+      restore_resource "${app_cli}" "${slot_id}" \
+        "$(resource_tag "${slot_id}" "${TAG_STOPPED}")" "$(resource_tag "${slot_id}" "${TAG_FILE_AUDIT_OFF}")"
+    done < <(slots_for_site "${site_id}" "${slot_ids}")
+
+    restore_resource "${app_cli}" "${site_id}" \
+      "$(jq -r --arg tag "${TAG_STOPPED}" '.tags[$tag] // ""' <<<"${site_json}")" \
+      "$(jq -r --arg tag "${TAG_FILE_AUDIT_OFF}" '.tags[$tag] // ""' <<<"${site_json}")"
+  done <<<"${plan_sites}"
+
+  # The plan tags go last so a failed restore can be rerun
+  run_cmd az tag update \
+    --resource-id "${plan_id}" \
+    --operation Delete \
+    --tags "${TAG_ORIGINAL_SKU}" "${TAG_ORIGINAL_CAPACITY}" "${TAG_AUTOSCALE_OFF}" "${TAG_DISABLED}" \
+    --output none
 }
 
 delete_plan() {
@@ -445,6 +590,9 @@ process_resource_group() {
       disable)
         disable_plan "${plan_json}" "${sites_json}" "${slot_ids}"
         ;;
+      restore)
+        restore_plan "${plan_json}" "${sites_json}" "${slot_ids}"
+        ;;
       delete)
         delete_plan "${plan_json}" "${sites_json}" "${slot_ids}"
         ;;
@@ -458,11 +606,11 @@ case "${ACTION}" in
     usage
     exit 0
     ;;
-  disable|delete)
+  disable|restore|delete)
     ;;
   *)
     usage
-    fail "Action must be disable or delete"
+    fail "Action must be disable, restore or delete"
     ;;
 esac
 

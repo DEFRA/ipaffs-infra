@@ -111,12 +111,22 @@ case "$*" in
     ;;
   "appservice plan list"*)
     [[ "${FAKE_AZ_SCENARIO}" == "fail-list" ]] && exit 1
-    if [[ "${FAKE_AZ_SCENARIO}" == "tagged" ]]; then
-      tags_a='{"ipaffs-disabled":"2026-10-01","ipaffs-original-sku":"P2v3"}'
-    else
-      tags_a='null'
-    fi
-    printf '[{"id":"%s","name":"plan-a","resourceGroup":"SNDIMPTEST-RG","sku":"P2v3","capacity":3,"tags":%s},' "${plan_a}" "${tags_a}"
+    sku_a="P2v3"
+    capacity_a=3
+    case "${FAKE_AZ_SCENARIO}" in
+      tagged)
+        tags_a='{"ipaffs-disabled":"2026-10-01","ipaffs-original-sku":"P2v3"}'
+        ;;
+      disabled)
+        tags_a='{"ipaffs-disabled":"2026-10-01","ipaffs-original-sku":"P2v3","ipaffs-original-capacity":"3","ipaffs-autoscale-off":"SNDIMPTEST-RG/plan-a-autoscale"}'
+        sku_a="S1"
+        capacity_a=1
+        ;;
+      *)
+        tags_a='null'
+        ;;
+    esac
+    printf '[{"id":"%s","name":"plan-a","resourceGroup":"SNDIMPTEST-RG","sku":"%s","capacity":%s,"tags":%s},' "${plan_a}" "${sku_a}" "${capacity_a}" "${tags_a}"
     printf '{"id":"%s","name":"plan-b","resourceGroup":"SNDIMPTEST-RG","sku":"P1v3","capacity":1,"tags":null}]\n' "${plan_b}"
     ;;
   "monitor diagnostic-settings list --resource ${site_a} "*)
@@ -128,12 +138,19 @@ case "$*" in
   "monitor diagnostic-settings list"*)
     echo '[]'
     ;;
+  "monitor diagnostic-settings show"*)
+    echo '{"name":"send-all","logs":[{"category":"AppServiceHTTPLogs","enabled":true},{"category":"AppServiceFileAuditLogs","enabled":false}]}'
+    ;;
+  "tag list --resource-id ${site_a}/slots/staging"*"ipaffs-stopped-by-pipeline"*)
+    [[ "${FAKE_AZ_SCENARIO}" == "disabled" ]] && echo "2026-10-01"
+    exit 0
+    ;;
   "webapp list"*)
-    if [[ "${FAKE_AZ_SCENARIO}" == "audit-tagged" ]]; then
-      tags_site_a='{"ipaffs-file-audit-off":"older-setting"}'
-    else
-      tags_site_a='null'
-    fi
+    case "${FAKE_AZ_SCENARIO}" in
+      audit-tagged) tags_site_a='{"ipaffs-file-audit-off":"older-setting"}' ;;
+      disabled) tags_site_a='{"ipaffs-file-audit-off":"send-all","ipaffs-stopped-by-pipeline":"2026-10-01"}' ;;
+      *) tags_site_a='null' ;;
+    esac
     printf '[{"id":"%s","name":"site-a","kind":"app,linux,container","state":"Running","plan":"%s","tags":%s},' "${site_a}" "${plan_a_upper}" "${tags_site_a}"
     printf '{"id":"%s/providers/Microsoft.Web/sites/site-b","name":"site-b","kind":"app,linux","state":"Stopped","plan":"%s"}]\n' "${rg_id}" "${plan_b}"
     ;;
@@ -173,8 +190,8 @@ echo "disable"
 run_case disable disable DRY_RUN=false
 check "disable succeeds" "0" "${case_status}"
 check "tags plan a once" "1" "$(count_calls "tag update --resource-id /subscriptions/sub/resourceGroups/SNDIMPTEST-RG/providers/Microsoft.Web/serverfarms/plan-a")"
-check "records original sku" "1" "$(count_calls "ipaffs-original-sku=P2v3 ipaffs-original-capacity=3 ipaffs-autoscale-enabled=true")"
-check "records plan b without autoscale" "1" "$(count_calls "ipaffs-original-sku=P1v3 ipaffs-original-capacity=1 ipaffs-autoscale-enabled=false")"
+check "records original sku" "1" "$(count_calls "ipaffs-original-sku=P2v3 ipaffs-original-capacity=3 ipaffs-autoscale-off=SNDIMPTEST-RG/plan-a-autoscale")"
+check "records plan b without autoscale" "1" "$(count_calls "ipaffs-original-sku=P1v3 ipaffs-original-capacity=1 ipaffs-autoscale-off=none")"
 check "turns off autoscale" "1" "$(count_calls "monitor autoscale update --subscription AZR-SND --resource-group SNDIMPTEST-RG --name plan-a-autoscale --enabled false")"
 check "stops running web app" "1" "$(count_exact_calls "webapp stop --ids /subscriptions/sub/resourceGroups/SNDIMPTEST-RG/providers/Microsoft.Web/sites/site-a")"
 check "stops slot" "1" "$(count_calls "webapp stop --ids /subscriptions/sub/resourceGroups/SNDIMPTEST-RG/providers/Microsoft.Web/sites/site-a/slots/staging")"
@@ -192,6 +209,11 @@ check "tag before audit logs off" "true" "$(before "$(first_line "ipaffs-file-au
 check "leaves audit logs already off" "0" "$(count_calls "sites/func-b --name")"
 check "checks slot audit logs" "1" "$(count_calls "diagnostic-settings list --resource /subscriptions/sub/resourceGroups/SNDIMPTEST-RG/providers/Microsoft.Web/sites/site-a/slots/staging")"
 check "changes only audit logs" "1" "$(count_calls "diagnostic-settings update")"
+check "marks stopped web app" "1" "$(count_calls "sites/site-a --operation Merge --tags ipaffs-stopped-by-pipeline=")"
+check "marks stopped slot" "1" "$(count_calls "slots/staging --operation Merge --tags ipaffs-stopped-by-pipeline=")"
+check "marks stopped function app" "1" "$(count_calls "sites/func-b --operation Merge --tags ipaffs-stopped-by-pipeline=")"
+check "does not mark app already stopped" "0" "$(count_calls "sites/site-b --operation Merge")"
+check "marks app before stopping it" "true" "$(before "$(first_line "sites/func-b --operation Merge")" "$(first_line "functionapp stop")")"
 
 echo "disable dry run"
 run_case disable-dry-run disable DRY_RUN=true
@@ -213,6 +235,31 @@ check "rerun tags untagged plan" "1" "$(count_calls "serverfarms/plan-b --operat
 
 FAKE_AZ_SCENARIO=audit-tagged run_case disable-audit-tagged disable DRY_RUN=false
 check "rerun keeps recorded audit settings" "1" "$(count_calls "ipaffs-file-audit-off=older-setting,send-all")"
+
+echo "restore"
+FAKE_AZ_SCENARIO=disabled run_case restore restore DRY_RUN=false
+check "restore succeeds" "0" "${case_status}"
+check "restores plan size" "1" "$(count_exact_calls "appservice plan update --ids /subscriptions/sub/resourceGroups/SNDIMPTEST-RG/providers/Microsoft.Web/serverfarms/plan-a --sku P2v3 --number-of-workers 3 --output none")"
+check "leaves plan not disabled alone" "0" "$(count_calls "serverfarms/plan-b --")"
+check "turns autoscale back on" "1" "$(count_exact_calls "monitor autoscale update --subscription AZR-SND --resource-group SNDIMPTEST-RG --name plan-a-autoscale --enabled true --output none")"
+check "turns audit logs back on" "1" "$(count_exact_calls "monitor diagnostic-settings update --resource /subscriptions/sub/resourceGroups/SNDIMPTEST-RG/providers/Microsoft.Web/sites/site-a --name send-all --set logs[1].enabled=true --output none")"
+check "scales up before audit logs" "true" "$(before "$(first_line "plan update")" "$(first_line "diagnostic-settings update")")"
+check "starts app disable stopped" "1" "$(count_exact_calls "webapp start --ids /subscriptions/sub/resourceGroups/SNDIMPTEST-RG/providers/Microsoft.Web/sites/site-a")"
+check "starts slot disable stopped" "1" "$(count_exact_calls "webapp start --ids /subscriptions/sub/resourceGroups/SNDIMPTEST-RG/providers/Microsoft.Web/sites/site-a/slots/staging")"
+check "starts nothing else" "2" "$(count_calls " start ")"
+check "removes app tags" "1" "$(count_calls "sites/site-a --operation Delete --tags ipaffs-stopped-by-pipeline")"
+check "removes audit tag" "1" "$(count_calls "sites/site-a --operation Delete --tags ipaffs-file-audit-off")"
+check "removes plan tags last" "true" "$(before "$(last_line " start ")" "$(first_line "serverfarms/plan-a --operation Delete")")"
+check "restore never deletes" "0" "$(grep -v -- '--operation Delete' "${case_az_log}" | grep -v '^lock ' | grep -cF " delete" || true)"
+check "restore adds no lock" "0" "$(count_calls "lock create")"
+
+FAKE_AZ_SCENARIO=disabled run_case restore-dry-run restore DRY_RUN=true
+check "restore dry run succeeds" "0" "${case_status}"
+check "restore dry run makes no change" "0" "$(( $(count_calls " start ") + $(count_calls "plan update") + $(count_calls "tag update") + $(count_calls "autoscale update") ))"
+check_output_contains "restore dry run prints scale" "DRY RUN: az appservice plan update"
+
+run_case restore-nothing restore DRY_RUN=false
+check "restore with nothing disabled changes nothing" "0" "$(( $(count_calls " start ") + $(count_calls "plan update") + $(count_calls "tag update") ))"
 
 echo "delete is always a dry run"
 run_case delete delete DRY_RUN=false
