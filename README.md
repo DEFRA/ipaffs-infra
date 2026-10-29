@@ -176,6 +176,19 @@ listed resource group exists, starts with `SNDIMP` and has no `ReadOnly` lock. T
 restore a plan, scale it back to its `ipaffs-original-sku` and `ipaffs-original-capacity`,
 re-enable autoscale if `ipaffs-autoscale-enabled` is `true`, then start its apps.
 
+File Change Audit logs (`AppServiceFileAuditLogs`) need a Premium plan, so Azure
+refuses to scale a plan to B1 or S1 while any of its apps sends them. Before scaling,
+`disable` turns that one log category off in each such app's diagnostic setting and
+records the setting names in an `ipaffs-file-audit-off` tag on the app. Restore the
+plan's SKU first, then turn the category back on:
+
+```bash
+az monitor diagnostic-settings show --resource <app-id> --name <setting> \
+  --query "logs[].category"   # find the index of AppServiceFileAuditLogs
+az monitor diagnostic-settings update --resource <app-id> --name <setting> \
+  --set "logs[<index>].enabled=true"
+```
+
 #### Run locks
 
 A `delete` run adds a `CanNotDelete` lock named `ipaffs-pipeline-run` to each

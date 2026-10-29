@@ -119,8 +119,22 @@ case "$*" in
     printf '[{"id":"%s","name":"plan-a","resourceGroup":"SNDIMPTEST-RG","sku":"P2v3","capacity":3,"tags":%s},' "${plan_a}" "${tags_a}"
     printf '{"id":"%s","name":"plan-b","resourceGroup":"SNDIMPTEST-RG","sku":"P1v3","capacity":1,"tags":null}]\n' "${plan_b}"
     ;;
+  "monitor diagnostic-settings list --resource ${site_a} "*)
+    echo '[{"name":"send-all","logs":[{"category":"AppServiceHTTPLogs","enabled":true},{"category":"AppServiceFileAuditLogs","enabled":true}]}]'
+    ;;
+  "monitor diagnostic-settings list"*"sites/func-b "*)
+    echo '[{"name":"send-all","logs":[{"category":"AppServiceFileAuditLogs","enabled":false}]}]'
+    ;;
+  "monitor diagnostic-settings list"*)
+    echo '[]'
+    ;;
   "webapp list"*)
-    printf '[{"id":"%s","name":"site-a","kind":"app,linux,container","state":"Running","plan":"%s"},' "${site_a}" "${plan_a_upper}"
+    if [[ "${FAKE_AZ_SCENARIO}" == "audit-tagged" ]]; then
+      tags_site_a='{"ipaffs-file-audit-off":"older-setting"}'
+    else
+      tags_site_a='null'
+    fi
+    printf '[{"id":"%s","name":"site-a","kind":"app,linux,container","state":"Running","plan":"%s","tags":%s},' "${site_a}" "${plan_a_upper}" "${tags_site_a}"
     printf '{"id":"%s/providers/Microsoft.Web/sites/site-b","name":"site-b","kind":"app,linux","state":"Stopped","plan":"%s"}]\n' "${rg_id}" "${plan_b}"
     ;;
   "functionapp list"*)
@@ -165,12 +179,19 @@ check "turns off autoscale" "1" "$(count_calls "monitor autoscale update --subsc
 check "stops running web app" "1" "$(count_exact_calls "webapp stop --ids /subscriptions/sub/resourceGroups/SNDIMPTEST-RG/providers/Microsoft.Web/sites/site-a")"
 check "stops slot" "1" "$(count_calls "webapp stop --ids /subscriptions/sub/resourceGroups/SNDIMPTEST-RG/providers/Microsoft.Web/sites/site-a/slots/staging")"
 check "stops running function app" "1" "$(count_calls "functionapp stop --ids /subscriptions/sub/resourceGroups/SNDIMPTEST-RG/providers/Microsoft.Web/sites/func-b")"
-check "skips stopped app" "0" "$(count_calls "sites/site-b")"
+check "skips stopped app" "0" "$(count_calls "stop --ids /subscriptions/sub/resourceGroups/SNDIMPTEST-RG/providers/Microsoft.Web/sites/site-b")"
 check "scales slot plan to S1" "1" "$(count_calls "serverfarms/plan-a --sku S1 --number-of-workers 1")"
 check "scales plain plan to B1" "1" "$(count_calls "serverfarms/plan-b --sku B1 --number-of-workers 1")"
 check "never deletes" "0" "$(count_resource_deletes)"
 check "disable adds no lock" "0" "$(count_calls "lock create")"
 check "disable removes no lock" "0" "$(count_calls "lock delete")"
+check "tags app before turning off audit logs" "1" "$(count_exact_calls "tag update --resource-id /subscriptions/sub/resourceGroups/SNDIMPTEST-RG/providers/Microsoft.Web/sites/site-a --operation Merge --tags ipaffs-file-audit-off=send-all --output none")"
+check "turns off audit logs" "1" "$(count_exact_calls "monitor diagnostic-settings update --resource /subscriptions/sub/resourceGroups/SNDIMPTEST-RG/providers/Microsoft.Web/sites/site-a --name send-all --set logs[1].enabled=false --output none")"
+check "audit logs off before scaling" "true" "$(before "$(first_line "diagnostic-settings update")" "$(first_line "serverfarms/plan-a --sku")")"
+check "tag before audit logs off" "true" "$(before "$(first_line "ipaffs-file-audit-off")" "$(first_line "diagnostic-settings update")")"
+check "leaves audit logs already off" "0" "$(count_calls "sites/func-b --name")"
+check "checks slot audit logs" "1" "$(count_calls "diagnostic-settings list --resource /subscriptions/sub/resourceGroups/SNDIMPTEST-RG/providers/Microsoft.Web/sites/site-a/slots/staging")"
+check "changes only audit logs" "1" "$(count_calls "diagnostic-settings update")"
 
 echo "disable dry run"
 run_case disable-dry-run disable DRY_RUN=true
@@ -180,13 +201,18 @@ check "dry run makes no stop" "0" "$(count_calls " stop ")"
 check "dry run makes no scale" "0" "$(count_calls "plan update")"
 check "dry run makes no autoscale change" "0" "$(count_calls "autoscale update")"
 check "dry run makes no lock call" "0" "$(( $(count_calls "lock create") + $(count_calls "lock delete") ))"
+check "dry run makes no diagnostic change" "0" "$(count_calls "diagnostic-settings update")"
 check_output_contains "dry run prints scale" "DRY RUN: az appservice plan update"
+check_output_contains "dry run prints audit logs off" "DRY RUN: az monitor diagnostic-settings update"
 
 echo "disable rerun"
 FAKE_AZ_SCENARIO=tagged run_case disable-tagged disable DRY_RUN=false
 check "rerun succeeds" "0" "${case_status}"
 check "rerun keeps original tags" "0" "$(count_calls "serverfarms/plan-a --operation Merge")"
 check "rerun tags untagged plan" "1" "$(count_calls "serverfarms/plan-b --operation Merge")"
+
+FAKE_AZ_SCENARIO=audit-tagged run_case disable-audit-tagged disable DRY_RUN=false
+check "rerun keeps recorded audit settings" "1" "$(count_calls "ipaffs-file-audit-off=older-setting,send-all")"
 
 echo "delete is always a dry run"
 run_case delete delete DRY_RUN=false

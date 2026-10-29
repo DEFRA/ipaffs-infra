@@ -7,7 +7,8 @@ Usage: snd-app-services.sh <action>
 
 Actions:
   disable  Record the original plan size as tags, turn autoscale off, stop
-           all apps and slots, then scale each plan to B1 (S1 when it hosts slots).
+           all apps and slots, turn off File Change Audit logs that need a
+           Premium plan, then scale each plan to B1 (S1 when it hosts slots).
   delete   List the slots, apps and plans that would be deleted.
            Always a dry run until DELETE_ENABLED is changed in this script.
 
@@ -30,6 +31,10 @@ readonly TAG_ORIGINAL_SKU="ipaffs-original-sku"
 readonly TAG_ORIGINAL_CAPACITY="ipaffs-original-capacity"
 readonly TAG_AUTOSCALE_ENABLED="ipaffs-autoscale-enabled"
 readonly TAG_DISABLED="ipaffs-disabled"
+
+# File change audit logs need a Premium plan so they are turned off before scaling down
+readonly PREMIUM_LOG_CATEGORY="AppServiceFileAuditLogs"
+readonly TAG_FILE_AUDIT_OFF="ipaffs-file-audit-off"
 
 # A delete run locks its resource groups against deletion and unlocks them at the end
 readonly RUN_LOCK_NAME="ipaffs-pipeline-run"
@@ -199,7 +204,7 @@ load_autoscale_settings() {
 
 list_sites() {
   local resource_group="${1}"
-  local query="[].{id:id, name:name, kind:kind, state:state, plan:appServicePlanId}"
+  local query="[].{id:id, name:name, kind:kind, state:state, plan:appServicePlanId, tags:tags}"
   local web_apps function_apps
 
   web_apps="$(az webapp list --subscription "${SUBSCRIPTION_NAME}" --resource-group "${resource_group}" --query "${query}" --output json)"
@@ -241,6 +246,33 @@ app_cli_for_kind() {
   else
     echo webapp
   fi
+}
+
+# Tags the app with the settings it changes so a rerun keeps the full list
+disable_premium_logs() {
+  local resource_id="${1}"
+  local recorded="${2}"
+  local settings setting_name log_index
+
+  settings="$(az monitor diagnostic-settings list --resource "${resource_id}" --output json \
+    | jq -r --arg category "${PREMIUM_LOG_CATEGORY}" \
+      '.[] | .name as $name | .logs | to_entries[] | select(.value.category == $category and .value.enabled) | [$name, .key] | @tsv')"
+  [[ -n "${settings}" ]] || return 0
+
+  run_cmd az tag update \
+    --resource-id "${resource_id}" \
+    --operation Merge \
+    --tags "${TAG_FILE_AUDIT_OFF}=$( { tr ',' '\n' <<<"${recorded}"; cut -f1 <<<"${settings}"; } | grep -v '^$' | sort -u | paste -sd, -)" \
+    --output none
+
+  while IFS=$'\t' read -r setting_name log_index; do
+    log "Turning off ${PREMIUM_LOG_CATEGORY} in diagnostic setting '${setting_name}' on '${resource_id##*/sites/}'"
+    run_cmd az monitor diagnostic-settings update \
+      --resource "${resource_id}" \
+      --name "${setting_name}" \
+      --set "logs[${log_index}].enabled=false" \
+      --output none
+  done <<<"${settings}"
 }
 
 disable_plan() {
@@ -327,6 +359,16 @@ disable_plan() {
   if [[ "${sku}" == "${target_sku}" && "${capacity}" == "1" ]]; then
     log "Plan '${plan_name}' is already ${target_sku} x1"
   else
+    while IFS= read -r site_json; do
+      [[ -n "${site_json}" ]] || continue
+      disable_premium_logs "$(jq -r '.id' <<<"${site_json}")" \
+        "$(jq -r --arg tag "${TAG_FILE_AUDIT_OFF}" '.tags[$tag] // ""' <<<"${site_json}")"
+    done <<<"${plan_sites}"
+    while IFS= read -r slot_id; do
+      [[ -n "${slot_id}" ]] || continue
+      disable_premium_logs "${slot_id}" ""
+    done <<<"${plan_slots}"
+
     run_cmd az appservice plan update \
       --ids "${plan_id}" \
       --sku "${target_sku}" \
