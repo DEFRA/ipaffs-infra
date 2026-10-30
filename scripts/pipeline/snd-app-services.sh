@@ -288,6 +288,25 @@ app_cli_for_kind() {
   fi
 }
 
+# Starts or stops an app or slot
+# A slot id given to ids acts on the parent app so slots are passed by name
+app_power() {
+  local app_cli="${1}"
+  local action="${2}"
+  local resource_id="${3}"
+  local site_id="${resource_id%%/slots/*}"
+
+  if [[ "${resource_id}" == "${site_id}" ]]; then
+    run_cmd az "${app_cli}" "${action}" --ids "${resource_id}"
+    return
+  fi
+  run_cmd az "${app_cli}" "${action}" \
+    --subscription "${SUBSCRIPTION_NAME}" \
+    --resource-group "$(cut -d / -f 5 <<<"${site_id}")" \
+    --name "${site_id##*/}" \
+    --slot "${resource_id##*/slots/}"
+}
+
 # Runs a function for each input line a batch at a time and fails if any run failed
 # Callers must not use it in a condition because bash then ignores set -e in the jobs
 run_parallel() {
@@ -417,14 +436,14 @@ disable_site() {
   while IFS= read -r slot_id; do
     [[ -n "${slot_id}" ]] || continue
     log "Stopping slot '${slot_id##*/sites/}'"
-    run_cmd az "${app_cli}" stop --ids "${slot_id}"
+    app_power "${app_cli}" stop "${slot_id}"
   done <<<"${site_slots}"
 
   if [[ "$(lowercase "${site_state}")" == "stopped" ]]; then
     log "App '${site_name}' is already stopped"
   else
     log "Stopping ${app_cli} '${site_name}'"
-    run_cmd az "${app_cli}" stop --ids "${site_id}"
+    app_power "${app_cli}" stop "${site_id}"
   fi
 
   [[ "${premium_logs_off}" == "true" ]] || return 0
@@ -598,7 +617,7 @@ restore_resource() {
 
   grep -qxF "${resource_id##*/sites/}" <<<"${stopped_list}" || return 0
   log "Starting ${app_cli} '${resource_id##*/sites/}'"
-  run_cmd az "${app_cli}" start --ids "${resource_id}"
+  app_power "${app_cli}" start "${resource_id}"
 }
 
 # Runs in the background and reads slot_ids and stopped_list from restore_plan

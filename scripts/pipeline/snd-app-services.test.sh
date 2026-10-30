@@ -229,7 +229,8 @@ check "records original sku" "1" "$(count_calls "ipaffs-original-sku=P2v3 ipaffs
 check "records plan b without autoscale" "1" "$(count_calls "ipaffs-original-sku=P1v3 ipaffs-original-capacity=1 ipaffs-autoscale-off=none")"
 check "turns off autoscale" "1" "$(count_calls "monitor autoscale update --subscription AZR-SND --resource-group SNDIMPTEST-RG --name plan-a-autoscale --enabled false")"
 check "stops running web app" "1" "$(count_exact_calls "webapp stop --ids /subscriptions/sub/resourceGroups/SNDIMPTEST-RG/providers/Microsoft.Web/sites/site-a")"
-check "stops slot" "1" "$(count_calls "webapp stop --ids /subscriptions/sub/resourceGroups/SNDIMPTEST-RG/providers/Microsoft.Web/sites/site-a/slots/staging")"
+check "stops slot by name" "1" "$(count_exact_calls "webapp stop --subscription AZR-SND --resource-group SNDIMPTEST-RG --name site-a --slot staging")"
+check "never stops a slot by id" "0" "$(count_calls "stop --ids /subscriptions/sub/resourceGroups/SNDIMPTEST-RG/providers/Microsoft.Web/sites/site-a/slots/")"
 check "stops running function app" "1" "$(count_calls "functionapp stop --ids /subscriptions/sub/resourceGroups/SNDIMPTEST-RG/providers/Microsoft.Web/sites/func-b")"
 check "skips stopped app" "0" "$(count_calls "stop --ids /subscriptions/sub/resourceGroups/SNDIMPTEST-RG/providers/Microsoft.Web/sites/site-b")"
 check "scales slot plan to S1" "1" "$(count_calls "serverfarms/plan-a --sku S1 --number-of-workers 1")"
@@ -298,7 +299,8 @@ check "turns audit logs back on" "1" "$(count_exact_calls "monitor diagnostic-se
 check "turns antivirus logs back on" "1" "$(count_exact_calls "monitor diagnostic-settings update --resource /subscriptions/sub/resourceGroups/SNDIMPTEST-RG/providers/Microsoft.Web/sites/site-a --name send-all --set logs[2].enabled=true --output none")"
 check "scales up before audit logs" "true" "$(before "$(first_line "plan update")" "$(first_line "diagnostic-settings update")")"
 check "starts app disable stopped" "1" "$(count_exact_calls "webapp start --ids /subscriptions/sub/resourceGroups/SNDIMPTEST-RG/providers/Microsoft.Web/sites/site-a")"
-check "starts slot disable stopped" "1" "$(count_exact_calls "webapp start --ids /subscriptions/sub/resourceGroups/SNDIMPTEST-RG/providers/Microsoft.Web/sites/site-a/slots/staging")"
+check "starts slot disable stopped by name" "1" "$(count_exact_calls "webapp start --subscription AZR-SND --resource-group SNDIMPTEST-RG --name site-a --slot staging")"
+check "never starts a slot by id" "0" "$(count_calls "start --ids /subscriptions/sub/resourceGroups/SNDIMPTEST-RG/providers/Microsoft.Web/sites/site-a/slots/")"
 check "starts nothing else" "2" "$(count_calls " start ")"
 check "removes stop list with plan tags" "1" "$(count_calls "serverfarms/plan-a --operation Delete --tags ipaffs-original-sku ipaffs-original-capacity ipaffs-autoscale-off ipaffs-disabled ipaffs-stopped-1 --output none")"
 check "removes audit tag" "1" "$(count_calls "sites/site-a --operation Delete --tags ipaffs-file-audit-off")"
@@ -339,7 +341,7 @@ check "failed start keeps plan tags" "0" "$(count_calls "serverfarms/plan-a --op
 
 run_case one-job disable DRY_RUN=false PARALLEL_JOBS=1
 check "one job at a time works" "0" "${case_status}"
-check "one job at a time stops the same apps" "3" "$(count_calls " stop --ids")"
+check "one job at a time stops the same apps" "3" "$(count_calls "app stop --")"
 
 run_case bad-jobs disable DRY_RUN=false PARALLEL_JOBS=0
 check "rejects bad PARALLEL_JOBS" "1" "${case_status}"
