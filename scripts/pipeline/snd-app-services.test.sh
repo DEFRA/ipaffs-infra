@@ -108,6 +108,15 @@ case "$*" in
     fi
     exit 0
     ;;
+  "appservice plan update --ids ${plan_a} "*)
+    # Azure briefly still sees File Change Audit after it is turned off
+    if [[ "${FAKE_AZ_SCENARIO}" == "audit-lag" && ! -f "${FAKE_AZ_LOG}.audit-lag" ]]; then
+      touch "${FAKE_AZ_LOG}.audit-lag"
+      echo 'ERROR: Cannot use the SKU Standard with File Change Audit for site site-a.' >&2
+      exit 1
+    fi
+    exit 0
+    ;;
   "webapp start --ids ${site_a}")
     [[ "${FAKE_AZ_SCENARIO}" == *fail-start ]] && exit 1
     exit 0
@@ -349,7 +358,11 @@ check "rejects bad PARALLEL_JOBS" "1" "${case_status}"
 FAKE_AZ_SCENARIO=throttle-once run_case throttle-once disable DRY_RUN=false THROTTLE_DELAY_SECONDS=0
 check "throttled change is retried" "0" "${case_status}"
 check "throttled stop runs twice" "2" "$(count_exact_calls "webapp stop --ids /subscriptions/sub/resourceGroups/SNDIMPTEST-RG/providers/Microsoft.Web/sites/site-a")"
-check_output_contains "throttling is reported" "Azure is throttling, retrying 'az webapp'"
+check_output_contains "throttling is reported" "Azure is throttling or not ready, retrying 'az webapp'"
+
+FAKE_AZ_SCENARIO=audit-lag run_case audit-lag disable DRY_RUN=false THROTTLE_DELAY_SECONDS=0
+check "scale is retried while Azure still sees File Change Audit" "0" "${case_status}"
+check "scale runs twice" "2" "$(count_calls "serverfarms/plan-a --sku S1")"
 
 FAKE_AZ_SCENARIO=throttle-always run_case throttle-always disable DRY_RUN=false THROTTLE_DELAY_SECONDS=0 THROTTLE_ATTEMPTS=3
 check "endless throttling fails the run" "1" "${case_status}"

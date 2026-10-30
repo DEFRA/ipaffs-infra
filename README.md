@@ -189,7 +189,8 @@ need the Premium plan back, and removes the plan tags last so a failed run can b
 Within each plan, the per app work runs 4 apps at a time (set `PARALLEL_JOBS` to
 change it). The plan is only scaled once every app on it has finished, and if any
 app fails the run stops before scaling that plan. When Azure throttles the
-subscription (HTTP 429) a change is retried up to 6 times with a growing wait.
+subscription (HTTP 429), or still sees File Change Audit for a few seconds after it
+was turned off, a change is retried up to 6 times with a growing wait.
 
 `restore` waits up to 3 minutes after scaling a plan up for Azure to show the Premium
 only log categories again, and fails without removing the app's tag if one stays hidden.

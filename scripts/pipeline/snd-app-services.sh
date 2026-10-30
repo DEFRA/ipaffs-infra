@@ -125,11 +125,12 @@ run_cmd() {
       [[ -z "${output}" ]] || echo "${output}"
       return 0
     fi
-    if [[ "${attempt}" -ge "${THROTTLE_ATTEMPTS}" ]] || ! grep -qiE '"Code":"429"|TooManyRequests|throttled' <<<"${output}"; then
+    # Azure can still see File Change Audit for a few seconds after it is turned off
+    if [[ "${attempt}" -ge "${THROTTLE_ATTEMPTS}" ]] || ! grep -qiE '"Code":"429"|TooManyRequests|throttled|with File Change Audit' <<<"${output}"; then
       echo "${output}" >&2
       return "${status}"
     fi
-    log "Azure is throttling, retrying '${1} ${2}' in $(( attempt * THROTTLE_DELAY_SECONDS )) seconds"
+    log "Azure is throttling or not ready, retrying '${1} ${2}' in $(( attempt * THROTTLE_DELAY_SECONDS )) seconds"
     sleep "$(( attempt * THROTTLE_DELAY_SECONDS ))"
   done
 }
