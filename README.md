@@ -189,7 +189,7 @@ changed. `restore` does not check, so it can always undo `disable`.
 | `ipaffs-original-sku`, `ipaffs-original-capacity` | plan | its size before disable |
 | `ipaffs-autoscale-off` | plan | `group/name` of each autoscale setting it turned off, or `none` |
 | `ipaffs-stopped-1`, `ipaffs-stopped-2`, ... | plan | the apps and slots it stopped, comma separated and split to fit the 256 character tag limit; apps already stopped are not listed |
-| `ipaffs-file-audit-off` | app or slot | `setting:category` for each Premium only log category it turned off, plus `siteconfig:fileChangeAuditEnabled` when it turned that site setting off |
+| `ipaffs-file-audit-off` | app or slot | `setting:category` for each Premium only log category it turned off |
 
 `restore` scales the plan up before anything else, because File Change Audit logs
 need the Premium plan back, and removes the plan tags last so a failed run can be rerun.
@@ -209,9 +209,11 @@ refuses to scale a plan to B1 or S1 while any of its apps sends them. Before sca
 records the setting names in an `ipaffs-file-audit-off` tag on the app. `restore`
 turns the category back on.
 
-Azure also checks the site setting `fileChangeAuditEnabled`, and does not always clear
-it when the category is turned off. When it is still on, `disable` turns it off and
-records `siteconfig:fileChangeAuditEnabled` in the same tag, and `restore` turns it back on.
+Azure actually checks the site setting `fileChangeAuditEnabled`, which it sets from that
+category, and it sometimes misses the category being turned off. Writing the setting
+directly does not stick, so `disable` waits up to a minute for it to clear, then turns
+`AppServiceFileAuditLogs` on and off once more, which makes Azure update it, and waits
+again. If it is still on, the run fails before that plan is scaled.
 
 #### Run locks
 

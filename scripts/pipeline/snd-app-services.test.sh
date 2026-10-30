@@ -157,8 +157,10 @@ case "$*" in
     printf '{"id":"%s","name":"plan-b","resourceGroup":"SNDIMPTEST-RG","sku":"P1v3","capacity":1,"tags":null}]\n' "${plan_b}"
     ;;
   "rest --method get --url https://management.azure.com${site_a}/config/web"*)
-    # Azure can leave the site flag on after the category is turned off
-    if [[ "${FAKE_AZ_SCENARIO}" == "audit-flag" ]]; then
+    # Azure can leave the site flag on until the category is turned on and off again
+    if [[ "${FAKE_AZ_SCENARIO}" == "audit-flag-stuck" ]]; then
+      echo "true"
+    elif [[ "${FAKE_AZ_SCENARIO}" == "audit-flag" ]] && ! grep -q "sites/site-a --name send-all --set logs\[1\].enabled=true" "${FAKE_AZ_LOG}"; then
       echo "true"
     else
       echo "false"
@@ -301,21 +303,28 @@ check "zone redundant plan keeps Premium logs" "0" "$(count_calls "diagnostic-se
 check "zone redundant plan still stops apps" "1" "$(count_exact_calls "webapp stop --ids /subscriptions/sub/resourceGroups/SNDIMPTEST-RG/providers/Microsoft.Web/sites/site-a")"
 check "other plan still scales to B1" "1" "$(count_calls "serverfarms/plan-b --sku B1 --number-of-workers 1")"
 
-FAKE_AZ_SCENARIO=audit-flag run_case audit-flag disable DRY_RUN=false
-check "records the site audit flag" "1" "$(count_calls "ipaffs-file-audit-off=send-all:AppServiceAntivirusScanAuditLogs,send-all:AppServiceFileAuditLogs,siteconfig:fileChangeAuditEnabled")"
-check "turns off the site audit flag" "1" "$(count_calls "sites/site-a/config/web?api-version=2023-12-01 --body {\"properties\":{\"fileChangeAuditEnabled\":false}}")"
-check "site audit flag off after the categories" "true" "$(before "$(first_line "diagnostic-settings update")" "$(first_line "fileChangeAuditEnabled\":false")")"
-check "site audit flag off before scaling" "true" "$(before "$(first_line "fileChangeAuditEnabled\":false")" "$(first_line "serverfarms/plan-a --sku")")"
-check "leaves site audit flag already off" "1" "$(count_calls "rest --method patch")"
+FAKE_AZ_SCENARIO=audit-flag run_case audit-flag disable DRY_RUN=false FILE_AUDIT_WAIT_ATTEMPTS=2 FILE_AUDIT_WAIT_DELAY_SECONDS=0
+site_a_diag="monitor diagnostic-settings update --resource /subscriptions/sub/resourceGroups/SNDIMPTEST-RG/providers/Microsoft.Web/sites/site-a --name send-all --set"
+check "stuck site audit flag is cleared" "0" "${case_status}"
+check "turns the file audit category back on once" "1" "$(count_exact_calls "${site_a_diag} logs[1].enabled=true --output none")"
+check "then turns it off again" "2" "$(count_exact_calls "${site_a_diag} logs[1].enabled=false --output none")"
+check "never writes the site flag directly" "0" "$(count_calls "rest --method patch")"
+check "tag records only diagnostic categories" "1" "$(count_calls "ipaffs-file-audit-off=send-all:AppServiceAntivirusScanAuditLogs,send-all:AppServiceFileAuditLogs --output none")"
+check "plan scaled only after the flag clears" "true" "$(before "$(first_line "logs[1].enabled=true")" "$(first_line "serverfarms/plan-a --sku")")"
+check_output_contains "toggle is reported" "fileChangeAuditEnabled is still on for 'site-a'"
 
 run_case audit-flag-off disable DRY_RUN=false
-check "no site audit flag change when it is off" "0" "$(count_calls "rest --method patch")"
+check "no toggle when the flag clears by itself" "0" "$(count_calls "enabled=true")"
+
+FAKE_AZ_SCENARIO=audit-flag-stuck run_case audit-flag-stuck disable DRY_RUN=false FILE_AUDIT_WAIT_ATTEMPTS=2 FILE_AUDIT_WAIT_DELAY_SECONDS=0
+check "flag that never clears fails the run" "1" "${case_status}"
+check "plan stays Premium when the flag never clears" "0" "$(count_calls "serverfarms/plan-a --sku")"
+check_output_contains "stuck flag is reported" "fileChangeAuditEnabled is still on for 'site-a' so its plan cannot leave Premium"
 
 FAKE_AZ_SCENARIO=disabled-audit-flag run_case restore-audit-flag restore DRY_RUN=false
-check "turns the site audit flag back on" "1" "$(count_calls "sites/site-a/config/web?api-version=2023-12-01 --body {\"properties\":{\"fileChangeAuditEnabled\":true}}")"
-check "site audit flag on after scaling up" "true" "$(before "$(first_line "plan update")" "$(first_line "fileChangeAuditEnabled\":true")")"
-check "restore treats the flag as no diagnostic setting" "2" "$(count_calls "diagnostic-settings update")"
-check "removes audit tag after the flag" "true" "$(before "$(first_line "fileChangeAuditEnabled\":true")" "$(first_line "--operation Delete --tags ipaffs-file-audit-off")")"
+check "restore ignores an old site flag entry" "0" "${case_status}"
+check "restore never writes the site flag" "0" "$(count_calls "rest --method patch")"
+check "restore turns the recorded categories on" "2" "$(count_calls "diagnostic-settings update")"
 
 FAKE_AZ_SCENARIO=tagged run_case disable-tagged disable DRY_RUN=false
 check "rerun succeeds" "0" "${case_status}"

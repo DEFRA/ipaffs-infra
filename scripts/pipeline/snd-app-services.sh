@@ -54,10 +54,13 @@ readonly TAG_VALUE_LIMIT=256
 # Azure hides them on smaller plans and only shows them again after scaling back up
 # Zone redundant plans must stay Premium so they drop to the smallest Premium size
 readonly ZONE_REDUNDANT_SKU="P0v3"
-# Azure checks this site flag before Basic or Standard and does not always clear it
-# when the File Change Audit category is turned off, so disable clears it too
-readonly FILE_AUDIT_FLAG_ENTRY="siteconfig:fileChangeAuditEnabled"
+# Azure checks this site flag before Basic or Standard and sets it from the File Change
+# Audit category, but sometimes misses the category being turned off
 readonly SITE_CONFIG_API_VERSION="2023-12-01"
+readonly FILE_AUDIT_WAIT_ATTEMPTS="${FILE_AUDIT_WAIT_ATTEMPTS:-6}"
+readonly FILE_AUDIT_WAIT_DELAY_SECONDS="${FILE_AUDIT_WAIT_DELAY_SECONDS:-10}"
+# Only in tags from an earlier version that wrote the flag directly
+readonly FILE_AUDIT_FLAG_ENTRY="siteconfig:fileChangeAuditEnabled"
 readonly PREMIUM_LOG_CATEGORIES='["AppServiceFileAuditLogs","AppServiceAntivirusScanAuditLogs"]'
 readonly TAG_FILE_AUDIT_OFF="ipaffs-file-audit-off"
 readonly RESTORE_LOG_ATTEMPTS="${RESTORE_LOG_ATTEMPTS:-18}"
@@ -429,50 +432,78 @@ stop_tags() {
 disable_premium_logs() {
   local resource_id="${1}"
   local recorded="${2}"
-  local settings setting_name category log_index flag_on
+  local settings setting_name category log_index
 
   settings="$(az monitor diagnostic-settings list --resource "${resource_id}" --output json \
     | jq -r --argjson categories "${PREMIUM_LOG_CATEGORIES}" \
       '.[] | .name as $name | .logs | to_entries[]
         | select(.value.enabled and (.value.category as $c | $categories | index($c)))
         | [$name, .value.category, .key] | @tsv')"
-  flag_on="$(az rest --method get \
-    --url "https://management.azure.com${resource_id}/config/web?api-version=${SITE_CONFIG_API_VERSION}" \
-    --query "properties.fileChangeAuditEnabled" --output tsv)"
-  [[ -n "${settings}" || "$(lowercase "${flag_on}")" == "true" ]] || return 0
 
-  run_cmd az tag update \
-    --resource-id "${resource_id}" \
-    --operation Merge \
-    --tags "${TAG_FILE_AUDIT_OFF}=$( {
-      tr ',' '\n' <<<"${recorded}"
-      [[ -z "${settings}" ]] || cut -f1,2 <<<"${settings}" | tr '\t' ':'
-      [[ "$(lowercase "${flag_on}")" != "true" ]] || echo "${FILE_AUDIT_FLAG_ENTRY}"
-    } | grep -v '^$' | sort -u | paste -sd, -)" \
-    --output none
-
-  while IFS=$'\t' read -r setting_name category log_index; do
-    log "Turning off ${category} in diagnostic setting '${setting_name}' on '${resource_id##*/sites/}'"
-    run_cmd az monitor diagnostic-settings update \
-      --resource "${resource_id}" \
-      --name "${setting_name}" \
-      --set "logs[${log_index}].enabled=false" \
+  if [[ -n "${settings}" ]]; then
+    run_cmd az tag update \
+      --resource-id "${resource_id}" \
+      --operation Merge \
+      --tags "${TAG_FILE_AUDIT_OFF}=$( { tr ',' '\n' <<<"${recorded}"; cut -f1,2 <<<"${settings}" | tr '\t' ':'; } | grep -v '^$' | sort -u | paste -sd, -)" \
       --output none
-  done < <(grep -v '^$' <<<"${settings}" || true)
 
-  [[ "$(lowercase "${flag_on}")" == "true" ]] || return 0
-  log "Turning off fileChangeAuditEnabled on '${resource_id##*/sites/}'"
-  set_file_audit_flag "${resource_id}" false
+    while IFS=$'\t' read -r setting_name category log_index; do
+      log "Turning off ${category} in diagnostic setting '${setting_name}' on '${resource_id##*/sites/}'"
+      set_log_category "${resource_id}" "${setting_name}" "${log_index}" false
+    done <<<"${settings}"
+  fi
+
+  wait_file_audit_flag_off "${resource_id}"
 }
 
-set_file_audit_flag() {
-  local resource_id="${1}"
-  local value="${2}"
-
-  run_cmd az rest --method patch \
-    --url "https://management.azure.com${resource_id}/config/web?api-version=${SITE_CONFIG_API_VERSION}" \
-    --body "{\"properties\":{\"fileChangeAuditEnabled\":${value}}}" \
+set_log_category() {
+  run_cmd az monitor diagnostic-settings update \
+    --resource "${1}" \
+    --name "${2}" \
+    --set "logs[${3}].enabled=${4}" \
     --output none
+}
+
+file_audit_flag_on() {
+  [[ "$(lowercase "$(az rest --method get \
+    --url "https://management.azure.com${1}/config/web?api-version=${SITE_CONFIG_API_VERSION}" \
+    --query "properties.fileChangeAuditEnabled" --output tsv)")" == "true" ]]
+}
+
+# Polls until the site flag is off and returns 1 if it stays on
+poll_file_audit_flag_off() {
+  local resource_id="${1}"
+  local attempt
+
+  for (( attempt = 1; attempt <= FILE_AUDIT_WAIT_ATTEMPTS; attempt++ )); do
+    file_audit_flag_on "${resource_id}" || return 0
+    sleep "${FILE_AUDIT_WAIT_DELAY_SECONDS}"
+  done
+  return 1
+}
+
+# Waits for Azure to clear the site flag and turns the category on and off again when it
+# misses the change, because writing the flag directly does not stick
+wait_file_audit_flag_off() {
+  local resource_id="${1}"
+  local name="${resource_id##*/sites/}"
+  local setting_name log_index
+
+  [[ "${DRY_RUN_ENABLED}" != "true" ]] || return 0
+  poll_file_audit_flag_off "${resource_id}" && return 0
+
+  log "fileChangeAuditEnabled is still on for '${name}', turning AppServiceFileAuditLogs on and off again"
+  while IFS=$'\t' read -r setting_name log_index; do
+    [[ -n "${setting_name}" ]] || continue
+    set_log_category "${resource_id}" "${setting_name}" "${log_index}" true
+    sleep "${FILE_AUDIT_WAIT_DELAY_SECONDS}"
+    set_log_category "${resource_id}" "${setting_name}" "${log_index}" false
+  done < <(az monitor diagnostic-settings list --resource "${resource_id}" --output json \
+    | jq -r '.[] | .name as $name | .logs | to_entries[]
+      | select(.value.category == "AppServiceFileAuditLogs") | [$name, .key] | @tsv')
+
+  poll_file_audit_flag_off "${resource_id}" \
+    || fail "fileChangeAuditEnabled is still on for '${name}' so its plan cannot leave Premium"
 }
 
 # Runs in the background and reads slot_ids and premium_logs_off from disable_plan
@@ -650,17 +681,8 @@ restore_premium_logs() {
       continue
     fi
     log "Turning on ${category} in diagnostic setting '${setting_name}' on '${resource_id##*/sites/}'"
-    run_cmd az monitor diagnostic-settings update \
-      --resource "${resource_id}" \
-      --name "${setting_name}" \
-      --set "logs[${log_index}].enabled=true" \
-      --output none
+    set_log_category "${resource_id}" "${setting_name}" "${log_index}" true
   done < <(tr ',' '\n' <<<"${recorded}")
-
-  if tr ',' '\n' <<<"${recorded}" | grep -qxF "${FILE_AUDIT_FLAG_ENTRY}"; then
-    log "Turning on fileChangeAuditEnabled on '${resource_id##*/sites/}'"
-    set_file_audit_flag "${resource_id}" true
-  fi
 
   run_cmd az tag update --resource-id "${resource_id}" --operation Delete --tags "${TAG_FILE_AUDIT_OFF}" --output none
 }
