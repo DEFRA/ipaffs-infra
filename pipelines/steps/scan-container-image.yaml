@@ -11,6 +11,13 @@ parameters:
     type: string
     default: UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL
 
+  # Comma-separated Trivy package types to scan. "library" covers application
+  # dependencies inside the image (jars, node_modules, Go binaries, Python
+  # packages) so PR builds report the same findings as the daily manifest scan.
+  - name: pkgTypes
+    type: string
+    default: os,library
+
   # When true, the step fails if any vulnerability at the reported severities
   # is found. Leave false to report only.
   - name: failOnFindings
@@ -29,6 +36,7 @@ steps:
       TAG_NAME_PARAMETER: ${{ parameters.tagName }}
       IMAGE_NAME: ${{ parameters.imageName }}
       SEVERITY: ${{ parameters.severity }}
+      PKG_TYPES: ${{ parameters.pkgTypes }}
       EXIT_CODE: ${{ iif(parameters.failOnFindings, 1, 0) }}
       BUILD_NUMBER: $(Build.BuildNumber)
       REPORT_DIR: $(Build.ArtifactStagingDirectory)/CodeAnalysisLogs
@@ -59,7 +67,7 @@ steps:
           --cache-dir /scan/cache \
           --input /scan/${IMAGE_NAME}.tar \
           --scanners vuln \
-          --pkg-types os \
+          --pkg-types "${PKG_TYPES}" \
           --severity "${SEVERITY}" \
           --format sarif \
           --output "/report/${IMAGE_NAME}.sarif" \
