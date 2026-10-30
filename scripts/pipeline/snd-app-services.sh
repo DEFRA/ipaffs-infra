@@ -24,6 +24,9 @@ restore add no lock.
 Environment:
   SUBSCRIPTION_NAME  Must be AZR-SND.
   TARGETS_FILE       Resource group allowlist; defaults to snd-app-services-targets.txt.
+  PREFIXES_FILE      IPAFFS app name prefixes; defaults to app-services-prefixes.txt.
+                     Disable and delete skip any plan hosting an app that matches
+                     none of them. Restore is not checked so it can always undo.
   DRY_RUN            true or false for disable and restore; defaults to true.
   PARALLEL_JOBS      Apps changed at the same time within a plan; defaults to 4.
 
@@ -145,7 +148,8 @@ run_delete_cmd() {
   "$@"
 }
 
-read_targets() {
+# Prints the entries of a list file without comments or blank lines
+read_list() {
   local line
 
   while IFS= read -r line || [[ -n "${line}" ]]; do
@@ -155,7 +159,30 @@ read_targets() {
     if [[ -n "${line}" ]]; then
       echo "${line}"
     fi
-  done <"${TARGETS_FILE}"
+  done <"${1}"
+}
+
+# Prints the apps on a plan whose name is not a prefix on its own or followed by a hyphen
+non_ipaffs_apps() {
+  local plan_sites="${1}"
+
+  jq -r --argjson prefixes "${PREFIXES_JSON}" \
+    '(.name | ascii_downcase) as $name
+    | select([$prefixes[] as $prefix | select($name == $prefix or ($name | startswith($prefix + "-")))] | length == 0)
+    | .name' <<<"${plan_sites}"
+}
+
+# Skips a plan shared with apps that are not IPAFFS so they are never changed
+plan_is_ipaffs_only() {
+  local plan_json="${1}"
+  local sites_json="${2}"
+  local others
+
+  others="$(non_ipaffs_apps "$(sites_on_plan "$(jq -r '.id' <<<"${plan_json}")" "${sites_json}")")"
+  [[ -n "${others}" ]] || return 0
+  log "WARNING: skipping plan '$(jq -r '.name' <<<"${plan_json}")' because these apps match no IPAFFS prefix in '${PREFIXES_FILE}'"
+  sed 's/^/  /' <<<"${others}"
+  return 1
 }
 
 validate_resource_group() {
@@ -768,6 +795,9 @@ process_resource_group() {
 
   while IFS= read -r plan_json; do
     [[ -n "${plan_json}" ]] || continue
+    if [[ "${ACTION}" != "restore" ]] && ! plan_is_ipaffs_only "${plan_json}" "${sites_json}"; then
+      continue
+    fi
     refresh_login
     case "${ACTION}" in
       disable)
@@ -804,6 +834,12 @@ esac
 TARGETS_FILE="${TARGETS_FILE:-${script_dir}/snd-app-services-targets.txt}"
 [[ -f "${TARGETS_FILE}" ]] || fail "Targets file '${TARGETS_FILE}' was not found"
 
+PREFIXES_FILE="${PREFIXES_FILE:-${script_dir}/app-services-prefixes.txt}"
+[[ -f "${PREFIXES_FILE}" ]] || fail "Prefixes file '${PREFIXES_FILE}' was not found"
+PREFIXES_JSON="$(read_list "${PREFIXES_FILE}" | jq -R 'ascii_downcase' | jq -cs '.')"
+[[ "${PREFIXES_JSON}" != "[]" ]] || fail "Prefixes file '${PREFIXES_FILE}' has no prefixes"
+readonly PREFIXES_JSON
+
 DRY_RUN_ENABLED="$(normalise_bool "${DRY_RUN:-true}")"
 
 PARALLEL_JOBS="${PARALLEL_JOBS:-4}"
@@ -824,10 +860,11 @@ else
 fi
 readonly LOCK_MODE
 
-targets="$(read_targets)"
+targets="$(read_list "${TARGETS_FILE}")"
 [[ -n "${targets}" ]] || fail "Targets file '${TARGETS_FILE}' has no resource groups"
 
 log "Action=${ACTION} Subscription=${SUBSCRIPTION_NAME} DryRun=${DRY_RUN_ENABLED} DeleteEnabled=${DELETE_ENABLED} Locks=${LOCK_MODE}"
+log "Checking app names against $(jq 'length' <<<"${PREFIXES_JSON}") IPAFFS prefixes"
 if login_refresh_available; then
   log "Sign in is refreshed every ${LOGIN_REFRESH_SECONDS} seconds"
 elif [[ -n "${SYSTEM_OIDCREQUESTURI:-}" ]]; then

@@ -175,6 +175,14 @@ refuses any plan without the `ipaffs-disabled` tag.
 Before acting, the script checks that the subscription is `AZR-SND`, and that every
 listed resource group exists, starts with `SNDIMP` and has no `ReadOnly` lock.
 
+Resource groups can also hold services that are not IPAFFS, so `disable` and `delete`
+check every app on a plan against the service prefixes in
+`scripts/pipeline/app-services-prefixes.txt` (or `PREFIXES_FILE`). An app matches when
+its name is a prefix on its own or a prefix followed by `-` and an environment postfix,
+e.g. `enotification-event-microservice-integration`. A plan hosting any app that
+matches no prefix is skipped with a `WARNING` naming those apps, and nothing on it is
+changed. `restore` does not check, so it can always undo `disable`.
+
 | Tag | On | Set by `disable` to |
 | --- | --- | --- |
 | `ipaffs-disabled` | plan | the date it was disabled |

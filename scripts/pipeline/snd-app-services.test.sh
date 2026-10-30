@@ -180,6 +180,10 @@ case "$*" in
       *) tags_site_a='null' ;;
     esac
     printf '[{"id":"%s","name":"site-a","kind":"app,linux,container","state":"Running","plan":"%s","tags":%s},' "${site_a}" "${plan_a_upper}" "${tags_site_a}"
+    if [[ "${FAKE_AZ_SCENARIO}" == "foreign-app" ]]; then
+      # Shares plan b and only starts like the site prefix
+      printf '{"id":"%s/providers/Microsoft.Web/sites/sitex-other","name":"sitex-other","kind":"app,linux","state":"Running","plan":"%s"},' "${rg_id}" "${plan_b}"
+    fi
     printf '{"id":"%s/providers/Microsoft.Web/sites/site-b","name":"site-b","kind":"app,linux","state":"Stopped","plan":"%s"}]\n' "${rg_id}" "${plan_b}"
     ;;
   "functionapp list"*)
@@ -208,6 +212,9 @@ echo '{"oidcToken":"fake-oidc-token"}'
 EOF
 chmod +x "${fake_bin}/curl"
 
+prefixes_file="${work_dir}/prefixes.txt"
+printf '# test prefixes\nsite\nFUNC-B  # case is ignored\n\nvery-long-application-name-for-chunking\n' > "${prefixes_file}"
+
 targets_file="${work_dir}/targets.txt"
 printf '# test targets\n\nSNDIMPTEST-RG  # trailing comment\n' > "${targets_file}"
 
@@ -225,6 +232,7 @@ run_case() {
     FAKE_AZ_SCENARIO="${FAKE_AZ_SCENARIO:-default}" \
     SUBSCRIPTION_NAME="${SUBSCRIPTION_NAME:-AZR-SND}" \
     TARGETS_FILE="${TARGETS_FILE:-${targets_file}}" \
+    PREFIXES_FILE="${PREFIXES_FILE:-${prefixes_file}}" \
     "$@" \
     bash "${script_path}" "${action}" > "${case_output}" 2>&1
   case_status=$?
@@ -412,6 +420,27 @@ echo "guards"
 SUBSCRIPTION_NAME=AZR-TST run_case wrong-subscription disable DRY_RUN=false
 check "rejects other subscription" "1" "${case_status}"
 check "wrong subscription makes no az call" "0" "$(grep -c . "${case_az_log}")"
+
+FAKE_AZ_SCENARIO=foreign-app run_case foreign-app disable DRY_RUN=false
+check "plan with an app matching no prefix is skipped" "0" "${case_status}"
+check "skipped plan is not scaled" "0" "$(count_calls "serverfarms/plan-b --sku")"
+check "skipped plan apps are not stopped" "0" "$(count_calls "sites/func-b")"
+check "skipped plan is not tagged" "0" "$(count_calls "serverfarms/plan-b --operation")"
+check "other plans are still disabled" "1" "$(count_calls "serverfarms/plan-a --sku S1")"
+check_output_contains "skip is reported" "WARNING: skipping plan 'plan-b'"
+check_output_contains "unmatched app is named" "  sitex-other"
+
+FAKE_AZ_SCENARIO=foreign-app run_case foreign-app-delete delete
+check "delete skips plan with an app matching no prefix" "0" "$(grep -c "plan-b" <(grep "DRY RUN: az appservice plan delete" "${case_output}"))"
+check "delete still lists other plans" "1" "$(grep -c "DRY RUN: az appservice plan delete" "${case_output}")"
+
+PREFIXES_FILE="${work_dir}/missing-prefixes.txt" run_case missing-prefixes disable DRY_RUN=false
+check "missing prefixes file fails" "1" "${case_status}"
+check "missing prefixes file changes nothing" "0" "$(count_calls " stop ")"
+
+printf '# nothing here\n' > "${work_dir}/empty-prefixes.txt"
+PREFIXES_FILE="${work_dir}/empty-prefixes.txt" run_case empty-prefixes disable DRY_RUN=false
+check "empty prefixes file fails" "1" "${case_status}"
 
 printf 'OTHER-RG\n' > "${work_dir}/other-targets.txt"
 TARGETS_FILE="${work_dir}/other-targets.txt" run_case wrong-prefix disable DRY_RUN=false

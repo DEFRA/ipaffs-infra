@@ -1,0 +1,55 @@
+# IPAFFS service name prefixes for App Services in any environment
+# An App Service is IPAFFS only when its name is a prefix below on its own or
+# followed by a hyphen and an environment postfix such as integration, vnet,
+# green snd or blue tst
+# First built from the App Services in AZR SND and checked against the
+# ipaffs repositories and ipaffs manifest services
+# One prefix per line
+approvedestablishment-microservice
+archive-notifications-microservice
+auto-clearance-microservice
+bip-microservice
+bordernotification-microservice
+bordernotification-refdata-microservice
+bulk-upload-microservice
+certificate-microservice
+checks-microservice
+cloning-microservice
+commoditycode-microservice
+countries-microservice
+customer-microservice
+customer-wiremock-microservice
+decision-microservice
+dmp-integration-microservice
+economicoperator-microservice
+enotification-event-internal-microservice
+enotification-event-listener-microservice
+enotification-event-microservice
+enotification-processing-microservice
+enotification-submission-microservice
+fieldconfig-microservice
+file-compression-microservice
+file-upload-microservice
+frontend-bcpadmin
+frontend-bordernotification
+frontend-checks
+frontend-control
+frontend-decision
+frontend-notification
+frontend-upload
+gvms-microservice
+imports-proxy
+in-service-messaging-microservice
+laboratories-microservice
+legacy-notifications-microservice
+notification-microservice
+notification-search-migration-microservice
+notify-microservice
+permissions
+rds-wiremock-microservice
+referencedataloader-microservice
+risk-assessment-microservice
+risk-interface-microservice
+risk-locking-microservice
+soaprequest-microservice
+soapsearch-microservice
