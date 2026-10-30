@@ -54,6 +54,10 @@ readonly TAG_VALUE_LIMIT=256
 # Azure hides them on smaller plans and only shows them again after scaling back up
 # Zone redundant plans must stay Premium so they drop to the smallest Premium size
 readonly ZONE_REDUNDANT_SKU="P0v3"
+# Azure checks this site flag before Basic or Standard and does not always clear it
+# when the File Change Audit category is turned off, so disable clears it too
+readonly FILE_AUDIT_FLAG_ENTRY="siteconfig:fileChangeAuditEnabled"
+readonly SITE_CONFIG_API_VERSION="2023-12-01"
 readonly PREMIUM_LOG_CATEGORIES='["AppServiceFileAuditLogs","AppServiceAntivirusScanAuditLogs"]'
 readonly TAG_FILE_AUDIT_OFF="ipaffs-file-audit-off"
 readonly RESTORE_LOG_ATTEMPTS="${RESTORE_LOG_ATTEMPTS:-18}"
@@ -425,19 +429,26 @@ stop_tags() {
 disable_premium_logs() {
   local resource_id="${1}"
   local recorded="${2}"
-  local settings setting_name category log_index
+  local settings setting_name category log_index flag_on
 
   settings="$(az monitor diagnostic-settings list --resource "${resource_id}" --output json \
     | jq -r --argjson categories "${PREMIUM_LOG_CATEGORIES}" \
       '.[] | .name as $name | .logs | to_entries[]
         | select(.value.enabled and (.value.category as $c | $categories | index($c)))
         | [$name, .value.category, .key] | @tsv')"
-  [[ -n "${settings}" ]] || return 0
+  flag_on="$(az rest --method get \
+    --url "https://management.azure.com${resource_id}/config/web?api-version=${SITE_CONFIG_API_VERSION}" \
+    --query "properties.fileChangeAuditEnabled" --output tsv)"
+  [[ -n "${settings}" || "$(lowercase "${flag_on}")" == "true" ]] || return 0
 
   run_cmd az tag update \
     --resource-id "${resource_id}" \
     --operation Merge \
-    --tags "${TAG_FILE_AUDIT_OFF}=$( { tr ',' '\n' <<<"${recorded}"; cut -f1,2 <<<"${settings}" | tr '\t' ':'; } | grep -v '^$' | sort -u | paste -sd, -)" \
+    --tags "${TAG_FILE_AUDIT_OFF}=$( {
+      tr ',' '\n' <<<"${recorded}"
+      [[ -z "${settings}" ]] || cut -f1,2 <<<"${settings}" | tr '\t' ':'
+      [[ "$(lowercase "${flag_on}")" != "true" ]] || echo "${FILE_AUDIT_FLAG_ENTRY}"
+    } | grep -v '^$' | sort -u | paste -sd, -)" \
     --output none
 
   while IFS=$'\t' read -r setting_name category log_index; do
@@ -447,7 +458,21 @@ disable_premium_logs() {
       --name "${setting_name}" \
       --set "logs[${log_index}].enabled=false" \
       --output none
-  done <<<"${settings}"
+  done < <(grep -v '^$' <<<"${settings}" || true)
+
+  [[ "$(lowercase "${flag_on}")" == "true" ]] || return 0
+  log "Turning off fileChangeAuditEnabled on '${resource_id##*/sites/}'"
+  set_file_audit_flag "${resource_id}" false
+}
+
+set_file_audit_flag() {
+  local resource_id="${1}"
+  local value="${2}"
+
+  run_cmd az rest --method patch \
+    --url "https://management.azure.com${resource_id}/config/web?api-version=${SITE_CONFIG_API_VERSION}" \
+    --body "{\"properties\":{\"fileChangeAuditEnabled\":${value}}}" \
+    --output none
 }
 
 # Runs in the background and reads slot_ids and premium_logs_off from disable_plan
@@ -614,7 +639,7 @@ restore_premium_logs() {
   [[ -n "${recorded}" ]] || return 0
 
   while IFS= read -r entry; do
-    [[ -n "${entry}" ]] || continue
+    [[ -n "${entry}" && "${entry}" != "${FILE_AUDIT_FLAG_ENTRY}" ]] || continue
     setting_name="${entry%%:*}"
     category="${entry#*:}"
     log_index="$(premium_log_index "${resource_id}" "${setting_name}" "${category}")"
@@ -631,6 +656,11 @@ restore_premium_logs() {
       --set "logs[${log_index}].enabled=true" \
       --output none
   done < <(tr ',' '\n' <<<"${recorded}")
+
+  if tr ',' '\n' <<<"${recorded}" | grep -qxF "${FILE_AUDIT_FLAG_ENTRY}"; then
+    log "Turning on fileChangeAuditEnabled on '${resource_id##*/sites/}'"
+    set_file_audit_flag "${resource_id}" true
+  fi
 
   run_cmd az tag update --resource-id "${resource_id}" --operation Delete --tags "${TAG_FILE_AUDIT_OFF}" --output none
 }
