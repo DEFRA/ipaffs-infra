@@ -121,6 +121,46 @@ alongside their managed identities and runtime permissions.
 The Grafana definition **11662** now reads `ipaffs-operations/main` in the
 Azure DevOps `\Operations` folder.
 
+### App Services disable and recover
+
+`pipelines/disable-app-services.yaml` stops (`disable`) or starts (`recover`) the
+classic App Services and Function Apps listed for each environment. It changes
+nothing else: no plan scaling, no autoscale, no deletes.
+
+**Lists:** `scripts/pipeline/disable-app-services/<env>-decommission-apps.txt`, one file
+per environment (subscription `AZR-SND`, `AZR-TST`, `AZR-PRE`, `AZR-PRD`). Each
+line is `resourceGroup/appName`; `#` starts a comment. Lists are explicit
+because some apps are deliberately stopped for regression testing and must
+never be started, so only the apps that were running are listed. To create or
+refresh a list (read only), then review it before committing:
+
+```bash
+SUBSCRIPTION_NAME=AZR-TST bash scripts/pipeline/list-running-app-services.sh \
+  > scripts/pipeline/disable-app-services/tst-decommission-apps.txt
+```
+
+The helper keeps running sites whose resource group matches
+`RESOURCE_GROUP_PATTERN` (default `IMP`). Remove anything that is not IPAFFS.
+
+**Script:** `scripts/pipeline/disable-app-services.sh <disable|recover>` checks that every
+listed app exists before changing anything, skips apps already in the target
+state, retries throttled calls and fails unless every listed app ends in the
+target state. Unlisted apps are never touched. Tests:
+`bash scripts/pipeline/disable-app-services.test.sh`.
+
+**Stages and gates:** one run goes SND → TST → PRE → PRD. Each stage is a
+deployment job against the existing ADO Environment of the same name, so its
+approval checks gate the stage. A rejected approval or a failure stops the
+run there. A stage whose list is empty fails.
+
+**Rollback:** queue a new run with `action=recover` and approve up to the
+environment that needs it. Lower environments run again first, which keeps
+them consistent with higher ones.
+
+**Prerequisite:** confirm the `SND`, `TST`, `PRE` and `PRD` ADO Environments
+have approval checks; a stage without one runs straight away. Those checks
+also gate the infrastructure pipelines that use the same Environments.
+
 ### Human access ownership
 
 Human/team membership, access-group creation, human Azure RBAC and PIM eligibility

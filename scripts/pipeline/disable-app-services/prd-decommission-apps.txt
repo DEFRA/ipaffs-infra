@@ -1,0 +1,7 @@
+# Running App Services and Function Apps in AZR-PRD
+# The pipeline stops these on disable and starts them on recover
+# Not populated yet so the PRD stage fails until it is
+# Generate with
+#   SUBSCRIPTION_NAME=AZR-PRD bash scripts/pipeline/list-running-app-services.sh > scripts/pipeline/disable-app-services/prd-decommission-apps.txt
+# then review the list before committing
+# One resourceGroup/appName per line

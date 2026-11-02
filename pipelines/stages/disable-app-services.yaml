@@ -1,0 +1,40 @@
+---
+# Stops or starts the App Services listed for one environment
+# Approvals come from the checks on the ADO Environment named environmentName
+parameters:
+  - name: environmentName
+    type: string
+
+  - name: action
+    type: string
+
+stages:
+  - stage: AppServices${{ parameters.environmentName }}
+    displayName: ${{ upper(parameters.action) }} ${{ parameters.environmentName }} App Services
+    variables:
+      - template: "/pipelines/vars/common.yaml"
+      - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
+    jobs:
+      - deployment: AppServices
+        displayName: ${{ parameters.action }} listed App Services
+        timeoutInMinutes: 60
+        environment:
+          name: "${{ parameters.environmentName }}"
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+
+                - task: AzureCLI@2
+                  displayName: Run ${{ parameters.action }}
+                  env:
+                    ENVIRONMENT: ${{ lower(parameters.environmentName) }}
+                    SUBSCRIPTION_NAME: $(classicSubscriptionName)
+                  inputs:
+                    azureSubscription: $(classicServiceConnection)
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      set -euo pipefail
+                      bash scripts/pipeline/disable-app-services.sh ${{ parameters.action }}

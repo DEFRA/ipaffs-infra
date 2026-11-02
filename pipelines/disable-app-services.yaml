@@ -1,0 +1,45 @@
+---
+name: disable-app-services-$(Date:yyyyMMdd)$(Rev:.r)
+
+trigger: none
+pr: none
+
+pool:
+  name: DEFRA-COMMON-ubuntu2204-SSV5
+
+parameters:
+  - name: action
+    displayName: Action
+    type: string
+    default: disable
+    values:
+      - disable
+      - recover
+
+stages:
+  - template: stages/tag-build.yaml
+    parameters:
+      tags:
+        - ServiceGroup-disable-app-services
+        - Action-${{ parameters.action }}
+
+  # Each stage waits for the one before it so lower environments go first
+  - template: stages/disable-app-services.yaml
+    parameters:
+      environmentName: SND
+      action: ${{ parameters.action }}
+
+  - template: stages/disable-app-services.yaml
+    parameters:
+      environmentName: TST
+      action: ${{ parameters.action }}
+
+  - template: stages/disable-app-services.yaml
+    parameters:
+      environmentName: PRE
+      action: ${{ parameters.action }}
+
+  - template: stages/disable-app-services.yaml
+    parameters:
+      environmentName: PRD
+      action: ${{ parameters.action }}
