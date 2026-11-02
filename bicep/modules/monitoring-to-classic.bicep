@@ -1,7 +1,6 @@
 targetScope = 'resourceGroup'
 
 param monitoringParams object
-param entraGroups object
 param deployServicePrincipalObjectId string
 param grafanaManagedIdentityPrincipalId string
 param deploymentId string
