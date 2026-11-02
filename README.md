@@ -96,7 +96,10 @@ Things are moving along quickly. At the time of writing, migration of ipaffs-imp
   releases. See the [platform guide](https://github.com/DEFRA/ipaffs-manifest/blob/master/platform/README.md)
   for configuration and apply rules.
 - **Infrastructure:** Azure resources, workload identities, runtime permissions and Private Link.
-- **Operations:** human/team groups, membership, human RBAC and PIM eligibility, plus operational tooling. See [`ipaffs-operations`](https://github.com/DEFRA/ipaffs-operations).
+- **Operations:** human/team groups, membership, human RBAC and PIM eligibility,
+  operational tooling and Grafana's classic monitoring read permission. See
+  [`ipaffs-operations`](https://github.com/DEFRA/ipaffs-operations) and the
+  [classic monitoring handover](docs/classic-grafana-monitoring-handover.md).
 - **Helm charts:** chart sources and publishing live in
   [`ipaffs-helm-charts`](https://github.com/DEFRA/ipaffs-helm-charts).
 
