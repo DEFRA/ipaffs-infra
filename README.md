@@ -121,6 +121,53 @@ alongside their managed identities and runtime permissions.
 The Grafana definition **11662** now reads `ipaffs-operations/main` in the
 Azure DevOps `\Operations` folder.
 
+### Refreshing classic monitoring outputs
+
+[`pipelines/refresh-classic-monitoring-outputs.yaml`](pipelines/refresh-classic-monitoring-outputs.yaml)
+is a temporary, manual, plan-first PRE repair for the two existing Library variables
+`classicServiceBusNamespaceName` and `classicServiceBusNamespaceResourceId`.
+It compiles the checked-in classic Bicep parameters, validates that the namespace
+exists at the expected classic subscription/resource group, and publishes a
+summary of changed values. It performs no Azure deployment or role assignment.
+Register a temporary manual Azure DevOps pipeline using that YAML and
+`codex/refresh-classic-monitoring-outputs`, without merging this branch. Use the
+existing PRE classic connection. The build identity needs read access to the PRE
+Library group for a plan and edit access for apply.
+Use the pipeline's `System.AccessToken`; do not create a PAT or another identity.
+No pipeline registration or permissions are changed by this source update.
+The deployment job uses the existing PRE Azure DevOps environment, so its
+resource checks and approvals can gate startup in both modes. Plan remains
+read-only even when an environment approval is required before it can start.
+
+For the PRE monitoring repair in IMTA-21695:
+
+1. Run from `codex/refresh-classic-monitoring-outputs` with the default
+   `environmentName: PRE` and `mode: plan`.
+   Confirm that the checked-in namespace `PREIMPINFSBS003` is the intended live
+   target and review the two Library changes from the stale `PREIMPINFSBS002`.
+2. Manually rerun the same reviewed branch with `mode: apply` after reviewing the
+   plan. Before Azure sign-in, the pipeline requires PRE, the exact branch
+   `refs/heads/codex/refresh-classic-monitoring-outputs` and `Build.Reason: Manual`.
+   The script independently enforces these conditions before any CLI calls and
+   restricts apply to the reviewed PRE classic subscription
+   `81ca326e-6270-418a-b764-e02a4ca60457`, resource group `PREIMPINFRGP001` and
+   namespace `PREIMPINFSBS003`. It updates only the two existing non-secret
+   variables, then reads them back. Apply from `main` or another environment is
+   rejected.
+   If apply fails partway through, inspect the current values and rerun plan.
+3. Download both runs' `classic-monitoring-outputs-PRE-<buildId>` artifacts and
+   retain the plan and successful readback outside the temporary definition.
+   Deleting a definition can remove its run history. After independent readback,
+   delete the temporary pipeline and close the repair PR without merging it.
+4. Rerun the Operations Grafana pipeline so its dashboard deployment consumes
+   the refreshed variables, alongside the classic Monitoring Reader grant.
+   Verify the PRE dead-letter queue queries before considering the ticket fixed.
+
+Run this one-off repair before handing classic Grafana permissions to
+Operations. Keep the infrastructure permission writer until the Operations
+replacement has run successfully and its grants and dashboard queries have
+been verified. Remove the old writer in the separate handover cleanup last.
+
 ### Human access ownership
 
 Human/team membership, access-group creation, human Azure RBAC and PIM eligibility

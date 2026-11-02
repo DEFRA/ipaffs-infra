@@ -11,6 +11,7 @@ on:
       - "scripts/**/*.sh"
       - "scripts/**/*.test.py"
       - "scripts/pipeline/validate-access-contract.py"
+      - "scripts/pipeline/refresh-classic-monitoring-outputs.py"
       - "bicep/*.bicep"
       - "bicep/*.bicepparam"
       - "bicep/**/*.bicep"
@@ -27,6 +28,7 @@ on:
       - "scripts/**/*.sh"
       - "scripts/**/*.test.py"
       - "scripts/pipeline/validate-access-contract.py"
+      - "scripts/pipeline/refresh-classic-monitoring-outputs.py"
       - "bicep/*.bicep"
       - "bicep/*.bicepparam"
       - "bicep/**/*.bicep"
@@ -99,6 +101,9 @@ jobs:
 
       - name: Test operations access-group contract
         run: python scripts/pipeline/validate-access-contract.test.py
+
+      - name: Test classic monitoring output refresh without live writes
+        run: python scripts/pipeline/refresh-classic-monitoring-outputs.test.py
 
       - name: Test manifest infra pin retirement
         shell: bash

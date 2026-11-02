@@ -1,0 +1,95 @@
+---
+# Temporary PRE repair: run from codex/refresh-classic-monitoring-outputs without merging.
+# Export plan/apply evidence before deleting this definition; plan is always the default.
+trigger: none
+pr: none
+
+pool:
+  name: DEFRA-COMMON-ubuntu2204-SSV5
+
+parameters:
+  - name: environmentName
+    displayName: Environment
+    type: string
+    default: PRE
+    values: [PRE]
+  - name: mode
+    displayName: Plan or apply the two classic Service Bus Library outputs
+    type: string
+    default: plan
+    values: [plan, apply]
+
+variables:
+  - group: Common
+  - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
+    - group: HigherEnvs
+  - ${{ else }}:
+    - group: LowerEnvs
+  - group: '${{ parameters.environmentName }}'
+  - template: /pipelines/vars/common.yaml
+  - template: /pipelines/vars/${{ lower(parameters.environmentName) }}.yaml
+
+jobs:
+  - deployment: RefreshClassicMonitoringOutputs
+    displayName: '${{ parameters.environmentName }} classic monitoring outputs (${{ parameters.mode }})'
+    environment:
+      name: '${{ parameters.environmentName }}'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+            - checkout: self
+
+            - bash: |
+                set -euo pipefail
+                if [[ "$REPAIR_MODE" == apply ]] && \
+                    [[ "$REPAIR_ENVIRONMENT" != PRE || \
+                       "$BUILD_SOURCEBRANCH" != refs/heads/codex/refresh-classic-monitoring-outputs || \
+                       "$BUILD_REASON" != Manual ]]; then
+                  echo 'Apply requires a manually requested PRE run from the reviewed repair branch.' >&2
+                  exit 1
+                fi
+              displayName: Validate one-off repair request before Azure sign-in
+              env:
+                REPAIR_MODE: '${{ parameters.mode }}'
+                REPAIR_ENVIRONMENT: '${{ parameters.environmentName }}'
+                BUILD_SOURCEBRANCH: $(Build.SourceBranch)
+                BUILD_REASON: $(Build.Reason)
+
+            - task: AzureCLI@2
+              displayName: Validate namespace and review the two Library outputs
+              env:
+                ADO_ORG_URL: $(System.CollectionUri)
+                ADO_PROJECT: $(System.TeamProject)
+                AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
+                CLASSIC_SUBSCRIPTION_ID: $(classicSubscriptionId)
+                CLASSIC_RESOURCE_GROUP: $(classicResourceGroupName)
+                BUILD_SOURCEBRANCH: $(Build.SourceBranch)
+                BUILD_REASON: $(Build.Reason)
+              inputs:
+                azureSubscription: $(classicServiceConnection)
+                scriptType: bash
+                scriptLocation: inlineScript
+                inlineScript: |
+                  set -euo pipefail
+                  python3 scripts/pipeline/refresh-classic-monitoring-outputs.py \
+                    --environment '${{ parameters.environmentName }}' \
+                    --mode '${{ parameters.mode }}' \
+                    --summary '$(Agent.TempDirectory)/classic-monitoring-outputs/summary.md'
+
+            - bash: |
+                set -euo pipefail
+                summary='$(Agent.TempDirectory)/classic-monitoring-outputs/summary.md'
+                if [[ -f "$summary" ]]; then
+                  echo "##vso[task.uploadsummary]$summary"
+                  echo '##vso[task.setvariable variable=classicMonitoringSummaryReady]true'
+                fi
+              displayName: Publish monitoring output summary
+              condition: always()
+
+            - task: PublishPipelineArtifact@1
+              displayName: Retain the reviewed output diff and readback as a downloadable artifact
+              condition: and(always(), eq(variables['classicMonitoringSummaryReady'], 'true'))
+              inputs:
+                targetPath: '$(Agent.TempDirectory)/classic-monitoring-outputs/summary.md'
+                artifact: 'classic-monitoring-outputs-${{ parameters.environmentName }}-$(Build.BuildId)'
