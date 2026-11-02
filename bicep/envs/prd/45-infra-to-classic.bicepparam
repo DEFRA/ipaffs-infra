@@ -5,7 +5,6 @@ param builtInGroups = {
   owners: '3b6d27b3-b49b-44ad-8fc1-75bbf4d5c3fd' // AG-Azure-IMP_PRD1-Owners
 }
 
-param entraGroups = {}
 param environment = 'PRD'
 param deployServicePrincipalObjectId = ''
 param grafanaManagedIdentityPrincipalId = ''

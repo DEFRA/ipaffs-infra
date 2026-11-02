@@ -3,60 +3,8 @@ parameters:
     type: string
 
 stages:
-  - stage: ConfigureInfraToClassicDeployment
-    displayName: Configure Infrastructure to Classic deployment
-    variables:
-      - group: Common
-      - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
-        - group: HigherEnvs
-      - ${{ else }}:
-        - group: LowerEnvs
-      - group: "${{ parameters.environmentName }}"
-      - template: "/pipelines/vars/common.yaml"
-      - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
-    jobs:
-      - job: ConfigureBicep
-        displayName: Configure Bicep
-        steps:
-          - checkout: self
-
-          - task: Bash@3
-            name: GenerateBicepParams
-            displayName: Generate Bicep Params
-            inputs:
-              targetType: inline
-              script: |
-                set -ex
-                cat <<- 'EOF' >'$(Build.SourcesDirectory)/45-infra-to-classic-runtime.bicepparam'
-                using '45-infra-to-classic.bicep'
-                extends 'envs/${{ lower(parameters.environmentName) }}/45-infra-to-classic.bicepparam'
-                param entraGroups = {
-                  grafanaAdmins: {
-                    id: '$(grafanaAdminsGroupId)'
-                    name: '$(grafanaAdminsGroupName)'
-                  }
-                  grafanaEditors: {
-                    id: '$(grafanaEditorsGroupId)'
-                    name: '$(grafanaEditorsGroupName)'
-                  }
-                  grafanaViewers: {
-                    id: '$(grafanaViewersGroupId)'
-                    name: '$(grafanaViewersGroupName)'
-                  }
-                }
-                EOF
-                cat '$(Build.SourcesDirectory)/45-infra-to-classic-runtime.bicepparam'
-
-          - task: PublishPipelineArtifact@1
-            displayName: Publish artifact
-            inputs:
-              artifactName: bicepparam-infra-to-classic
-              targetPath: $(Build.SourcesDirectory)/45-infra-to-classic-runtime.bicepparam
-
-
   - stage: DeployInfrastructureToClassic
     displayName: Deploy Infrastructure to Classic
-    dependsOn: ConfigureInfraToClassicDeployment
     variables:
       - group: Common
       - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
@@ -77,12 +25,6 @@ stages:
               steps:
                 - checkout: self
 
-                - task: DownloadPipelineArtifact@2
-                  displayName: Download artifact
-                  inputs:
-                    artifactName: bicepparam-infra-to-classic
-                    targetPath: $(Build.SourcesDirectory)/bicep
-
                 - task: AzureCLI@2
                   displayName: WhatIf - Infrastructure to Classic
                   inputs:
@@ -96,7 +38,7 @@ stages:
                         --subscription $(classicSubscriptionId) \
                         --resource-group $(classicResourceGroupName) \
                         --template-file bicep/45-infra-to-classic.bicep \
-                        --parameters bicep/45-infra-to-classic-runtime.bicepparam \
+                        --parameters bicep/envs/${{ lower(parameters.environmentName) }}/45-infra-to-classic.bicepparam \
                         --parameters deployServicePrincipalObjectId="$(serviceConnectionPrincipalId)" \
                         --parameters grafanaManagedIdentityPrincipalId="$(grafanaManagedIdentityPrincipalId)"
 
@@ -114,7 +56,7 @@ stages:
                         --subscription $(classicSubscriptionId) \
                         --resource-group $(classicResourceGroupName) \
                         --template-file bicep/45-infra-to-classic.bicep \
-                        --parameters bicep/45-infra-to-classic-runtime.bicepparam \
+                        --parameters bicep/envs/${{ lower(parameters.environmentName) }}/45-infra-to-classic.bicepparam \
                         --parameters deployServicePrincipalObjectId="$(serviceConnectionPrincipalId)" \
                         --parameters grafanaManagedIdentityPrincipalId="$(grafanaManagedIdentityPrincipalId)"
 
