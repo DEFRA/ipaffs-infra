@@ -32,7 +32,8 @@ stages:
                     ENVIRONMENT: ${{ lower(parameters.environmentName) }}
                     SUBSCRIPTION_NAME: $(classicSubscriptionName)
                   inputs:
-                    azureSubscription: $(classicServiceConnection)
+                    # Resolved when the template expands because the service connection is checked before stage variables exist
+                    azureSubscription: ${{ variables.classicServiceConnection }}
                     scriptType: bash
                     scriptLocation: inlineScript
                     inlineScript: |
