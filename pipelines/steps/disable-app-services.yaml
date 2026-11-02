@@ -1,0 +1,25 @@
+parameters:
+  - name: environmentName
+    type: string
+
+  - name: action
+    type: string
+
+  - name: serviceConnection
+    type: string
+
+steps:
+  - checkout: self
+
+  - task: AzureCLI@2
+    displayName: Run ${{ parameters.action }}
+    env:
+      ENVIRONMENT: ${{ lower(parameters.environmentName) }}
+      SUBSCRIPTION_NAME: $(classicSubscriptionName)
+    inputs:
+      azureSubscription: ${{ parameters.serviceConnection }}
+      scriptType: bash
+      scriptLocation: inlineScript
+      inlineScript: |
+        set -euo pipefail
+        bash scripts/pipeline/disable-app-services.sh ${{ parameters.action }}

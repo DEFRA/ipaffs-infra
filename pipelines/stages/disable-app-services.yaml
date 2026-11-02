@@ -1,12 +1,20 @@
 ---
 # Stops or starts the App Services listed for one environment
-# Approvals come from the checks on the ADO Environment named environmentName
+# With requireApproval the stage waits for a manual approval in this pipeline
+# so the gate never depends on how the ADO Environment is configured
 parameters:
   - name: environmentName
     type: string
 
   - name: action
     type: string
+
+  - name: requireApproval
+    type: boolean
+
+  - name: approvalTimeoutInMinutes
+    type: number
+    default: 1440
 
 stages:
   - stage: AppServices${{ parameters.environmentName }}
@@ -15,27 +23,48 @@ stages:
       - template: "/pipelines/vars/common.yaml"
       - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
     jobs:
-      - deployment: AppServices
-        displayName: ${{ parameters.action }} listed App Services
-        timeoutInMinutes: 60
-        environment:
-          name: "${{ parameters.environmentName }}"
-        strategy:
-          runOnce:
-            deploy:
-              steps:
-                - checkout: self
+      - ${{ if parameters.requireApproval }}:
+        - job: Approve
+          displayName: Approve ${{ parameters.action }} in ${{ parameters.environmentName }}
+          pool: server
+          timeoutInMinutes: ${{ parameters.approvalTimeoutInMinutes }}
+          steps:
+            - task: ManualValidation@1
+              displayName: Approve ${{ parameters.action }} in ${{ parameters.environmentName }}
+              timeoutInMinutes: ${{ parameters.approvalTimeoutInMinutes }}
+              inputs:
+                notifyUsers: $(Build.RequestedForEmail)
+                instructions: >-
+                  Approve to ${{ parameters.action }} the App Services listed in
+                  scripts/pipeline/disable-app-services/${{ lower(parameters.environmentName) }}-decommission-apps.txt
+                  in ${{ parameters.environmentName }}. Reject to stop the run here.
+                onTimeout: reject
 
-                - task: AzureCLI@2
-                  displayName: Run ${{ parameters.action }}
-                  env:
-                    ENVIRONMENT: ${{ lower(parameters.environmentName) }}
-                    SUBSCRIPTION_NAME: $(classicSubscriptionName)
-                  inputs:
-                    # Resolved when the template expands because the service connection is checked before stage variables exist
-                    azureSubscription: ${{ variables.classicServiceConnection }}
-                    scriptType: bash
-                    scriptLocation: inlineScript
-                    inlineScript: |
-                      set -euo pipefail
-                      bash scripts/pipeline/disable-app-services.sh ${{ parameters.action }}
+        # The ADO Environment keeps its own checks on top of the approval above
+        - deployment: AppServices
+          displayName: ${{ parameters.action }} listed App Services
+          dependsOn: Approve
+          timeoutInMinutes: 60
+          environment:
+            name: "${{ parameters.environmentName }}"
+          strategy:
+            runOnce:
+              deploy:
+                steps:
+                  - template: /pipelines/steps/disable-app-services.yaml
+                    parameters:
+                      environmentName: ${{ parameters.environmentName }}
+                      action: ${{ parameters.action }}
+                      # Resolved when the template expands because the service connection is checked before stage variables exist
+                      serviceConnection: ${{ variables.classicServiceConnection }}
+
+      - ${{ else }}:
+        - job: AppServices
+          displayName: ${{ parameters.action }} listed App Services
+          timeoutInMinutes: 60
+          steps:
+            - template: /pipelines/steps/disable-app-services.yaml
+              parameters:
+                environmentName: ${{ parameters.environmentName }}
+                action: ${{ parameters.action }}
+                serviceConnection: ${{ variables.classicServiceConnection }}

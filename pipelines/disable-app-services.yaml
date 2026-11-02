@@ -24,22 +24,27 @@ stages:
         - Action-${{ parameters.action }}
 
   # Each stage waits for the one before it so lower environments go first
+  # SND starts straight away and every later stage needs a manual approval
   - template: stages/disable-app-services.yaml
     parameters:
       environmentName: SND
       action: ${{ parameters.action }}
+      requireApproval: false
 
   - template: stages/disable-app-services.yaml
     parameters:
       environmentName: TST
       action: ${{ parameters.action }}
+      requireApproval: true
 
   - template: stages/disable-app-services.yaml
     parameters:
       environmentName: PRE
       action: ${{ parameters.action }}
+      requireApproval: true
 
   - template: stages/disable-app-services.yaml
     parameters:
       environmentName: PRD
       action: ${{ parameters.action }}
+      requireApproval: true

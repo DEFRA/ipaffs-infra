@@ -148,18 +148,21 @@ state, retries throttled calls and fails unless every listed app ends in the
 target state. Unlisted apps are never touched. Tests:
 `bash scripts/pipeline/disable-app-services.test.sh`.
 
-**Stages and gates:** one run goes SND → TST → PRE → PRD. Each stage is a
-deployment job against the existing ADO Environment of the same name, so its
-approval checks gate the stage. A rejected approval or a failure stops the
-run there. A stage whose list is empty fails.
+**Stages and gates:** one run goes SND → TST → PRE → PRD. SND starts straight
+away. TST, PRE and PRD each start with a `ManualValidation` approval in the
+pipeline itself, which rejects after 24 hours, so a gate never depends on how
+an ADO Environment is configured. Their deployment jobs still target the ADO
+Environment of the same name, so any checks configured there apply as well. A
+rejected approval or a failure stops the run there. A stage whose list is
+empty fails.
 
 **Rollback:** queue a new run with `action=recover` and approve up to the
 environment that needs it. Lower environments run again first, which keeps
 them consistent with higher ones.
 
-**Prerequisite:** confirm the `SND`, `TST`, `PRE` and `PRD` ADO Environments
-have approval checks; a stage without one runs straight away. Those checks
-also gate the infrastructure pipelines that use the same Environments.
+**Approvers:** anyone who can queue the pipeline can approve, including the
+person who queued it. Set `approvers` on the `ManualValidation` task to restrict
+this.
 
 ### Human access ownership
 
