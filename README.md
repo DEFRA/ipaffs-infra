@@ -127,26 +127,29 @@ Azure DevOps `\Operations` folder.
 classic App Services and Function Apps listed for each environment. It changes
 nothing else: no plan scaling, no autoscale, no deletes.
 
-**Lists:** `scripts/pipeline/disable-app-services/<env>-decommission-apps.txt`, one file
+**Lists:** `scripts/pipeline/decommission-legacy-apps/lists/<env>-decommission-apps.txt`, one file
 per environment (subscription `AZR-SND`, `AZR-TST`, `AZR-PRE`, `AZR-PRD`). Each
 line is `resourceGroup/appName`; `#` starts a comment. Lists are explicit
 because some apps are deliberately stopped for regression testing and must
 never be started, so only the apps that were running are listed. To create or
-refresh a list (read only), then review it before committing:
+refresh a list (read only), sign in to the subscription and run:
 
 ```bash
-SUBSCRIPTION_NAME=AZR-TST bash scripts/pipeline/list-running-app-services.sh \
-  > scripts/pipeline/disable-app-services/tst-decommission-apps.txt
+SUB=AZR-TST
+{ az webapp list --subscription "$SUB" --query "[?state=='Running'].join('/', [resourceGroup, name])" -o tsv
+  az functionapp list --subscription "$SUB" --query "[?state=='Running'].join('/', [resourceGroup, name])" -o tsv
+} | grep -i 'imp[^/]*/' | sort -fu
 ```
 
-The helper keeps running sites whose resource group matches
-`RESOURCE_GROUP_PATTERN` (default `IMP`). Remove anything that is not IPAFFS.
+The `grep` keeps resource groups containing `IMP` in any case. Review the
+output, remove anything that is not IPAFFS, then save it with a header comment
+saying when it was generated.
 
-**Script:** `scripts/pipeline/disable-app-services.sh <disable|recover>` checks that every
+**Script:** `scripts/pipeline/decommission-legacy-apps/disable.sh <disable|recover>` checks that every
 listed app exists before changing anything, skips apps already in the target
 state, retries throttled calls and fails unless every listed app ends in the
 target state. Unlisted apps are never touched. Tests:
-`bash scripts/pipeline/disable-app-services.test.sh`.
+`bash scripts/pipeline/decommission-legacy-apps/disable.test.sh`.
 
 **Stages and gates:** one run goes SND → TST → PRE → PRD. SND starts straight
 away. TST, PRE and PRD each start with a `ManualValidation` approval in the

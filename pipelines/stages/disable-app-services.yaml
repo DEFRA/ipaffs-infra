@@ -36,7 +36,7 @@ stages:
                 notifyUsers: $(Build.RequestedForEmail)
                 instructions: >-
                   Approve to ${{ parameters.action }} the App Services listed in
-                  scripts/pipeline/disable-app-services/${{ lower(parameters.environmentName) }}-decommission-apps.txt
+                  scripts/pipeline/decommission-legacy-apps/lists/${{ lower(parameters.environmentName) }}-decommission-apps.txt
                   in ${{ parameters.environmentName }}. Reject to stop the run here.
                 onTimeout: reject
 

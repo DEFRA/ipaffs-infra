@@ -1,6 +1,6 @@
 # Running App Services and Function Apps in AZR-SND
 # The pipeline stops these on disable and starts them on recover
-# Generated 2026-11-02 by scripts/pipeline/list-running-app-services.sh
+# Generated 2026-11-02 with az webapp list and az functionapp list
 # One resourceGroup/appName per line
 # SNDIMPWEBAFA001 is left out because it is not an IPAFFS app
 SNDIMPINFRGP001-imports-proxy/imports-proxy

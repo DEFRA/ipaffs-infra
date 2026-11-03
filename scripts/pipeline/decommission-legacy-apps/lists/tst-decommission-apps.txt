@@ -1,0 +1,75 @@
+# Running App Services and Function Apps in AZR-TST
+# The pipeline stops these on disable and starts them on recover
+# Generated 2026-11-02 with az webapp list and az functionapp list
+# One resourceGroup/appName per line
+# Every app is commented out for safety so the TST stage fails without touching anything
+# Uncomment the apps when TST is ready to be disabled
+# TSTIMPWEBAFA001 is left out because it is not an IPAFFS app
+#TSTIMPINFRGP002/approvedestablishment-microservice-blue-tst
+#TSTIMPINFRGP002/approvedestablishment-microservice-green-tst
+#TSTIMPINFRGP002/bip-microservice-blue-tst
+#TSTIMPINFRGP002/bip-microservice-green-tst
+#TSTIMPINFRGP002/bordernotification-microservice-blue-tst
+#TSTIMPINFRGP002/bordernotification-microservice-green-tst
+#TSTIMPINFRGP002/bordernotification-refdata-microservice-blue-tst
+#TSTIMPINFRGP002/bordernotification-refdata-microservice-green-tst
+#TSTIMPINFRGP002/certificate-microservice-blue-tst
+#TSTIMPINFRGP002/certificate-microservice-green-tst
+#TSTIMPINFRGP002/checks-microservice-blue-tst
+#TSTIMPINFRGP002/checks-microservice-green-tst
+#TSTIMPINFRGP002/cloning-microservice-blue-tst
+#TSTIMPINFRGP002/cloning-microservice-green-tst
+#TSTIMPINFRGP002/commoditycode-microservice-blue-tst
+#TSTIMPINFRGP002/commoditycode-microservice-green-tst
+#TSTIMPINFRGP002/countries-microservice-blue-tst
+#TSTIMPINFRGP002/countries-microservice-green-tst
+#TSTIMPINFRGP002/customer-microservice-blue-tst
+#TSTIMPINFRGP002/customer-microservice-green-tst
+#TSTIMPINFRGP002/decision-microservice-blue-tst
+#TSTIMPINFRGP002/decision-microservice-green-tst
+#TSTIMPINFRGP002/economicoperator-microservice-blue-tst
+#TSTIMPINFRGP002/economicoperator-microservice-green-tst
+#TSTIMPINFRGP002/enotification-event-microservice-blue-tst
+#TSTIMPINFRGP002/enotification-event-microservice-green-tst
+#TSTIMPINFRGP002/enotification-submission-microservice-blue-tst
+#TSTIMPINFRGP002/enotification-submission-microservice-green-tst
+#TSTIMPINFRGP002/fieldconfig-microservice-blue-tst
+#TSTIMPINFRGP002/fieldconfig-microservice-green-tst
+#TSTIMPINFRGP002/file-compression-microservice-blue-tst
+#TSTIMPINFRGP002/file-compression-microservice-green-tst
+#TSTIMPINFRGP002/file-upload-microservice-blue-tst
+#TSTIMPINFRGP002/file-upload-microservice-green-tst
+#TSTIMPINFRGP002/frontend-bcpadmin-blue-tst
+#TSTIMPINFRGP002/frontend-bcpadmin-green-tst
+#TSTIMPINFRGP002/frontend-bordernotification-blue-tst
+#TSTIMPINFRGP002/frontend-bordernotification-green-tst
+#TSTIMPINFRGP002/frontend-checks-blue-tst
+#TSTIMPINFRGP002/frontend-checks-green-tst
+#TSTIMPINFRGP002/frontend-control-blue-tst
+#TSTIMPINFRGP002/frontend-control-green-tst
+#TSTIMPINFRGP002/frontend-decision-blue-tst
+#TSTIMPINFRGP002/frontend-decision-green-tst
+#TSTIMPINFRGP002/frontend-notification-blue-tst
+#TSTIMPINFRGP002/frontend-notification-green-tst
+#TSTIMPINFRGP002/frontend-upload-blue-tst
+#TSTIMPINFRGP002/frontend-upload-green-tst
+#TSTIMPINFRGP002/imports-proxy-blue-tst
+#TSTIMPINFRGP002/imports-proxy-green-tst
+#TSTIMPINFRGP002/imports-proxy-idmlatest-tst
+#TSTIMPINFRGP002/in-service-messaging-microservice-blue-tst
+#TSTIMPINFRGP002/in-service-messaging-microservice-green-tst
+#TSTIMPINFRGP002/laboratories-microservice-blue-tst
+#TSTIMPINFRGP002/laboratories-microservice-green-tst
+#TSTIMPINFRGP002/legacy-notifications-microservice-blue-tst
+#TSTIMPINFRGP002/legacy-notifications-microservice-green-tst
+#TSTIMPINFRGP002/notification-microservice-blue-tst
+#TSTIMPINFRGP002/notification-microservice-green-tst
+#TSTIMPINFRGP002/permissions-blue-tst
+#TSTIMPINFRGP002/permissions-green-tst
+#TSTIMPINFRGP002/referencedataloader-microservice-green-tst
+#TSTIMPINFRGP002/risk-assessment-microservice-blue-tst
+#TSTIMPINFRGP002/risk-assessment-microservice-green-tst
+#TSTIMPINFRGP002/soaprequest-microservice-blue-tst
+#TSTIMPINFRGP002/soaprequest-microservice-green-tst
+#TSTIMPINFRGP002/soapsearch-microservice-blue-tst
+#TSTIMPINFRGP002/soapsearch-microservice-green-tst

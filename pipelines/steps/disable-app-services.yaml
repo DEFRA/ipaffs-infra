@@ -22,4 +22,4 @@ steps:
       scriptLocation: inlineScript
       inlineScript: |
         set -euo pipefail
-        bash scripts/pipeline/disable-app-services.sh ${{ parameters.action }}
+        bash scripts/pipeline/decommission-legacy-apps/disable.sh ${{ parameters.action }}

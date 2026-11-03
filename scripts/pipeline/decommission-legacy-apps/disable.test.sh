@@ -3,7 +3,7 @@
 set -uo pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-script_path="${script_dir}/disable-app-services.sh"
+script_path="${script_dir}/disable.sh"
 work_dir="$(mktemp -d)"
 trap 'rm -rf "${work_dir}"' EXIT
 

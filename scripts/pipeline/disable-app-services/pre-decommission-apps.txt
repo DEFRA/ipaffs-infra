@@ -1,7 +1,0 @@
-# Running App Services and Function Apps in AZR-PRE
-# The pipeline stops these on disable and starts them on recover
-# Not populated yet so the PRE stage fails until it is
-# Generate with
-#   SUBSCRIPTION_NAME=AZR-PRE bash scripts/pipeline/list-running-app-services.sh > scripts/pipeline/disable-app-services/pre-decommission-apps.txt
-# then review the list before committing
-# One resourceGroup/appName per line

@@ -3,7 +3,7 @@ set -euo pipefail
 
 usage() {
   cat <<'USAGE'
-Usage: disable-app-services.sh <action>
+Usage: disable.sh <action>
 
 Actions:
   disable   Stop every listed App Service and Function App that is running.
@@ -16,7 +16,7 @@ Environment:
   ENVIRONMENT         snd, tst, pre or prd.
   SUBSCRIPTION_NAME   Subscription that holds the listed apps.
   APPS_FILE           List of apps, one resourceGroup/appName per line;
-                      defaults to disable-app-services/<env>-decommission-apps.txt
+                      defaults to lists/<env>-decommission-apps.txt
                       next to this script.
 USAGE
 }
@@ -188,7 +188,7 @@ esac
 TARGET_STATE_TEXT="$(lowercase "${TARGET_STATE}")"
 
 ENVIRONMENT_NAME="$(normalise_environment "${ENVIRONMENT:-}")"
-APPS_FILE="${APPS_FILE:-${script_dir}/disable-app-services/${ENVIRONMENT_NAME}-decommission-apps.txt}"
+APPS_FILE="${APPS_FILE:-${script_dir}/lists/${ENVIRONMENT_NAME}-decommission-apps.txt}"
 [[ -n "${SUBSCRIPTION_NAME:-}" ]] || fail "SUBSCRIPTION_NAME is required"
 
 work_dir="$(mktemp -d)"
