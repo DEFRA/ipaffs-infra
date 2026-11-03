@@ -9,6 +9,7 @@ trigger:
     include:
       - bicep/**
       - pipelines/infrastructure.yaml
+      - pipelines/jobs/infrastructure/*.yaml
       - pipelines/stages/deploy-bicep-*.yaml
       - pipelines/stages/tag-build.yaml
       - pipelines/stages/validate-access-contract.yaml

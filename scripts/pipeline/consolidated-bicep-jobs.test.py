@@ -1,6 +1,6 @@
 """Check job consolidation, runtime parameter files and explicit output contracts.
 
-The small expander below handles this repository's local stage-template clauses;
+The small expander below handles this repository's local stage/job-template clauses;
 it does not emulate Azure DevOps scheduling or replace server-side validation.
 All scripts run against temporary files and fake executables, without Azure.
 """
@@ -9,6 +9,7 @@ import ast
 import fnmatch
 import os
 from pathlib import Path, PurePosixPath
+import posixpath
 import re
 import shutil
 import subprocess
@@ -137,23 +138,52 @@ def parameters(document, overrides):
     return {**{item["name"]: item.get("default") for item in document.get("parameters", [])}, **overrides}
 
 
-def expand_stages(path, overrides=None, branch="refs/heads/main"):
+def template_path(path, template):
+    if "@" in template:
+        raise AssertionError(f"External job/stage template cannot be expanded locally: {template}")
+    return posixpath.normpath(template.lstrip("/") if template.startswith("/")
+                             else str(Path(path).parent / template))
+
+
+def expand_jobs(path, entries, branch, sources):
+    jobs = []
+    for entry in entries:
+        if "template" not in entry:
+            jobs.append(entry)
+            continue
+        source = template_path(path, entry["template"])
+        sources.add(source)
+        document = load(source)
+        context = {"parameters": parameters(document, entry.get("parameters", {})),
+                   "variables": {"Build.SourceBranch": branch}}
+        jobs.extend(expand_jobs(source, expand(document["jobs"], context), branch, sources))
+    return jobs
+
+
+def expand_stages(path, overrides=None, branch="refs/heads/main", sources=None):
+    sources = sources if sources is not None else set()
+    sources.add(posixpath.normpath(path))
     document = load(path)
     context = {"parameters": parameters(document, overrides or {}),
                "variables": {"Build.SourceBranch": branch}}
     stages = []
     for entry in expand(document["stages"], context):
         if "template" in entry:
-            template = str(Path(path).parent / entry["template"])
-            stages.extend(expand_stages(template, entry.get("parameters"), branch))
+            template = template_path(path, entry["template"])
+            stages.extend(expand_stages(template, entry.get("parameters"), branch, sources))
         else:
+            entry["jobs"] = expand_jobs(path, entry["jobs"], branch, sources)
             stages.append(entry)
     return stages
 
 
 def steps(stage):
     job, = stage["jobs"]
-    return job["strategy"]["runOnce"]["deploy"]["steps"]
+    return job_steps(job)
+
+
+def job_steps(job):
+    return job.get("steps") or job["strategy"]["runOnce"]["deploy"]["steps"]
 
 
 class ConsolidatedBicepJobTests(unittest.TestCase):
@@ -380,9 +410,12 @@ class AutomaticDevTriggerTests(unittest.TestCase):
         def triggers(path):
             return matches(path, trigger["paths"]["include"]) and not matches(path, trigger["paths"].get("exclude", []))
 
-        context = {"parameters": defaults, "variables": {"Build.SourceBranch": "refs/heads/main"}}
-        sources = ["pipelines/" + entry["template"] for entry in expand(pipeline["stages"], context)]
-        sources += ["bicep/40-infra.bicep", "bicep/modules/aks.bicep", "bicep/files/PAsubca.crt",
+        template_sources = set()
+        expand_stages("pipelines/infrastructure.yaml", sources=template_sources)
+        # Optional peering and platform imports must also trigger a DEV run when changed.
+        template_sources.update(path.relative_to(ROOT).as_posix()
+                                for path in (ROOT / "pipelines/jobs/infrastructure").glob("*.yaml"))
+        sources = sorted(template_sources) + ["bicep/40-infra.bicep", "bicep/modules/aks.bicep", "bicep/files/PAsubca.crt",
                     "bicep/default-tags.json", "bicep/bicepconfig.json",
                     "bicep/envs/dev/40-infra.bicepparam", "bicep/envs/snd/30-classic.bicepparam",
                     "pipelines/vars/common.yaml", "pipelines/vars/dev.yaml", "pipelines/vars/snd.yaml",
