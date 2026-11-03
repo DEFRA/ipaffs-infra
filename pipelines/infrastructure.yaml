@@ -1,8 +1,35 @@
 ---
+# Automatic runs use the DEV parameter default. Batch merges while a run is active.
 trigger:
+  batch: true
   branches:
+    include:
+      - main
+  paths:
+    include:
+      - bicep/**
+      - pipelines/infrastructure.yaml
+      - pipelines/stages/deploy-bicep-*.yaml
+      - pipelines/stages/tag-build.yaml
+      - pipelines/stages/validate-access-contract.yaml
+      - pipelines/stages/run-hooks.yaml
+      - pipelines/stages/establish-peering.yaml
+      - pipelines/stages/infra-permissions.yaml
+      - pipelines/stages/private-endpoint-dns-records.yaml
+      - pipelines/vars/common.yaml
+      - pipelines/vars/dev.yaml
+      - pipelines/vars/snd.yaml
+      - scripts/pipeline/validate-access-contract.py
+      - scripts/pipeline/sync-deployment-outputs.py
+      - scripts/pipeline/add-principal-to-group.sh
+      - scripts/pipeline/run-hooks.sh
+      - scripts/pipeline/trigger-peering-pipeline.sh
+      - scripts/hooks/*.sh
+      - scripts/hooks/dev/*.sh
     exclude:
-      - '*'
+      - bicep/envs/tst/**
+      - bicep/envs/pre/**
+      - bicep/envs/prd/**
 
 pr:
   branches:
