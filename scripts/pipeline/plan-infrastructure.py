@@ -305,7 +305,7 @@ def run(args, environ):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--environment", required=True, choices=("TST", "PRE", "PRD"))
+    parser.add_argument("--environment", required=True, choices=("DEV", "TST", "PRE", "PRD"))
     parser.add_argument("--scope", choices=SCOPES)
     parser.add_argument("--initialize", action="store_true")
     parser.add_argument("--output-dir", required=True, type=Path)
