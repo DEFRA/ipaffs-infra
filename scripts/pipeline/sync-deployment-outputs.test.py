@@ -389,7 +389,7 @@ sys.exit(int(os.environ["COLLECTOR_EXIT"]))
                 for component, expected in EXPECTED_MAPPINGS.items():
                     if component == "acr" and environment == "TST":
                         continue
-                    path = ROOT / f"pipelines/jobs/infrastructure/deploy-bicep-{component}.yaml"
+                    path = ROOT / f"pipelines/stages/deploy-bicep-{component}.yaml"
                     pipeline = yaml.safe_load(path.read_text())
                     tasks = [node for node in dictionaries(pipeline)
                              if "sync-deployment-outputs.py" in node.get("inputs", {}).get("inlineScript", "")]

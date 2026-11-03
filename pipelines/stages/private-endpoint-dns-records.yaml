@@ -28,6 +28,279 @@ stages:
         - name: ${{ variable.key }}
           value: ${{ variable.value }}
     jobs:
-      - template: ../jobs/infrastructure/private-endpoint-dns-records.yaml
-        parameters:
-          environmentName: ${{ parameters.environmentName }}
+      - deployment: ContainerRegistry
+        displayName: Container Registry
+        environment:
+          name: "${{ parameters.environmentName }}"
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - template: /templates/steps/powershell.yaml@PipelineCommon
+                  parameters:
+                    azureResourceManagerConnection: AZR-MST-PrivateLinkDNS
+                    variables:
+                      projectServiceConnection: $(serviceConnection)
+                    scriptsList:
+                      - displayName: "Resolve Private Endpoint IPs"
+                        serviceConnectionVariableName: projectServiceConnection
+                        scriptPath: 'Get-ResourcePrivateEndPointsDnsRecordsAsJson.ps1@PipelineCommon'
+                        scriptArguments: >
+                          -ResourceGroupName '$(resourceGroupName)'
+                          -ResourceName '$(acrName)'
+                          -Subscription '$(subscriptionName)'
+
+                      - displayName: "Set DNS records"
+                        condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+                        scriptPath: 'Set-PrivateDnsRecordSet.ps1@PipelineCommon'
+                        scriptArguments: >
+                          -UpdateAllDnsZones $true
+
+      - deployment: KeyVault
+        displayName: Key Vault
+        environment:
+          name: "${{ parameters.environmentName }}"
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - template: /templates/steps/powershell.yaml@PipelineCommon
+                  parameters:
+                    azureResourceManagerConnection: AZR-MST-PrivateLinkDNS
+                    variables:
+                      projectServiceConnection: $(serviceConnection)
+                    scriptsList:
+                      - displayName: "Resolve Private Endpoint IPs"
+                        serviceConnectionVariableName: projectServiceConnection
+                        scriptPath: 'Get-ResourcePrivateEndPointsDnsRecordsAsJson.ps1@PipelineCommon'
+                        scriptArguments: >
+                          -ResourceGroupName '$(resourceGroupName)'
+                          -ResourceName '$(keyVaultName)'
+                          -Subscription '$(subscriptionName)'
+
+                      - displayName: "Set DNS records"
+                        condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+                        scriptPath: 'Set-PrivateDnsRecordSet.ps1@PipelineCommon'
+                        scriptArguments: >
+                          -UpdateAllDnsZones $true
+
+                - ${{ if eq(parameters.environmentName, 'TST') }}:
+                  - template: /templates/steps/powershell.yaml@PipelineCommon
+                    parameters:
+                      azureResourceManagerConnection: AZR-MST-PrivateLinkDNS
+                      variables:
+                        projectServiceConnection: $(serviceConnection)
+                      scriptsList:
+                        - displayName: "Resolve Private Endpoint IPs"
+                          serviceConnectionVariableName: projectServiceConnection
+                          scriptPath: 'Get-ResourcePrivateEndPointsDnsRecordsAsJson.ps1@PipelineCommon'
+                          scriptArguments: >
+                            -ResourceGroupName '$(resourceGroupName)'
+                            -ResourceName '$(qaKeyVaultName)'
+                            -Subscription '$(subscriptionName)'
+
+                        - displayName: "Set DNS records"
+                          condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+                          scriptPath: 'Set-PrivateDnsRecordSet.ps1@PipelineCommon'
+                          scriptArguments: >
+                            -UpdateAllDnsZones $true
+
+      - deployment: Redis
+        displayName: Redis
+        environment:
+          name: "${{ parameters.environmentName }}"
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - template: /templates/steps/powershell.yaml@PipelineCommon
+                  parameters:
+                    azureResourceManagerConnection: AZR-MST-PrivateLinkDNS
+                    variables:
+                      projectServiceConnection: $(serviceConnection)
+                    scriptsList:
+                      - displayName: "Resolve Private Endpoint IPs"
+                        serviceConnectionVariableName: projectServiceConnection
+                        scriptPath: 'Get-ResourcePrivateEndPointsDnsRecordsAsJson.ps1@PipelineCommon'
+                        scriptArguments: >
+                          -ResourceGroupName '$(resourceGroupName)'
+                          -ResourceName '$(redisName)'
+                          -Subscription '$(subscriptionName)'
+
+                      - displayName: "Set DNS records"
+                        condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+                        scriptPath: 'Set-PrivateDnsRecordSet.ps1@PipelineCommon'
+                        scriptArguments: >
+                          -UpdateAllDnsZones $true
+
+      # TODO: enable this when we're able to switch to on-vnet private endpoint for classic resources
+      #- deployment: RedisClassic
+      #  displayName: Redis (Classic)
+      #  environment:
+      #    name: "${{ parameters.environmentName }}"
+      #  strategy:
+      #    runOnce:
+      #      deploy:
+      #        steps:
+      #          - template: /templates/steps/powershell.yaml@PipelineCommon
+      #            parameters:
+      #              azureResourceManagerConnection: AZR-MST-PrivateLinkDNS
+      #              variables:
+      #                projectServiceConnection: $(classicServiceConnection)
+      #              scriptsList:
+      #                - displayName: "Resolve Private Endpoint IPs"
+      #                  serviceConnectionVariableName: projectServiceConnection
+      #                  scriptPath: 'Get-ResourcePrivateEndPointsDnsRecordsAsJson.ps1@PipelineCommon'
+      #                  scriptArguments: >
+      #                    -ResourceGroupName '$(classicResourceGroupName)'
+      #                    -ResourceName '$(classicRedisName)'
+      #                    -Subscription '$(classicSubscriptionName)'
+
+      #                - displayName: "Set DNS records"
+      #                  condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+      #                  scriptPath: 'Set-PrivateDnsRecordSet.ps1@PipelineCommon'
+      #                  scriptArguments: >
+      #                    -UpdateAllDnsZones $true
+
+      - deployment: Search
+        displayName: Search
+        environment:
+          name: "${{ parameters.environmentName }}"
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - template: /templates/steps/powershell.yaml@PipelineCommon
+                  parameters:
+                    azureResourceManagerConnection: AZR-MST-PrivateLinkDNS
+                    variables:
+                      projectServiceConnection: $(serviceConnection)
+                    scriptsList:
+                      - displayName: "Resolve Private Endpoint IPs"
+                        serviceConnectionVariableName: projectServiceConnection
+                        scriptPath: 'Get-ResourcePrivateEndPointsDnsRecordsAsJson.ps1@PipelineCommon'
+                        scriptArguments: >
+                          -ResourceGroupName '$(resourceGroupName)'
+                          -ResourceName '$(searchServiceName)'
+                          -Subscription '$(subscriptionName)'
+
+                      - displayName: "Set DNS records"
+                        condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+                        scriptPath: 'Set-PrivateDnsRecordSet.ps1@PipelineCommon'
+                        scriptArguments: >
+                          -UpdateAllDnsZones $true
+
+      # TODO: enable this when we're able to switch to on-vnet private endpoint for classic resources
+      #- deployment: SearchClassic
+      #  displayName: Search (Classic)
+      #  environment:
+      #    name: "${{ parameters.environmentName }}"
+      #  strategy:
+      #    runOnce:
+      #      deploy:
+      #        steps:
+      #          - template: /templates/steps/powershell.yaml@PipelineCommon
+      #            parameters:
+      #              azureResourceManagerConnection: AZR-MST-PrivateLinkDNS
+      #              variables:
+      #                projectServiceConnection: $(classicServiceConnection)
+      #              scriptsList:
+      #                - displayName: "Resolve Private Endpoint IPs"
+      #                  serviceConnectionVariableName: projectServiceConnection
+      #                  scriptPath: 'Get-ResourcePrivateEndPointsDnsRecordsAsJson.ps1@PipelineCommon'
+      #                  scriptArguments: >
+      #                    -ResourceGroupName '$(classicResourceGroupName)'
+      #                    -ResourceName '$(classicSearchServiceName)'
+      #                    -Subscription '$(classicSubscriptionName)'
+
+      #                - displayName: "Set DNS records"
+      #                  condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+      #                  scriptPath: 'Set-PrivateDnsRecordSet.ps1@PipelineCommon'
+      #                  scriptArguments: >
+      #                    -UpdateAllDnsZones $true
+
+      - deployment: Storage
+        displayName: Storage
+        environment:
+          name: "${{ parameters.environmentName }}"
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - template: /templates/steps/powershell.yaml@PipelineCommon
+                  parameters:
+                    azureResourceManagerConnection: AZR-MST-PrivateLinkDNS
+                    variables:
+                      projectServiceConnection: $(serviceConnection)
+                    scriptsList:
+                      - displayName: "Resolve Private Endpoint IPs"
+                        serviceConnectionVariableName: projectServiceConnection
+                        scriptPath: 'Get-ResourcePrivateEndPointsDnsRecordsAsJson.ps1@PipelineCommon'
+                        scriptArguments: >
+                          -ResourceGroupName '$(resourceGroupName)'
+                          -ResourceName '$(storageAccountName)'
+                          -Subscription '$(subscriptionName)'
+
+                      - displayName: "Set DNS records"
+                        condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+                        scriptPath: 'Set-PrivateDnsRecordSet.ps1@PipelineCommon'
+                        scriptArguments: >
+                          -UpdateAllDnsZones $true
+
+      - deployment: SQLServer
+        displayName: SQL Server
+        environment:
+          name: "${{ parameters.environmentName }}"
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - template: /templates/steps/powershell.yaml@PipelineCommon
+                  parameters:
+                    azureResourceManagerConnection: AZR-MST-PrivateLinkDNS
+                    variables:
+                      projectServiceConnection: $(serviceConnection)
+                    scriptsList:
+                      - displayName: "Resolve Private Endpoint IPs"
+                        serviceConnectionVariableName: projectServiceConnection
+                        scriptPath: 'Get-ResourcePrivateEndPointsDnsRecordsAsJson.ps1@PipelineCommon'
+                        scriptArguments: >
+                          -ResourceGroupName '$(resourceGroupName)'
+                          -ResourceName '$(sqlServerName)'
+                          -Subscription '$(subscriptionName)'
+
+                      - displayName: "Set DNS records"
+                        condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+                        scriptPath: 'Set-PrivateDnsRecordSet.ps1@PipelineCommon'
+                        scriptArguments: >
+                          -UpdateAllDnsZones $true
+
+      # TODO: enable this when we're able to switch to on-vnet private endpoint for classic resources
+      #- deployment: SQLServerClassic
+      #  displayName: SQL Server (Classic)
+      #  environment:
+      #    name: "${{ parameters.environmentName }}"
+      #  strategy:
+      #    runOnce:
+      #      deploy:
+      #        steps:
+      #          - template: /templates/steps/powershell.yaml@PipelineCommon
+      #            parameters:
+      #              azureResourceManagerConnection: AZR-MST-PrivateLinkDNS
+      #              variables:
+      #                projectServiceConnection: $(classicServiceConnection)
+      #              scriptsList:
+      #                - displayName: "Resolve Private Endpoint IPs"
+      #                  serviceConnectionVariableName: projectServiceConnection
+      #                  scriptPath: 'Get-ResourcePrivateEndPointsDnsRecordsAsJson.ps1@PipelineCommon'
+      #                  scriptArguments: >
+      #                    -ResourceGroupName '$(classicResourceGroupName)'
+      #                    -ResourceName '$(classicSqlServerName)'
+      #                    -Subscription '$(classicSubscriptionName)'
+
+      #                - displayName: "Set DNS records"
+      #                  condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+      #                  scriptPath: 'Set-PrivateDnsRecordSet.ps1@PipelineCommon'
+      #                  scriptArguments: >
+      #                    -UpdateAllDnsZones $true
+

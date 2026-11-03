@@ -30,6 +30,202 @@ stages:
         - name: ${{ variable.key }}
           value: ${{ variable.value }}
     jobs:
-      - template: ../jobs/infrastructure/deploy-bicep-infra.yaml
-        parameters:
-          environmentName: ${{ parameters.environmentName }}
+      - deployment: RunBicep
+        displayName: Run Bicep
+        environment:
+          name: "${{ parameters.environmentName }}"
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - download: none
+                - checkout: self
+
+                - task: Bash@3
+                  name: GenerateBicepParams
+                  displayName: Generate Bicep Params
+                  inputs:
+                    targetType: inline
+                    script: |
+                      set -ex
+                      cat <<- 'EOF' >'$(Build.SourcesDirectory)/bicep/40-infra-runtime.bicepparam'
+                      using '40-infra.bicep'
+                      extends 'envs/${{ lower(parameters.environmentName) }}/40-infra.bicepparam'
+                      param qaAutomationPrincipalObjectId = '$(qaAutomationServiceConnectionPrincipalId)'
+                      param classicResourceIds = {
+                        redis: '$(classicRedisResourceId)'
+                        searchService: '$(classicSearchServiceResourceId)'
+                        serviceBusNamespace: '$(classicServiceBusNamespaceResourceId)'
+                        sqlServer: '$(classicSqlServerResourceId)'
+                      }
+                      param entraGroups = {
+                        sqlAdmins: {
+                          id: '$(sqlAdminGroupId)'
+                          name: '$(sqlAdminGroupName)'
+                        }
+                      }
+                      param subnets = {
+                        aksApiServer: {
+                          id: '$(aksApiServerSubnetId)'
+                          name: '$(aksApiServerSubnetName)'
+                        }
+                        aksSystemNodes: {
+                          id: '$(aksSystemNodesSubnetId)'
+                          name: '$(aksSystemNodesSubnetName)'
+                        }
+                        aksUserNodes: {
+                          id: '$(aksUserNodesSubnetId)'
+                          name: '$(aksUserNodesSubnetName)'
+                        }
+                        appGatewayForContainers: {
+                          id: '$(appGatewayForContainersSubnetId)'
+                          name: '$(appGatewayForContainersSubnetName)'
+                        }
+                        privateEndpoints: {
+                          id: '$(privateEndpointsSubnetId)'
+                          name: '$(privateEndpointsSubnetName)'
+                        }
+                      }
+                      EOF
+                      cat '$(Build.SourcesDirectory)/bicep/40-infra-runtime.bicepparam'
+
+                - task: PublishPipelineArtifact@1
+                  displayName: Publish artifact
+                  inputs:
+                    artifactName: bicepparam-infra
+                    targetPath: $(Build.SourcesDirectory)/bicep/40-infra-runtime.bicepparam
+
+                - task: AzureCLI@2
+                  displayName: Check AGC resource providers
+                  inputs:
+                    azureSubscription: $(serviceConnection)
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      set -euo pipefail
+                      for provider in Microsoft.ContainerService Microsoft.Network Microsoft.NetworkFunction Microsoft.ServiceNetworking; do
+                        state=$(az provider show --namespace "$provider" --subscription "$(subscriptionId)" --query registrationState -o tsv)
+                        if [[ "$state" != Registered ]]; then
+                          echo "Required AGC provider $provider is $state. Arrange registration before deploying infrastructure."
+                          exit 1
+                        fi
+                      done
+
+                - task: AzureCLI@2
+                  displayName: WhatIf - Infrastructure
+                  inputs:
+                    azureSubscription: $(serviceConnection)
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      set -x
+                      az deployment group what-if \
+                        --name "Infrastructure-$(Build.BuildId)" \
+                        --subscription $(subscriptionId) \
+                        --resource-group $(resourceGroupName) \
+                        --template-file bicep/40-infra.bicep \
+                        --parameters bicep/40-infra-runtime.bicepparam \
+                        --parameters tenantId="$(tenantId)" \
+                        --parameters deployServicePrincipalObjectId="$(serviceConnectionPrincipalId)"
+
+                - task: AzureCLI@2
+                  displayName: Deploy - Infrastructure
+                  condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+                  inputs:
+                    azureSubscription: $(serviceConnection)
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      set -x
+                      az deployment group create \
+                        --name "Infrastructure-$(Build.BuildId)" \
+                        --subscription $(subscriptionId) \
+                        --resource-group $(resourceGroupName) \
+                        --template-file bicep/40-infra.bicep \
+                        --parameters bicep/40-infra-runtime.bicepparam \
+                        --parameters tenantId="$(tenantId)" \
+                        --parameters deployServicePrincipalObjectId="$(serviceConnectionPrincipalId)"
+
+                - task: AzureCLI@2
+                  displayName: Wait for Deployment - Infrastructure
+                  condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+                  inputs:
+                    azureSubscription: $(serviceConnection)
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      set -x
+                      az deployment group wait \
+                        --name "Infrastructure-$(Build.BuildId)" \
+                        --subscription $(subscriptionId) \
+                        --resource-group $(resourceGroupName) \
+                        --created
+
+                - task: AzureCLI@2
+                  name: InfrastructureOutputs
+                  displayName: Infrastructure outputs
+                  condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+                  env:
+                    ADO_ORG_URL: $(System.CollectionUri)
+                    ADO_PROJECT: $(System.TeamProject)
+                    ADO_GROUP_NAME: ${{ parameters.environmentName }}
+                    AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
+                    DEPLOYMENT_NAME: Infrastructure-$(Build.BuildId)
+                    RESOURCE_GROUP: $(resourceGroupName)
+                    SUBSCRIPTION_ID: $(subscriptionId)
+                  inputs:
+                    azureSubscription: $(serviceConnection)
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      set -euo pipefail
+                      emit_outputs=(
+                        --emit-output=aksClusterResourceId
+                        --emit-output=aksKubeletPrincipalId
+                        --emit-output=externalSecretsPrincipalObjectId
+                        --emit-output=sqlServerManagedIdentityObjectId
+                        --emit-output=searchServiceManagedIdentityPrincipalId
+                        --emit-output=grafanaManagedIdentityPrincipalId
+                        --emit-output=keyVaultName
+                        --emit-output=redisName
+                        --emit-output=searchServiceName
+                        --emit-output=sqlServerName
+                        --emit-output=storageAccountName
+                      )
+                      outputs=(
+                        aksClusterResourceId=aksClusterResourceId
+                        aksKubeletPrincipalId=aksKubeletPrincipalId
+                        albControllerClientId=albControllerClientId
+                        appGatewayForContainersResourceId=appGatewayForContainersResourceId
+                        appGatewayForContainersFrontendName=appGatewayForContainersFrontendName
+                        appGatewayForContainersFrontendFqdn=appGatewayForContainersFrontendFqdn
+                        azureServiceOperatorClientId=azureServiceOperatorClientId
+                        externalSecretsClientId=externalSecretsClientId
+                        externalSecretsPrincipalObjectId=externalSecretsPrincipalObjectId
+                        aksOidcIssuer=aksOidcIssuer
+                        keyVaultName=keyVaultName
+                        keyVaultUrl=keyVaultUri
+                        kubernetesCluster=aksClusterName
+                        redisName=redisName
+                        searchServiceSubscriptionId=searchServiceSubscriptionId
+                        searchServiceResourceGroupName=searchServiceResourceGroupName
+                        searchServiceName=searchServiceName
+                        searchServiceManagedIdentityPrincipalId=searchServiceManagedIdentityPrincipalId
+                        searchServiceManagedIdentityPrincipalName=searchServiceManagedIdentityPrincipalName
+                        sqlServerName=sqlServerName
+                        sqlServerManagedIdentityObjectId=sqlServerManagedIdentityObjectId
+                        storageAccountName=storageAccountName
+                        insightsConnectionString=insightsConnectionString
+                        insightsInstrumentationKey=insightsInstrumentationKey
+                        grafanaManagedIdentityPrincipalId=grafanaManagedIdentityPrincipalId
+                        grafanaName=grafanaName
+                        prometheusName=prometheusName
+                      )
+                      if [[ '${{ parameters.environmentName }}' == TST ]]; then
+                        emit_outputs+=(--emit-output=qaKeyVaultName)
+                        outputs+=(
+                          qaKeyVaultName=qaKeyVaultName
+                          qaKeyVaultUrl=qaKeyVaultUri
+                        )
+                      fi
+                      python3 scripts/pipeline/sync-deployment-outputs.py "${emit_outputs[@]}" "${outputs[@]}"

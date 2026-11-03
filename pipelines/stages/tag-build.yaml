@@ -8,6 +8,16 @@ stages:
     displayName: Tag Build
     isSkippable: false
     jobs:
-      - template: ../jobs/infrastructure/tag-build.yaml
-        parameters:
-          tags: ${{ parameters.tags }}
+      - ${{ each tag in parameters.tags }}:
+        - job: Tag${{ replace(tag, '-', '_') }}
+          displayName: Set ${{ tag }} tag
+          pool: server
+          steps:
+            - task: InvokeRESTAPI@1
+              inputs:
+                serviceConnection: ADO-Generic-defragovuk
+                method: PUT
+                headers: >
+                  {"Content-Type": "application/json", "Authorization": "Bearer $(System.AccessToken)"}
+                urlSuffix: "/DEFRA-EUTD-IPAFFS/_apis/build/builds/$(Build.BuildId)/tags/${{ tag }}?api-version=6.0"
+

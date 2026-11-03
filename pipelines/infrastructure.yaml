@@ -10,7 +10,6 @@ trigger:
       - bicep/**
       - pipelines/infrastructure.yaml
       - pipelines/stages/deploy-bicep-*.yaml
-      - pipelines/jobs/infrastructure/*.yaml
       - pipelines/stages/tag-build.yaml
       - pipelines/stages/validate-access-contract.yaml
       - pipelines/stages/run-hooks.yaml
@@ -81,232 +80,142 @@ resources:
       ref: feature/v6-optional-subscription-for-private-endpoint-records
 
 stages:
-  - stage: Infrastructure
-    displayName: Infrastructure
-    isSkippable: false
-    lockBehavior: sequential
-    jobs:
-      - template: jobs/infrastructure/tag-build.yaml
-        parameters:
-          tags:
-            - Environment-${{ parameters.environmentName }}
-          dependsOn: []
-      - template: jobs/infrastructure/validate-access-contract.yaml
-        parameters:
-          environmentName: ${{ parameters.environmentName }}
-          jobName: ValidateGroups
-          dependsOn:
-            - TagEnvironment_${{ parameters.environmentName }}
-          jobVariables:
-            - group: Common
-            - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
-                - group: HigherEnvs
-            - ${{ else }}:
-                - group: LowerEnvs
-            - group: ${{ parameters.environmentName }}
-      - template: jobs/infrastructure/run-hooks.yaml
-        parameters:
-          environmentName: ${{ parameters.environmentName }}
-          applyOnBranch: ${{ parameters.runHooksOnBranch }}
-          jobName: Hooks
-          dependsOn:
-            - ValidateGroups
-      - template: jobs/infrastructure/deploy-bicep-resource-group.yaml
-        parameters:
-          environmentName: ${{ parameters.environmentName }}
-          jobName: DeployResourceGroup
-          dependsOn:
-            - Hooks
-          displayName: Deploy Resource Group
-      - template: jobs/infrastructure/deploy-bicep-network.yaml
-        parameters:
-          environmentName: ${{ parameters.environmentName }}
-          jobName: DeployNetwork
-          dependsOn:
-            - DeployResourceGroup
-          displayName: Deploy Network
-      - ${{ if parameters.establishPeering }}:
-          - template: jobs/infrastructure/establish-peering.yaml
-            parameters:
-              environmentName: ${{ parameters.environmentName }}
-              jobName: TriggerPeeringPipeline
-              dependsOn:
-                - DeployNetwork
-              jobVariables:
-                - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/main') }}:
-                    - name: vnetName
-                      value: $[ dependencies.DeployNetwork.outputs['DeployNetwork.NetworkOutputs.vnetName'] ]
-      - ${{ if ne(parameters.environmentName, 'TST') }}:
-          - template: jobs/infrastructure/deploy-bicep-acr.yaml
-            parameters:
-              environmentName: ${{ parameters.environmentName }}
-              jobName: DeployACR
-              dependsOn:
-                - DeployNetwork
-                - ${{ if parameters.establishPeering }}:
-                    - TriggerPeeringPipeline
-              jobVariables:
-                - name: adoGroupName
-                  ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
-                    value: ${{ parameters.environmentName }}
-                  ${{ else }}:
-                    value: LowerEnvs
-                - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/main') }}:
-                    - name: privateEndpointsSubnetId
-                      value: $[ dependencies.DeployNetwork.outputs['DeployNetwork.NetworkOutputs.privateEndpointsSubnetId'] ]
-                    - name: privateEndpointsSubnetName
-                      value: $[ dependencies.DeployNetwork.outputs['DeployNetwork.NetworkOutputs.privateEndpointsSubnetName'] ]
-              displayName: Deploy ACR
-      - template: jobs/infrastructure/deploy-bicep-classic.yaml
-        parameters:
-          environmentName: ${{ parameters.environmentName }}
-          ${{ if eq(parameters.environmentName, 'DEV') }}:
-            classicEnvironmentName: SND
-          ${{ else }}:
-            classicEnvironmentName: ${{ parameters.environmentName }}
-          jobName: DeployClassic
-          dependsOn:
-            - ValidateGroups
-            - ${{ if ne(parameters.environmentName, 'TST') }}:
-                - DeployACR
-            - ${{ if eq(parameters.environmentName, 'TST') }}:
-                - ${{ if parameters.establishPeering }}:
-                    - TriggerPeeringPipeline
-                - ${{ else }}:
-                    - DeployNetwork
-          jobVariables:
-            - group: ${{ replace(parameters.environmentName, 'DEV', 'SND') }}
-            - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
-                - group: HigherEnvs
-            - ${{ else }}:
-                - group: LowerEnvs
-            - template: /pipelines/vars/common.yaml
-            - template: /pipelines/vars/${{ lower(replace(parameters.environmentName, 'DEV', 'SND')) }}.yaml
-            - name: parameterSqlAdminGroupId
-              value: $(sqlAdminGroupId)
-            - name: parameterSqlAdminGroupName
-              value: $(sqlAdminGroupName)
-            - name: parameterSqlAdminGroupId
-              value: $[ dependencies.ValidateGroups.outputs['AccessContract.sqlAdminGroupId'] ]
-            - name: parameterSqlAdminGroupName
-              value: $[ dependencies.ValidateGroups.outputs['AccessContract.sqlAdminGroupName'] ]
-          displayName: Deploy Classic
-      - template: jobs/infrastructure/deploy-bicep-infra.yaml
-        parameters:
-          environmentName: ${{ parameters.environmentName }}
-          jobName: DeployInfrastructure
-          dependsOn:
-            - DeployClassic
+  - template: stages/tag-build.yaml
+    parameters:
+      tags:
+        - Environment-${{ parameters.environmentName }}
+
+  - template: stages/validate-access-contract.yaml
+    parameters:
+      environmentName: ${{ parameters.environmentName }}
+
+  - template: stages/run-hooks.yaml
+    parameters:
+      environmentName: ${{ parameters.environmentName }}
+      applyOnBranch: ${{ parameters.runHooksOnBranch }}
+
+  - template: stages/deploy-bicep-resource-group.yaml
+    parameters:
+      environmentName: ${{ parameters.environmentName }}
+
+  - template: stages/deploy-bicep-network.yaml
+    parameters:
+      environmentName: ${{ parameters.environmentName }}
+
+  - ${{ if parameters.establishPeering }}:
+    - template: stages/establish-peering.yaml
+      parameters:
+        environmentName: ${{ parameters.environmentName }}
+        dependsOn: [DeployNetwork]
+        ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/main') }}:
+          deploymentVariables:
+            vnetName: $[ stageDependencies.DeployNetwork.RunBicep.outputs['RunBicep.NetworkOutputs.vnetName'] ]
+
+  - ${{ if or(eq(parameters.environmentName, 'DEV'), eq(parameters.environmentName, 'PRE'), eq(parameters.environmentName, 'PRD')) }}:
+    - template: stages/deploy-bicep-acr.yaml
+      parameters:
+        environmentName: ${{ parameters.environmentName }}
+        dependsOn:
+          - DeployNetwork
+          - ${{ if parameters.establishPeering }}:
+            - EstablishPeering
+        ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/main') }}:
+          deploymentVariables:
+            privateEndpointsSubnetId: $[ stageDependencies.DeployNetwork.RunBicep.outputs['RunBicep.NetworkOutputs.privateEndpointsSubnetId'] ]
+            privateEndpointsSubnetName: $[ stageDependencies.DeployNetwork.RunBicep.outputs['RunBicep.NetworkOutputs.privateEndpointsSubnetName'] ]
+
+  - template: stages/deploy-bicep-classic.yaml
+    parameters:
+      environmentName: ${{ parameters.environmentName }}
+      ${{ if eq(parameters.environmentName, 'DEV') }}:
+        classicEnvironmentName: SND
+      ${{ else }}:
+        classicEnvironmentName: ${{ parameters.environmentName }}
+      dependsOn:
+        - ValidateAccessContract
+        - ${{ if ne(parameters.environmentName, 'TST') }}:
+          - DeployACR
+        - ${{ if eq(parameters.environmentName, 'TST') }}:
+          - ${{ if parameters.establishPeering }}:
+            - EstablishPeering
+          - ${{ else }}:
             - DeployNetwork
-          jobVariables:
-            - ${{ if ne(parameters.environmentName, 'TST') }}:
-                - name: qaAutomationServiceConnectionPrincipalId
-                  value: ''
-            - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/main') }}:
-                - name: aksApiServerSubnetId
-                  value: $[ dependencies.DeployNetwork.outputs['DeployNetwork.NetworkOutputs.aksApiServerSubnetId'] ]
-                - name: aksApiServerSubnetName
-                  value: $[ dependencies.DeployNetwork.outputs['DeployNetwork.NetworkOutputs.aksApiServerSubnetName'] ]
-                - name: aksSystemNodesSubnetId
-                  value: $[ dependencies.DeployNetwork.outputs['DeployNetwork.NetworkOutputs.aksSystemNodesSubnetId'] ]
-                - name: aksSystemNodesSubnetName
-                  value: $[ dependencies.DeployNetwork.outputs['DeployNetwork.NetworkOutputs.aksSystemNodesSubnetName'] ]
-                - name: aksUserNodesSubnetId
-                  value: $[ dependencies.DeployNetwork.outputs['DeployNetwork.NetworkOutputs.aksUserNodesSubnetId'] ]
-                - name: aksUserNodesSubnetName
-                  value: $[ dependencies.DeployNetwork.outputs['DeployNetwork.NetworkOutputs.aksUserNodesSubnetName'] ]
-                - name: appGatewayForContainersSubnetId
-                  value: $[ dependencies.DeployNetwork.outputs['DeployNetwork.NetworkOutputs.appGatewayForContainersSubnetId'] ]
-                - name: appGatewayForContainersSubnetName
-                  value: $[ dependencies.DeployNetwork.outputs['DeployNetwork.NetworkOutputs.appGatewayForContainersSubnetName'] ]
-                - name: privateEndpointsSubnetId
-                  value: $[ dependencies.DeployNetwork.outputs['DeployNetwork.NetworkOutputs.privateEndpointsSubnetId'] ]
-                - name: privateEndpointsSubnetName
-                  value: $[ dependencies.DeployNetwork.outputs['DeployNetwork.NetworkOutputs.privateEndpointsSubnetName'] ]
-                - name: classicRedisResourceId
-                  value: $[ dependencies.DeployClassic.outputs['DeployClassic.ClassicOutputs.classicRedisResourceId'] ]
-                - name: classicSearchServiceResourceId
-                  value: $[ dependencies.DeployClassic.outputs['DeployClassic.ClassicOutputs.classicSearchServiceResourceId'] ]
-                - name: classicServiceBusNamespaceResourceId
-                  value: $[ dependencies.DeployClassic.outputs['DeployClassic.ClassicOutputs.classicServiceBusNamespaceResourceId'] ]
-                - name: classicSqlServerResourceId
-                  value: $[ dependencies.DeployClassic.outputs['DeployClassic.ClassicOutputs.classicSqlServerResourceId'] ]
-          displayName: Deploy Infrastructure
-      - template: jobs/infrastructure/deploy-bicep-infra-to-classic.yaml
-        parameters:
-          environmentName: ${{ parameters.environmentName }}
-          jobName: DeployInfrastructureToClassic
-          dependsOn:
-            - DeployInfrastructure
-          jobVariables:
-            - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/main') }}:
-                - name: grafanaManagedIdentityPrincipalId
-                  value: $[ dependencies.DeployInfrastructure.outputs['DeployInfrastructure.InfrastructureOutputs.grafanaManagedIdentityPrincipalId'] ]
-          displayName: Deploy Infrastructure to Classic
-      - template: jobs/infrastructure/infra-permissions.yaml
-        parameters:
-          environmentName: ${{ parameters.environmentName }}
-          jobName: GroupMemberships
-          dependsOn:
-            - DeployInfrastructureToClassic
-            - DeployInfrastructure
-          jobVariables:
-            - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/main') }}:
-                - name: aksClusterResourceId
-                  value: $[ dependencies.DeployInfrastructure.outputs['DeployInfrastructure.InfrastructureOutputs.aksClusterResourceId'] ]
-                - name: aksKubeletPrincipalId
-                  value: $[ dependencies.DeployInfrastructure.outputs['DeployInfrastructure.InfrastructureOutputs.aksKubeletPrincipalId'] ]
-                - name: externalSecretsPrincipalObjectId
-                  value: $[ dependencies.DeployInfrastructure.outputs['DeployInfrastructure.InfrastructureOutputs.externalSecretsPrincipalObjectId'] ]
-                - name: sqlServerManagedIdentityObjectId
-                  value: $[ dependencies.DeployInfrastructure.outputs['DeployInfrastructure.InfrastructureOutputs.sqlServerManagedIdentityObjectId'] ]
-                - name: searchServiceManagedIdentityPrincipalId
-                  value: $[ dependencies.DeployInfrastructure.outputs['DeployInfrastructure.InfrastructureOutputs.searchServiceManagedIdentityPrincipalId'] ]
-      - template: jobs/infrastructure/private-endpoint-dns-records.yaml
-        parameters:
-          environmentName: ${{ parameters.environmentName }}
-          dependsOn:
-            - GroupMemberships
-            - DeployInfrastructure
-            - ${{ if ne(parameters.environmentName, 'TST') }}:
-                - DeployACR
-          jobVariables:
-            - template: /templates/vars/common.yaml@PipelineCommon
-            - template: /templates/vars/regional/northeurope.yaml@PipelineCommon
-            - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/main') }}:
-                - name: keyVaultName
-                  value: $[ dependencies.DeployInfrastructure.outputs['DeployInfrastructure.InfrastructureOutputs.keyVaultName'] ]
-                - name: redisName
-                  value: $[ dependencies.DeployInfrastructure.outputs['DeployInfrastructure.InfrastructureOutputs.redisName'] ]
-                - name: searchServiceName
-                  value: $[ dependencies.DeployInfrastructure.outputs['DeployInfrastructure.InfrastructureOutputs.searchServiceName'] ]
-                - name: sqlServerName
-                  value: $[ dependencies.DeployInfrastructure.outputs['DeployInfrastructure.InfrastructureOutputs.sqlServerName'] ]
-                - name: storageAccountName
-                  value: $[ dependencies.DeployInfrastructure.outputs['DeployInfrastructure.InfrastructureOutputs.storageAccountName'] ]
-                - ${{ if ne(parameters.environmentName, 'TST') }}:
-                    - name: acrName
-                      value: $[ dependencies.DeployACR.outputs['DeployACR.ACROutputs.acrName'] ]
-                - ${{ if eq(parameters.environmentName, 'TST') }}:
-                    - name: qaKeyVaultName
-                      value: $[ dependencies.DeployInfrastructure.outputs['DeployInfrastructure.InfrastructureOutputs.qaKeyVaultName'] ]
-      - ${{ if parameters.includePlatform }}:
-          - template: jobs/infrastructure/deploy-bicep-privatelink.yaml
-            parameters:
-              environmentName: ${{ parameters.environmentName }}
-              jobName: PrivateLink
-              dependsOn:
-                - ContainerRegistry
-                - KeyVault
-                - Redis
-                - Search
-                - Storage
-                - SQLServer
-                - DeployNetwork
-              jobVariables:
-                - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/main') }}:
-                    - name: privateEndpointsSubnetId
-                      value: $[ dependencies.DeployNetwork.outputs['DeployNetwork.NetworkOutputs.privateEndpointsSubnetId'] ]
-                    - name: privateEndpointsSubnetName
-                      value: $[ dependencies.DeployNetwork.outputs['DeployNetwork.NetworkOutputs.privateEndpointsSubnetName'] ]
-              displayName: Private Link
+      deploymentVariables:
+        parameterSqlAdminGroupId: $[ stageDependencies.ValidateAccessContract.ValidateGroups.outputs['AccessContract.sqlAdminGroupId'] ]
+        parameterSqlAdminGroupName: $[ stageDependencies.ValidateAccessContract.ValidateGroups.outputs['AccessContract.sqlAdminGroupName'] ]
+
+  - template: stages/deploy-bicep-infra.yaml
+    parameters:
+      environmentName: ${{ parameters.environmentName }}
+      dependsOn: [DeployClassic, DeployNetwork]
+      ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/main') }}:
+        deploymentVariables:
+          aksApiServerSubnetId: $[ stageDependencies.DeployNetwork.RunBicep.outputs['RunBicep.NetworkOutputs.aksApiServerSubnetId'] ]
+          aksApiServerSubnetName: $[ stageDependencies.DeployNetwork.RunBicep.outputs['RunBicep.NetworkOutputs.aksApiServerSubnetName'] ]
+          aksSystemNodesSubnetId: $[ stageDependencies.DeployNetwork.RunBicep.outputs['RunBicep.NetworkOutputs.aksSystemNodesSubnetId'] ]
+          aksSystemNodesSubnetName: $[ stageDependencies.DeployNetwork.RunBicep.outputs['RunBicep.NetworkOutputs.aksSystemNodesSubnetName'] ]
+          aksUserNodesSubnetId: $[ stageDependencies.DeployNetwork.RunBicep.outputs['RunBicep.NetworkOutputs.aksUserNodesSubnetId'] ]
+          aksUserNodesSubnetName: $[ stageDependencies.DeployNetwork.RunBicep.outputs['RunBicep.NetworkOutputs.aksUserNodesSubnetName'] ]
+          appGatewayForContainersSubnetId: $[ stageDependencies.DeployNetwork.RunBicep.outputs['RunBicep.NetworkOutputs.appGatewayForContainersSubnetId'] ]
+          appGatewayForContainersSubnetName: $[ stageDependencies.DeployNetwork.RunBicep.outputs['RunBicep.NetworkOutputs.appGatewayForContainersSubnetName'] ]
+          privateEndpointsSubnetId: $[ stageDependencies.DeployNetwork.RunBicep.outputs['RunBicep.NetworkOutputs.privateEndpointsSubnetId'] ]
+          privateEndpointsSubnetName: $[ stageDependencies.DeployNetwork.RunBicep.outputs['RunBicep.NetworkOutputs.privateEndpointsSubnetName'] ]
+          classicRedisResourceId: $[ stageDependencies.DeployClassic.RunBicep.outputs['RunBicep.ClassicOutputs.classicRedisResourceId'] ]
+          classicSearchServiceResourceId: $[ stageDependencies.DeployClassic.RunBicep.outputs['RunBicep.ClassicOutputs.classicSearchServiceResourceId'] ]
+          classicServiceBusNamespaceResourceId: $[ stageDependencies.DeployClassic.RunBicep.outputs['RunBicep.ClassicOutputs.classicServiceBusNamespaceResourceId'] ]
+          classicSqlServerResourceId: $[ stageDependencies.DeployClassic.RunBicep.outputs['RunBicep.ClassicOutputs.classicSqlServerResourceId'] ]
+
+  - template: stages/deploy-bicep-infra-to-classic.yaml
+    parameters:
+      environmentName: ${{ parameters.environmentName }}
+      dependsOn: [DeployInfrastructure]
+      ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/main') }}:
+        deploymentVariables:
+          grafanaManagedIdentityPrincipalId: $[ stageDependencies.DeployInfrastructure.RunBicep.outputs['RunBicep.InfrastructureOutputs.grafanaManagedIdentityPrincipalId'] ]
+
+  - template: stages/infra-permissions.yaml
+    parameters:
+      environmentName: ${{ parameters.environmentName }}
+      dependsOn: [DeployInfrastructureToClassic, DeployInfrastructure]
+      ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/main') }}:
+        deploymentVariables:
+          aksClusterResourceId: $[ stageDependencies.DeployInfrastructure.RunBicep.outputs['RunBicep.InfrastructureOutputs.aksClusterResourceId'] ]
+          aksKubeletPrincipalId: $[ stageDependencies.DeployInfrastructure.RunBicep.outputs['RunBicep.InfrastructureOutputs.aksKubeletPrincipalId'] ]
+          externalSecretsPrincipalObjectId: $[ stageDependencies.DeployInfrastructure.RunBicep.outputs['RunBicep.InfrastructureOutputs.externalSecretsPrincipalObjectId'] ]
+          sqlServerManagedIdentityObjectId: $[ stageDependencies.DeployInfrastructure.RunBicep.outputs['RunBicep.InfrastructureOutputs.sqlServerManagedIdentityObjectId'] ]
+          searchServiceManagedIdentityPrincipalId: $[ stageDependencies.DeployInfrastructure.RunBicep.outputs['RunBicep.InfrastructureOutputs.searchServiceManagedIdentityPrincipalId'] ]
+
+  - template: stages/private-endpoint-dns-records.yaml
+    parameters:
+      environmentName: ${{ parameters.environmentName }}
+      dependsOn:
+        - InfraPermissions
+        - DeployInfrastructure
+        - ${{ if ne(parameters.environmentName, 'TST') }}:
+          - DeployACR
+      ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/main') }}:
+        deploymentVariables:
+          keyVaultName: $[ stageDependencies.DeployInfrastructure.RunBicep.outputs['RunBicep.InfrastructureOutputs.keyVaultName'] ]
+          redisName: $[ stageDependencies.DeployInfrastructure.RunBicep.outputs['RunBicep.InfrastructureOutputs.redisName'] ]
+          searchServiceName: $[ stageDependencies.DeployInfrastructure.RunBicep.outputs['RunBicep.InfrastructureOutputs.searchServiceName'] ]
+          sqlServerName: $[ stageDependencies.DeployInfrastructure.RunBicep.outputs['RunBicep.InfrastructureOutputs.sqlServerName'] ]
+          storageAccountName: $[ stageDependencies.DeployInfrastructure.RunBicep.outputs['RunBicep.InfrastructureOutputs.storageAccountName'] ]
+          ${{ if ne(parameters.environmentName, 'TST') }}:
+            acrName: $[ stageDependencies.DeployACR.RunBicep.outputs['RunBicep.ACROutputs.acrName'] ]
+          ${{ if eq(parameters.environmentName, 'TST') }}:
+            qaKeyVaultName: $[ stageDependencies.DeployInfrastructure.RunBicep.outputs['RunBicep.InfrastructureOutputs.qaKeyVaultName'] ]
+
+  - ${{ if parameters.includePlatform }}:
+    - template: stages/deploy-bicep-privatelink.yaml
+      parameters:
+        environmentName: ${{ parameters.environmentName }}
+        dependsOn: [PrivateLinkDNSRecords, DeployNetwork]
+        ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/main') }}:
+          deploymentVariables:
+            privateEndpointsSubnetId: $[ stageDependencies.DeployNetwork.RunBicep.outputs['RunBicep.NetworkOutputs.privateEndpointsSubnetId'] ]
+            privateEndpointsSubnetName: $[ stageDependencies.DeployNetwork.RunBicep.outputs['RunBicep.NetworkOutputs.privateEndpointsSubnetName'] ]
+
+# Temporarily disabled
+#  - template: stages/deploy-bicep-dns.yaml
+#    parameters:
+#      environmentName: ${{ parameters.environmentName }}
