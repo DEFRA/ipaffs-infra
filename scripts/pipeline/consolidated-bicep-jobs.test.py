@@ -1,6 +1,6 @@
 """Check job consolidation, runtime parameter files and explicit output contracts.
 
-The small expander below handles this repository's local stage-template clauses;
+The small expander below handles this repository's local stage/job-template clauses;
 it does not emulate Azure DevOps scheduling or replace server-side validation.
 All scripts run against temporary files and fake executables, without Azure.
 """
@@ -9,6 +9,7 @@ import ast
 import fnmatch
 import os
 from pathlib import Path, PurePosixPath
+import posixpath
 import re
 import shutil
 import subprocess
@@ -137,23 +138,52 @@ def parameters(document, overrides):
     return {**{item["name"]: item.get("default") for item in document.get("parameters", [])}, **overrides}
 
 
-def expand_stages(path, overrides=None, branch="refs/heads/main"):
+def template_path(path, template):
+    if "@" in template:
+        raise AssertionError(f"External job/stage template cannot be expanded locally: {template}")
+    return posixpath.normpath(template.lstrip("/") if template.startswith("/")
+                             else str(Path(path).parent / template))
+
+
+def expand_jobs(path, entries, branch, sources):
+    jobs = []
+    for entry in entries:
+        if "template" not in entry:
+            jobs.append(entry)
+            continue
+        source = template_path(path, entry["template"])
+        sources.add(source)
+        document = load(source)
+        context = {"parameters": parameters(document, entry.get("parameters", {})),
+                   "variables": {"Build.SourceBranch": branch}}
+        jobs.extend(expand_jobs(source, expand(document["jobs"], context), branch, sources))
+    return jobs
+
+
+def expand_stages(path, overrides=None, branch="refs/heads/main", sources=None):
+    sources = sources if sources is not None else set()
+    sources.add(posixpath.normpath(path))
     document = load(path)
     context = {"parameters": parameters(document, overrides or {}),
                "variables": {"Build.SourceBranch": branch}}
     stages = []
     for entry in expand(document["stages"], context):
         if "template" in entry:
-            template = str(Path(path).parent / entry["template"])
-            stages.extend(expand_stages(template, entry.get("parameters"), branch))
+            template = template_path(path, entry["template"])
+            stages.extend(expand_stages(template, entry.get("parameters"), branch, sources))
         else:
+            entry["jobs"] = expand_jobs(path, entry["jobs"], branch, sources)
             stages.append(entry)
     return stages
 
 
 def steps(stage):
     job, = stage["jobs"]
-    return job["strategy"]["runOnce"]["deploy"]["steps"]
+    return job_steps(job)
+
+
+def job_steps(job):
+    return job.get("steps") or job["strategy"]["runOnce"]["deploy"]["steps"]
 
 
 class ConsolidatedBicepJobTests(unittest.TestCase):
@@ -186,8 +216,8 @@ class ConsolidatedBicepJobTests(unittest.TestCase):
                             self.assertGreater(tasks.index(task), deploy)
                             self.assertEqual(MAIN_ONLY, task["condition"])
 
-    def test_all_environment_and_optional_paths_remain_serial_and_output_references_exist(self):
-        for pipeline in ("infrastructure", "deploy-bicep"):
+    def test_legacy_bicep_environment_and_optional_paths_remain_serial_and_output_references_exist(self):
+        for pipeline in ("deploy-bicep",):
             for environment in ("DEV", "TST", "PRE", "PRD"):
                 for peering in (False, True):
                     for platform in (False, True):
@@ -265,18 +295,128 @@ class ConsolidatedBicepJobTests(unittest.TestCase):
                                 self.assertEqual(7 - (environment == "TST") - (pipeline == "infrastructure" and not platform),
                                                  sum(len(stage["jobs"]) for stage in components))
 
+    def test_one_native_lock_covers_every_infrastructure_job_and_output_dependency(self):
+        dns_jobs = ["ContainerRegistry", "KeyVault", "Redis", "Search", "Storage", "SQLServer"]
+        document = load("pipelines/infrastructure.yaml")
+        self.assertNotIn("jobs", document)
+        self.assertNotIn("steps", document)
+        self.assertNotIn("concurrency", document)
+        for environment in ("DEV", "TST", "PRE", "PRD"):
+            for peering in (False, True):
+                for platform in (False, True):
+                    for hooks in (False, True):
+                        for branch in ("refs/heads/main", "refs/heads/consolidate"):
+                            with self.subTest(environment=environment, peering=peering, platform=platform,
+                                              hooks=hooks, branch=branch):
+                                stage, = expand_stages("pipelines/infrastructure.yaml", {
+                                    "environmentName": environment, "establishPeering": peering,
+                                    "includePlatform": platform, "runHooksOnBranch": hooks}, branch)
+                                self.assertEqual("Infrastructure", stage["stage"])
+                                self.assertEqual("sequential", stage["lockBehavior"])
+                                self.assertIs(False, stage["isSkippable"])
+                                # A YAML stage lock exists without an environment check configured in the UI.
+                                self.assertNotIn("environment", stage)
+                                chain = ["TagEnvironment_" + environment, "ValidateGroups", "Hooks",
+                                         "DeployResourceGroup", "DeployNetwork"]
+                                if peering:
+                                    chain += ["TriggerPeeringPipeline"]
+                                if environment != "TST":
+                                    chain += ["DeployACR"]
+                                chain += ["DeployClassic", "DeployInfrastructure", "DeployInfrastructureToClassic",
+                                          "GroupMemberships"]
+                                expected = chain + dns_jobs + (["PrivateLink"] if platform else [])
+                                jobs = stage["jobs"]
+                                names = [job.get("deployment", job.get("job")) for job in jobs]
+                                self.assertEqual(expected, names)
+                                self.assertEqual(len(names), len(set(names)), "Each job must have its own ID")
+                                self.assertNotIn("stageDependencies", yaml.safe_dump(stage))
+
+                                subnet_names = {prefix + suffix for prefix in (
+                                    "aksApiServer", "aksSystemNodes", "aksUserNodes",
+                                    "appGatewayForContainers", "privateEndpoints")
+                                    for suffix in ("SubnetId", "SubnetName")}
+                                expected_imports = {"DeployClassic": {
+                                    "parameterSqlAdminGroupId", "parameterSqlAdminGroupName"}}
+                                if branch == "refs/heads/main":
+                                    expected_imports.update({
+                                        "TriggerPeeringPipeline": {"vnetName"},
+                                        "DeployACR": {"privateEndpointsSubnetId", "privateEndpointsSubnetName"},
+                                        "DeployInfrastructure": subnet_names | {
+                                            "classicRedisResourceId", "classicSearchServiceResourceId",
+                                            "classicServiceBusNamespaceResourceId", "classicSqlServerResourceId"},
+                                        "DeployInfrastructureToClassic": {"grafanaManagedIdentityPrincipalId"},
+                                        "GroupMemberships": {"aksClusterResourceId", "aksKubeletPrincipalId",
+                                            "externalSecretsPrincipalObjectId", "sqlServerManagedIdentityObjectId",
+                                            "searchServiceManagedIdentityPrincipalId"},
+                                        "PrivateLink": {"privateEndpointsSubnetId", "privateEndpointsSubnetName"},
+                                    })
+                                    for name in dns_jobs:
+                                        expected_imports[name] = {"keyVaultName", "redisName", "searchServiceName",
+                                            "sqlServerName", "storageAccountName",
+                                            "qaKeyVaultName" if environment == "TST" else "acrName"}
+                                seen = {}
+                                for job in jobs:
+                                    name = job.get("deployment", job.get("job"))
+                                    dependency = job.get("dependsOn", [])
+                                    dependencies = [dependency] if isinstance(dependency, str) else dependency
+                                    self.assertLessEqual(set(dependencies), set(seen), name)
+                                    if name in chain and chain.index(name):
+                                        self.assertIn(chain[chain.index(name) - 1], dependencies, name)
+                                    if name in dns_jobs:
+                                        self.assertIn("GroupMemberships", dependencies, name)
+                                        self.assertTrue(set(dns_jobs).isdisjoint(dependencies), name)
+                                    if name == "PrivateLink":
+                                        self.assertLessEqual(set(dns_jobs), set(dependencies))
+                                    imports = {variable["name"]: variable["value"]
+                                               for variable in job.get("variables", [])
+                                               if "dependencies." in str(variable.get("value", ""))}
+                                    self.assertEqual(expected_imports.get(name, set()), set(imports), name)
+                                    for expression in imports.values():
+                                        reference = re.fullmatch(
+                                            r"\$\[ dependencies\.(\w+)\.outputs\['([^']+)'\] \]", expression)
+                                        self.assertIsNotNone(reference, expression)
+                                        producer, output_name = reference.groups()
+                                        self.assertIn(producer, dependencies, (name, expression))
+                                        producer_job = seen[producer]
+                                        producer_steps = (producer_job.get("steps") or
+                                            producer_job["strategy"]["runOnce"]["deploy"]["steps"])
+                                        if "deployment" in producer_job:
+                                            prefix, task_name, output_variable = output_name.split(".")
+                                            self.assertEqual(producer, prefix)
+                                            self.assertEqual("refs/heads/main", branch)
+                                            task, = [task for task in producer_steps if task.get("name") == task_name]
+                                            self.assertIn("--emit-output=" + output_variable,
+                                                          task["inputs"]["inlineScript"])
+                                        else:
+                                            task_name, output_variable = output_name.split(".")
+                                            task, = [task for task in producer_steps if task.get("name") == task_name]
+                                            self.assertIn(output_variable, task.get("script", ""))
+                                    seen[name] = job
+                                hook_job = seen["Hooks"]
+                                hook_step, = [task for task in job_steps(hook_job)
+                                              if "run-hooks.sh" in str(task)]
+                                self.assertEqual("false" if branch == "refs/heads/main" or hooks else "true",
+                                                 hook_step["env"]["DRY_RUN"])
+
     def test_classic_preserves_snd_deployment_scope_and_modern_sql_group_on_both_branches(self):
         for branch in ("refs/heads/main", "refs/heads/consolidate"):
             for pipeline in ("infrastructure", "deploy-bicep"):
                 stages = expand_stages(f"pipelines/{pipeline}.yaml", {"environmentName": "DEV"}, branch)
-                classic, = [stage for stage in stages if stage["stage"] == "DeployClassic"]
+                if pipeline == "infrastructure":
+                    stage, = stages
+                    classic_job, = [job for job in stage["jobs"] if job.get("deployment") == "DeployClassic"]
+                    classic = {**classic_job, "jobs": [classic_job]}
+                    sql_output = "$[ dependencies.ValidateGroups.outputs['AccessContract.sqlAdminGroup"
+                else:
+                    classic, = [stage for stage in stages if stage["stage"] == "DeployClassic"]
+                    sql_output = "$[ stageDependencies.ValidateAccessContract.ValidateGroups.outputs['AccessContract.sqlAdminGroup"
                 self.assertEqual(["SND", "LowerEnvs"], [variable["group"] for variable in classic["variables"]
                                                          if "group" in variable])
                 self.assertEqual(["/pipelines/vars/common.yaml", "/pipelines/vars/snd.yaml"],
                                  [variable["template"] for variable in classic["variables"] if "template" in variable])
                 values = {variable["name"]: variable["value"] for variable in classic["variables"] if "name" in variable}
                 for suffix in ("Id", "Name"):
-                    self.assertEqual("$[ stageDependencies.ValidateAccessContract.ValidateGroups.outputs['AccessContract.sqlAdminGroup" + suffix + "'] ]",
+                    self.assertEqual(sql_output + suffix + "'] ]",
                                      values["parameterSqlAdminGroup" + suffix])
                 output_task, = [task for task in steps(classic) if task.get("name") == "ClassicOutputs"]
                 self.assertEqual("DEV", output_task["env"]["ADO_GROUP_NAME"])
@@ -380,9 +520,12 @@ class AutomaticDevTriggerTests(unittest.TestCase):
         def triggers(path):
             return matches(path, trigger["paths"]["include"]) and not matches(path, trigger["paths"].get("exclude", []))
 
-        context = {"parameters": defaults, "variables": {"Build.SourceBranch": "refs/heads/main"}}
-        sources = ["pipelines/" + entry["template"] for entry in expand(pipeline["stages"], context)]
-        sources += ["bicep/40-infra.bicep", "bicep/modules/aks.bicep", "bicep/files/PAsubca.crt",
+        template_sources = set()
+        expand_stages("pipelines/infrastructure.yaml", sources=template_sources)
+        # Optional peering and platform imports must also trigger a DEV run when changed.
+        template_sources.update(path.relative_to(ROOT).as_posix()
+                                for path in (ROOT / "pipelines/jobs/infrastructure").glob("*.yaml"))
+        sources = sorted(template_sources) + ["bicep/40-infra.bicep", "bicep/modules/aks.bicep", "bicep/files/PAsubca.crt",
                     "bicep/default-tags.json", "bicep/bicepconfig.json",
                     "bicep/envs/dev/40-infra.bicepparam", "bicep/envs/snd/30-classic.bicepparam",
                     "pipelines/vars/common.yaml", "pipelines/vars/dev.yaml", "pipelines/vars/snd.yaml",

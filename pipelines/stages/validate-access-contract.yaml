@@ -13,26 +13,6 @@ stages:
         - group: LowerEnvs
       - group: "${{ parameters.environmentName }}"
     jobs:
-      - job: ValidateGroups
-        displayName: Check existing group identifiers
-        steps:
-          - checkout: self
-          - script: |
-              set -euo pipefail
-              python3 scripts/pipeline/validate-access-contract.py
-              escape_data() {
-                local value="$1"
-                value="${value//%/%AZP25}"
-                value="${value//$'\r'/%0D}"
-                value="${value//$'\n'/%0A}"
-                printf '%s' "$value"
-              }
-              printf '##vso[task.setvariable variable=sqlAdminGroupId;isOutput=true]%s\n' "$(escape_data "$ACCESS_SQL_ADMINS_GROUP_ID")"
-              printf '##vso[task.setvariable variable=sqlAdminGroupName;isOutput=true]%s\n' "$(escape_data "$ACCESS_SQL_ADMINS_GROUP_NAME")"
-            name: AccessContract
-            displayName: Validate the shared group-ID contract
-            env:
-              ACCESS_SQL_ADMINS_GROUP_ID: $(sqlAdminGroupId)
-              ACCESS_SQL_ADMINS_GROUP_NAME: $(sqlAdminGroupName)
-              ACCESS_ACR_PULL_GROUP_ID: $(acrPullGroupId)
-              ACCESS_CERTIFICATE_READERS_GROUP_ID: $(defraCertificateReadersGroupId)
+      - template: ../jobs/infrastructure/validate-access-contract.yaml
+        parameters:
+          environmentName: ${{ parameters.environmentName }}
