@@ -169,8 +169,9 @@ stages:
               scriptType: bash
               scriptLocation: inlineScript
               inlineScript: |
-                set -x
-                scripts/pipeline/update-group-variable-from-deployment.sh acrLoginServer acrLoginServer
-                scripts/pipeline/update-group-variable-from-deployment.sh acrName acrName
-                scripts/pipeline/update-group-variable-from-deployment.sh acrResourceId acrResourceId
+                set -euo pipefail
+                python3 scripts/pipeline/sync-deployment-outputs.py \
+                  acrLoginServer=acrLoginServer \
+                  acrName=acrName \
+                  acrResourceId=acrResourceId
 
