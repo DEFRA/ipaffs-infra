@@ -168,18 +168,19 @@ stages:
               scriptType: bash
               scriptLocation: inlineScript
               inlineScript: |
-                set -x
-                scripts/pipeline/update-group-variable-from-deployment.sh classicRedisName redisName
-                scripts/pipeline/update-group-variable-from-deployment.sh classicRedisResourceId redisResourceId
-                scripts/pipeline/update-group-variable-from-deployment.sh classicSearchServiceSubscriptionId searchServiceSubscriptionId
-                scripts/pipeline/update-group-variable-from-deployment.sh classicSearchServiceResourceGroupName searchServiceResourceGroupName
-                scripts/pipeline/update-group-variable-from-deployment.sh classicSearchServiceName searchServiceName
-                scripts/pipeline/update-group-variable-from-deployment.sh classicSearchServiceManagedIdentityPrincipalId searchServiceManagedIdentityPrincipalId
-                scripts/pipeline/update-group-variable-from-deployment.sh classicSearchServiceManagedIdentityPrincipalName searchServiceManagedIdentityPrincipalName
-                scripts/pipeline/update-group-variable-from-deployment.sh classicSearchServiceResourceId searchServiceResourceId
-                scripts/pipeline/update-group-variable-from-deployment.sh classicServiceBusNamespaceName serviceBusNamespaceName
-                scripts/pipeline/update-group-variable-from-deployment.sh classicServiceBusNamespaceResourceId serviceBusNamespaceResourceId
-                scripts/pipeline/update-group-variable-from-deployment.sh classicSqlServerName sqlServerName
-                scripts/pipeline/update-group-variable-from-deployment.sh classicSqlServerResourceId sqlServerResourceId
+                set -euo pipefail
+                python3 scripts/pipeline/sync-deployment-outputs.py \
+                  classicRedisName=redisName \
+                  classicRedisResourceId=redisResourceId \
+                  classicSearchServiceSubscriptionId=searchServiceSubscriptionId \
+                  classicSearchServiceResourceGroupName=searchServiceResourceGroupName \
+                  classicSearchServiceName=searchServiceName \
+                  classicSearchServiceManagedIdentityPrincipalId=searchServiceManagedIdentityPrincipalId \
+                  classicSearchServiceManagedIdentityPrincipalName=searchServiceManagedIdentityPrincipalName \
+                  classicSearchServiceResourceId=searchServiceResourceId \
+                  classicServiceBusNamespaceName=serviceBusNamespaceName \
+                  classicServiceBusNamespaceResourceId=serviceBusNamespaceResourceId \
+                  classicSqlServerName=sqlServerName \
+                  classicSqlServerResourceId=sqlServerResourceId
 
 

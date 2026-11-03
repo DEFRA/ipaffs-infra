@@ -209,53 +209,40 @@ stages:
               scriptType: bash
               scriptLocation: inlineScript
               inlineScript: |
-                set -x
-                scripts/pipeline/update-group-variable-from-deployment.sh aksClusterResourceId aksClusterResourceId
-                scripts/pipeline/update-group-variable-from-deployment.sh aksKubeletPrincipalId aksKubeletPrincipalId
-                scripts/pipeline/update-group-variable-from-deployment.sh albControllerClientId albControllerClientId
-                scripts/pipeline/update-group-variable-from-deployment.sh appGatewayForContainersResourceId appGatewayForContainersResourceId
-                scripts/pipeline/update-group-variable-from-deployment.sh appGatewayForContainersFrontendName appGatewayForContainersFrontendName
-                scripts/pipeline/update-group-variable-from-deployment.sh appGatewayForContainersFrontendFqdn appGatewayForContainersFrontendFqdn
-                scripts/pipeline/update-group-variable-from-deployment.sh azureServiceOperatorClientId azureServiceOperatorClientId
-                scripts/pipeline/update-group-variable-from-deployment.sh externalSecretsClientId externalSecretsClientId
-                scripts/pipeline/update-group-variable-from-deployment.sh externalSecretsPrincipalObjectId externalSecretsPrincipalObjectId
-                scripts/pipeline/update-group-variable-from-deployment.sh aksOidcIssuer aksOidcIssuer
-                scripts/pipeline/update-group-variable-from-deployment.sh keyVaultName keyVaultName
-                scripts/pipeline/update-group-variable-from-deployment.sh keyVaultUrl keyVaultUri
-                scripts/pipeline/update-group-variable-from-deployment.sh kubernetesCluster aksClusterName
-                scripts/pipeline/update-group-variable-from-deployment.sh redisName redisName
-                scripts/pipeline/update-group-variable-from-deployment.sh searchServiceSubscriptionId searchServiceSubscriptionId
-                scripts/pipeline/update-group-variable-from-deployment.sh searchServiceResourceGroupName searchServiceResourceGroupName
-                scripts/pipeline/update-group-variable-from-deployment.sh searchServiceName searchServiceName
-                scripts/pipeline/update-group-variable-from-deployment.sh searchServiceManagedIdentityPrincipalId searchServiceManagedIdentityPrincipalId
-                scripts/pipeline/update-group-variable-from-deployment.sh searchServiceManagedIdentityPrincipalName searchServiceManagedIdentityPrincipalName
-                scripts/pipeline/update-group-variable-from-deployment.sh sqlServerName sqlServerName
-                scripts/pipeline/update-group-variable-from-deployment.sh sqlServerManagedIdentityObjectId sqlServerManagedIdentityObjectId
-                scripts/pipeline/update-group-variable-from-deployment.sh storageAccountName storageAccountName
-                scripts/pipeline/update-group-variable-from-deployment.sh insightsConnectionString insightsConnectionString
-                scripts/pipeline/update-group-variable-from-deployment.sh insightsInstrumentationKey insightsInstrumentationKey
-                scripts/pipeline/update-group-variable-from-deployment.sh grafanaManagedIdentityPrincipalId grafanaManagedIdentityPrincipalId
-                scripts/pipeline/update-group-variable-from-deployment.sh grafanaName grafanaName
-                scripts/pipeline/update-group-variable-from-deployment.sh prometheusName prometheusName
-
-          - ${{ if eq(parameters.environmentName, 'TST') }}:
-            - task: AzureCLI@2
-              name: QaKeyVaultOutputs
-              displayName: QA Key Vault outputs
-              condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
-              env:
-                ADO_ORG_URL: $(System.CollectionUri)
-                ADO_PROJECT: $(System.TeamProject)
-                ADO_GROUP_NAME: ${{ parameters.environmentName }}
-                AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
-                DEPLOYMENT_NAME: Infrastructure-$(Build.BuildId)
-                RESOURCE_GROUP: $(resourceGroupName)
-                SUBSCRIPTION_ID: $(subscriptionId)
-              inputs:
-                azureSubscription: $(serviceConnection)
-                scriptType: bash
-                scriptLocation: inlineScript
-                inlineScript: |
-                  set -x
-                  scripts/pipeline/update-group-variable-from-deployment.sh qaKeyVaultName qaKeyVaultName
-                  scripts/pipeline/update-group-variable-from-deployment.sh qaKeyVaultUrl qaKeyVaultUri
+                set -euo pipefail
+                outputs=(
+                  aksClusterResourceId=aksClusterResourceId
+                  aksKubeletPrincipalId=aksKubeletPrincipalId
+                  albControllerClientId=albControllerClientId
+                  appGatewayForContainersResourceId=appGatewayForContainersResourceId
+                  appGatewayForContainersFrontendName=appGatewayForContainersFrontendName
+                  appGatewayForContainersFrontendFqdn=appGatewayForContainersFrontendFqdn
+                  azureServiceOperatorClientId=azureServiceOperatorClientId
+                  externalSecretsClientId=externalSecretsClientId
+                  externalSecretsPrincipalObjectId=externalSecretsPrincipalObjectId
+                  aksOidcIssuer=aksOidcIssuer
+                  keyVaultName=keyVaultName
+                  keyVaultUrl=keyVaultUri
+                  kubernetesCluster=aksClusterName
+                  redisName=redisName
+                  searchServiceSubscriptionId=searchServiceSubscriptionId
+                  searchServiceResourceGroupName=searchServiceResourceGroupName
+                  searchServiceName=searchServiceName
+                  searchServiceManagedIdentityPrincipalId=searchServiceManagedIdentityPrincipalId
+                  searchServiceManagedIdentityPrincipalName=searchServiceManagedIdentityPrincipalName
+                  sqlServerName=sqlServerName
+                  sqlServerManagedIdentityObjectId=sqlServerManagedIdentityObjectId
+                  storageAccountName=storageAccountName
+                  insightsConnectionString=insightsConnectionString
+                  insightsInstrumentationKey=insightsInstrumentationKey
+                  grafanaManagedIdentityPrincipalId=grafanaManagedIdentityPrincipalId
+                  grafanaName=grafanaName
+                  prometheusName=prometheusName
+                )
+                if [[ '${{ parameters.environmentName }}' == TST ]]; then
+                  outputs+=(
+                    qaKeyVaultName=qaKeyVaultName
+                    qaKeyVaultUrl=qaKeyVaultUri
+                  )
+                fi
+                python3 scripts/pipeline/sync-deployment-outputs.py "${outputs[@]}"
