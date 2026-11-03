@@ -113,6 +113,9 @@ Authorise the new pipeline to read `Common`, `LowerEnvs`, `HigherEnvs`, `TST`, `
 and `PRD` variable groups, and to use the Modern and Classic service connections
 configured by `pipelines/vars/{tst,pre,prd}.yaml`. Their Azure identities need the
 permissions required for resource-group and subscription-scope what-if operations.
+For the optional DEV baseline, also authorise the `DEV` variable group and the
+existing DEV/SND service connections for this pipeline. Pipeline-scoped access is
+sufficient; this does not require changing the Azure identities' roles.
 Missing authorisation can block the run before jobs start. Authentication failures
 after initialisation leave pending/incomplete component records visible in the
 report; they must not be treated as a successful plan.
