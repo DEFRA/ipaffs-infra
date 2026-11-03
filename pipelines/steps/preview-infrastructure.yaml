@@ -1,0 +1,58 @@
+parameters:
+  - name: environmentName
+    type: string
+  - name: scope
+    type: string
+    values: [modern, classic]
+  - name: serviceConnection
+    type: string
+
+steps:
+  - task: AzureCLI@2
+    displayName: What-if ${{ parameters.environmentName }} (${{ parameters.scope }})
+    # Try Classic even if a Modern component fails. Failed source validation blocks both.
+    condition: and(not(canceled()), eq(variables['PreviewInputsReady'], 'true'))
+    env:
+      PLATFORM_SUBSCRIPTION_ID: $(subscriptionId)
+      PLATFORM_CLASSIC_SUBSCRIPTION_ID: $(classicSubscriptionId)
+      PLATFORM_RESOURCE_GROUP: $(resourceGroupName)
+      PLATFORM_CLASSIC_RESOURCE_GROUP: $(classicResourceGroupName)
+      PLATFORM_LOCATION: $(location)
+      BICEP_ACR_PULL_GROUP_ID: $(acrPullGroupId)
+      BICEP_ACR_PULL_GROUP_NAME: $(acrPullGroupName)
+      BICEP_PARAMETER_SQL_ADMIN_GROUP_ID: $(sqlAdminGroupId)
+      BICEP_PARAMETER_SQL_ADMIN_GROUP_NAME: $(sqlAdminGroupName)
+      BICEP_QA_AUTOMATION_SERVICE_CONNECTION_PRINCIPAL_ID: $(qaAutomationServiceConnectionPrincipalId)
+      BICEP_CLASSIC_REDIS_RESOURCE_ID: $(classicRedisResourceId)
+      BICEP_CLASSIC_SEARCH_SERVICE_RESOURCE_ID: $(classicSearchServiceResourceId)
+      BICEP_CLASSIC_SERVICE_BUS_NAMESPACE_RESOURCE_ID: $(classicServiceBusNamespaceResourceId)
+      BICEP_CLASSIC_SQL_SERVER_RESOURCE_ID: $(classicSqlServerResourceId)
+      BICEP_SQL_ADMIN_GROUP_ID: $(sqlAdminGroupId)
+      BICEP_SQL_ADMIN_GROUP_NAME: $(sqlAdminGroupName)
+      BICEP_AKS_API_SERVER_SUBNET_ID: $(aksApiServerSubnetId)
+      BICEP_AKS_API_SERVER_SUBNET_NAME: $(aksApiServerSubnetName)
+      BICEP_AKS_SYSTEM_NODES_SUBNET_ID: $(aksSystemNodesSubnetId)
+      BICEP_AKS_SYSTEM_NODES_SUBNET_NAME: $(aksSystemNodesSubnetName)
+      BICEP_AKS_USER_NODES_SUBNET_ID: $(aksUserNodesSubnetId)
+      BICEP_AKS_USER_NODES_SUBNET_NAME: $(aksUserNodesSubnetName)
+      BICEP_APP_GATEWAY_FOR_CONTAINERS_SUBNET_ID: $(appGatewayForContainersSubnetId)
+      BICEP_APP_GATEWAY_FOR_CONTAINERS_SUBNET_NAME: $(appGatewayForContainersSubnetName)
+      BICEP_PRIVATE_ENDPOINTS_SUBNET_ID: $(privateEndpointsSubnetId)
+      BICEP_PRIVATE_ENDPOINTS_SUBNET_NAME: $(privateEndpointsSubnetName)
+      BICEP_TENANT_ID: $(tenantId)
+      BICEP_SERVICE_CONNECTION_PRINCIPAL_ID: $(serviceConnectionPrincipalId)
+      BICEP_GRAFANA_MANAGED_IDENTITY_PRINCIPAL_ID: $(grafanaManagedIdentityPrincipalId)
+    inputs:
+      azureSubscription: ${{ parameters.serviceConnection }}
+      scriptType: bash
+      scriptLocation: inlineScript
+      inlineScript: |
+        set -euo pipefail
+        python3 scripts/pipeline/plan-infrastructure.py \
+          --environment ${{ parameters.environmentName }} \
+          --scope ${{ parameters.scope }} \
+          --output-dir "$(Build.ArtifactStagingDirectory)/infrastructure-plan-${{ parameters.environmentName }}" \
+          --state-dir "$(Agent.TempDirectory)/infrastructure-preview-${{ parameters.environmentName }}" \
+          --commit "$BUILD_SOURCEVERSION" \
+          --source-ref "$BUILD_SOURCEBRANCH" \
+          --build-id "$BUILD_BUILDID"
