@@ -193,7 +193,7 @@ def preview(component, environment, values, environ, private_dir, build_id):
     arguments = ["deployment", "sub" if scope["kind"] == "subscription" else "group", "what-if",
                  "--subscription", scope["subscriptionId"], "--name", f"Preview-{component}-{build_id}",
                  "--template-file", str(template), "--parameters", "@" + str(parameters),
-                 "--no-pretty-print", "--result-format", "FullResourcePayloads", "--validation-level", "Provider"]
+                 "--no-pretty-print", "--result-format", "FullResourcePayloads"]
     arguments += (["--location", scope["location"]] if scope["kind"] == "subscription"
                   else ["--resource-group", scope["resourceGroup"]])
     result = az_json(arguments)
@@ -260,7 +260,9 @@ def run(args, environ):
         values["qaAutomationServiceConnectionPrincipalId"] = ""
     try:
         version = az_json(["version"], timeout=30)["azure-cli"]
-        if tuple(int(number) for number in version.split(".")[:2]) < (2, 76):
+        # 2.75 exposes incomplete-analysis diagnostics. Keep ARM's default full
+        # validation: --validation-level was introduced only in CLI 2.76.
+        if tuple(int(number) for number in version.split(".")[:2]) < (2, 75):
             raise PlanError("AZURE_CLI_TOO_OLD")
         values = desired_inputs(args.environment, values, environ, args.state_dir)
         if args.scope == "classic":

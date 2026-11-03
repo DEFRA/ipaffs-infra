@@ -51,6 +51,7 @@ class RunnerTests(unittest.TestCase):
             **{variable: "fixture-" + name for name, variable in RUNNER.ENVIRONMENT_VARIABLES.items()},
         }
         self.calls = []
+        self.cli_version = "2.75.0"
         self.results = {}
         self.compilations = []
         self.patches = ExitStack()
@@ -84,7 +85,7 @@ class RunnerTests(unittest.TestCase):
     def az(self, arguments, timeout=900):
         self.calls.append(arguments)
         if arguments == ["version"]:
-            return {"azure-cli": "2.80.0"}
+            return {"azure-cli": self.cli_version}
         if arguments[:2] == ["resource", "show"]:
             return GRAFANA_PRINCIPAL
         if arguments[:3] in (["deployment", "group", "what-if"], ["deployment", "sub", "what-if"]):
@@ -153,6 +154,18 @@ class RunnerTests(unittest.TestCase):
         self.assertEqual("not-applicable", self.component("acr")["status"])
         self.assertEqual("blocked", self.component("infra")["status"])
         self.assertTrue((self.args.state_dir / "state.json").exists())
+
+    def test_agent_cli_275_runs_with_default_validation_and_older_clients_fail_closed(self):
+        self.assertEqual(0, self.run_preview())
+        operations = [arguments for arguments in self.calls if arguments[:1] == ["deployment"]]
+        self.assertTrue(operations)
+        for arguments in operations:
+            self.assertNotIn("--validation-level", arguments)
+        self.cli_version = "2.74.0"
+        self.calls.clear()
+        self.assertEqual(1, self.run_preview())
+        self.assertEqual("AZURE_CLI_TOO_OLD", self.component("network")["errorCode"])
+        self.assertFalse(any(arguments[:1] == ["deployment"] for arguments in self.calls))
 
     def test_state_from_another_source_or_build_cannot_be_reused(self):
         self.args.initialize = True
@@ -302,9 +315,10 @@ class RunnerTests(unittest.TestCase):
             "import json, sys",
             f"with open({str(calls)!r}, 'a') as log: log.write(json.dumps(sys.argv[1:]) + '\\n')",
             "args = sys.argv[1:]",
-            "if args[:1] == ['version']: print(json.dumps({'azure-cli': '2.80.0'}))",
+            "if args[:1] == ['version']: print(json.dumps({'azure-cli': '2.75.0'}))",
             f"elif args[:2] == ['resource', 'show']: print(json.dumps({GRAFANA_PRINCIPAL!r}))",
             "elif args[:3] in (['deployment', 'group', 'what-if'], ['deployment', 'sub', 'what-if']):",
+            "    if '--validation-level' in args: sys.exit(98)",
             "    if 'Preview-network-123' in args:",
             f"        print({RAW_VALUE!r}, file=sys.stderr)",
             "        sys.exit(7)",
