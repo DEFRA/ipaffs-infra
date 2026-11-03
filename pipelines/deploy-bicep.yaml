@@ -1,16 +1,6 @@
 ---
-trigger:
-  branches:
-    include:
-      - main
-  paths:
-    include:
-      - bicep/**/*.bicepparam
-      - bicep/**/*.bicep
-      - pipelines/deploy-bicep.yaml
-      - pipelines/stages/deploy-bicep-*.yaml
-      - pipelines/stages/validate-access-contract.yaml
-      - scripts/pipeline/validate-access-contract.py
+# Infrastructure owns automatic DEV deployments; retain this entry point for previews/manual runs.
+trigger: none
 
 pr:
   branches:

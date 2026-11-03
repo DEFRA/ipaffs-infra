@@ -6,8 +6,9 @@ All scripts run against temporary files and fake executables, without Azure.
 """
 
 import ast
+import fnmatch
 import os
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 import re
 import shutil
 import subprocess
@@ -359,6 +360,50 @@ class ConsolidatedBicepJobTests(unittest.TestCase):
                         artifact, = [task for task in steps(stage) if task.get("task") == "PublishPipelineArtifact@1"]
                         self.assertEqual(f"$(Build.SourcesDirectory)/bicep/{filename}-runtime.bicepparam", artifact["inputs"]["targetPath"])
                         self.assertEqual("bicepparam-" + component, artifact["inputs"]["artifactName"])
+
+
+class AutomaticDevTriggerTests(unittest.TestCase):
+    def test_only_infrastructure_auto_deploys_dev_for_relevant_main_changes(self):
+        pipeline = load("pipelines/infrastructure.yaml")
+        trigger = pipeline["trigger"]
+        self.assertEqual({"include": ["main"]}, trigger["branches"])
+        self.assertIs(True, trigger["batch"])
+        defaults = parameters(pipeline, {})
+        self.assertEqual("DEV", defaults["environmentName"])
+        self.assertIs(True, defaults["includePlatform"])
+        self.assertIs(False, defaults["establishPeering"])
+
+        def matches(path, patterns):
+            return any(fnmatch.fnmatchcase(path, pattern) if "**" in pattern
+                       else PurePosixPath(path).match(pattern) for pattern in patterns)
+
+        def triggers(path):
+            return matches(path, trigger["paths"]["include"]) and not matches(path, trigger["paths"].get("exclude", []))
+
+        context = {"parameters": defaults, "variables": {"Build.SourceBranch": "refs/heads/main"}}
+        sources = ["pipelines/" + entry["template"] for entry in expand(pipeline["stages"], context)]
+        sources += ["bicep/40-infra.bicep", "bicep/modules/aks.bicep", "bicep/files/PAsubca.crt",
+                    "bicep/default-tags.json", "bicep/bicepconfig.json",
+                    "bicep/envs/dev/40-infra.bicepparam", "bicep/envs/snd/30-classic.bicepparam",
+                    "pipelines/vars/common.yaml", "pipelines/vars/dev.yaml", "pipelines/vars/snd.yaml",
+                    "scripts/pipeline/sync-deployment-outputs.py", "scripts/pipeline/validate-access-contract.py",
+                    "scripts/pipeline/add-principal-to-group.sh", "scripts/pipeline/run-hooks.sh",
+                    "scripts/hooks/10-common.sh", "scripts/hooks/dev/20-dev.sh"]
+        for path in sources:
+            with self.subTest(path=path):
+                self.assertTrue(triggers(path), path)
+        for path in ["README.md", "pipelines/templates/java-template.yaml", "helm-charts/webapp/Chart.yaml",
+                     "scripts/pipeline/sync-deployment-outputs.test.py", "scripts/hooks/tst/10-hook.sh",
+                     "pipelines/vars/tst.yaml", "pipelines/vars/pre.yaml", "pipelines/vars/prd.yaml",
+                     "bicep/envs/tst/40-infra.bicepparam", "bicep/envs/pre/40-infra.bicepparam",
+                     "bicep/envs/prd/40-infra.bicepparam"]:
+            with self.subTest(path=path):
+                self.assertFalse(triggers(path), path)
+        for name in ("deploy-bicep", "infra-permissions", "private-endpoint-dns-records"):
+            legacy = load(f"pipelines/{name}.yaml")
+            self.assertEqual("none", legacy["trigger"])
+            self.assertEqual(["main"], legacy["pr"]["branches"]["include"])
+        self.assertEqual("none", load("pipelines/infra-platform.yaml")["trigger"])
 
 
 if __name__ == "__main__":
