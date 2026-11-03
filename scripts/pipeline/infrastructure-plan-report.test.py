@@ -47,6 +47,7 @@ class InfrastructurePlanReportTests(unittest.TestCase):
             {"environment": environment, "commit": commit, "sourceRef": "refs/heads/main", "buildId": "42", "generatedAt": "2026-11-03T10:20:00Z"}, components)
         self.markdown = (destination / "summary.md").read_text()
         self.serialized = (destination / "plan.json").read_text()
+        self.detail_markdown = (destination / "change-details.md").read_text()
         self.assertEqual(json.loads(self.serialized), result)
         return result
 
@@ -58,8 +59,8 @@ class InfrastructurePlanReportTests(unittest.TestCase):
         self.assertEqual(plan["resourceTotals"]["Modify"], 1)
         fields = plan["components"][0]["resources"][0]["fields"]
         self.assertEqual((fields[0]["before"], fields[0]["after"]), ("Standard", "Premium"))
-        self.assertIn("potential impact: network", self.markdown)
-        self.assertIn("do not prove an outage", self.markdown)
+        self.assertIn("public network access", self.markdown)
+        self.assertIn("Potential impact: network", self.detail_markdown)
 
     def test_credentials_payloads_and_diagnostic_messages_never_escape(self):
         secrets = ["PASSWORD-SENSITIVE", "CONNECTION-SENSITIVE", "OUTPUT-SENSITIVE", "ERROR-SENSITIVE", "DIAGNOSTIC-SENSITIVE"]
@@ -74,7 +75,7 @@ class InfrastructurePlanReportTests(unittest.TestCase):
         self.assertEqual(plan["components"][0]["diagnosticCount"], 1)
         self.assertEqual(plan["executionStatus"], "succeeded")
         for secret in secrets:
-            self.assertNotIn(secret, self.serialized + self.markdown)
+            self.assertNotIn(secret, self.serialized + self.markdown + self.detail_markdown)
         self.assertIn("[withheld]", self.serialized)
 
     def test_nested_array_deltas_preserve_meaningful_leaf_changes(self):
@@ -100,7 +101,8 @@ class InfrastructurePlanReportTests(unittest.TestCase):
         self.assertTrue(resources[0]["metadataOnly"])
         self.assertFalse(resources[1]["metadataOnly"])
         self.assertEqual(plan["totals"]["Modify"], 2)
-        self.assertIn("Known CreatedDate metadata changes", self.markdown)
+        self.assertIn("CreatedDate-only updates: 1", self.markdown)
+        self.assertNotIn("onlydate", self.markdown)
         self.assertIn("realchange", self.markdown)
         self.assertNotIn("yesterday", self.serialized + self.markdown)
 
@@ -130,8 +132,9 @@ class InfrastructurePlanReportTests(unittest.TestCase):
         self.assertEqual(combined["environments"][0]["totals"]["Modify"], 0)
         self.assertEqual(combined["environments"][0]["metadataOnlyTotals"]["Modify"], 1)
         summary = (self.directory / "combined" / "summary.md").read_text()
-        self.assertIn("Metadata only", summary)
-        self.assertIn("| TST | Complete | 0 | 0 | 0 | 0 | 1 | 0 |", summary)
+        self.assertIn("CreatedDate-only updates", summary)
+        self.assertIn("| TST | 0 | 0 | 0 | Completed |", summary)
+        self.assertIn("| TST | 0 | 0 | 1 |", summary)
 
     def test_deployment_metadata_is_grouped_and_child_resource_is_still_prominent(self):
         wrapper = resource("Microsoft.Resources/deployments", "childmodule", "Modify", [field("tags.CreatedDate", "before", "after")])
@@ -140,9 +143,10 @@ class InfrastructurePlanReportTests(unittest.TestCase):
         self.assertTrue(plan["complete"])
         self.assertEqual(plan["resourceTotals"]["Delete"], 1)
         self.assertEqual(plan["deploymentMetadataTotals"]["Modify"], 1)
-        self.assertLess(self.markdown.index("Delete: storage"), self.markdown.index("Nested-deployment metadata"))
+        self.assertIn("Delete | Storage account: storage", self.markdown)
+        self.assertNotIn("childmodule", self.markdown)
         self.assertIn("deletion", self.markdown)
-        self.assertIn("storage/data", self.markdown)
+        self.assertIn("storage/data", self.detail_markdown)
 
     def test_resource_group_creation_and_deletion_remain_real_changes(self):
         for change_type in ("Create", "Delete"):
@@ -151,7 +155,7 @@ class InfrastructurePlanReportTests(unittest.TestCase):
                 plan = self.report([component([group])])
                 self.assertEqual(plan["resourceTotals"][change_type], 1)
                 self.assertEqual(plan["deploymentMetadataTotals"][change_type], 0)
-                self.assertIn(change_type + ": new-group", self.markdown)
+                self.assertIn(f"| {change_type} | Resource group: new-group", self.markdown)
 
     def test_input_digest_is_validated_and_current_input_coverage_is_fixed(self):
         digest = "0123456789abcdef" * 4
@@ -181,7 +185,7 @@ class InfrastructurePlanReportTests(unittest.TestCase):
                 self.assertFalse(plan["complete"])
                 self.assertGreater(plan["unknowns"], 0)
                 self.assertNotIn("No resource changes predicted", self.markdown)
-                self.assertIn("NOT FULLY ASSESSED", self.markdown)
+                self.assertIn("INCOMPLETE", self.markdown)
 
     def test_unresolved_expressions_make_assessment_incomplete_without_exposing_expression(self):
         expression = "[reference('/subscriptions/hidden-resource').sku.name]"
@@ -207,8 +211,8 @@ class InfrastructurePlanReportTests(unittest.TestCase):
         plan = self.report([component([resource(change_type="NoChange")]), component(name="optional", status="not-applicable", result=None)])
         self.assertTrue(plan["complete"])
         self.assertEqual(plan["resourceTotals"]["NoChange"], 1)
-        self.assertIn("No resource changes predicted by ARM", self.markdown)
-        self.assertIn("Not applicable to this environment", self.markdown)
+        self.assertIn("0 creates, 0 updates and 0 resource deletions", self.markdown)
+        self.assertIn("No Create, Modify or Delete resource entries were returned", self.markdown)
         self.assertTrue(self.report([component([])])["complete"])
         self.assertFalse(self.report([])["complete"])
 
@@ -219,8 +223,8 @@ class InfrastructurePlanReportTests(unittest.TestCase):
         change["resourceId"] = attack
         fixture = component([change], name=attack, label=attack, scope=attack, errorCode=attack)
         plan = self.report([fixture])
-        self.assertNotIn(attack, self.serialized + self.markdown)
-        self.assertNotIn("apparently-safe-but-private", self.serialized + self.markdown)
+        self.assertNotIn(attack, self.serialized + self.markdown + self.detail_markdown)
+        self.assertNotIn("apparently-safe-but-private", self.serialized + self.markdown + self.detail_markdown)
         self.assertNotIn("<script>", self.markdown)
         self.assertNotIn("##vso[", self.markdown)
         self.assertEqual(plan["components"][0]["name"], "component")
@@ -260,6 +264,41 @@ class InfrastructurePlanReportTests(unittest.TestCase):
         self.assertTrue(plan["invalidInputs"])
         self.assertEqual(plan["missingEnvironments"], ["PRE", "PRD"])
         self.assertNotIn("not-json-secret", (self.directory / "combined" / "plan.json").read_text())
+
+    def test_combined_summary_compares_fixed_resource_categories_without_copying_artifact_payloads(self):
+        inputs = []
+        for environment in REPORT.RELEASE_ENVIRONMENTS:
+            self.report([component([resource(change_type="Create"),
+                                    resource("Microsoft.Authorization/roleAssignments", "role", "Unsupported")])], environment)
+            path = self.directory / environment / "plan.json"
+            source = json.loads(path.read_text())
+            source["components"][0]["label"] = "DO-NOT-PUBLISH-LABEL"
+            source["components"][0]["resources"][0].update(
+                name="DO-NOT-PUBLISH-NAME", fields=[{"before": "DO-NOT-PUBLISH-VALUE"}])
+            source["arbitrary"] = "DO-NOT-PUBLISH-RAW"
+            path.write_text(json.dumps(source))
+            inputs.append(path)
+        combined = REPORT.combine_reports(inputs, self.directory / "combined")
+        summary = (self.directory / "combined" / "summary.md").read_text()
+        self.assertIn("Changes by resource type", summary)
+        self.assertIn("Container registry | 1 create | 1 create | 1 create", summary)
+        self.assertIn("1 Role assignment", summary)
+        self.assertNotIn("DO-NOT-PUBLISH", json.dumps(combined) + summary)
+
+    def test_combined_summary_keeps_potential_changes_separate_from_predicted_action_counts(self):
+        inputs = []
+        for environment in REPORT.RELEASE_ENVIRONMENTS:
+            self.report([component([resource(name="proposed", change_type="Create")],
+                                   result={"status": "Succeeded", "changes": [resource(name="proposed", change_type="Create")],
+                                           "potentialChanges": [resource(name="potential", change_type="Create")]})], environment)
+            inputs.append(self.directory / environment / "plan.json")
+        combined = REPORT.combine_reports(inputs, self.directory / "combined")
+        summary = (self.directory / "combined" / "summary.md").read_text()
+        self.assertFalse(combined["complete"])
+        self.assertEqual(combined["environments"][0]["totals"]["Create"], 2)
+        self.assertIn("| TST | 1 | 0 | 0 | Completed |", summary)
+        self.assertIn("Potential predictions", summary)
+        self.assertIn("TST: 1", summary)
 
     def test_modified_or_malformed_report_headers_cannot_create_a_green_combination(self):
         inputs = []

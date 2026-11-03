@@ -2,6 +2,7 @@
 """Exercise the read-only preview runner with fake Azure responses and files."""
 
 from contextlib import ExitStack, redirect_stdout
+import html
 import importlib.util
 import io
 import json
@@ -214,7 +215,7 @@ class RunnerTests(unittest.TestCase):
         state = json.loads((self.args.state_dir / "state.json").read_text())
         self.assertEqual(GRAFANA_PRINCIPAL, state["privateInputs"]["grafanaManagedIdentityPrincipalId"])
         self.assertIn(RAW_VALUE, (self.args.state_dir / "infra.parameters.json").read_text())
-        self.assertEqual({"plan.json", "summary.md"}, {path.name for path in self.args.output_dir.iterdir()})
+        self.assertEqual({"plan.json", "summary.md", "change-details.md"}, {path.name for path in self.args.output_dir.iterdir()})
         for artifact in self.args.output_dir.iterdir():
             self.assertNotIn(RAW_VALUE, artifact.read_text())
             self.assertNotIn(GRAFANA_PRINCIPAL, artifact.read_text())
@@ -264,7 +265,8 @@ class RunnerTests(unittest.TestCase):
         self.assertEqual("blocked", self.component("infra-to-classic")["status"])
         markdown = (self.args.output_dir / "summary.md").read_text()
         self.assertIn("INCOMPLETE", markdown)
-        self.assertNotIn("No resource changes predicted by ARM.", markdown.split("## Infrastructure\n", 1)[1].split("## ", 1)[0])
+        self.assertIn("Infrastructure | Component execution | 1 | failed: AZURE_COMMAND_FAILED", html.unescape(markdown))
+        self.assertNotIn("No resource changes predicted by ARM.", markdown)
 
     def test_unsuccessful_or_malformed_what_if_cannot_be_a_clean_result(self):
         for result in ({"status": "Failed", "changes": []}, {"status": "Succeeded"},

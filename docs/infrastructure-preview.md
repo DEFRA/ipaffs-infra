@@ -33,12 +33,34 @@ the live environment after that time can invalidate the prediction.
 
 ## Reading the reports
 
-Each environment report summarises resources to create, modify and delete, and
-shows property-level before/after changes where Azure provides them. Network,
-permission and deletion changes are highlighted; metadata-only changes are kept
-separate. Sanitised JSON accompanies the readable summary for investigation.
-Sensitive values are redacted, and raw what-if responses and generated runtime
-parameters are not published. Private temporary state is removed after reporting.
+Start with the release comparison: it shows the create/update/delete counts and
+resource types affected in TST, PRE and PRD side by side. Then read the environment
+summary for the named resources and a short description of each predicted action.
+Nested resources include their parent names so security rules and identity
+credentials can be distinguished.
+
+The summary has three parts:
+
+- **Predicted changes** lists creates, reported updates and resource deletions.
+  Property removals are described separately from resource deletions. An update
+  can include provider defaults or omitted properties; it does not prove a live
+  setting will reset. Potential changes remain explicitly labelled and are
+  excluded from the headline action counts.
+- **Coverage gaps** groups entries Azure did not preview and changes containing
+  unresolved deployment-time values. Inspect the intended Bicep configuration
+  and refresh the preview before promotion where those gaps matter.
+- **Background inventory** counts ignored/unchanged observations and metadata-only
+  updates. These can repeat across component previews. They are not presented as
+  individual actions to review; Ignore can mean outside-template inventory or
+  an expansion limit, so coverage is still marked incomplete.
+
+Download `change-details.md` from each environment's artifact for property-level
+evidence, full resource identifiers and input fingerprints. `plan.json` retains
+every sanitised entry, including the ignored inventory omitted from Markdown.
+Sensitive values are redacted in every file; a pair of withheld values is
+described as a change with values withheld in the summary. Raw what-if responses
+and generated runtime parameters are not published. Private state is removed
+after reporting.
 
 The comparison is the complete candidate configuration against the live target,
 so it includes accumulated unreleased changes and drift, not only the last commit.

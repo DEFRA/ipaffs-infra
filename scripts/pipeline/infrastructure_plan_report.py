@@ -16,6 +16,8 @@ import math
 from pathlib import Path
 import re
 
+from infrastructure_plan_markdown import TYPE_LABELS, environment_markdown, change_details_markdown
+
 
 CHANGE_TYPES = ("Create", "Modify", "Delete", "NoChange", "Deploy", "Ignore", "Unsupported", "Unknown")
 RELEASE_ENVIRONMENTS = ("TST", "PRE", "PRD")
@@ -273,80 +275,6 @@ def _md(value):
     return html.escape(text, quote=False).replace("#", "&#35;").replace("|", "&#124;").replace("`", "&#96;").replace("[", "&#91;").replace("]", "&#93;").replace("\n", " ").replace("\r", " ")
 
 
-def _count_table(report):
-    labels = ("Create", "Modify", "Delete", "NoChange", "Deploy", "Ignore", "Unsupported", "Unknown")
-    lines = ["| Component | Assessment | " + " | ".join(labels) + " | Unresolved |",
-             "|---|---|" + "---:|" * (len(labels) + 1)]
-    for component in report["components"]:
-        state = "Complete" if component["complete"] else "INCOMPLETE"
-        if component["status"] == "not-applicable":
-            state = "Not applicable"
-        lines.append("| " + " | ".join([_md(component["label"]), state, *(str(component["totals"][name]) for name in labels), str(component["unknowns"])]) + " |")
-    return lines
-
-
-def _resource_lines(resources, fields=True):
-    lines = []
-    for resource in resources:
-        impacts = "; potential impact: " + ", ".join(resource["potentialImpact"]) if resource["potentialImpact"] else ""
-        unresolved = "; NOT FULLY ASSESSED" if resource["unresolved"] else ""
-        lines.extend([f"#### {_md(resource['changeType'])}: {_md(resource['name'])}", "",
-                      f"`{_md(resource['type'])}`{impacts}{unresolved}", "",
-                      f"Resource: `{_md(resource['resourceId'])}`", ""])
-        if fields and resource["fields"]:
-            lines.extend(["| Property | Current | Proposed |", "|---|---|---|"])
-            # Property paths are already restricted to a safe character set;
-            # entities inside code spans would display literally for array paths.
-            lines.extend(f"| `{field['path']}` | {_md(field['before'])} | {_md(field['after'])} |" for field in resource["fields"])
-            lines.append("")
-        elif resource["changeType"] == "Modify":
-            lines.extend(["Property-level details were not supplied by ARM. Values and raw payloads are withheld.", ""])
-    return lines
-
-
-def _environment_markdown(report):
-    metadata = report["metadata"]
-    lines = [f"# Infrastructure preview: {metadata['environment']}", "",
-             f"**{'Complete ARM assessment' if report['complete'] else 'INCOMPLETE — review unresolved coverage'}**", "",
-             f"Commit: `{_md(metadata['commit'])}` · Source: `{_md(metadata['sourceRef'])}` · Build: {_md(metadata['buildId'])}", "",
-             f"Generated: {_md(metadata['generatedAt'])}", "",
-             f"Inputs: {_md(metadata['parameterSource'])}.", "",
-             "Changes compare this candidate commit with the current live environment. Counts include deployment metadata; resource details are grouped below.", ""]
-    lines.extend(_count_table(report))
-    lines.extend(["", "`Deploy`, `Ignore` and `Unsupported` are not a no-change result. Ignore can indicate a resource outside the template or an expansion limit; it is shown as unassessed coverage. Diagnostic messages are withheld.", ""])
-    for component in report["components"]:
-        lines.extend([f"## {_md(component['label'])}", ""])
-        if component["inputDigest"]:
-            lines.extend([f"Input fingerprint (SHA-256): `{component['inputDigest']}`", ""])
-        if component["status"] in {"failed", "blocked"}:
-            lines.extend([f"**{component['status'].upper()}**: this component was not fully assessed. Error category: {_md(component['errorCode'] or 'PREVIEW_INCOMPLETE')}.", ""])
-        if component["status"] == "not-applicable":
-            lines.extend(["Not applicable to this environment.", ""])
-        if component["diagnosticCount"]:
-            lines.extend([f"ARM returned {component['diagnosticCount']} diagnostic record(s). Coverage is incomplete; raw messages are withheld.", ""])
-        resources = component["resources"]
-        meaningful = [resource for resource in resources if resource["category"] == "resource" and not resource["metadataOnly"] and resource["changeType"] != "NoChange"]
-        metadata_resources = [resource for resource in resources if resource["category"] == "deployment-metadata"]
-        timestamp_resources = [resource for resource in resources if resource["category"] == "resource" and resource["metadataOnly"]]
-        if meaningful:
-            lines.extend(_resource_lines(meaningful))
-        elif component["complete"] and component["status"] != "not-applicable":
-            lines.extend(["No assessed resource changes other than the metadata listed below." if timestamp_resources or metadata_resources else "No resource changes predicted by ARM.", ""])
-        unchanged = sum(resource["changeType"] == "NoChange" and resource["category"] == "resource" for resource in resources)
-        if unchanged:
-            lines.extend([f"Unchanged resources: {unchanged} (identifiers are retained in plan.json).", ""])
-        if timestamp_resources:
-            lines.extend(["### Known CreatedDate metadata changes", "", "These resources change only `tags.CreatedDate`; the changes are retained separately.", ""])
-            lines.extend(_resource_lines(timestamp_resources))
-        if metadata_resources:
-            lines.extend(["### Nested-deployment metadata", "", "These entries are retained separately from their child resources. Unresolved entries remain unassessed coverage.", ""])
-            lines.extend(_resource_lines(metadata_resources))
-    lines.extend(["## Coverage and limitations", ""])
-    lines.extend("- " + limitation for limitation in LIMITATIONS)
-    lines.extend(["", "Potential-impact labels identify changes worth reviewing; they do not prove an outage, replacement or data loss.", ""])
-    return "\n".join(lines)
-
-
 def _write(output_dir, report, markdown):
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -367,8 +295,102 @@ def write_environment_report(output_dir: Path, metadata: dict, components: list[
               "deploymentMetadataTotals": _counts([resource for resource in resources if resource["category"] == "deployment-metadata"]),
               "unknowns": sum(component["unknowns"] for component in safe_components),
               "components": safe_components, "limitations": LIMITATIONS}
-    _write(output_dir, report, _environment_markdown(report))
+    _write(output_dir, report, environment_markdown(report))
+    (Path(output_dir) / "change-details.md").write_text(change_details_markdown(report), encoding="utf-8")
     return report
+
+
+def _review_breakdown(source):
+    """Count fixed, friendly categories without copying artifact payload values."""
+    changes = {}
+    gaps = Counter()
+    potential = Counter()
+    unresolved = 0
+    components = source.get("components")
+    for component in components if isinstance(components, list) else []:
+        resources = component.get("resources") if isinstance(component, dict) else None
+        for resource in resources if isinstance(resources, list) else []:
+            if not isinstance(resource, dict) or resource.get("category") != "resource" or resource.get("metadataOnly") is True:
+                continue
+            resource_type = resource.get("type")
+            label = TYPE_LABELS.get(resource_type.lower(), "Other Azure resources") if isinstance(resource_type, str) else "Other Azure resources"
+            action = resource.get("changeType")
+            if action in {"Create", "Modify", "Delete"}:
+                if resource.get("potential") is True:
+                    potential[action] += 1
+                else:
+                    changes.setdefault(label, Counter())[action] += 1
+                fields = resource.get("fields")
+                fields = fields if isinstance(fields, list) else []
+                runtime_unknown = any(isinstance(field, dict) and field.get("unresolved") is True
+                                      and str(field.get("path", "")).lower() != "tags.createddate" for field in fields)
+                if resource.get("potential") is True or runtime_unknown or (action == "Modify" and resource.get("unresolved") is True and not fields):
+                    unresolved += 1
+            elif action in {"Unsupported", "Deploy", "Unknown"}:
+                gaps[label] += 1
+    return {"changes": {label: {action: counts[action] for action in ("Create", "Modify", "Delete")}
+                        for label, counts in sorted(changes.items())},
+            "unpreviewed": dict(sorted(gaps.items())), "unresolvedChanges": unresolved,
+            "potential": {action: potential[action] for action in ("Create", "Modify", "Delete")}}
+
+
+def _combined_markdown(report):
+    environments = report["environments"]
+    executed = (not report["invalidInputs"] and not report["missingEnvironments"] and report["sameCommit"]
+                and all(item["executionStatus"] == "succeeded" for item in environments))
+    status = ("All three environment previews ran successfully." if executed
+              else "Some environment previews failed or are missing; this report is incomplete.")
+    lines = ["# Infrastructure release preview", "", "**" + status + "**", "",
+             "**Assessment: " + ("Complete" if report["complete"] else "INCOMPLETE — review the coverage gaps below") + "**", "",
+             f"Candidate commit: `{report['commit']}`", "",
+             "## What would change?", "",
+             "| Environment | Create | Reported updates | Delete resources | Plans |",
+             "|---|---:|---:|---:|---|"]
+    for item in environments:
+        totals = item["totals"]
+        execution = {"succeeded": "Completed", "failed": "Failed", "missing": "Missing"}[item["executionStatus"]]
+        values = [str(max(0, totals[action] - item["review"]["potential"].get(action, 0))) if item["executionStatus"] != "missing" else "—" for action in ("Create", "Modify", "Delete")]
+        lines.append(f"| {item['environment']} | {' | '.join(values)} | {execution} |")
+    lines.extend(["", "These are Azure predictions against the live environment. An update can include provider defaults or properties omitted from the proposed configuration; it is not proof of an operational change. Counts exclude deployment wrappers and CreatedDate-only updates, and can repeat a resource across component previews.", ""])
+    types = sorted({label for item in environments for label in item["review"]["changes"]})
+    if types:
+        lines.extend(["## Changes by resource type", "", "| Resource | TST | PRE | PRD |", "|---|---|---|---|"])
+        for label in types:
+            cells = []
+            for item in environments:
+                counts = item["review"]["changes"].get(label, {})
+                cells.append(", ".join(f"{counts[action]} {verb}" for action, verb in (("Create", "create"), ("Modify", "update"), ("Delete", "delete")) if counts.get(action)) or "—")
+            lines.append("| " + _md(label) + " | " + " | ".join(cells) + " |")
+        lines.append("")
+    lines.extend(["## What still needs checking?", "", "| Environment | Azure cannot preview | Changed entries with unresolved values |", "|---|---|---:|"])
+    for item in environments:
+        review = item["review"]
+        if item["executionStatus"] != "succeeded":
+            lines.append(f"| {item['environment']} | Unavailable — preview {item['executionStatus']}; partial results require investigation | — |")
+            continue
+        gaps = "; ".join(f"{count} {_md(label)}" for label, count in review["unpreviewed"].items()) or "None reported"
+        lines.append(f"| {item['environment']} | {gaps} | {review['unresolvedChanges']} |")
+    potential = [f"{item['environment']}: {sum(item['review']['potential'].values())}" for item in environments
+                 if any(item["review"]["potential"].values())]
+    if potential:
+        lines.extend(["", "**Potential predictions:** " + "; ".join(potential) + ". These are uncertain action entries, excluded from the create/update/delete totals above and labelled in the environment summaries."])
+    lines.extend(["", "Review the named creates, updates and deletions in each environment summary. Unresolved values need checking against the intended configuration; Azure cannot determine them before deployment. Property-by-property evidence is in `change-details.md` in the corresponding `infrastructure-plan-TST`, `infrastructure-plan-PRE` or `infrastructure-plan-PRD` artifact.", "",
+                  "## Background inventory", "",
+                  "These are observations across component previews, not extra proposed changes. Individual inventory records are retained in `plan.json`.", "",
+                  "| Environment | Ignored observations | Unchanged observations | CreatedDate-only updates |", "|---|---:|---:|---:|"])
+    for item in environments:
+        counts = (["—", "—", "—"] if item["executionStatus"] == "missing" else
+                  [str(item["totals"]["Ignore"]), str(item["totals"]["NoChange"]), str(sum(item["metadataOnlyTotals"].values()))])
+        lines.append(f"| {item['environment']} | {' | '.join(counts)} |")
+    lines.extend(["", "Azure usually marks existing resources outside an individual template as Ignore, and can also do so when template expansion reaches a limit. They are not listed as individual review items; their presence still prevents a claim of complete coverage.", ""])
+    if report["missingEnvironments"]:
+        lines.extend(["**Missing environment reports:** " + ", ".join(report["missingEnvironments"]) + ".", ""])
+    if not report["sameCommit"]:
+        lines.extend(["**Commit mismatch:** the reports do not establish one common candidate commit.", ""])
+    if report["invalidInputs"]:
+        lines.extend(["**Invalid reports:** some inputs were invalid or duplicated; do not rely on this comparison.", ""])
+    lines.extend(["## Limits of this preview", "", *("- " + limitation for limitation in LIMITATIONS), ""])
+    return "\n".join(lines)
 
 
 def combine_reports(input_paths: list[Path], output_dir: Path) -> dict:
@@ -389,8 +411,8 @@ def combine_reports(input_paths: list[Path], output_dir: Path) -> dict:
             if environment not in RELEASE_ENVIRONMENTS or environment in reports:
                 invalid = True
                 continue
-            # Retain only the header fields needed below. Arbitrary component or
-            # payload keys from an artifact never flow into the combined output.
+            # Retain headers and counts labelled only by fixed resource-type
+            # aliases. Arbitrary artifact fields/values never flow into output.
             unknowns = source.get("unknowns")
             valid_unknowns = isinstance(unknowns, int) and not isinstance(unknowns, bool) and unknowns >= 0
             totals = source.get("resourceTotals")
@@ -407,6 +429,7 @@ def combine_reports(input_paths: list[Path], output_dir: Path) -> dict:
                 "resourceTotals": totals if valid_totals else {},
                 "metadataOnlyTotals": metadata_totals if valid_metadata_totals else {},
                 "unknowns": unknowns if valid_unknowns else 1,
+                "review": _review_breakdown(source),
             }
         except (OSError, ValueError, AttributeError, TypeError):
             invalid = True
@@ -425,25 +448,13 @@ def combine_reports(input_paths: list[Path], output_dir: Path) -> dict:
                              "executionStatus": source.get("executionStatus") if source and source.get("executionStatus") in {"succeeded", "failed"} else "missing",
                              "totals": {name: value if isinstance((value := totals.get(name)), int) and not isinstance(value, bool) and value >= 0 else 0 for name in CHANGE_TYPES},
                              "metadataOnlyTotals": {name: value if isinstance((value := metadata_totals.get(name)), int) and not isinstance(value, bool) and value >= 0 else 0 for name in CHANGE_TYPES},
-                             "unknowns": source.get("unknowns") if source and isinstance(source.get("unknowns"), int) and source["unknowns"] >= 0 else 1})
+                             "unknowns": source.get("unknowns") if source and isinstance(source.get("unknowns"), int) and source["unknowns"] >= 0 else 1,
+                             "review": source["review"] if source else {"changes": {}, "unpreviewed": {}, "unresolvedChanges": 0, "potential": {}}})
     report = {"schemaVersion": 1, "kind": "combined", "complete": complete,
               "outcome": "complete" if complete else "incomplete", "commit": next(iter(commits)) if same_commit and re.fullmatch(r"[a-fA-F0-9]{7,64}", str(next(iter(commits)))) else "unavailable",
               "missingEnvironments": missing, "sameCommit": same_commit, "invalidInputs": invalid,
               "environments": environments, "limitations": LIMITATIONS}
-    lines = ["# Infrastructure release preview", "", f"**{'Complete ARM assessment for TST, PRE and PRD' if complete else 'INCOMPLETE — do not treat this as a full release assessment'}**", "", f"Candidate commit: `{report['commit']}`", "",
-             "| Environment | Assessment | Create | Modify | Delete | Unchanged | Metadata only | Unassessed |", "|---|---|---:|---:|---:|---:|---:|---:|"]
-    for item in environments:
-        totals = item["totals"]
-        lines.append(f"| {item['environment']} | {'Complete' if item['complete'] else 'INCOMPLETE'} | {totals['Create']} | {totals['Modify']} | {totals['Delete']} | {totals['NoChange']} | {sum(item['metadataOnlyTotals'].values())} | {item['unknowns']} |")
-    lines.extend(["", "Resource counts exclude nested-deployment wrappers and CreatedDate-only modifications; metadata-only changes are counted separately. Each environment artifact retains all component and resource details.", ""])
-    if missing:
-        lines.extend(["Missing environment reports: " + ", ".join(missing) + ".", ""])
-    if not same_commit:
-        lines.extend(["Environment reports do not establish one common candidate commit.", ""])
-    if invalid:
-        lines.extend(["Some report inputs were invalid or duplicated; the combined assessment is incomplete.", ""])
-    lines.extend(["## Coverage and limitations", "", *("- " + limitation for limitation in LIMITATIONS), ""])
-    _write(output_dir, report, "\n".join(lines))
+    _write(output_dir, report, _combined_markdown(report))
     return report
 
 
