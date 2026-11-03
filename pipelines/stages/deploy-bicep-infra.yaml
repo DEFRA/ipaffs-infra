@@ -44,50 +44,32 @@ stages:
                 - task: Bash@3
                   name: GenerateBicepParams
                   displayName: Generate Bicep Params
+                  env:
+                    BICEP_QA_AUTOMATION_SERVICE_CONNECTION_PRINCIPAL_ID: $(qaAutomationServiceConnectionPrincipalId)
+                    BICEP_CLASSIC_REDIS_RESOURCE_ID: $(classicRedisResourceId)
+                    BICEP_CLASSIC_SEARCH_SERVICE_RESOURCE_ID: $(classicSearchServiceResourceId)
+                    BICEP_CLASSIC_SERVICE_BUS_NAMESPACE_RESOURCE_ID: $(classicServiceBusNamespaceResourceId)
+                    BICEP_CLASSIC_SQL_SERVER_RESOURCE_ID: $(classicSqlServerResourceId)
+                    BICEP_SQL_ADMIN_GROUP_ID: $(sqlAdminGroupId)
+                    BICEP_SQL_ADMIN_GROUP_NAME: $(sqlAdminGroupName)
+                    BICEP_AKS_API_SERVER_SUBNET_ID: $(aksApiServerSubnetId)
+                    BICEP_AKS_API_SERVER_SUBNET_NAME: $(aksApiServerSubnetName)
+                    BICEP_AKS_SYSTEM_NODES_SUBNET_ID: $(aksSystemNodesSubnetId)
+                    BICEP_AKS_SYSTEM_NODES_SUBNET_NAME: $(aksSystemNodesSubnetName)
+                    BICEP_AKS_USER_NODES_SUBNET_ID: $(aksUserNodesSubnetId)
+                    BICEP_AKS_USER_NODES_SUBNET_NAME: $(aksUserNodesSubnetName)
+                    BICEP_APP_GATEWAY_FOR_CONTAINERS_SUBNET_ID: $(appGatewayForContainersSubnetId)
+                    BICEP_APP_GATEWAY_FOR_CONTAINERS_SUBNET_NAME: $(appGatewayForContainersSubnetName)
+                    BICEP_PRIVATE_ENDPOINTS_SUBNET_ID: $(privateEndpointsSubnetId)
+                    BICEP_PRIVATE_ENDPOINTS_SUBNET_NAME: $(privateEndpointsSubnetName)
                   inputs:
                     targetType: inline
                     script: |
-                      set -ex
-                      cat <<- 'EOF' >'$(Build.SourcesDirectory)/bicep/40-infra-runtime.bicepparam'
-                      using '40-infra.bicep'
-                      extends 'envs/${{ lower(parameters.environmentName) }}/40-infra.bicepparam'
-                      param qaAutomationPrincipalObjectId = '$(qaAutomationServiceConnectionPrincipalId)'
-                      param classicResourceIds = {
-                        redis: '$(classicRedisResourceId)'
-                        searchService: '$(classicSearchServiceResourceId)'
-                        serviceBusNamespace: '$(classicServiceBusNamespaceResourceId)'
-                        sqlServer: '$(classicSqlServerResourceId)'
-                      }
-                      param entraGroups = {
-                        sqlAdmins: {
-                          id: '$(sqlAdminGroupId)'
-                          name: '$(sqlAdminGroupName)'
-                        }
-                      }
-                      param subnets = {
-                        aksApiServer: {
-                          id: '$(aksApiServerSubnetId)'
-                          name: '$(aksApiServerSubnetName)'
-                        }
-                        aksSystemNodes: {
-                          id: '$(aksSystemNodesSubnetId)'
-                          name: '$(aksSystemNodesSubnetName)'
-                        }
-                        aksUserNodes: {
-                          id: '$(aksUserNodesSubnetId)'
-                          name: '$(aksUserNodesSubnetName)'
-                        }
-                        appGatewayForContainers: {
-                          id: '$(appGatewayForContainersSubnetId)'
-                          name: '$(appGatewayForContainersSubnetName)'
-                        }
-                        privateEndpoints: {
-                          id: '$(privateEndpointsSubnetId)'
-                          name: '$(privateEndpointsSubnetName)'
-                        }
-                      }
-                      EOF
-                      cat '$(Build.SourcesDirectory)/bicep/40-infra-runtime.bicepparam'
+                      set -euo pipefail
+                      python3 scripts/pipeline/infrastructure_parameters.py \
+                        --component infra \
+                        --environment ${{ parameters.environmentName }} \
+                        --output "$(Build.SourcesDirectory)/bicep/40-infra-runtime.bicepparam"
 
                 - task: PublishPipelineArtifact@1
                   displayName: Publish artifact

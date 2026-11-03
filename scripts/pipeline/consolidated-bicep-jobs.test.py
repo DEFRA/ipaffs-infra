@@ -320,6 +320,9 @@ class ConsolidatedBicepJobTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary:
             directory = Path(temporary)
             shutil.copytree(ROOT / "bicep", directory / "bicep")
+            helper_directory = directory / "scripts" / "pipeline"
+            helper_directory.mkdir(parents=True)
+            shutil.copy2(ROOT / "scripts/pipeline/infrastructure_parameters.py", helper_directory)
             for environment in ("DEV", "TST", "PRE", "PRD"):
                 for component, filename in runtime.items():
                     if component == "acr" and environment == "TST":
@@ -330,14 +333,17 @@ class ConsolidatedBicepJobTests(unittest.TestCase):
                             "environmentName": environment, "classicEnvironmentName": classic})
                         task, = [task for task in steps(stage) if task.get("name") == "GenerateBicepParams"]
                         script = task["inputs"]["script"]
-                        macros = {name: "fixture-" + name for name in re.findall(r"\$\(([^)]+)\)", script)}
+                        inputs = script + "\n" + "\n".join(task.get("env", {}).values())
+                        macros = {name: "fixture-" + name for name in re.findall(r"\$\(([^)]+)\)", inputs)}
                         macros["Build.SourcesDirectory"] = str(directory)
                         macros["parameterSqlAdminGroupId"] = "modern-sql-admin-id"
                         macros["parameterSqlAdminGroupName"] = "modern-sql-admin-name"
                         macros["qaAutomationServiceConnectionPrincipalId"] = "qa-id" if environment == "TST" else ""
                         script = re.sub(r"\$\(([^)]+)\)", lambda match: macros[match[1]], script)
+                        task_environment = {name: re.sub(r"\$\(([^)]+)\)", lambda match: macros[match[1]], value)
+                                            for name, value in task.get("env", {}).items()}
                         result = subprocess.run(["bash", "-c", script], cwd=directory, text=True,
-                                                capture_output=True, timeout=10)
+                                                env={**os.environ, **task_environment}, capture_output=True, timeout=10)
                         self.assertEqual(0, result.returncode, result.stderr)
                         generated = directory / "bicep" / (filename + "-runtime.bicepparam")
                         self.assertTrue(generated.is_file(), script)
@@ -387,6 +393,7 @@ class AutomaticDevTriggerTests(unittest.TestCase):
                     "bicep/envs/dev/40-infra.bicepparam", "bicep/envs/snd/30-classic.bicepparam",
                     "pipelines/vars/common.yaml", "pipelines/vars/dev.yaml", "pipelines/vars/snd.yaml",
                     "scripts/pipeline/sync-deployment-outputs.py", "scripts/pipeline/validate-access-contract.py",
+                    "scripts/pipeline/infrastructure_parameters.py",
                     "scripts/pipeline/add-principal-to-group.sh", "scripts/pipeline/run-hooks.sh",
                     "scripts/hooks/10-common.sh", "scripts/hooks/dev/20-dev.sh"]
         for path in sources:

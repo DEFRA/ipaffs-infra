@@ -52,21 +52,18 @@ stages:
                 - task: Bash@3
                   name: GenerateBicepParams
                   displayName: Generate Bicep Params
+                  env:
+                    BICEP_PARAMETER_SQL_ADMIN_GROUP_ID: $(parameterSqlAdminGroupId)
+                    BICEP_PARAMETER_SQL_ADMIN_GROUP_NAME: $(parameterSqlAdminGroupName)
                   inputs:
                     targetType: inline
                     script: |
-                      set -ex
-                      cat <<- 'EOF' >'$(Build.SourcesDirectory)/bicep/30-classic-runtime.bicepparam'
-                      using '30-classic.bicep'
-                      extends 'envs/${{ lower(parameters.classicEnvironmentName) }}/30-classic.bicepparam'
-                      param entraGroups = {
-                        sqlAdmins: {
-                          id: '$(parameterSqlAdminGroupId)'
-                          name: '$(parameterSqlAdminGroupName)'
-                        }
-                      }
-                      EOF
-                      cat '$(Build.SourcesDirectory)/bicep/30-classic-runtime.bicepparam'
+                      set -euo pipefail
+                      python3 scripts/pipeline/infrastructure_parameters.py \
+                        --component classic \
+                        --environment ${{ parameters.environmentName }} \
+                        --classic-environment ${{ parameters.classicEnvironmentName }} \
+                        --output "$(Build.SourcesDirectory)/bicep/30-classic-runtime.bicepparam"
 
                 - task: PublishPipelineArtifact@1
                   displayName: Publish artifact

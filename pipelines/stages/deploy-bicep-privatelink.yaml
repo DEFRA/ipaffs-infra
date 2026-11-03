@@ -41,21 +41,17 @@ stages:
                 - task: Bash@3
                   name: GenerateBicepParams
                   displayName: Generate Bicep Params
+                  env:
+                    BICEP_PRIVATE_ENDPOINTS_SUBNET_ID: $(privateEndpointsSubnetId)
+                    BICEP_PRIVATE_ENDPOINTS_SUBNET_NAME: $(privateEndpointsSubnetName)
                   inputs:
                     targetType: inline
                     script: |
-                      set -ex
-                      cat <<- 'EOF' >'$(Build.SourcesDirectory)/bicep/50-privatelink-runtime.bicepparam'
-                      using '50-privatelink.bicep'
-                      extends 'envs/${{ lower(parameters.environmentName) }}/50-privatelink.bicepparam'
-                      param subnets = {
-                        privateEndpoints: {
-                          id: '$(privateEndpointsSubnetId)'
-                          name: '$(privateEndpointsSubnetName)'
-                        }
-                      }
-                      EOF
-                      cat '$(Build.SourcesDirectory)/bicep/50-privatelink-runtime.bicepparam'
+                      set -euo pipefail
+                      python3 scripts/pipeline/infrastructure_parameters.py \
+                        --component privatelink \
+                        --environment ${{ parameters.environmentName }} \
+                        --output "$(Build.SourcesDirectory)/bicep/50-privatelink-runtime.bicepparam"
 
                 - task: PublishPipelineArtifact@1
                   displayName: Publish artifact

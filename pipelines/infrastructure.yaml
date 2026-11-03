@@ -21,6 +21,7 @@ trigger:
       - pipelines/vars/snd.yaml
       - scripts/pipeline/validate-access-contract.py
       - scripts/pipeline/sync-deployment-outputs.py
+      - scripts/pipeline/infrastructure_parameters.py
       - scripts/pipeline/add-principal-to-group.sh
       - scripts/pipeline/run-hooks.sh
       - scripts/pipeline/trigger-peering-pipeline.sh

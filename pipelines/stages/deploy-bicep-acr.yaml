@@ -48,27 +48,19 @@ stages:
                 - task: Bash@3
                   name: GenerateBicepParams
                   displayName: Generate Bicep Params
+                  env:
+                    BICEP_ACR_PULL_GROUP_ID: $(acrPullGroupId)
+                    BICEP_ACR_PULL_GROUP_NAME: $(acrPullGroupName)
+                    BICEP_PRIVATE_ENDPOINTS_SUBNET_ID: $(privateEndpointsSubnetId)
+                    BICEP_PRIVATE_ENDPOINTS_SUBNET_NAME: $(privateEndpointsSubnetName)
                   inputs:
                     targetType: inline
                     script: |
-                      set -ex
-                      cat <<- 'EOF' >'$(Build.SourcesDirectory)/bicep/25-acr-runtime.bicepparam'
-                      using '25-acr.bicep'
-                      extends 'envs/${{ lower(parameters.environmentName) }}/25-acr.bicepparam'
-                      param entraGroups = {
-                        acrPull: {
-                          id: '$(acrPullGroupId)'
-                          name: '$(acrPullGroupName)'
-                        }
-                      }
-                      param subnets = {
-                        privateEndpoints: {
-                          id: '$(privateEndpointsSubnetId)'
-                          name: '$(privateEndpointsSubnetName)'
-                        }
-                      }
-                      EOF
-                      cat '$(Build.SourcesDirectory)/bicep/25-acr-runtime.bicepparam'
+                      set -euo pipefail
+                      python3 scripts/pipeline/infrastructure_parameters.py \
+                        --component acr \
+                        --environment ${{ parameters.environmentName }} \
+                        --output "$(Build.SourcesDirectory)/bicep/25-acr-runtime.bicepparam"
 
                 - task: PublishPipelineArtifact@1
                   displayName: Publish artifact
