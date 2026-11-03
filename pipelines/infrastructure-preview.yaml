@@ -22,16 +22,22 @@ stages:
   - template: stages/preview-infrastructure.yaml
     parameters:
       environmentName: TST
+      serviceConnection: ADO-DefraGovUK-AZR-IMP-TST1
+      classicServiceConnection: ADO-DefraGovUK-AZR-IMP-TST1
       dependsOn: []
 
   - template: stages/preview-infrastructure.yaml
     parameters:
       environmentName: PRE
+      serviceConnection: ADO-DefraGovUK-AZR-IMP-PRE1
+      classicServiceConnection: ADO-DefraGovUK-AZR-PRE_IMP
       dependsOn: [Preview_TST]
 
   - template: stages/preview-infrastructure.yaml
     parameters:
       environmentName: PRD
+      serviceConnection: ADO-DefraGovUK-AZR-IMP-PRD1
+      classicServiceConnection: ADO-DefraGovUK-AZR-PRD_IMP
       dependsOn: [Preview_PRE]
 
   - stage: PreviewSummary
@@ -62,6 +68,7 @@ stages:
               script: |
                 set -euo pipefail
                 python3 scripts/pipeline/infrastructure_plan_report.py \
+                  --azure-pipelines \
                   --combine "$(Pipeline.Workspace)/plans" \
                   --output-dir "$(Build.ArtifactStagingDirectory)/infrastructure-preview"
           - task: Bash@3
