@@ -1,7 +1,7 @@
 parameters:
   - name: environmentName
     type: string
-    values: [TST, PRE, PRD]
+    values: [DEV, TST, PRE, PRD]
   - name: dependsOn
     type: object
     default: []
@@ -10,6 +10,9 @@ parameters:
     type: string
   - name: classicServiceConnection
     type: string
+  - name: appliedCommit
+    type: string
+    default: ''
 
 stages:
   - stage: Preview_${{ parameters.environmentName }}
@@ -19,7 +22,7 @@ stages:
     condition: not(canceled())
     variables:
       - group: Common
-      - ${{ if eq(parameters.environmentName, 'TST') }}:
+      - ${{ if or(eq(parameters.environmentName, 'DEV'), eq(parameters.environmentName, 'TST')) }}:
         - group: LowerEnvs
       - ${{ else }}:
         - group: HigherEnvs
@@ -40,11 +43,15 @@ stages:
         steps:
           - checkout: self
             clean: true
+            ${{ if eq(parameters.environmentName, 'DEV') }}:
+              fetchDepth: 0
           - task: Bash@3
             displayName: Verify source and initialise preview
             env:
               SOURCE_PIPELINE_COMMIT: $(resources.pipeline.infrastructure.sourceCommit)
               SOURCE_PIPELINE_BRANCH: $(resources.pipeline.infrastructure.sourceBranch)
+              PLAN_ENVIRONMENT: ${{ parameters.environmentName }}
+              DEV_APPLIED_COMMIT: ${{ parameters.appliedCommit }}
               PLAN_OUTPUT_DIR: $(Build.ArtifactStagingDirectory)/infrastructure-plan-${{ parameters.environmentName }}
               PLAN_STATE_DIR: $(Agent.TempDirectory)/infrastructure-preview-${{ parameters.environmentName }}
             inputs:
@@ -63,6 +70,16 @@ stages:
                     exit 1
                   fi
                 fi
+                if [ "$PLAN_ENVIRONMENT" = DEV ]; then
+                  if [[ ! "$DEV_APPLIED_COMMIT" =~ ^[0-9a-fA-F]{40}$ ]]; then
+                    echo '##vso[task.logissue type=error]DEV baseline requires the full commit from a successful DEV infrastructure apply.'
+                    exit 1
+                  fi
+                  if ! git diff --quiet "$DEV_APPLIED_COMMIT" HEAD -- bicep pipelines/vars scripts/pipeline/infrastructure_parameters.py; then
+                    echo '##vso[task.logissue type=error]DEV baseline inputs differ from the declared applied commit or that commit is unavailable.'
+                    exit 1
+                  fi
+                fi
                 python3 scripts/pipeline/plan-infrastructure.py \
                   --initialize \
                   --environment ${{ parameters.environmentName }} \
@@ -71,6 +88,20 @@ stages:
                   --commit "$BUILD_SOURCEVERSION" \
                   --source-ref "$BUILD_SOURCEBRANCH" \
                   --build-id "$BUILD_BUILDID"
+                if [ "$PLAN_ENVIRONMENT" = DEV ]; then
+                  python3 - <<'PY'
+                import json
+                import os
+                from pathlib import Path
+                evidence = {
+                    "appliedCommit": os.environ["DEV_APPLIED_COMMIT"],
+                    "previewCommit": os.environ["BUILD_SOURCEVERSION"],
+                    "deploymentInputsUnchanged": True,
+                    "comparedPaths": ["bicep", "pipelines/vars", "scripts/pipeline/infrastructure_parameters.py"],
+                }
+                (Path(os.environ["PLAN_OUTPUT_DIR"]) / "baseline-evidence.json").write_text(json.dumps(evidence, indent=2) + "\n")
+                PY
+                fi
                 echo '##vso[task.setvariable variable=PreviewInputsReady]true'
 
           - template: /pipelines/steps/preview-infrastructure.yaml
