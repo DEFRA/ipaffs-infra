@@ -19,6 +19,8 @@ parameters:
 stages:
   - stage: AppServices${{ parameters.environmentName }}
     displayName: ${{ upper(parameters.action) }} ${{ parameters.environmentName }} App Services
+    # Stops anyone unticking lower environments when queuing a run
+    isSkippable: false
     variables:
       - template: "/pipelines/vars/common.yaml"
       - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
