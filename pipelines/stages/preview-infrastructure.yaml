@@ -5,6 +5,11 @@ parameters:
   - name: dependsOn
     type: object
     default: []
+  # Endpoint authorisation happens before stage-scoped variables are available.
+  - name: serviceConnection
+    type: string
+  - name: classicServiceConnection
+    type: string
 
 stages:
   - stage: Preview_${{ parameters.environmentName }}
@@ -72,13 +77,13 @@ stages:
             parameters:
               environmentName: ${{ parameters.environmentName }}
               scope: modern
-              serviceConnection: $(serviceConnection)
+              serviceConnection: ${{ parameters.serviceConnection }}
 
           - template: /pipelines/steps/preview-infrastructure.yaml
             parameters:
               environmentName: ${{ parameters.environmentName }}
               scope: classic
-              serviceConnection: $(classicServiceConnection)
+              serviceConnection: ${{ parameters.classicServiceConnection }}
 
           - task: Bash@3
             displayName: Attach ${{ parameters.environmentName }} preview

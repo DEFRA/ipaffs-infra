@@ -22,16 +22,22 @@ stages:
   - template: stages/preview-infrastructure.yaml
     parameters:
       environmentName: TST
+      serviceConnection: ADO-DefraGovUK-AZR-IMP-TST1
+      classicServiceConnection: ADO-DefraGovUK-AZR-IMP-TST1
       dependsOn: []
 
   - template: stages/preview-infrastructure.yaml
     parameters:
       environmentName: PRE
+      serviceConnection: ADO-DefraGovUK-AZR-IMP-PRE1
+      classicServiceConnection: ADO-DefraGovUK-AZR-PRE_IMP
       dependsOn: [Preview_TST]
 
   - template: stages/preview-infrastructure.yaml
     parameters:
       environmentName: PRD
+      serviceConnection: ADO-DefraGovUK-AZR-IMP-PRD1
+      classicServiceConnection: ADO-DefraGovUK-AZR-PRD_IMP
       dependsOn: [Preview_PRE]
 
   - stage: PreviewSummary

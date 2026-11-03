@@ -39,10 +39,9 @@ def load(path):
 
 def environment_stage(environment):
     document = load(STAGE)
-    context = {"parameters": TEMPLATES.parameters(document, {
-        "environmentName": environment,
-        "dependsOn": [] if environment == "TST" else ["Preview_TST" if environment == "PRE" else "Preview_PRE"],
-    })}
+    entry, = [entry for entry in load(PIPELINE)["stages"]
+              if entry.get("parameters", {}).get("environmentName") == environment]
+    context = {"parameters": TEMPLATES.parameters(document, entry["parameters"])}
     stage, = TEMPLATES.expand(document["stages"], context)
     for job in stage["jobs"]:
         steps = []
@@ -204,8 +203,13 @@ class InfrastructurePreviewPipelineTests(unittest.TestCase):
             with self.subTest(environment=environment):
                 job, = environment_stage(environment)["jobs"]
                 modern, classic = [step for step in job["steps"] if step.get("task") == "AzureCLI@2"]
-                self.assertEqual("$(serviceConnection)", modern["inputs"]["azureSubscription"])
-                self.assertEqual("$(classicServiceConnection)", classic["inputs"]["azureSubscription"])
+                configured = load(f"pipelines/vars/{environment.lower()}.yaml")["variables"]
+                for step, key in ((modern, "serviceConnection"), (classic, "classicServiceConnection")):
+                    connection = step["inputs"]["azureSubscription"]
+                    self.assertEqual(configured[key], connection)
+                    self.assertTrue(connection.startswith("ADO-"))
+                    self.assertNotIn("$", connection,
+                                     "Azure must authorise a concrete endpoint before any job starts")
                 self.assertEqual(modern["env"], classic["env"])
                 scripts = [step["inputs"]["inlineScript"] for step in (modern, classic)]
                 self.assertEqual(scripts[0].replace("--scope modern", "--scope classic"), scripts[1])
