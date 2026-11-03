@@ -110,6 +110,9 @@ jobs:
 
       - name: Test deployment output synchronisation
         run: python scripts/pipeline/sync-deployment-outputs.test.py
+
+      - name: Test consolidated Bicep jobs
+        run: python scripts/pipeline/consolidated-bicep-jobs.test.py
   bicep:
     name: Bicep
     runs-on: ubuntu-latest

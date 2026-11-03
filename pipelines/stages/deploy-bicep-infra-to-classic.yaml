@@ -2,9 +2,18 @@ parameters:
   - name: environmentName
     type: string
 
+  - name: dependsOn
+    type: object
+    default: []
+  - name: deploymentVariables
+    type: object
+    default: {}
+
 stages:
   - stage: DeployInfrastructureToClassic
     displayName: Deploy Infrastructure to Classic
+    ${{ if gt(length(parameters.dependsOn), 0) }}:
+      dependsOn: ${{ parameters.dependsOn }}
     variables:
       - group: Common
       - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
@@ -14,6 +23,9 @@ stages:
       - group: "${{ parameters.environmentName }}"
       - template: "/pipelines/vars/common.yaml"
       - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
+      - ${{ each variable in parameters.deploymentVariables }}:
+        - name: ${{ variable.key }}
+          value: ${{ variable.value }}
     jobs:
       - deployment: RunBicep
         displayName: Run Bicep
@@ -23,6 +35,7 @@ stages:
           runOnce:
             deploy:
               steps:
+                - download: none
                 - checkout: self
 
                 - task: AzureCLI@2

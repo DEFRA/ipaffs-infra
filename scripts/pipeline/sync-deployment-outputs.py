@@ -5,6 +5,8 @@ Read the deployment outputs and group once, validate the complete batch, then
 write only changed variables. Azure DevOps redacts secret values, so existing
 secret variables must be updated rather than compared. Writes remain sequential
 and use the CLI's variable commands to preserve unrelated group variables.
+Use --emit-output=variable for values required by downstream pipeline stages;
+these are published only after the entire synchronisation succeeds.
 """
 
 import json
@@ -45,6 +47,27 @@ def parse_mappings(arguments):
         targets.add(target.lower())
         mappings.append((target, source))
     return mappings
+
+
+def parse_arguments(arguments):
+    emit = []
+    mapping_arguments = []
+    for argument in arguments:
+        if argument.startswith("--emit-output="):
+            emit.append(argument.removeprefix("--emit-output="))
+        else:
+            mapping_arguments.append(argument)
+    mappings = parse_mappings(mapping_arguments)
+    targets = {target.lower(): target for target, _ in mappings}
+    if any(not NAME.fullmatch(target) or target.lower() not in targets for target in emit):
+        raise SyncError("Each --emit-output must name a mapped target variable.")
+    if len({target.lower() for target in emit}) != len(emit):
+        raise SyncError("Duplicate --emit-output target.")
+    return mappings, [targets[target.lower()] for target in emit]
+
+
+def escape_logging_value(value):
+    return value.replace("%", "%AZP25").replace("\r", "%0D").replace("\n", "%0A")
 
 
 def run_az(arguments, environ, operation, read_json=False):
@@ -125,7 +148,7 @@ def read_group(environ, ado_arguments):
     return str(group_id), by_name
 
 
-def sync(mappings, environ, counts):
+def sync(mappings, environ, counts, emit=()):
     for name in REQUIRED_ENV:
         if not environ.get(name, "").strip():
             raise SyncError(f"Required environment variable is missing: {name}.")
@@ -183,6 +206,17 @@ def sync(mappings, environ, counts):
             raise
         counts["updated" if action == "update" else "created"] += 1
 
+    # Publish only after every requested write succeeds. An unchanged value is
+    # still needed by consumers in this run. Other values stay out of the log.
+    values_by_target = dict(values)
+    for target in emit:
+        current = existing.get(target.lower())
+        secret = current is not None and current[1].get("isSecret") is True
+        properties = f"variable={target};isOutput=true"
+        if secret:
+            properties += ";issecret=true"
+        print(f"##vso[task.setvariable {properties}]{escape_logging_value(values_by_target[target])}")
+
 
 def main(argv=None, environ=None):
     arguments = sys.argv[1:] if argv is None else argv
@@ -190,7 +224,9 @@ def main(argv=None, environ=None):
     started = time.monotonic()
     counts = dict(requested=len(arguments), updated=0, created=0, unchanged=0, failed=0)
     try:
-        sync(parse_mappings(arguments), environ, counts)
+        mappings, emit = parse_arguments(arguments)
+        counts["requested"] = len(mappings)
+        sync(mappings, environ, counts, emit)
         return 0
     except SyncError as error:
         print(f"Deployment output sync failed: {error}", file=sys.stderr)
