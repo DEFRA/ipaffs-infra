@@ -31,6 +31,24 @@ authenticated preview work.
 The report records the commit, source ref, run ID and generation time. Changes to
 the live environment after that time can invalidate the prediction.
 
+### DEV post-apply baseline
+
+To investigate recurring predictions, run the same preview pipeline manually with
+`devBaselineOnly: true` and `devAppliedCommit` set to the full commit from a
+successful DEV infrastructure apply. The job compares the candidate's Bicep,
+environment YAML and shared parameter renderer with that commit before any
+authenticated planning. Report-only code can differ; deployment inputs must not.
+The DEV plan includes Classic/SND and publishes its source comparison evidence.
+The normal TST/PRE/PRD flow remains the default.
+
+Compare the baseline with the release targets to find recurring provider/default
+differences and unresolved references. Repetition is evidence, not proof of a
+false positive: environment-specific values can differ, and another controller or
+policy can recreate settings after an apply. Keep those ownership differences
+visible. Always review new resource creates/deletes and explicit configuration
+changes. The current Library/live identity inputs and nondeterministic deployment
+metadata also mean this is not an exact replay of the apply's historical inputs.
+
 ## Reading the reports
 
 Start with the release comparison: it shows the create/update/delete counts and
@@ -50,7 +68,9 @@ The summary has three parts:
   unresolved deployment-time values. Inspect the intended Bicep configuration
   and refresh the preview before promotion where those gaps matter.
 - **Background inventory** counts ignored/unchanged observations and metadata-only
-  updates. These can repeat across component previews. They are not presented as
+  updates. Updates containing only CreatedDate plus fields Azure explicitly marks
+  `NoEffect` are also counted here; mixed updates remain in the review list.
+  These can repeat across component previews. They are not presented as
   individual actions to review; Ignore can mean outside-template inventory or
   an expansion limit, so coverage is still marked incomplete.
 

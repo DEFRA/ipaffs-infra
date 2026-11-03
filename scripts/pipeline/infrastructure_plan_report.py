@@ -16,7 +16,7 @@ import math
 from pathlib import Path
 import re
 
-from infrastructure_plan_markdown import TYPE_LABELS, environment_markdown, change_details_markdown
+from infrastructure_plan_markdown import TYPE_LABELS, environment_markdown, change_details_markdown, is_no_effect_only
 
 
 CHANGE_TYPES = ("Create", "Modify", "Delete", "NoChange", "Deploy", "Ignore", "Unsupported", "Unknown")
@@ -306,11 +306,15 @@ def _review_breakdown(source):
     gaps = Counter()
     potential = Counter()
     unresolved = 0
+    no_effect_only = 0
     components = source.get("components")
     for component in components if isinstance(components, list) else []:
         resources = component.get("resources") if isinstance(component, dict) else None
         for resource in resources if isinstance(resources, list) else []:
             if not isinstance(resource, dict) or resource.get("category") != "resource" or resource.get("metadataOnly") is True:
+                continue
+            if is_no_effect_only(resource):
+                no_effect_only += 1
                 continue
             resource_type = resource.get("type")
             label = TYPE_LABELS.get(resource_type.lower(), "Other Azure resources") if isinstance(resource_type, str) else "Other Azure resources"
@@ -331,6 +335,7 @@ def _review_breakdown(source):
     return {"changes": {label: {action: counts[action] for action in ("Create", "Modify", "Delete")}
                         for label, counts in sorted(changes.items())},
             "unpreviewed": dict(sorted(gaps.items())), "unresolvedChanges": unresolved,
+            "noEffectOnly": no_effect_only,
             "potential": {action: potential[action] for action in ("Create", "Modify", "Delete")}}
 
 
@@ -349,9 +354,11 @@ def _combined_markdown(report):
     for item in environments:
         totals = item["totals"]
         execution = {"succeeded": "Completed", "failed": "Failed", "missing": "Missing"}[item["executionStatus"]]
-        values = [str(max(0, totals[action] - item["review"]["potential"].get(action, 0))) if item["executionStatus"] != "missing" else "—" for action in ("Create", "Modify", "Delete")]
+        values = [str(max(0, totals[action] - item["review"]["potential"].get(action, 0)
+                             - (item["review"]["noEffectOnly"] if action == "Modify" else 0)))
+                  if item["executionStatus"] != "missing" else "—" for action in ("Create", "Modify", "Delete")]
         lines.append(f"| {item['environment']} | {' | '.join(values)} | {execution} |")
-    lines.extend(["", "These are Azure predictions against the live environment. An update can include provider defaults or properties omitted from the proposed configuration; it is not proof of an operational change. Counts exclude deployment wrappers and CreatedDate-only updates, and can repeat a resource across component previews.", ""])
+    lines.extend(["", "These are Azure predictions against the live environment. An update can include provider defaults or properties omitted from the proposed configuration; it is not proof of an operational change. Counts exclude deployment wrappers, CreatedDate-only updates and NoEffect-only updates, and can repeat a resource across component previews.", ""])
     types = sorted({label for item in environments for label in item["review"]["changes"]})
     if types:
         lines.extend(["## Changes by resource type", "", "| Resource | TST | PRE | PRD |", "|---|---|---|---|"])
@@ -377,12 +384,14 @@ def _combined_markdown(report):
     lines.extend(["", "Review the named creates, updates and deletions in each environment summary. Unresolved values need checking against the intended configuration; Azure cannot determine them before deployment. Property-by-property evidence is in `change-details.md` in the corresponding `infrastructure-plan-TST`, `infrastructure-plan-PRE` or `infrastructure-plan-PRD` artifact.", "",
                   "## Background inventory", "",
                   "These are observations across component previews, not extra proposed changes. Individual inventory records are retained in `plan.json`.", "",
-                  "| Environment | Ignored observations | Unchanged observations | CreatedDate-only updates |", "|---|---:|---:|---:|"])
+                  "| Environment | Ignored observations | Unchanged observations | CreatedDate-only updates | NoEffect-only updates |", "|---|---:|---:|---:|---:|"])
     for item in environments:
-        counts = (["—", "—", "—"] if item["executionStatus"] == "missing" else
-                  [str(item["totals"]["Ignore"]), str(item["totals"]["NoChange"]), str(sum(item["metadataOnlyTotals"].values()))])
+        counts = (["—", "—", "—", "—"] if item["executionStatus"] == "missing" else
+                  [str(item["totals"]["Ignore"]), str(item["totals"]["NoChange"]),
+                   str(sum(item["metadataOnlyTotals"].values())), str(item["review"]["noEffectOnly"])])
         lines.append(f"| {item['environment']} | {' | '.join(counts)} |")
     lines.extend(["", "Azure usually marks existing resources outside an individual template as Ignore, and can also do so when template expansion reaches a limit. They are not listed as individual review items; their presence still prevents a claim of complete coverage.", ""])
+    lines.extend(["NoEffect-only updates contain only fields Azure marks as having no effect, plus possible CreatedDate metadata. They are excluded from the review list, while the environment JSON and change-details.md retain the original evidence.", ""])
     if report["missingEnvironments"]:
         lines.extend(["**Missing environment reports:** " + ", ".join(report["missingEnvironments"]) + ".", ""])
     if not report["sameCommit"]:
@@ -449,7 +458,7 @@ def combine_reports(input_paths: list[Path], output_dir: Path) -> dict:
                              "totals": {name: value if isinstance((value := totals.get(name)), int) and not isinstance(value, bool) and value >= 0 else 0 for name in CHANGE_TYPES},
                              "metadataOnlyTotals": {name: value if isinstance((value := metadata_totals.get(name)), int) and not isinstance(value, bool) and value >= 0 else 0 for name in CHANGE_TYPES},
                              "unknowns": source.get("unknowns") if source and isinstance(source.get("unknowns"), int) and source["unknowns"] >= 0 else 1,
-                             "review": source["review"] if source else {"changes": {}, "unpreviewed": {}, "unresolvedChanges": 0, "potential": {}}})
+                             "review": source["review"] if source else {"changes": {}, "unpreviewed": {}, "unresolvedChanges": 0, "noEffectOnly": 0, "potential": {}}})
     report = {"schemaVersion": 1, "kind": "combined", "complete": complete,
               "outcome": "complete" if complete else "incomplete", "commit": next(iter(commits)) if same_commit and re.fullmatch(r"[a-fA-F0-9]{7,64}", str(next(iter(commits)))) else "unavailable",
               "missingEnvironments": missing, "sameCommit": same_commit, "invalidInputs": invalid,

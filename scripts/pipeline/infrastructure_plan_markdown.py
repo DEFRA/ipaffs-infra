@@ -129,9 +129,27 @@ def _resources(report):
             for resource in component.get("resources", [])]
 
 
+def is_no_effect_only(resource):
+    """Identify confirmed Modify entries with only NoEffect/CreatedDate fields.
+
+    This is a presentation filter, not an assessment reclassification. Potential
+    changes, absent field evidence and mixed effective changes stay reviewable.
+    """
+    if (not isinstance(resource, dict) or resource.get("category") != "resource"
+            or resource.get("changeType") != "Modify" or resource.get("potential")):
+        return False
+    fields = resource.get("fields")
+    return (isinstance(fields, list) and bool(fields)
+            and all(isinstance(field, dict) for field in fields)
+            and any(field.get("changeType") == "NoEffect" for field in fields)
+            and all(field.get("changeType") == "NoEffect"
+                    or str(field.get("path", "")).lower() == "tags.createddate"
+                    for field in fields))
+
+
 def _actionable(resource):
     return (resource.get("category") == "resource" and not resource.get("metadataOnly")
-            and resource.get("changeType") in _ACTIONS)
+            and resource.get("changeType") in _ACTIONS and not is_no_effect_only(resource))
 
 
 def _runtime_fields(resource):
@@ -256,15 +274,16 @@ def environment_markdown(report):
              f"**Preview execution: {execution}. Assessment: {coverage}.**", "",
              f"Candidate: `{md(metadata.get('commit', 'unavailable'))}` · Build: {md(metadata.get('buildId', 'unavailable'))}", "",
              f"Preview started: {md(metadata.get('generatedAt', 'unavailable'))}.", "",
-             ("ARM predicts " if execution == "succeeded" else "Partial results contain ")
-             + f"**{counts['Create']} creates, {counts['Modify']} updates and {counts['Delete']} resource deletions**."
+             ("Changes to review: " if execution == "succeeded" else "Partial results to review: ")
+             + f"**{counts['Create']} creates, {counts['Modify']} reported updates and {counts['Delete']} resource deletions**."
              + (f" There are also {potential} potential action entries, labelled below." if potential else ""), "",
              "Read the resource actions first, then the coverage gaps. An update is a prediction, not proof of a runtime change: provider defaults and omitted properties can create differences. A removed property is not a resource deletion.", "",
              "## Predicted changes", ""]
     if counts["Delete"]:
         lines.extend(["**Resource deletions are predicted. Review every Delete entry before promotion.**", ""])
     if not actions:
-        lines.extend(["No Create, Modify or Delete resource entries were returned. This does not resolve any coverage gaps below.", ""])
+        lines.extend(["No resource actions are listed for review."
+                      + (" Coverage gaps below still require attention." if not report.get("complete") else ""), ""])
     for component in report.get("components", []):
         selected = [resource for resource in component.get("resources", []) if _actionable(resource)]
         if not selected:
@@ -293,6 +312,7 @@ def environment_markdown(report):
     lines.extend(["## Background inventory", "",
                   f"- Ignore: {sum(resource.get('changeType') == 'Ignore' for resource in resources)} occurrences across component previews. Ignore means Azure did not assess these entries in this component preview. They may be outside its template or beyond an expansion limit; this does not establish no change.",
                   f"- Unchanged: {sum(resource.get('changeType') == 'NoChange' and resource.get('category') == 'resource' for resource in resources)} occurrences. CreatedDate-only updates: {sum(bool(resource.get('metadataOnly')) for resource in resources)}. Nested-deployment entries: {sum(resource.get('category') == 'deployment-metadata' for resource in resources)}.",
+                  f"- NoEffect-only updates: {sum(is_no_effect_only(resource) and not resource.get('metadataOnly') for resource in resources)}. Azure marks their non-CreatedDate fields as having no effect; these entries are excluded from the review counts and action rows. Their evidence remains in change-details.md and plan.json.",
                   "- These are occurrence counts, not distinct resources at risk. Individual inventory entries remain in plan.json.", "",
                   "Artifact files: `change-details.md` contains property-level evidence and identifiers; `plan.json` retains every sanitised entry. Values withheld by the report cannot be recovered from either artifact.", "",
                   "This live ARM prediction does not cover hooks, peering pipeline execution, Library output writes, Entra memberships or scripted DNS changes. Refresh it before promotion; it is not a saved executable plan or a guarantee of deployment success.", ""])

@@ -163,6 +163,52 @@ class InfrastructurePlanReadabilityTests(unittest.TestCase):
         self.assertNotIn("CURRENT-PRIVATE-VALUE", markdown + self.serialized)
         self.assertNotIn("PROPOSED-PRIVATE-VALUE", markdown + self.serialized)
 
+    def test_no_effect_only_updates_leave_the_review_list_but_keep_the_evidence(self):
+        no_effect = field("sku.tier", "Standard", "Premium", "NoEffect")
+        changes = [
+            resource("no-effect-only-store", delta=[no_effect]),
+            resource("no-effect-with-date", delta=[
+                no_effect, field("tags.CreatedDate", "yesterday", "[utcNow()]")]),
+        ]
+        report = self.write_report([component("Infrastructure", changes)])
+
+        self.assertTrue(report["complete"])
+        self.assertEqual(report["resourceTotals"]["Modify"], 2)
+        self.assertEqual(report["metadataOnlyTotals"]["Modify"], 0)
+        self.assertIn("0 reported updates", self.summary)
+        self.assertIn("NoEffect-only updates: 2", self.summary)
+        for name in ("no-effect-only-store", "no-effect-with-date"):
+            self.assertNotIn(name, self.summary)
+            self.assertIn(name, self.details)
+            self.assertIn(name, self.serialized)
+        self.assertIn("NoEffect", self.details)
+        self.assertIn("Premium", self.details)
+        self.assertIn("tags.CreatedDate", self.details)
+        self.assertEqual(report["components"][0]["resources"][1]["fields"][0]["changeType"], "NoEffect")
+
+    def test_no_effect_siblings_do_not_hide_a_real_update(self):
+        report = self.write_report([component("Infrastructure", [resource(
+            "mixed-effect-store", delta=[
+                field("sku.tier", "Standard", "Premium", "NoEffect"),
+                field("properties.publicNetworkAccess", "Enabled", "Disabled")])])])
+
+        self.assertEqual(report["resourceTotals"]["Modify"], 1)
+        self.assertIn("mixed-effect-store", self.summary)
+        self.assertIn("1 reported updates", self.summary)
+        self.assertIn("Disabled", self.summary)
+        self.assertIn("NoEffect-only updates: 0", self.summary)
+
+    def test_potential_no_effect_only_update_stays_visible_as_uncertain(self):
+        report = self.write_report([component("Infrastructure", potential=[resource(
+            "potential-no-effect-store", delta=[
+                field("sku.tier", "Standard", "Premium", "NoEffect")])])])
+
+        self.assertFalse(report["complete"])
+        self.assertEqual(report["resourceTotals"]["Modify"], 1)
+        self.assertIn("potential-no-effect-store", self.summary)
+        self.assertIn("Potential update", self.summary)
+        self.assertIn("NoEffect-only updates: 0", self.summary)
+
     def test_unknown_predictions_and_hostile_values_stay_visible_as_gaps_without_leaking(self):
         attack = "<script>UNSAFE-MARKUP</script>##vso[task.setvariable variable=x]evil"
         unknown = resource("unknown-resource", change_type="FUTURE-SENSITIVE-CHANGE-TYPE")
@@ -222,6 +268,37 @@ class InfrastructurePlanReadabilityTests(unittest.TestCase):
             self.assertEqual(sum(counts["Create"] for counts in environment["review"]["changes"].values()), 0)
         self.assertRegex(summary, r"\| TST \| 0 \| 1 \| 0 \|")
         self.assertIn("potential", summary.lower())
+
+    def test_combined_review_counts_exclude_only_confirmed_no_effect_only_updates(self):
+        paths = self.write_combined_inputs([component(
+            "Infrastructure", [
+                resource("new-store", "Create"),
+                resource("no-effect-only-store", delta=[
+                    field("sku.tier", "Standard", "Premium", "NoEffect"),
+                    field("tags.CreatedDate", "yesterday", "[utcNow()]")]),
+                resource("real-update-store", delta=[
+                    field("sku.tier", "Standard", "Premium", "NoEffect"),
+                    field("properties.publicNetworkAccess", "Enabled", "Disabled")]),
+                resource("date-only-store", delta=[
+                    field("tags.CreatedDate", "yesterday", "[utcNow()]")]),
+            ], [resource("potential-no-effect-store", delta=[
+                field("sku.tier", "Standard", "Premium", "NoEffect")])])])
+        originals = [path.read_bytes() for path in paths]
+        combined = REPORT.combine_reports(paths, self.directory / "comparison")
+        summary = (self.directory / "comparison" / "summary.md").read_text()
+
+        for environment in combined["environments"]:
+            # Raw environment totals and completion retain Azure's projection;
+            # the separate review view is the only place noise is filtered.
+            self.assertEqual(environment["totals"]["Modify"], 3)
+            self.assertEqual(environment["metadataOnlyTotals"]["Modify"], 1)
+            self.assertEqual(environment["review"]["noEffectOnly"], 1)
+            self.assertEqual(environment["review"]["potential"]["Modify"], 1)
+            self.assertEqual(sum(counts["Modify"] for counts in environment["review"]["changes"].values()), 1)
+        self.assertEqual([path.read_bytes() for path in paths], originals)
+        self.assertRegex(summary, r"\| TST \| 1 \| 1 \| 0 \| Completed \|")
+        self.assertIn("NoEffect-only updates", summary)
+        self.assertIn("| TST | 0 | 0 | 1 | 1 |", summary)
 
     def test_combined_aggregation_does_not_publish_arbitrary_artifact_strings(self):
         paths = self.write_combined_inputs([component(

@@ -242,7 +242,7 @@ class InfrastructurePreviewPipelineTests(unittest.TestCase):
         pipeline = load(PIPELINE)
         defaults = TEMPLATES.parameters(pipeline, {})
         self.assertFalse(defaults["devBaselineOnly"])
-        self.assertEqual("", defaults["devAppliedCommit"])
+        self.assertEqual("not-applicable", defaults["devAppliedCommit"])
         entries = pipeline_stages({"devBaselineOnly": True, "devAppliedCommit": "b" * 40})
         self.assertEqual(1, len(entries), "DEV-only mode must not queue release environments or their fixed comparison")
         self.assertEqual("DEV", entries[0]["parameters"]["environmentName"])

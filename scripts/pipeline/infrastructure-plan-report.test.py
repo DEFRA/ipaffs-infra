@@ -211,8 +211,8 @@ class InfrastructurePlanReportTests(unittest.TestCase):
         plan = self.report([component([resource(change_type="NoChange")]), component(name="optional", status="not-applicable", result=None)])
         self.assertTrue(plan["complete"])
         self.assertEqual(plan["resourceTotals"]["NoChange"], 1)
-        self.assertIn("0 creates, 0 updates and 0 resource deletions", self.markdown)
-        self.assertIn("No Create, Modify or Delete resource entries were returned", self.markdown)
+        self.assertIn("0 creates, 0 reported updates and 0 resource deletions", self.markdown)
+        self.assertIn("No resource actions are listed for review", self.markdown)
         self.assertTrue(self.report([component([])])["complete"])
         self.assertFalse(self.report([])["complete"])
 
