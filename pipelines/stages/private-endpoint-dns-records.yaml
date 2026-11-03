@@ -1,10 +1,18 @@
 parameters:
   - name: environmentName
     type: string
+  - name: dependsOn
+    type: object
+    default: []
+  - name: deploymentVariables
+    type: object
+    default: {}
 
 stages:
   - stage: PrivateLinkDNSRecords
     displayName: Set Private Endpoint DNS Records
+    ${{ if gt(length(parameters.dependsOn), 0) }}:
+      dependsOn: ${{ parameters.dependsOn }}
     variables:
       - group: Common
       - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
@@ -16,6 +24,9 @@ stages:
       - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
       - template: /templates/vars/common.yaml@PipelineCommon
       - template: /templates/vars/regional/northeurope.yaml@PipelineCommon
+      - ${{ each variable in parameters.deploymentVariables }}:
+        - name: ${{ variable.key }}
+          value: ${{ variable.value }}
     jobs:
       - deployment: ContainerRegistry
         displayName: Container Registry

@@ -1,0 +1,90 @@
+---
+# A successful DEV apply previews the same commit against each promotion target.
+# Register this YAML as the separate `infrastructure-preview` pipeline.
+trigger: none
+pr: none
+
+pool:
+  name: DEFRA-COMMON-ubuntu2204-SSV5
+
+resources:
+  pipelines:
+    - pipeline: infrastructure
+      source: '\Infrastructure\infrastructure'
+      trigger:
+        branches:
+          include:
+            - refs/heads/main
+        tags:
+          - Environment-DEV
+
+stages:
+  - template: stages/preview-infrastructure.yaml
+    parameters:
+      environmentName: TST
+      serviceConnection: ADO-DefraGovUK-AZR-IMP-TST1
+      classicServiceConnection: ADO-DefraGovUK-AZR-IMP-TST1
+      dependsOn: []
+
+  - template: stages/preview-infrastructure.yaml
+    parameters:
+      environmentName: PRE
+      serviceConnection: ADO-DefraGovUK-AZR-IMP-PRE1
+      classicServiceConnection: ADO-DefraGovUK-AZR-PRE_IMP
+      dependsOn: [Preview_TST]
+
+  - template: stages/preview-infrastructure.yaml
+    parameters:
+      environmentName: PRD
+      serviceConnection: ADO-DefraGovUK-AZR-IMP-PRD1
+      classicServiceConnection: ADO-DefraGovUK-AZR-PRD_IMP
+      dependsOn: [Preview_PRE]
+
+  - stage: PreviewSummary
+    displayName: Infrastructure promotion preview
+    dependsOn: [Preview_TST, Preview_PRE, Preview_PRD]
+    condition: always()
+    jobs:
+      - job: Summary
+        displayName: Publish environment comparison
+        condition: always()
+        workspace:
+          clean: all
+        steps:
+          - checkout: self
+            clean: true
+          - task: DownloadPipelineArtifact@2
+            displayName: Download available environment reports
+            continueOnError: true
+            inputs:
+              buildType: current
+              itemPattern: '**'
+              targetPath: $(Pipeline.Workspace)/plans
+          - task: Bash@3
+            displayName: Build promotion preview overview
+            condition: always()
+            inputs:
+              targetType: inline
+              script: |
+                set -euo pipefail
+                python3 scripts/pipeline/infrastructure_plan_report.py \
+                  --azure-pipelines \
+                  --combine "$(Pipeline.Workspace)/plans" \
+                  --output-dir "$(Build.ArtifactStagingDirectory)/infrastructure-preview"
+          - task: Bash@3
+            displayName: Attach promotion preview overview
+            condition: always()
+            inputs:
+              targetType: inline
+              script: |
+                set -euo pipefail
+                summary="$(Build.ArtifactStagingDirectory)/infrastructure-preview/summary.md"
+                if [ -f "$summary" ]; then
+                  echo "##vso[task.uploadsummary]$summary"
+                fi
+          - task: PublishPipelineArtifact@1
+            displayName: Publish promotion preview reports
+            condition: always()
+            inputs:
+              artifactName: infrastructure-preview
+              targetPath: $(Build.ArtifactStagingDirectory)/infrastructure-preview

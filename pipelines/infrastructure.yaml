@@ -1,8 +1,36 @@
 ---
+# Automatic runs use the DEV parameter default. Batch merges while a run is active.
 trigger:
+  batch: true
   branches:
+    include:
+      - main
+  paths:
+    include:
+      - bicep/**
+      - pipelines/infrastructure.yaml
+      - pipelines/stages/deploy-bicep-*.yaml
+      - pipelines/stages/tag-build.yaml
+      - pipelines/stages/validate-access-contract.yaml
+      - pipelines/stages/run-hooks.yaml
+      - pipelines/stages/establish-peering.yaml
+      - pipelines/stages/infra-permissions.yaml
+      - pipelines/stages/private-endpoint-dns-records.yaml
+      - pipelines/vars/common.yaml
+      - pipelines/vars/dev.yaml
+      - pipelines/vars/snd.yaml
+      - scripts/pipeline/validate-access-contract.py
+      - scripts/pipeline/sync-deployment-outputs.py
+      - scripts/pipeline/infrastructure_parameters.py
+      - scripts/pipeline/add-principal-to-group.sh
+      - scripts/pipeline/run-hooks.sh
+      - scripts/pipeline/trigger-peering-pipeline.sh
+      - scripts/hooks/*.sh
+      - scripts/hooks/dev/*.sh
     exclude:
-      - '*'
+      - bicep/envs/tst/**
+      - bicep/envs/pre/**
+      - bicep/envs/prd/**
 
 pr:
   branches:
@@ -79,11 +107,23 @@ stages:
     - template: stages/establish-peering.yaml
       parameters:
         environmentName: ${{ parameters.environmentName }}
+        dependsOn: [DeployNetwork]
+        ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/main') }}:
+          deploymentVariables:
+            vnetName: $[ stageDependencies.DeployNetwork.RunBicep.outputs['RunBicep.NetworkOutputs.vnetName'] ]
 
   - ${{ if or(eq(parameters.environmentName, 'DEV'), eq(parameters.environmentName, 'PRE'), eq(parameters.environmentName, 'PRD')) }}:
     - template: stages/deploy-bicep-acr.yaml
       parameters:
         environmentName: ${{ parameters.environmentName }}
+        dependsOn:
+          - DeployNetwork
+          - ${{ if parameters.establishPeering }}:
+            - EstablishPeering
+        ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/main') }}:
+          deploymentVariables:
+            privateEndpointsSubnetId: $[ stageDependencies.DeployNetwork.RunBicep.outputs['RunBicep.NetworkOutputs.privateEndpointsSubnetId'] ]
+            privateEndpointsSubnetName: $[ stageDependencies.DeployNetwork.RunBicep.outputs['RunBicep.NetworkOutputs.privateEndpointsSubnetName'] ]
 
   - template: stages/deploy-bicep-classic.yaml
     parameters:
@@ -92,23 +132,81 @@ stages:
         classicEnvironmentName: SND
       ${{ else }}:
         classicEnvironmentName: ${{ parameters.environmentName }}
+      dependsOn:
+        - ValidateAccessContract
+        - ${{ if ne(parameters.environmentName, 'TST') }}:
+          - DeployACR
+        - ${{ if eq(parameters.environmentName, 'TST') }}:
+          - ${{ if parameters.establishPeering }}:
+            - EstablishPeering
+          - ${{ else }}:
+            - DeployNetwork
+      deploymentVariables:
+        parameterSqlAdminGroupId: $[ stageDependencies.ValidateAccessContract.ValidateGroups.outputs['AccessContract.sqlAdminGroupId'] ]
+        parameterSqlAdminGroupName: $[ stageDependencies.ValidateAccessContract.ValidateGroups.outputs['AccessContract.sqlAdminGroupName'] ]
 
   - template: stages/deploy-bicep-infra.yaml
     parameters:
       environmentName: ${{ parameters.environmentName }}
+      dependsOn: [DeployClassic, DeployNetwork]
+      ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/main') }}:
+        deploymentVariables:
+          aksApiServerSubnetId: $[ stageDependencies.DeployNetwork.RunBicep.outputs['RunBicep.NetworkOutputs.aksApiServerSubnetId'] ]
+          aksApiServerSubnetName: $[ stageDependencies.DeployNetwork.RunBicep.outputs['RunBicep.NetworkOutputs.aksApiServerSubnetName'] ]
+          aksSystemNodesSubnetId: $[ stageDependencies.DeployNetwork.RunBicep.outputs['RunBicep.NetworkOutputs.aksSystemNodesSubnetId'] ]
+          aksSystemNodesSubnetName: $[ stageDependencies.DeployNetwork.RunBicep.outputs['RunBicep.NetworkOutputs.aksSystemNodesSubnetName'] ]
+          aksUserNodesSubnetId: $[ stageDependencies.DeployNetwork.RunBicep.outputs['RunBicep.NetworkOutputs.aksUserNodesSubnetId'] ]
+          aksUserNodesSubnetName: $[ stageDependencies.DeployNetwork.RunBicep.outputs['RunBicep.NetworkOutputs.aksUserNodesSubnetName'] ]
+          appGatewayForContainersSubnetId: $[ stageDependencies.DeployNetwork.RunBicep.outputs['RunBicep.NetworkOutputs.appGatewayForContainersSubnetId'] ]
+          appGatewayForContainersSubnetName: $[ stageDependencies.DeployNetwork.RunBicep.outputs['RunBicep.NetworkOutputs.appGatewayForContainersSubnetName'] ]
+          privateEndpointsSubnetId: $[ stageDependencies.DeployNetwork.RunBicep.outputs['RunBicep.NetworkOutputs.privateEndpointsSubnetId'] ]
+          privateEndpointsSubnetName: $[ stageDependencies.DeployNetwork.RunBicep.outputs['RunBicep.NetworkOutputs.privateEndpointsSubnetName'] ]
+          classicRedisResourceId: $[ stageDependencies.DeployClassic.RunBicep.outputs['RunBicep.ClassicOutputs.classicRedisResourceId'] ]
+          classicSearchServiceResourceId: $[ stageDependencies.DeployClassic.RunBicep.outputs['RunBicep.ClassicOutputs.classicSearchServiceResourceId'] ]
+          classicServiceBusNamespaceResourceId: $[ stageDependencies.DeployClassic.RunBicep.outputs['RunBicep.ClassicOutputs.classicServiceBusNamespaceResourceId'] ]
+          classicSqlServerResourceId: $[ stageDependencies.DeployClassic.RunBicep.outputs['RunBicep.ClassicOutputs.classicSqlServerResourceId'] ]
 
   - template: stages/infra-permissions.yaml
     parameters:
       environmentName: ${{ parameters.environmentName }}
+      dependsOn: [DeployInfrastructure]
+      ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/main') }}:
+        deploymentVariables:
+          aksClusterResourceId: $[ stageDependencies.DeployInfrastructure.RunBicep.outputs['RunBicep.InfrastructureOutputs.aksClusterResourceId'] ]
+          aksKubeletPrincipalId: $[ stageDependencies.DeployInfrastructure.RunBicep.outputs['RunBicep.InfrastructureOutputs.aksKubeletPrincipalId'] ]
+          externalSecretsPrincipalObjectId: $[ stageDependencies.DeployInfrastructure.RunBicep.outputs['RunBicep.InfrastructureOutputs.externalSecretsPrincipalObjectId'] ]
+          sqlServerManagedIdentityObjectId: $[ stageDependencies.DeployInfrastructure.RunBicep.outputs['RunBicep.InfrastructureOutputs.sqlServerManagedIdentityObjectId'] ]
+          searchServiceManagedIdentityPrincipalId: $[ stageDependencies.DeployInfrastructure.RunBicep.outputs['RunBicep.InfrastructureOutputs.searchServiceManagedIdentityPrincipalId'] ]
 
   - template: stages/private-endpoint-dns-records.yaml
     parameters:
       environmentName: ${{ parameters.environmentName }}
+      dependsOn:
+        - InfraPermissions
+        - DeployInfrastructure
+        - ${{ if ne(parameters.environmentName, 'TST') }}:
+          - DeployACR
+      ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/main') }}:
+        deploymentVariables:
+          keyVaultName: $[ stageDependencies.DeployInfrastructure.RunBicep.outputs['RunBicep.InfrastructureOutputs.keyVaultName'] ]
+          redisName: $[ stageDependencies.DeployInfrastructure.RunBicep.outputs['RunBicep.InfrastructureOutputs.redisName'] ]
+          searchServiceName: $[ stageDependencies.DeployInfrastructure.RunBicep.outputs['RunBicep.InfrastructureOutputs.searchServiceName'] ]
+          sqlServerName: $[ stageDependencies.DeployInfrastructure.RunBicep.outputs['RunBicep.InfrastructureOutputs.sqlServerName'] ]
+          storageAccountName: $[ stageDependencies.DeployInfrastructure.RunBicep.outputs['RunBicep.InfrastructureOutputs.storageAccountName'] ]
+          ${{ if ne(parameters.environmentName, 'TST') }}:
+            acrName: $[ stageDependencies.DeployACR.RunBicep.outputs['RunBicep.ACROutputs.acrName'] ]
+          ${{ if eq(parameters.environmentName, 'TST') }}:
+            qaKeyVaultName: $[ stageDependencies.DeployInfrastructure.RunBicep.outputs['RunBicep.InfrastructureOutputs.qaKeyVaultName'] ]
 
   - ${{ if parameters.includePlatform }}:
     - template: stages/deploy-bicep-privatelink.yaml
       parameters:
         environmentName: ${{ parameters.environmentName }}
+        dependsOn: [PrivateLinkDNSRecords, DeployNetwork]
+        ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/main') }}:
+          deploymentVariables:
+            privateEndpointsSubnetId: $[ stageDependencies.DeployNetwork.RunBicep.outputs['RunBicep.NetworkOutputs.privateEndpointsSubnetId'] ]
+            privateEndpointsSubnetName: $[ stageDependencies.DeployNetwork.RunBicep.outputs['RunBicep.NetworkOutputs.privateEndpointsSubnetName'] ]
 
 # Temporarily disabled
 #  - template: stages/deploy-bicep-dns.yaml

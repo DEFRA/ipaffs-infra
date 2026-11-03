@@ -1,12 +1,6 @@
 ---
-trigger:
-  branches:
-    include:
-      - main
-  paths:
-    include:
-      - pipelines/infra-permissions.yaml
-      - pipelines/stages/infra-permissions.yaml
+# Infrastructure owns automatic DEV deployments; retain this entry point for previews/manual runs.
+trigger: none
 
 pr:
   branches:

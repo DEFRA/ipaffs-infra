@@ -1,0 +1,114 @@
+parameters:
+  - name: environmentName
+    type: string
+    values: [TST, PRE, PRD]
+  - name: dependsOn
+    type: object
+    default: []
+  # Endpoint authorisation happens before stage-scoped variables are available.
+  - name: serviceConnection
+    type: string
+  - name: classicServiceConnection
+    type: string
+
+stages:
+  - stage: Preview_${{ parameters.environmentName }}
+    displayName: Preview ${{ parameters.environmentName }}
+    dependsOn: ${{ parameters.dependsOn }}
+    # An incomplete target must not hide the remaining environment previews.
+    condition: not(canceled())
+    variables:
+      - group: Common
+      - ${{ if eq(parameters.environmentName, 'TST') }}:
+        - group: LowerEnvs
+      - ${{ else }}:
+        - group: HigherEnvs
+      - group: ${{ parameters.environmentName }}
+      - template: /pipelines/vars/common.yaml
+      - template: /pipelines/vars/${{ lower(parameters.environmentName) }}.yaml
+      - ${{ if ne(parameters.environmentName, 'TST') }}:
+        - name: qaAutomationServiceConnectionPrincipalId
+          value: ''
+      - name: PreviewInputsReady
+        value: 'false'
+    jobs:
+      # Ordinary jobs do not target protected deployment environments.
+      - job: WhatIf
+        displayName: Plan ${{ parameters.environmentName }} without applying
+        timeoutInMinutes: 150
+        cancelTimeoutInMinutes: 5
+        steps:
+          - checkout: self
+            clean: true
+          - task: Bash@3
+            displayName: Verify source and initialise preview
+            env:
+              SOURCE_PIPELINE_COMMIT: $(resources.pipeline.infrastructure.sourceCommit)
+              SOURCE_PIPELINE_BRANCH: $(resources.pipeline.infrastructure.sourceBranch)
+              PLAN_OUTPUT_DIR: $(Build.ArtifactStagingDirectory)/infrastructure-plan-${{ parameters.environmentName }}
+              PLAN_STATE_DIR: $(Agent.TempDirectory)/infrastructure-preview-${{ parameters.environmentName }}
+            inputs:
+              targetType: inline
+              script: |
+                set -euo pipefail
+                rm -rf -- "$PLAN_OUTPUT_DIR" "$PLAN_STATE_DIR"
+                mkdir -p "$PLAN_OUTPUT_DIR"
+                if [ "$(git rev-parse HEAD)" != "$BUILD_SOURCEVERSION" ]; then
+                  echo '##vso[task.logissue type=error]Checked-out commit does not match this preview run.'
+                  exit 1
+                fi
+                if [ "$BUILD_REASON" = ResourceTrigger ]; then
+                  if [ "$SOURCE_PIPELINE_BRANCH" != refs/heads/main ] || [ "$BUILD_SOURCEBRANCH" != refs/heads/main ] || [ "$SOURCE_PIPELINE_COMMIT" != "$BUILD_SOURCEVERSION" ]; then
+                    echo '##vso[task.logissue type=error]Preview must use the exact main commit from the completed DEV infrastructure run.'
+                    exit 1
+                  fi
+                fi
+                python3 scripts/pipeline/plan-infrastructure.py \
+                  --initialize \
+                  --environment ${{ parameters.environmentName }} \
+                  --output-dir "$PLAN_OUTPUT_DIR" \
+                  --state-dir "$PLAN_STATE_DIR" \
+                  --commit "$BUILD_SOURCEVERSION" \
+                  --source-ref "$BUILD_SOURCEBRANCH" \
+                  --build-id "$BUILD_BUILDID"
+                echo '##vso[task.setvariable variable=PreviewInputsReady]true'
+
+          - template: /pipelines/steps/preview-infrastructure.yaml
+            parameters:
+              environmentName: ${{ parameters.environmentName }}
+              scope: modern
+              serviceConnection: ${{ parameters.serviceConnection }}
+
+          - template: /pipelines/steps/preview-infrastructure.yaml
+            parameters:
+              environmentName: ${{ parameters.environmentName }}
+              scope: classic
+              serviceConnection: ${{ parameters.classicServiceConnection }}
+
+          - task: Bash@3
+            displayName: Attach ${{ parameters.environmentName }} preview
+            condition: always()
+            inputs:
+              targetType: inline
+              script: |
+                set -euo pipefail
+                summary="$(Build.ArtifactStagingDirectory)/infrastructure-plan-${{ parameters.environmentName }}/summary.md"
+                if [ -f "$summary" ]; then
+                  echo "##vso[task.uploadsummary]$summary"
+                fi
+          - task: PublishPipelineArtifact@1
+            displayName: Publish ${{ parameters.environmentName }} preview
+            condition: always()
+            inputs:
+              artifactName: infrastructure-plan-${{ parameters.environmentName }}
+              targetPath: $(Build.ArtifactStagingDirectory)/infrastructure-plan-${{ parameters.environmentName }}
+          - task: Bash@3
+            displayName: Remove private preview state
+            condition: always()
+            env:
+              PLAN_STATE_DIR: $(Agent.TempDirectory)/infrastructure-preview-${{ parameters.environmentName }}
+            inputs:
+              targetType: inline
+              script: |
+                set -euo pipefail
+                rm -rf -- "$PLAN_STATE_DIR"
