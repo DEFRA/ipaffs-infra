@@ -44,12 +44,11 @@ stages:
                   inputs:
                     targetType: inline
                     script: |
-                      set -ex
-                      cat <<- 'EOF' >'$(Build.SourcesDirectory)/bicep/10-resource-group-runtime.bicepparam'
-                      using '10-resource-group.bicep'
-                      extends 'envs/${{ lower(parameters.environmentName) }}/10-resource-group.bicepparam'
-                      EOF
-                      cat '$(Build.SourcesDirectory)/bicep/10-resource-group-runtime.bicepparam'
+                      set -euo pipefail
+                      python3 scripts/pipeline/infrastructure_parameters.py \
+                        --component resource-group \
+                        --environment ${{ parameters.environmentName }} \
+                        --output "$(Build.SourcesDirectory)/bicep/10-resource-group-runtime.bicepparam"
 
                 - task: PublishPipelineArtifact@1
                   displayName: Publish artifact
