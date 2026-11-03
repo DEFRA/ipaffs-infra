@@ -269,6 +269,8 @@ class InfrastructurePreviewPipelineTests(unittest.TestCase):
         combine, = [step for step in job["steps"] if "--combine" in step.get("inputs", {}).get("script", "")]
         self.assertEqual("always()", combine["condition"])
         self.assertIn('--combine "$(Pipeline.Workspace)/plans"', combine["inputs"]["script"])
+        self.assertIn("--azure-pipelines", combine["inputs"]["script"])
+        self.assertNotIn("continueOnError", combine, "Missing or failed reports must still fail")
         publish, = [step for step in job["steps"] if step.get("task") == "PublishPipelineArtifact@1"]
         self.assertEqual("always()", publish["condition"])
         self.assertEqual("infrastructure-preview", publish["inputs"]["artifactName"])

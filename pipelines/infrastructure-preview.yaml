@@ -68,6 +68,7 @@ stages:
               script: |
                 set -euo pipefail
                 python3 scripts/pipeline/infrastructure_plan_report.py \
+                  --azure-pipelines \
                   --combine "$(Pipeline.Workspace)/plans" \
                   --output-dir "$(Build.ArtifactStagingDirectory)/infrastructure-preview"
           - task: Bash@3

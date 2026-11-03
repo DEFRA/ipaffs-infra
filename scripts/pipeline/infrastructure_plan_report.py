@@ -397,7 +397,8 @@ def combine_reports(input_paths: list[Path], output_dir: Path) -> dict:
             valid_totals = isinstance(totals, dict) and all(isinstance(totals.get(name), int) and not isinstance(totals[name], bool) and totals[name] >= 0 for name in CHANGE_TYPES)
             metadata_totals = source.get("metadataOnlyTotals")
             valid_metadata_totals = isinstance(metadata_totals, dict) and all(isinstance(metadata_totals.get(name), int) and not isinstance(metadata_totals[name], bool) and metadata_totals[name] >= 0 for name in CHANGE_TYPES)
-            if not valid_unknowns or not valid_totals or not valid_metadata_totals:
+            valid_completion = isinstance(source.get("complete"), bool)
+            if not valid_unknowns or not valid_totals or not valid_metadata_totals or not valid_completion:
                 invalid = True
             reports[environment] = {
                 "metadata": _metadata(source.get("metadata")),
@@ -450,11 +451,24 @@ def main():
     parser = argparse.ArgumentParser(description="Combine sanitized infrastructure environment reports.")
     parser.add_argument("--combine", required=True, type=Path, help="Artifact directory containing environment plan.json files")
     parser.add_argument("--output-dir", required=True, type=Path)
+    parser.add_argument("--azure-pipelines", action="store_true",
+                        help="Report incomplete coverage as a warning when every environment executed successfully")
     args = parser.parse_args()
     output_path = args.output_dir.resolve() / "plan.json"
     inputs = [path for path in args.combine.rglob("plan.json") if path.resolve() != output_path]
     report = combine_reports(inputs, args.output_dir)
     print("Infrastructure release preview: " + report["outcome"])
+    execution_succeeded = (not report["invalidInputs"] and not report["missingEnvironments"]
+                           and report["sameCommit"]
+                           and all(environment["executionStatus"] == "succeeded"
+                                   for environment in report["environments"]))
+    if args.azure_pipelines and execution_succeeded and not report["complete"]:
+        # Keep the assessment incomplete in both artifacts. Only the pipeline's
+        # execution status changes; missing/invalid/failed plans still fail.
+        print("##vso[task.logissue type=warning;]All environment what-ifs executed successfully, "
+              "but ARM assessment coverage is incomplete. Review the promotion preview summary.")
+        print("##vso[task.complete result=SucceededWithIssues;]Preview completed with incomplete coverage")
+        return 0
     return 0 if report["complete"] else 1
 
 

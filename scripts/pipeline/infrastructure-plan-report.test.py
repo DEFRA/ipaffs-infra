@@ -278,7 +278,58 @@ class InfrastructurePlanReportTests(unittest.TestCase):
                 self.assertFalse(combined["complete"])
                 self.assertNotIn("SENSITIVE", json.dumps(combined))
 
-    def test_combine_cli_discovers_artifacts_and_returns_nonzero_for_incomplete_coverage(self):
+    def combine_cli(self, *flags):
+        return subprocess.run([sys.executable, str(SCRIPT), "--combine", str(self.directory),
+                               "--output-dir", str(self.directory / "combined"), *flags],
+                              text=True, capture_output=True, timeout=10)
+
+    def test_pipeline_warns_for_successful_but_incomplete_assessment_without_changing_artifacts(self):
+        for environment in REPORT.RELEASE_ENVIRONMENTS:
+            self.report([component([resource(change_type="Ignore"), resource(change_type="Unsupported"),
+                                    resource(delta=[field("sku.name", "Basic", "[reference('future').sku.name]")])])], environment)
+        self.assertEqual(1, self.combine_cli().returncode, "Default CLI remains strict")
+        result = self.combine_cli("--azure-pipelines")
+        self.assertEqual(0, result.returncode, result.stderr)
+        self.assertIn("##vso[task.logissue type=warning;]", result.stdout)
+        self.assertIn("##vso[task.complete result=SucceededWithIssues;]", result.stdout)
+        combined = json.loads((self.directory / "combined" / "plan.json").read_text())
+        self.assertFalse(combined["complete"])
+        self.assertEqual("incomplete", combined["outcome"])
+        self.assertTrue(all(not item["complete"] and item["executionStatus"] == "succeeded"
+                            for item in combined["environments"]))
+        self.assertIn("INCOMPLETE", (self.directory / "combined" / "summary.md").read_text())
+
+    def test_pipeline_mode_still_fails_missing_mismatched_invalid_duplicate_and_failed_reports(self):
+        for problem in ("missing", "mismatched", "invalid", "duplicate", "failed", "missing-complete", "invalid-complete"):
+            with self.subTest(problem=problem):
+                extra = self.directory / "extra" / "plan.json"
+                extra.unlink(missing_ok=True)
+                for environment in REPORT.RELEASE_ENVIRONMENTS:
+                    self.report([component([])], environment)
+                target = self.directory / "PRD" / "plan.json"
+                if problem == "missing":
+                    target.unlink()
+                elif problem == "mismatched":
+                    self.report([component([])], "PRD", commit="b" * 40)
+                elif problem == "invalid":
+                    target.write_text("invalid report")
+                elif problem == "duplicate":
+                    extra.parent.mkdir(exist_ok=True)
+                    extra.write_text(target.read_text())
+                elif problem == "failed":
+                    self.report([component(status="failed", errorCode="AZURE_COMMAND_FAILED")], "PRD")
+                elif problem in {"missing-complete", "invalid-complete"}:
+                    document = json.loads(target.read_text())
+                    if problem == "missing-complete":
+                        document.pop("complete")
+                    else:
+                        document["complete"] = "false"
+                    target.write_text(json.dumps(document))
+                result = self.combine_cli("--azure-pipelines")
+                self.assertEqual(1, result.returncode, result.stderr)
+                self.assertNotIn("SucceededWithIssues", result.stdout)
+
+    def test_combine_cli_discovers_artifacts_and_returns_nonzero_for_missing_environment(self):
         self.report([component([])])
         output = self.directory / "combined"
         result = subprocess.run([sys.executable, str(SCRIPT), "--combine", str(self.directory), "--output-dir", str(output)], text=True, capture_output=True, timeout=10)
@@ -289,6 +340,10 @@ class InfrastructurePlanReportTests(unittest.TestCase):
             self.report([component([])], environment)
         result = subprocess.run([sys.executable, str(SCRIPT), "--combine", str(self.directory), "--output-dir", str(output)], text=True, capture_output=True, timeout=10)
         self.assertEqual(result.returncode, 0, result.stderr)
+        result = self.combine_cli("--azure-pipelines")
+        self.assertEqual(0, result.returncode, result.stderr)
+        self.assertNotIn("task.logissue", result.stdout)
+        self.assertNotIn("SucceededWithIssues", result.stdout)
 
 
 if __name__ == "__main__":

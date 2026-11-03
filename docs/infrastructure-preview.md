@@ -16,6 +16,10 @@ separate follow-up; the current DEV deployment pipeline remains unchanged.
    for this report to describe its inputs.
 
 A failed or unresolved preview is incomplete, rather than evidence of no changes.
+When every environment's what-if executes successfully but ARM cannot assess all
+resources or fields, the pipeline finishes **succeeded with issues** and keeps the
+assessment marked **INCOMPLETE**. Execution errors, missing or invalid reports, and
+reports from different commits still fail the pipeline.
 The next environment is still attempted after a failure, and the overview runs
 with whatever reports are available. No deployment environments are referenced by
 these ordinary agent jobs; service-connection checks and authorisation still apply.
