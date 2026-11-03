@@ -279,6 +279,50 @@ class OutputSyncTests(unittest.TestCase):
                 self.assertNotEqual(0, result.returncode)
                 self.assertEqual([], self.calls)
 
+    def output_commands(self, result):
+        return [line for line in result.stdout.splitlines() if line.startswith("##vso[task.setvariable ")]
+
+    def test_only_selected_outputs_are_emitted_including_unchanged_values(self):
+        self.fixture["groups"][0]["variables"]["first"]["value"] = "new-first"
+        result = self.run_helper("first=firstOutput", "second=secondOutput", "third=thirdOutput",
+                                 "--emit-output=first", "--emit-output=third")
+        self.assertEqual(0, result.returncode, result.stderr)
+        self.assertEqual(["update", "create"], [call["args"][3] for call in self.writes()])
+        self.assertEqual([
+            "##vso[task.setvariable variable=first;isOutput=true]new-first",
+            "##vso[task.setvariable variable=third;isOutput=true]new-third",
+        ], self.output_commands(result))
+        self.assertNotIn("new-second", result.stdout + result.stderr)
+
+    def test_no_output_is_emitted_until_every_output_is_valid_and_every_write_succeeds(self):
+        for change in ({"fail_write": 1}, {"fail_write": 2},
+                       {"outputs": {"firstOutput": output("new-first")}}):
+            with self.subTest(change=change):
+                result = self.run_helper("first=firstOutput", "second=secondOutput", "third=thirdOutput",
+                                         "--emit-output=first", fixture={**self.fixture, **change})
+                self.assertNotEqual(0, result.returncode)
+                self.assertEqual([], self.output_commands(result))
+                self.assert_no_value_logs(result, "new-first", "new-second", "new-third")
+
+    def test_output_logging_command_escapes_value_and_preserves_secret_metadata(self):
+        value = "literal%0A%AZP25\r\nnext line"
+        self.fixture["outputs"]["firstOutput"] = output(value)
+        self.fixture["groups"][0]["variables"]["first"] = {"value": None, "isSecret": True}
+        result = self.run_helper("first=firstOutput", "--emit-output=first")
+        self.assertEqual(0, result.returncode, result.stderr)
+        self.assertEqual(value, self.groups[0]["variables"]["first"]["value"])
+        command, = self.output_commands(result)
+        self.assertEqual("##vso[task.setvariable variable=first;isOutput=true;issecret=true]"
+                         "literal%AZP250A%AZP25AZP25%0D%0Anext line", command)
+
+    def test_invalid_or_unmapped_output_selection_fails_before_azure_reads(self):
+        for selection in ("--emit-output=missing", "--emit-output=", "--emit-output=bad name"):
+            with self.subTest(selection=selection):
+                result = self.run_helper("first=firstOutput", selection)
+                self.assertNotEqual(0, result.returncode)
+                self.assertEqual([], self.calls)
+                self.assertEqual([], self.output_commands(result))
+
 
 EXPECTED_MAPPINGS = {
     "acr": """acrLoginServer=acrLoginServer acrName=acrName acrResourceId=acrResourceId""".split(),
@@ -367,7 +411,14 @@ sys.exit(int(os.environ["COLLECTOR_EXIT"]))
                                                     text=True, capture_output=True, timeout=10)
                             self.assertEqual(collector_exit, result.returncode, result.stderr)
                             calls = [json.loads(line) for line in log.read_text().splitlines()]
-                            self.assertEqual([["scripts/pipeline/sync-deployment-outputs.py", *actual_expected]], calls)
+                            call, = calls
+                            self.assertEqual("scripts/pipeline/sync-deployment-outputs.py", call[0])
+                            self.assertEqual(actual_expected, [arg for arg in call[1:]
+                                                               if not arg.startswith("--emit-output=")])
+                            emitted = [arg.removeprefix("--emit-output=") for arg in call[1:]
+                                       if arg.startswith("--emit-output=")]
+                            self.assertEqual(len(set(emitted)), len(emitted))
+                            self.assertLessEqual(set(emitted), {mapping.split("=")[0] for mapping in actual_expected})
                 self.assertEqual(53 if environment == "TST" else 54, count)
 
 

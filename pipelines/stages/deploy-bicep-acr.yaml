@@ -2,58 +2,18 @@ parameters:
   - name: environmentName
     type: string
 
+  - name: dependsOn
+    type: object
+    default: []
+  - name: deploymentVariables
+    type: object
+    default: {}
+
 stages:
-  - stage: ConfigureACRDeployment
-    displayName: Configure ACR deployment
-    variables:
-      - group: Common
-      - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
-        - group: HigherEnvs
-      - ${{ else }}:
-        - group: LowerEnvs
-      - group: "${{ parameters.environmentName }}"
-      - template: "/pipelines/vars/common.yaml"
-      - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
-    jobs:
-      - job: ConfigureBicep
-        displayName: Configure Bicep
-        steps:
-          - checkout: self
-
-          - task: Bash@3
-            name: GenerateBicepParams
-            displayName: Generate Bicep Params
-            inputs:
-              targetType: inline
-              script: |
-                set -ex
-                cat <<- 'EOF' >'$(Build.SourcesDirectory)/25-acr-runtime.bicepparam'
-                using '25-acr.bicep'
-                extends 'envs/${{ lower(parameters.environmentName) }}/25-acr.bicepparam'
-                param entraGroups = {
-                  acrPull: {
-                    id: '$(acrPullGroupId)'
-                    name: '$(acrPullGroupName)'
-                  }
-                }
-                param subnets = {
-                  privateEndpoints: {
-                    id: '$(privateEndpointsSubnetId)'
-                    name: '$(privateEndpointsSubnetName)'
-                  }
-                }
-                EOF
-                cat '$(Build.SourcesDirectory)/25-acr-runtime.bicepparam'
-
-          - task: PublishPipelineArtifact@1
-            displayName: Publish artifact
-            inputs:
-              artifactName: bicepparam-acr
-              targetPath: $(Build.SourcesDirectory)/25-acr-runtime.bicepparam
-
-
   - stage: DeployACR
     displayName: Deploy ACR
+    ${{ if gt(length(parameters.dependsOn), 0) }}:
+      dependsOn: ${{ parameters.dependsOn }}
     variables:
       - group: Common
       - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
@@ -63,6 +23,16 @@ stages:
       - group: "${{ parameters.environmentName }}"
       - template: "/pipelines/vars/common.yaml"
       - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
+
+      # Lower environments all use the DEV ACR, but higher environments each have their own ACR
+      - name: adoGroupName
+        ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
+          value: ${{ parameters.environmentName }}
+        ${{ else }}:
+          value: LowerEnvs
+      - ${{ each variable in parameters.deploymentVariables }}:
+        - name: ${{ variable.key }}
+          value: ${{ variable.value }}
     jobs:
       - deployment: RunBicep
         displayName: Run Bicep
@@ -72,13 +42,39 @@ stages:
           runOnce:
             deploy:
               steps:
+                - download: none
                 - checkout: self
 
-                - task: DownloadPipelineArtifact@2
-                  displayName: Download artifact
+                - task: Bash@3
+                  name: GenerateBicepParams
+                  displayName: Generate Bicep Params
+                  inputs:
+                    targetType: inline
+                    script: |
+                      set -ex
+                      cat <<- 'EOF' >'$(Build.SourcesDirectory)/bicep/25-acr-runtime.bicepparam'
+                      using '25-acr.bicep'
+                      extends 'envs/${{ lower(parameters.environmentName) }}/25-acr.bicepparam'
+                      param entraGroups = {
+                        acrPull: {
+                          id: '$(acrPullGroupId)'
+                          name: '$(acrPullGroupName)'
+                        }
+                      }
+                      param subnets = {
+                        privateEndpoints: {
+                          id: '$(privateEndpointsSubnetId)'
+                          name: '$(privateEndpointsSubnetName)'
+                        }
+                      }
+                      EOF
+                      cat '$(Build.SourcesDirectory)/bicep/25-acr-runtime.bicepparam'
+
+                - task: PublishPipelineArtifact@1
+                  displayName: Publish artifact
                   inputs:
                     artifactName: bicepparam-acr
-                    targetPath: $(Build.SourcesDirectory)/bicep
+                    targetPath: $(Build.SourcesDirectory)/bicep/25-acr-runtime.bicepparam
 
                 - task: AzureCLI@2
                   displayName: WhatIf - ACR
@@ -126,52 +122,26 @@ stages:
                         --resource-group $(resourceGroupName) \
                         --created
 
-
-  - stage: SaveACRDeploymentDetails
-    displayName: Save ACR deployment details
-    dependsOn: DeployACR
-    variables:
-      - group: Common
-      - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
-        - group: HigherEnvs
-      - ${{ else }}:
-        - group: LowerEnvs
-      - group: "${{ parameters.environmentName }}"
-      - template: "/pipelines/vars/common.yaml"
-      - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
-
-      # Lower environments all use the DEV ACR, but higher environments each have their own ACR
-      - name: adoGroupName
-        ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
-          value: ${{ parameters.environmentName }}
-        ${{ else }}:
-          value: LowerEnvs
-    jobs:
-      - job: StoreLibraryVariables
-        displayName: Store library variables
-        steps:
-          - checkout: self
-
-          - task: AzureCLI@2
-            name: ACROutputs
-            displayName: ACR outputs
-            condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
-            env:
-              ADO_ORG_URL: $(System.CollectionUri)
-              ADO_PROJECT: $(System.TeamProject)
-              ADO_GROUP_NAME: $(adoGroupName)
-              AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
-              DEPLOYMENT_NAME: ACR-$(Build.BuildId)
-              RESOURCE_GROUP: $(resourceGroupName)
-              SUBSCRIPTION_ID: $(subscriptionId)
-            inputs:
-              azureSubscription: $(serviceConnection)
-              scriptType: bash
-              scriptLocation: inlineScript
-              inlineScript: |
-                set -euo pipefail
-                python3 scripts/pipeline/sync-deployment-outputs.py \
-                  acrLoginServer=acrLoginServer \
-                  acrName=acrName \
-                  acrResourceId=acrResourceId
-
+                - task: AzureCLI@2
+                  name: ACROutputs
+                  displayName: ACR outputs
+                  condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+                  env:
+                    ADO_ORG_URL: $(System.CollectionUri)
+                    ADO_PROJECT: $(System.TeamProject)
+                    ADO_GROUP_NAME: $(adoGroupName)
+                    AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
+                    DEPLOYMENT_NAME: ACR-$(Build.BuildId)
+                    RESOURCE_GROUP: $(resourceGroupName)
+                    SUBSCRIPTION_ID: $(subscriptionId)
+                  inputs:
+                    azureSubscription: $(serviceConnection)
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      set -euo pipefail
+                      python3 scripts/pipeline/sync-deployment-outputs.py \
+                        --emit-output=acrName \
+                        acrLoginServer=acrLoginServer \
+                        acrName=acrName \
+                        acrResourceId=acrResourceId
