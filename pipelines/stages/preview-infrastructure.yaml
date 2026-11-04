@@ -108,7 +108,6 @@ stages:
                       "pipelines/stages/deploy-bicep-acr.yaml",
                       "pipelines/stages/deploy-bicep-classic.yaml",
                       "pipelines/stages/deploy-bicep-infra.yaml",
-                      "pipelines/stages/deploy-bicep-infra-to-classic.yaml",
                       "pipelines/stages/deploy-bicep-privatelink.yaml",
                       "scripts/pipeline/infrastructure_parameters.py",
                   ]
@@ -118,7 +117,6 @@ stages:
                       "DeployACR": "Deploy - ACR",
                       "DeployClassic": "Deploy - Classic",
                       "DeployInfrastructure": "Deploy - Infrastructure",
-                      "DeployInfrastructureToClassic": "Deploy - Infrastructure to Classic",
                       "PrivateLink": "Deploy - PrivateLink",
                   }
                   evidence = {

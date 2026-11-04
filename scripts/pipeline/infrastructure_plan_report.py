@@ -405,6 +405,7 @@ def _combined_markdown(report):
 
 
 BASELINE_REASONS = {
+    "DEPLOYMENT_INPUTS_CHANGED": "The candidate's deployment inputs differ from the last successful DEV apply. A matching successful DEV apply is needed before assessing recurring noise.",
     "VERIFIED_POST_APPLY_CONTROL": "Verified successful DEV apply; deployment source inputs match the candidate.",
     "DEV_REPORT_MISSING_OR_INVALID": "DEV report is missing or invalid.",
     "BASELINE_EVIDENCE_UNAVAILABLE": "Successful DEV apply evidence is missing or could not be verified.",

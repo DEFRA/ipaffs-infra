@@ -33,7 +33,6 @@ PROTECTED_PATHS = [
     "pipelines/stages/deploy-bicep-acr.yaml",
     "pipelines/stages/deploy-bicep-classic.yaml",
     "pipelines/stages/deploy-bicep-infra.yaml",
-    "pipelines/stages/deploy-bicep-infra-to-classic.yaml",
     "pipelines/stages/deploy-bicep-privatelink.yaml",
     "scripts/pipeline/infrastructure_parameters.py",
 ]
@@ -43,7 +42,6 @@ DEPLOYMENT_TASKS = {
     "DeployACR": "Deploy - ACR",
     "DeployClassic": "Deploy - Classic",
     "DeployInfrastructure": "Deploy - Infrastructure",
-    "DeployInfrastructureToClassic": "Deploy - Infrastructure to Classic",
     "PrivateLink": "Deploy - PrivateLink",
 }
 
@@ -419,6 +417,16 @@ class InfrastructurePreviewPipelineTests(unittest.TestCase):
         self.assertEqual("SOURCE_TIMELINE_LOOKUP_FAILED", evidence["reasonCode"])
 
     def test_source_proof_is_tied_to_the_current_deployment_stage_task_names(self):
+        entrypoint = load("pipelines/infrastructure.yaml")
+        entries = TEMPLATES.expand(entrypoint["stages"], {
+            "parameters": TEMPLATES.parameters(entrypoint, {"environmentName": "DEV", "includePlatform": True}),
+            "variables": {"Build.SourceBranch": "refs/heads/main"},
+        })
+        self.assertEqual(PROTECTED_PATHS[3:-1],
+                         ["pipelines/" + entry["template"] for entry in entries
+                          if entry.get("template", "").startswith("stages/deploy-bicep-")])
+        self.assertEqual(set(PARAMETERS.COMPONENTS),
+                         {Path(path).stem.removeprefix("deploy-bicep-") for path in PROTECTED_PATHS[3:-1]})
         for stage_file in PROTECTED_PATHS[3:-1]:
             stage, = load(stage_file)["stages"]
             self.assertIn(stage["stage"], DEPLOYMENT_TASKS)

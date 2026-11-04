@@ -11,7 +11,7 @@ import math
 import re
 
 
-COMPONENTS = {"resource-group", "network", "acr", "classic", "infra", "infra-to-classic", "privatelink"}
+COMPONENTS = {"resource-group", "network", "acr", "classic", "infra", "privatelink"}
 ACTIONS = {"Create", "Modify", "Delete", "NoChange", "Deploy", "Ignore", "Unsupported", "Unknown"}
 FIELD_ACTIONS = {"Create", "Modify", "Delete", "Array", "NoEffect"}
 COMPARED_PATHS = [
@@ -21,13 +21,12 @@ COMPARED_PATHS = [
     "pipelines/stages/deploy-bicep-acr.yaml",
     "pipelines/stages/deploy-bicep-classic.yaml",
     "pipelines/stages/deploy-bicep-infra.yaml",
-    "pipelines/stages/deploy-bicep-infra-to-classic.yaml",
     "pipelines/stages/deploy-bicep-privatelink.yaml",
     "scripts/pipeline/infrastructure_parameters.py",
 ]
 SOURCE_DEPLOYMENT_STAGES = [
     "DeployResourceGroup", "DeployNetwork", "DeployACR", "DeployClassic",
-    "DeployInfrastructure", "DeployInfrastructureToClassic", "PrivateLink",
+    "DeployInfrastructure", "PrivateLink",
 ]
 _SHA = re.compile(r"[a-fA-F0-9]{40}")
 _UUID = re.compile(r"[a-fA-F0-9]{8}(?:-[a-fA-F0-9]{4}){3}-[a-fA-F0-9]{12}")
@@ -83,6 +82,13 @@ def _report_shape(report, environment):
     return (isinstance(report, dict) and report.get("schemaVersion") == 1
             and report.get("kind") == "environment"
             and _metadata(report).get("environment") == environment)
+
+
+def _component_set_matches(report):
+    components = _list(_dict(report).get("components"))
+    return (len(components) == len(COMPONENTS)
+            and {component.get("name") for component in components
+                 if isinstance(component, dict) and isinstance(component.get("name"), str)} == COMPONENTS)
 
 
 def _resource_ref(resource):
@@ -167,6 +173,8 @@ def _baseline_status(dev_report, target_report, evidence):
     evidence = _dict(evidence)
     if not _report_shape(dev_report, "DEV"):
         return "DEV_REPORT_MISSING_OR_INVALID"
+    if evidence.get("schemaVersion") == 1 and evidence.get("status") == "unusable" and evidence.get("reasonCode") == "DEPLOYMENT_INPUTS_CHANGED":
+        return "DEPLOYMENT_INPUTS_CHANGED"
     if evidence.get("schemaVersion") != 1 or evidence.get("status") != "usable":
         return "BASELINE_EVIDENCE_UNAVAILABLE"
     if (evidence.get("sourceVerified") is not True or evidence.get("deploymentInputsUnchanged") is not True
@@ -194,9 +202,7 @@ def _baseline_status(dev_report, target_report, evidence):
             or (verified - generated).total_seconds() > 300):
         return "BASELINE_TIMING_INVALID"
     components = _list(dev_report.get("components"))
-    if (dev_report.get("executionStatus") != "succeeded" or len(components) != len(COMPONENTS)
-            or {component.get("name") for component in components
-                if isinstance(component, dict) and isinstance(component.get("name"), str)} != COMPONENTS
+    if (dev_report.get("executionStatus") != "succeeded" or not _component_set_matches(dev_report)
             or any(not isinstance(component, dict) or component.get("status") != "complete"
                    or component.get("diagnosticCount") != 0 for component in components)):
         return "DEV_EXECUTION_INCOMPLETE"
@@ -252,7 +258,8 @@ def analyze_comparison(dev_report, target_report, baseline_evidence):
     environment = _metadata(target_report).get("environment")
     environment = environment if _member(environment, {"TST", "PRE", "PRD"}) else "UNKNOWN"
     reason = _baseline_status(dev_report, target_report, baseline_evidence)
-    usable = reason == "VERIFIED_POST_APPLY_CONTROL" and _report_shape(target_report, environment) and environment != "UNKNOWN"
+    usable = (reason == "VERIFIED_POST_APPLY_CONTROL" and _report_shape(target_report, environment)
+              and _component_set_matches(target_report) and environment != "UNKNOWN")
     if reason == "VERIFIED_POST_APPLY_CONTROL" and not usable:
         reason = "TARGET_REPORT_INVALID"
     elif usable and target_report.get("executionStatus") != "succeeded":
@@ -292,7 +299,7 @@ def analyze_comparison(dev_report, target_report, baseline_evidence):
                     result = _field_result(field, "background", "METADATA_OR_NO_EFFECT")
                 elif field.get("unresolved") is True or path == "[unrecognised property]" or not _member(field_action, FIELD_ACTIONS):
                     result = _field_result(field, "unresolved-coverage", "FIELD_NOT_ASSESSED")
-                elif component in {"classic", "infra-to-classic"}:
+                elif component == "classic":
                     result = _field_result(field, "review-needed", "CLASSIC_SCOPE_DIFFERS")
                 elif _known_default(ref["type"], path, field_action):
                     matches = index.get((component, ref["type"].lower(), path.lower(), field_action), []) if usable else []

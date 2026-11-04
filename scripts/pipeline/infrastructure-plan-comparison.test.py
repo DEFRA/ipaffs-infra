@@ -126,12 +126,10 @@ class InfrastructurePlanComparisonTests(unittest.TestCase):
         self.assertEqual(1, result["counts"]["policySecurityResources"])
 
     def test_classic_snd_is_not_an_equivalent_target_environment(self):
-        for component in ("classic", "infra-to-classic"):
-            with self.subTest(component=component):
-                default = resource("Microsoft.ManagedIdentity/userAssignedIdentities", fields=[field("properties")])
-                result = self.compare(report(resources=[default], component=component), report("TST", [default], component))
-                self.assertEqual("CLASSIC_SCOPE_DIFFERS", result["resources"][0]["fields"][0]["reasonCode"])
-                self.assertEqual(0, result["counts"]["potentialNoiseFields"])
+        default = resource("Microsoft.ManagedIdentity/userAssignedIdentities", fields=[field("properties")])
+        result = self.compare(report(resources=[default], component="classic"), report("TST", [default], "classic"))
+        self.assertEqual("CLASSIC_SCOPE_DIFFERS", result["resources"][0]["fields"][0]["reasonCode"])
+        self.assertEqual(0, result["counts"]["potentialNoiseFields"])
 
     def test_array_indexes_are_not_generalised_or_matched(self):
         for path in ("properties.agentPoolProfiles.0.count", "properties.ipConfigurations[0].id", "properties.retentionInDays.0"):
@@ -205,9 +203,15 @@ class InfrastructurePlanComparisonTests(unittest.TestCase):
                 self.assertEqual("unavailable", result["baseline"]["status"])
                 self.assertEqual(1, result["counts"]["reviewResources"])
 
+    def test_changed_deployment_inputs_explain_why_control_is_unavailable(self):
+        result = self.compare(proof=evidence(status="unusable", reasonCode="DEPLOYMENT_INPUTS_CHANGED"))
+        self.assertEqual("DEPLOYMENT_INPUTS_CHANGED", result["baseline"]["reasonCode"])
+        self.assertEqual("unavailable", result["baseline"]["status"])
+        self.assertEqual(0, result["counts"]["potentialNoiseResources"])
+
     def test_input_provenance_protects_deployment_entrypoint_and_all_parameter_mappings(self):
         self.assertIn("pipelines/infrastructure.yaml", COMPARISON.COMPARED_PATHS)
-        for name in ("resource-group", "network", "acr", "classic", "infra", "infra-to-classic", "privatelink"):
+        for name in ("resource-group", "network", "acr", "classic", "infra", "privatelink"):
             self.assertIn("pipelines/stages/deploy-bicep-" + name + ".yaml", COMPARISON.COMPARED_PATHS)
         for path in COMPARISON.COMPARED_PATHS:
             with self.subTest(missing_path=path):
@@ -221,6 +225,20 @@ class InfrastructurePlanComparisonTests(unittest.TestCase):
                 self.assertEqual("APPLIED_SOURCE_NOT_VERIFIED", self.compare(proof=proof)["baseline"]["reasonCode"])
         proof = evidence(sourceDeploymentStages=[*COMPARISON.SOURCE_DEPLOYMENT_STAGES, "OtherStage"])
         self.assertEqual("unavailable", self.compare(proof=proof)["baseline"]["status"])
+
+    def test_retired_bridge_cannot_establish_a_current_control_or_target(self):
+        self.assertEqual(6, len(COMPARISON.COMPONENTS))
+        self.assertEqual(6, len(COMPARISON.SOURCE_DEPLOYMENT_STAGES))
+        self.assertEqual(10, len(COMPARISON.COMPARED_PATHS))
+        bridge = {"name": "infra-to-classic", "status": "complete", "diagnosticCount": 0, "resources": []}
+        dev = report(resources=[resource()])
+        dev["components"].append(bridge)
+        self.assertEqual("DEV_EXECUTION_INCOMPLETE", self.compare(dev=dev)["baseline"]["reasonCode"])
+        target = report("TST", [resource()])
+        target["components"].append(bridge)
+        self.assertEqual("TARGET_REPORT_INVALID", self.compare(target=target)["baseline"]["reasonCode"])
+        proof = evidence(sourceDeploymentStages=[*COMPARISON.SOURCE_DEPLOYMENT_STAGES, "DeployInfrastructureToClassic"])
+        self.assertEqual("APPLIED_SOURCE_NOT_VERIFIED", self.compare(proof=proof)["baseline"]["reasonCode"])
 
     def test_stale_build_or_candidate_report_cannot_be_used(self):
         for change in ({"buildId": "43"}, {"commit": "c" * 40}):

@@ -41,11 +41,11 @@ The pipeline obtains the applied commit and run ID from the `infrastructure`
 resource; users do not supply an applied SHA. Using its job token, the DEV job
 reads that build's metadata and verifies the expected infrastructure definition,
 successful completion, main branch, `Environment-DEV` tag and matching commit.
-It also checks the source timeline: all seven deployment stages and their actual
+It also checks the source timeline: all six deployment stages and their actual
 Bicep deployment tasks must have succeeded. A successful run that omitted Private
 Link or skipped a deployment does not establish a full post-apply baseline.
 The job compares that commit's `bicep`, `pipelines/vars`, infrastructure pipeline,
-seven deployment stage mappings and shared parameter renderer with the preview
+six deployment stage mappings and shared parameter renderer with the preview
 checkout. Report-only code may differ while these deployment inputs remain unchanged.
 
 The DEV artifact contains `baseline-evidence.json` with the verified source run,
@@ -54,7 +54,7 @@ fails or the deployment input trees differ, DEV and all release-target plans sti
 run; the comparison explains why potential-noise assessment is unavailable.
 Missing reports and plan execution errors continue to fail the pipeline.
 
-The comparison also requires all seven DEV components to complete successfully,
+The comparison also requires all six DEV components to complete successfully,
 with no ARM diagnostics, proposed resource creates/deletes or potential actions.
 It checks that reports and evidence belong to the same preview run and candidate.
 A baseline with unapplied resource actions cannot establish recurring noise.
