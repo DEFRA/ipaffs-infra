@@ -1,5 +1,5 @@
 ---
-# A successful DEV apply previews the same commit against each promotion target.
+# A successful DEV apply previews DEV as a baseline and every promotion target.
 # Register this YAML as the separate `infrastructure-preview` pipeline.
 trigger: none
 pr: none
@@ -11,6 +11,9 @@ resources:
   pipelines:
     - pipeline: infrastructure
       source: '\Infrastructure\infrastructure'
+      branch: refs/heads/main
+      tags:
+        - Environment-DEV
       trigger:
         branches:
           include:
@@ -19,6 +22,13 @@ resources:
           - Environment-DEV
 
 stages:
+  - template: stages/preview-infrastructure.yaml
+    parameters:
+      environmentName: DEV
+      serviceConnection: ADO-DefraGovUK-AZR-IMP-DEV1
+      classicServiceConnection: ADO-DefraGovUK-AZR-IMP-SND1
+      dependsOn: []
+
   - template: stages/preview-infrastructure.yaml
     parameters:
       environmentName: TST
@@ -31,18 +41,18 @@ stages:
       environmentName: PRE
       serviceConnection: ADO-DefraGovUK-AZR-IMP-PRE1
       classicServiceConnection: ADO-DefraGovUK-AZR-PRE_IMP
-      dependsOn: [Preview_TST]
+      dependsOn: []
 
   - template: stages/preview-infrastructure.yaml
     parameters:
       environmentName: PRD
       serviceConnection: ADO-DefraGovUK-AZR-IMP-PRD1
       classicServiceConnection: ADO-DefraGovUK-AZR-PRD_IMP
-      dependsOn: [Preview_PRE]
+      dependsOn: []
 
   - stage: PreviewSummary
     displayName: Infrastructure promotion preview
-    dependsOn: [Preview_TST, Preview_PRE, Preview_PRD]
+    dependsOn: [Preview_DEV, Preview_TST, Preview_PRE, Preview_PRD]
     condition: always()
     jobs:
       - job: Summary

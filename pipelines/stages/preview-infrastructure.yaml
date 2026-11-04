@@ -1,7 +1,7 @@
 parameters:
   - name: environmentName
     type: string
-    values: [TST, PRE, PRD]
+    values: [DEV, TST, PRE, PRD]
   - name: dependsOn
     type: object
     default: []
@@ -19,7 +19,7 @@ stages:
     condition: not(canceled())
     variables:
       - group: Common
-      - ${{ if eq(parameters.environmentName, 'TST') }}:
+      - ${{ if or(eq(parameters.environmentName, 'DEV'), eq(parameters.environmentName, 'TST')) }}:
         - group: LowerEnvs
       - ${{ else }}:
         - group: HigherEnvs
@@ -40,11 +40,14 @@ stages:
         steps:
           - checkout: self
             clean: true
+            ${{ if eq(parameters.environmentName, 'DEV') }}:
+              fetchDepth: 0
           - task: Bash@3
             displayName: Verify source and initialise preview
             env:
               SOURCE_PIPELINE_COMMIT: $(resources.pipeline.infrastructure.sourceCommit)
               SOURCE_PIPELINE_BRANCH: $(resources.pipeline.infrastructure.sourceBranch)
+              PLAN_ENVIRONMENT: ${{ parameters.environmentName }}
               PLAN_OUTPUT_DIR: $(Build.ArtifactStagingDirectory)/infrastructure-plan-${{ parameters.environmentName }}
               PLAN_STATE_DIR: $(Agent.TempDirectory)/infrastructure-preview-${{ parameters.environmentName }}
             inputs:
@@ -73,6 +76,213 @@ stages:
                   --build-id "$BUILD_BUILDID"
                 echo '##vso[task.setvariable variable=PreviewInputsReady]true'
 
+          - ${{ if eq(parameters.environmentName, 'DEV') }}:
+            - task: Bash@3
+              displayName: Verify successful DEV apply for baseline comparison
+              # Unverified provenance disables noise assessment, never the DEV plan.
+              condition: and(not(canceled()), eq(variables['PreviewInputsReady'], 'true'))
+              env:
+                SOURCE_PIPELINE_RUN_ID: $(resources.pipeline.infrastructure.runID)
+                SOURCE_PIPELINE_ID: $(resources.pipeline.infrastructure.pipelineID)
+                SOURCE_PIPELINE_COMMIT: $(resources.pipeline.infrastructure.sourceCommit)
+                SOURCE_PIPELINE_BRANCH: $(resources.pipeline.infrastructure.sourceBranch)
+                SYSTEM_ACCESS_TOKEN: $(System.AccessToken)
+                PLAN_OUTPUT_DIR: $(Build.ArtifactStagingDirectory)/infrastructure-plan-DEV
+              inputs:
+                targetType: inline
+                script: |
+                  set -euo pipefail
+                  python3 - <<'PY'
+                  import datetime
+                  import json
+                  import os
+                  from pathlib import Path
+                  import re
+                  import subprocess
+                  import urllib.request
+
+                  protected_paths = [
+                      "bicep", "pipelines/vars", "pipelines/infrastructure.yaml",
+                      "pipelines/stages/deploy-bicep-resource-group.yaml",
+                      "pipelines/stages/deploy-bicep-network.yaml",
+                      "pipelines/stages/deploy-bicep-acr.yaml",
+                      "pipelines/stages/deploy-bicep-classic.yaml",
+                      "pipelines/stages/deploy-bicep-infra.yaml",
+                      "pipelines/stages/deploy-bicep-privatelink.yaml",
+                      "scripts/pipeline/infrastructure_parameters.py",
+                  ]
+                  required_deployments = {
+                      "DeployResourceGroup": "Deploy - ResourceGroup",
+                      "DeployNetwork": "Deploy - Network",
+                      "DeployACR": "Deploy - ACR",
+                      "DeployClassic": "Deploy - Classic",
+                      "DeployInfrastructure": "Deploy - Infrastructure",
+                      "PrivateLink": "Deploy - PrivateLink",
+                  }
+                  evidence = {
+                      "schemaVersion": 1,
+                      "status": "unusable",
+                      "reasonCode": "SOURCE_RUN_UNAVAILABLE",
+                      "appliedCommit": None,
+                      "appliedBuildId": None,
+                      "appliedPipelineId": None,
+                      "appliedBranch": None,
+                      "appliedFinishTime": None,
+                      "previewCommit": os.environ["BUILD_SOURCEVERSION"],
+                      "previewBuildId": os.environ["BUILD_BUILDID"],
+                      "deploymentInputsUnchanged": False,
+                      "comparedPaths": protected_paths,
+                      "sourceVerified": False,
+                      "sourceDeploymentVerified": False,
+                      "sourceDeploymentStages": [],
+                      "verifiedAt": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+                  }
+
+                  def collect_evidence():
+                      if not re.fullmatch(r"[1-9][0-9]{0,19}", evidence["previewBuildId"]):
+                          evidence["reasonCode"] = "PREVIEW_BUILD_ID_INVALID"
+                          return
+                      run_id = os.environ.get("SOURCE_PIPELINE_RUN_ID", "")
+                      source_commit = os.environ.get("SOURCE_PIPELINE_COMMIT", "")
+                      if not re.fullmatch(r"[1-9][0-9]*", run_id):
+                          return
+                      if not re.fullmatch(r"[0-9a-fA-F]{40}", source_commit):
+                          evidence["reasonCode"] = "SOURCE_COMMIT_INVALID"
+                          return
+                      token = os.environ.get("SYSTEM_ACCESS_TOKEN", "")
+                      if not token or token.startswith("$("):
+                          evidence["reasonCode"] = "SOURCE_TOKEN_UNAVAILABLE"
+                          return
+                      request = urllib.request.Request(
+                          "https://dev.azure.com/defragovuk/DEFRA-EUTD-IPAFFS/_apis/build/builds/"
+                          + run_id + "?api-version=7.1",
+                          headers={"Authorization": "Bearer " + token, "Accept": "application/json"},
+                      )
+                      try:
+                          with urllib.request.urlopen(request, timeout=20) as response:
+                              build = json.load(response)
+                      except Exception:
+                          # Do not expose API errors, response bodies, or the access token.
+                          evidence["reasonCode"] = "SOURCE_LOOKUP_FAILED"
+                          return
+                      if not isinstance(build, dict) or build.get("id") != int(run_id):
+                          evidence["reasonCode"] = "SOURCE_METADATA_MISMATCH"
+                          return
+                      definition = build.get("definition")
+                      pipeline_id = os.environ.get("SOURCE_PIPELINE_ID", "")
+                      if (not isinstance(definition, dict) or definition.get("id") != 9217
+                              or pipeline_id != "9217"):
+                          evidence["reasonCode"] = "SOURCE_PIPELINE_MISMATCH"
+                          return
+                      if build.get("status") != "completed" or build.get("result") != "succeeded":
+                          evidence["reasonCode"] = "SOURCE_RUN_NOT_SUCCESSFUL"
+                          return
+                      if (build.get("sourceBranch") != "refs/heads/main"
+                              or os.environ.get("SOURCE_PIPELINE_BRANCH") != "refs/heads/main"):
+                          evidence["reasonCode"] = "SOURCE_RUN_NOT_MAIN"
+                          return
+                      tags = build.get("tags")
+                      if not isinstance(tags, list) or "Environment-DEV" not in tags:
+                          evidence["reasonCode"] = "SOURCE_RUN_NOT_DEV"
+                          return
+                      if str(build.get("sourceVersion", "")).lower() != source_commit.lower():
+                          evidence["reasonCode"] = "SOURCE_METADATA_MISMATCH"
+                          return
+                      try:
+                          timeline_request = urllib.request.Request(
+                              "https://dev.azure.com/defragovuk/DEFRA-EUTD-IPAFFS/_apis/build/builds/"
+                              + run_id + "/timeline?api-version=7.1",
+                              headers={"Authorization": "Bearer " + token, "Accept": "application/json"},
+                          )
+                          with urllib.request.urlopen(timeline_request, timeout=20) as response:
+                              timeline = json.load(response)
+                      except Exception:
+                          evidence["reasonCode"] = "SOURCE_TIMELINE_LOOKUP_FAILED"
+                          return
+                      records = timeline.get("records") if isinstance(timeline, dict) else None
+                      if not isinstance(records, list) or any(not isinstance(record, dict) for record in records):
+                          evidence["reasonCode"] = "SOURCE_DEPLOYMENTS_NOT_VERIFIED"
+                          return
+                      by_id = {record.get("id"): record for record in records if isinstance(record.get("id"), str)}
+                      if len(by_id) != len(records):
+                          evidence["reasonCode"] = "SOURCE_DEPLOYMENTS_NOT_VERIFIED"
+                          return
+
+                      def completed(record):
+                          return record.get("state") == "completed" and record.get("result") == "succeeded"
+
+                      def belongs_to_stage(record, stage_id):
+                          seen = set()
+                          while record and record.get("id") not in seen:
+                              if not completed(record):
+                                  return False
+                              if record.get("id") == stage_id:
+                                  return True
+                              seen.add(record.get("id"))
+                              record = by_id.get(record.get("parentId"))
+                          return False
+
+                      for stage_name, task_name in required_deployments.items():
+                          stages = [record for record in records
+                                    if record.get("type") == "Stage" and record.get("identifier") == stage_name]
+                          if len(stages) != 1 or not completed(stages[0]):
+                              evidence["reasonCode"] = "SOURCE_DEPLOYMENTS_NOT_VERIFIED"
+                              return
+                          tasks = [record for record in records if record.get("type") == "Task"
+                                   and record.get("name") == task_name
+                                   and belongs_to_stage(record, stages[0]["id"])]
+                          if len(tasks) != 1:
+                              evidence["reasonCode"] = "SOURCE_DEPLOYMENTS_NOT_VERIFIED"
+                              return
+                      evidence.update({
+                          "appliedCommit": source_commit.lower(),
+                          "appliedBuildId": int(run_id),
+                          "appliedPipelineId": definition["id"],
+                          "appliedBranch": build["sourceBranch"],
+                          "appliedFinishTime": build.get("finishTime"),
+                          "sourceVerified": True,
+                          "sourceDeploymentVerified": True,
+                          "sourceDeploymentStages": list(required_deployments),
+                      })
+                      try:
+                          available = subprocess.run(
+                              ["git", "cat-file", "-e", source_commit + "^{commit}"],
+                              stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=30,
+                          )
+                          if available.returncode:
+                              evidence["reasonCode"] = "APPLIED_COMMIT_UNAVAILABLE"
+                              return
+                          difference = subprocess.run(
+                              ["git", "diff", "--quiet", source_commit, "HEAD", "--", *protected_paths],
+                              stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=30,
+                          )
+                      except Exception:
+                          evidence["reasonCode"] = "DEPLOYMENT_INPUT_COMPARISON_FAILED"
+                          return
+                      if difference.returncode:
+                          evidence["reasonCode"] = ("DEPLOYMENT_INPUTS_CHANGED" if difference.returncode == 1
+                                                    else "DEPLOYMENT_INPUT_COMPARISON_FAILED")
+                          return
+                      evidence.update({
+                          "status": "usable",
+                          "reasonCode": "VERIFIED_SUCCESSFUL_DEV_APPLY",
+                          "deploymentInputsUnchanged": True,
+                      })
+
+                  try:
+                      collect_evidence()
+                  except Exception:
+                      # Malformed source metadata must not stop the read-only plans.
+                      evidence["status"] = "unusable"
+                      evidence["reasonCode"] = "SOURCE_EVIDENCE_UNAVAILABLE"
+                  (Path(os.environ["PLAN_OUTPUT_DIR"]) / "baseline-evidence.json").write_text(
+                      json.dumps(evidence, indent=2) + "\n"
+                  )
+                  if evidence["status"] != "usable":
+                      print("##vso[task.logissue type=warning]DEV baseline comparison is unavailable: "
+                            + evidence["reasonCode"] + ". All environment plans will still run.")
+                  PY
+
           - template: /pipelines/steps/preview-infrastructure.yaml
             parameters:
               environmentName: ${{ parameters.environmentName }}
@@ -85,17 +295,6 @@ stages:
               scope: classic
               serviceConnection: ${{ parameters.classicServiceConnection }}
 
-          - task: Bash@3
-            displayName: Attach ${{ parameters.environmentName }} preview
-            condition: always()
-            inputs:
-              targetType: inline
-              script: |
-                set -euo pipefail
-                summary="$(Build.ArtifactStagingDirectory)/infrastructure-plan-${{ parameters.environmentName }}/summary.md"
-                if [ -f "$summary" ]; then
-                  echo "##vso[task.uploadsummary]$summary"
-                fi
           - task: PublishPipelineArtifact@1
             displayName: Publish ${{ parameters.environmentName }} preview
             condition: always()

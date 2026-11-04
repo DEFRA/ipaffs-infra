@@ -12,6 +12,8 @@ on:
       - "scripts/**/*.test.py"
       - "scripts/pipeline/validate-access-contract.py"
       - "scripts/pipeline/sync-deployment-outputs.py"
+      - "scripts/pipeline/infrastructure_*.py"
+      - "scripts/pipeline/plan-infrastructure.py"
       - "bicep/*.bicep"
       - "bicep/*.bicepparam"
       - "bicep/**/*.bicep"
@@ -29,6 +31,8 @@ on:
       - "scripts/**/*.test.py"
       - "scripts/pipeline/validate-access-contract.py"
       - "scripts/pipeline/sync-deployment-outputs.py"
+      - "scripts/pipeline/infrastructure_*.py"
+      - "scripts/pipeline/plan-infrastructure.py"
       - "bicep/*.bicep"
       - "bicep/*.bicepparam"
       - "bicep/**/*.bicep"
@@ -113,6 +117,13 @@ jobs:
 
       - name: Test consolidated Bicep jobs
         run: python scripts/pipeline/consolidated-bicep-jobs.test.py
+
+      - name: Test infrastructure previews
+        run: |
+          python scripts/pipeline/infrastructure-plan-report.test.py
+          python scripts/pipeline/infrastructure-plan-readability.test.py
+          python scripts/pipeline/infrastructure-preview-pipeline.test.py
+          python scripts/pipeline/plan-infrastructure.test.py
   bicep:
     name: Bicep
     runs-on: ubuntu-latest
