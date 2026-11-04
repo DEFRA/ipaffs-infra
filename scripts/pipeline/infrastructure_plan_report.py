@@ -29,14 +29,13 @@ ERROR_CODES = {
     "COMMAND_NOT_ALLOWED", "INVALID_OUTPUT_DIRECTORY", "INVALID_SOURCE_IDENTITY",
     "INVALID_SUBSCRIPTION", "MISSING_INPUT", "PARAMETER_RESOLUTION_FAILED",
     "PREVIEW_STATE_MISMATCH", "PRIVATE_STATE_OVERLAPS_REPORT", "SOURCE_COMMIT_MISMATCH",
-    "UNRESOLVED_RESOURCE_NAME", "UNRESOLVED_SUBNET", "UPSTREAM_IDENTITY_UNAVAILABLE",
-    "UPSTREAM_IDENTITY_WILL_CHANGE", "WHAT_IF_INCOMPLETE", "PREVIEW_FAILED", "NOT_RUN",
+    "UNRESOLVED_RESOURCE_NAME", "UNRESOLVED_SUBNET", "WHAT_IF_INCOMPLETE", "PREVIEW_FAILED", "NOT_RUN",
 }
 WITHHELD = "[withheld]"
 MISSING = "[not present]"
 LIMITATIONS = [
     "This is an ARM what-if prediction against the live environment, not a saved executable plan or a guarantee of deployment success.",
-    "Proposed deterministic resource IDs are derived from candidate parameters; existing identity inputs come from Library/live resources. Future generated principal IDs and outputs cannot be predicted.",
+    "Proposed deterministic resource IDs are derived from candidate parameters; existing identity inputs come from Library. Future generated principal IDs and outputs cannot be predicted.",
     "Hooks, peering pipeline execution, Azure DevOps output persistence, Entra/group memberships and scripted DNS changes are outside this ARM preview.",
     "Refresh the preview before applying each environment: resources and inputs can change after this report was generated.",
     "Values are withheld unless their configuration path is explicitly approved for publication. Raw Azure payloads and diagnostic messages are not published.",
@@ -78,7 +77,7 @@ def _metadata(source):
         "sourceRef": source_ref if isinstance(source_ref, str) and re.fullmatch(r"refs/[A-Za-z0-9/_ .-]{1,240}", source_ref) else "unavailable",
         "buildId": str(source.get("buildId", "")) if re.fullmatch(r"[0-9]{1,20}", str(source.get("buildId", ""))) else "unavailable",
         "generatedAt": generated if isinstance(generated, str) and re.fullmatch(r"[0-9TtZz:.+ -]{10,40}", generated) else datetime.now(timezone.utc).isoformat(),
-        "parameterSource": "candidate parameters with current Library/live identity inputs",
+        "parameterSource": "candidate parameters with current Library identity inputs",
     }
 
 

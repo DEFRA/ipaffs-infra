@@ -18,7 +18,6 @@ COMPONENTS = {
     "acr": "25-acr",
     "classic": "30-classic",
     "infra": "40-infra",
-    "infra-to-classic": "45-infra-to-classic",
     "privatelink": "50-privatelink",
 }
 
@@ -46,7 +45,6 @@ ENVIRONMENT_VARIABLES = {
     "privateEndpointsSubnetName": "BICEP_PRIVATE_ENDPOINTS_SUBNET_NAME",
     "tenantId": "BICEP_TENANT_ID",
     "serviceConnectionPrincipalId": "BICEP_SERVICE_CONNECTION_PRINCIPAL_ID",
-    "grafanaManagedIdentityPrincipalId": "BICEP_GRAFANA_MANAGED_IDENTITY_PRINCIPAL_ID",
 }
 
 SUBNETS = ("aksApiServer", "aksSystemNodes", "aksUserNodes",
@@ -132,9 +130,6 @@ def render(component, environment, values, classic_environment=None):
         lines.append(f"param tenantId = {_quote(get('tenantId'))}")
     if component == "infra" and "serviceConnectionPrincipalId" in values:
         lines.append(f"param deployServicePrincipalObjectId = {_quote(get('serviceConnectionPrincipalId'))}")
-    if component == "infra-to-classic":
-        lines.append(f"param deployServicePrincipalObjectId = {_quote(get('serviceConnectionPrincipalId'))}")
-        lines.append(f"param grafanaManagedIdentityPrincipalId = {_quote(get('grafanaManagedIdentityPrincipalId'))}")
     return "\n".join(lines) + "\n"
 
 

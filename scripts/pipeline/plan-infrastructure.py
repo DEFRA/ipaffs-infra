@@ -23,10 +23,9 @@ from infrastructure_plan_report import write_environment_report
 
 ROOT = Path(__file__).resolve().parents[2]
 LABELS = {"resource-group": "Resource group", "network": "Network", "acr": "Container registry",
-          "classic": "Classic services", "infra": "Infrastructure",
-          "infra-to-classic": "Infrastructure to Classic", "privatelink": "Private Link"}
+          "classic": "Classic services", "infra": "Infrastructure", "privatelink": "Private Link"}
 SCOPES = {"modern": ("resource-group", "network", "acr", "infra", "privatelink"),
-          "classic": ("classic", "infra-to-classic")}
+          "classic": ("classic",)}
 
 
 class PlanError(Exception):
@@ -38,7 +37,6 @@ def az_json(arguments, timeout=900):
     # narrower than the credentials: accidentally adding an apply fails closed.
     allowed = (arguments[:1] == ["version"] or
                arguments[:2] == ["bicep", "build-params"] or
-               arguments[:2] == ["resource", "show"] or
                arguments[:3] in (["deployment", "group", "what-if"],
                                  ["deployment", "sub", "what-if"]))
     if not allowed:
@@ -140,39 +138,6 @@ def desired_inputs(environment, values, environ, private_dir):
     return updated
 
 
-def identity_change(changes, identity_id):
-    for change in changes:
-        if change.get("resourceId", "").lower() != identity_id.lower():
-            continue
-        if change.get("changeType") in ("Create", "Delete", "Deploy", "Ignore", "Unsupported"):
-            return True
-        if any(str(delta.get("path", "")).startswith("identity") for delta in change.get("delta", [])):
-            return True
-    return False
-
-
-def current_grafana_identity(environment, values, environ, private_dir, infra_result):
-    if infra_result.get("diagnostics") or infra_result.get("potentialChanges"):
-        raise PlanError("UPSTREAM_IDENTITY_UNAVAILABLE")
-    parameters, _, _ = compile_parameters("infra", environment, values, private_dir)
-    try:
-        name = value(parameters, "monitoringParams")["grafanaName"]
-    except (KeyError, TypeError):
-        raise PlanError("UPSTREAM_IDENTITY_UNAVAILABLE") from None
-    target = resource_id(required(environ, "PLATFORM_SUBSCRIPTION_ID"),
-                         required(environ, "PLATFORM_RESOURCE_GROUP"), "Microsoft.Dashboard/grafana", name)
-    if identity_change(infra_result.get("changes", []), target):
-        raise PlanError("UPSTREAM_IDENTITY_WILL_CHANGE")
-    result = az_json(["resource", "show", "--ids", target, "--api-version", "2025-08-01",
-                      "--query", "identity.principalId"], timeout=60)
-    try:
-        if not isinstance(result, str) or uuid.UUID(result).int == 0:
-            raise ValueError()
-    except ValueError:
-        raise PlanError("UPSTREAM_IDENTITY_UNAVAILABLE") from None
-    return result
-
-
 def scope_for(component, environ):
     classic = component in SCOPES["classic"]
     subscription = required(environ, "PLATFORM_CLASSIC_SUBSCRIPTION_ID" if classic else "PLATFORM_SUBSCRIPTION_ID")
@@ -212,8 +177,7 @@ def initial_state(args):
                          "generatedAt": datetime.now(timezone.utc).isoformat(),
                          "parameterSource": "Candidate repository parameters, derived desired resource IDs, and current Library identity contract"},
             "components": [{"name": name, "label": LABELS[name], "status": "not-applicable" if name == "acr" and args.environment == "TST" else "blocked",
-                            "errorCode": "NOT_RUN", "scope": "Not evaluated"} for name in COMPONENTS],
-            "privateInputs": {}}
+                            "errorCode": "NOT_RUN", "scope": "Not evaluated"} for name in COMPONENTS]}
 
 
 def publish(state, args):
@@ -247,9 +211,7 @@ def run(args, environ):
     if args.initialize:
         return 0
     selected = SCOPES[args.scope]
-    if args.scope == "modern":
-        state["privateInputs"] = {}
-    # A retried scope must not publish a previous attempt's results or identity.
+    # A retried scope must not publish a previous attempt's results.
     for index, item in enumerate(state["components"]):
         if item["name"] in selected and item["status"] != "not-applicable":
             state["components"][index] = {"name": item["name"], "label": LABELS[item["name"]],
@@ -265,10 +227,6 @@ def run(args, environ):
         if tuple(int(number) for number in version.split(".")[:2]) < (2, 75):
             raise PlanError("AZURE_CLI_TOO_OLD")
         values = desired_inputs(args.environment, values, environ, args.state_dir)
-        if args.scope == "classic":
-            # Never fall back to a Library principal after a failed upstream plan.
-            values.pop("grafanaManagedIdentityPrincipalId", None)
-            values.update(state["privateInputs"])
     except (PlanError, KeyError, ValueError, TypeError) as error:
         code = str(error) if isinstance(error, PlanError) else "PARAMETER_RESOLUTION_FAILED"
         for item in state["components"]:
@@ -282,22 +240,11 @@ def run(args, environ):
         if state["components"][index]["status"] == "not-applicable":
             continue
         try:
-            if component == "infra-to-classic" and not values.get("grafanaManagedIdentityPrincipalId"):
-                code = values.get("identityErrorCode")
-                raise PlanError(code if code in {"UPSTREAM_IDENTITY_WILL_CHANGE", "UPSTREAM_IDENTITY_UNAVAILABLE"}
-                                else "UPSTREAM_IDENTITY_UNAVAILABLE")
             state["components"][index] = preview(component, args.environment, values, environ, args.state_dir, args.build_id)
-            if component == "infra":
-                try:
-                    state["privateInputs"]["grafanaManagedIdentityPrincipalId"] = current_grafana_identity(
-                        args.environment, values, environ, args.state_dir, state["components"][index]["result"])
-                except PlanError as error:
-                    state["privateInputs"].pop("grafanaManagedIdentityPrincipalId", None)
-                    state["privateInputs"]["identityErrorCode"] = str(error)
         except (PlanError, ValueError, OSError) as error:
             failed = True
             code = str(error) if isinstance(error, PlanError) else "PARAMETER_RESOLUTION_FAILED"
-            state["components"][index].update(status="blocked" if code.startswith("UPSTREAM_") else "failed", errorCode=code)
+            state["components"][index].update(status="failed", errorCode=code)
         publish(state, args)
         print(f"{args.environment} {LABELS[component]}: {state['components'][index]['status']}")
     return int(failed)

@@ -124,18 +124,10 @@ stages:
           classicServiceBusNamespaceResourceId: $[ stageDependencies.DeployClassic.RunBicep.outputs['RunBicep.ClassicOutputs.classicServiceBusNamespaceResourceId'] ]
           classicSqlServerResourceId: $[ stageDependencies.DeployClassic.RunBicep.outputs['RunBicep.ClassicOutputs.classicSqlServerResourceId'] ]
 
-  - template: stages/deploy-bicep-infra-to-classic.yaml
-    parameters:
-      environmentName: ${{ parameters.environmentName }}
-      dependsOn: [DeployInfrastructure]
-      ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/main') }}:
-        deploymentVariables:
-          grafanaManagedIdentityPrincipalId: $[ stageDependencies.DeployInfrastructure.RunBicep.outputs['RunBicep.InfrastructureOutputs.grafanaManagedIdentityPrincipalId'] ]
-
   - template: stages/deploy-bicep-privatelink.yaml
     parameters:
       environmentName: ${{ parameters.environmentName }}
-      dependsOn: [DeployInfrastructureToClassic, DeployNetwork]
+      dependsOn: [DeployInfrastructure, DeployNetwork]
       ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/main') }}:
         deploymentVariables:
           privateEndpointsSubnetId: $[ stageDependencies.DeployNetwork.RunBicep.outputs['RunBicep.NetworkOutputs.privateEndpointsSubnetId'] ]

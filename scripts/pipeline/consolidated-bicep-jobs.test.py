@@ -26,7 +26,6 @@ COMPONENTS = {
     "acr": "DeployACR",
     "classic": "DeployClassic",
     "infra": "DeployInfrastructure",
-    "infra-to-classic": "DeployInfrastructureToClassic",
     "privatelink": "PrivateLink",
 }
 EXPRESSION = re.compile(r"\$\{\{\s*(.*?)\s*\}\}")
@@ -157,7 +156,7 @@ def steps(stage):
 
 
 class ConsolidatedBicepJobTests(unittest.TestCase):
-    def test_seven_components_each_use_one_gated_deployment_and_no_downloads(self):
+    def test_six_components_each_use_one_gated_deployment_and_no_downloads(self):
         for component, stage_name in COMPONENTS.items():
             for environment in ("DEV", "TST", "PRE", "PRD"):
                 with self.subTest(component=component, environment=environment):
@@ -178,7 +177,7 @@ class ConsolidatedBicepJobTests(unittest.TestCase):
                     self.assertLess(preview, deploy)
                     self.assertNotIn("condition", tasks[preview])
                     self.assertEqual(MAIN_ONLY, tasks[deploy]["condition"])
-                    connection = "$(classicServiceConnection)" if component in ("classic", "infra-to-classic") else "$(serviceConnection)"
+                    connection = "$(classicServiceConnection)" if component == "classic" else "$(serviceConnection)"
                     for task in tasks:
                         if task.get("task") == "AzureCLI@2":
                             self.assertEqual(connection, task["inputs"]["azureSubscription"])
@@ -205,7 +204,7 @@ class ConsolidatedBicepJobTests(unittest.TestCase):
                                     expected += ["EstablishPeering"]
                                 if environment != "TST":
                                     expected += ["DeployACR"]
-                                expected += ["DeployClassic", "DeployInfrastructure", "DeployInfrastructureToClassic"]
+                                expected += ["DeployClassic", "DeployInfrastructure"]
                                 if pipeline == "infrastructure":
                                     expected += ["InfraPermissions", "PrivateLinkDNSRecords"]
                                 if pipeline == "deploy-bicep" or platform:
@@ -232,7 +231,6 @@ class ConsolidatedBicepJobTests(unittest.TestCase):
                                             "EstablishPeering": {"vnetName"},
                                             "DeployACR": {"privateEndpointsSubnetId", "privateEndpointsSubnetName"},
                                             "DeployInfrastructure": subnet_names | {"classicRedisResourceId", "classicSearchServiceResourceId", "classicServiceBusNamespaceResourceId", "classicSqlServerResourceId"},
-                                            "DeployInfrastructureToClassic": {"grafanaManagedIdentityPrincipalId"},
                                             "InfraPermissions": {"aksClusterResourceId", "aksKubeletPrincipalId", "externalSecretsPrincipalObjectId", "sqlServerManagedIdentityObjectId", "searchServiceManagedIdentityPrincipalId"},
                                             "PrivateLinkDNSRecords": {"keyVaultName", "redisName", "searchServiceName", "sqlServerName", "storageAccountName", "qaKeyVaultName" if environment == "TST" else "acrName"},
                                             "PrivateLink": {"privateEndpointsSubnetId", "privateEndpointsSubnetName"},
@@ -262,7 +260,7 @@ class ConsolidatedBicepJobTests(unittest.TestCase):
                                             self.assertIn(output_variable, task.get("script", ""))
                                     seen[name] = stage
                                 components = [stage for stage in stages if stage["stage"] in COMPONENTS.values()]
-                                self.assertEqual(7 - (environment == "TST") - (pipeline == "infrastructure" and not platform),
+                                self.assertEqual(6 - (environment == "TST") - (pipeline == "infrastructure" and not platform),
                                                  sum(len(stage["jobs"]) for stage in components))
 
     def test_classic_preserves_snd_deployment_scope_and_modern_sql_group_on_both_branches(self):

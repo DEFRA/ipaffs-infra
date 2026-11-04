@@ -49,10 +49,8 @@ def expected_overrides(component, environment, values):
             "id": values[name + "SubnetId"], "name": values[name + "SubnetName"]} for name in names}
     if component in ("classic", "infra"):
         result["tenantId"] = values["tenantId"]
-    if component in ("infra", "infra-to-classic"):
+    if component == "infra":
         result["deployServicePrincipalObjectId"] = values["serviceConnectionPrincipalId"]
-    if component == "infra-to-classic":
-        result["grafanaManagedIdentityPrincipalId"] = values["grafanaManagedIdentityPrincipalId"]
     return result
 
 
@@ -105,13 +103,6 @@ class InfrastructureParameterTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "qaAutomationServiceConnectionPrincipalId"):
             PARAMETERS.render("infra", "PRD", values)
 
-    def test_infra_to_classic_requires_existing_cli_overrides(self):
-        for name in ("serviceConnectionPrincipalId", "grafanaManagedIdentityPrincipalId"):
-            values = fixtures()
-            del values[name]
-            with self.assertRaisesRegex(ValueError, name):
-                PARAMETERS.render("infra-to-classic", "TST", values)
-
     def test_cli_overrides_are_optional_in_shared_deployment_parameter_files(self):
         values = fixtures()
         del values["tenantId"]
@@ -128,7 +119,8 @@ class InfrastructureParameterTests(unittest.TestCase):
         self.assertIn(r"name: 'O\'Brien \\ \${injected}\nsecond\t`touch /tmp/nope`'", result)
 
     def test_rejects_unknown_component_environment_and_tst_acr(self):
-        for args in (("../infra", "TST"), ("infra", "../../prd"), ("acr", "TST")):
+        for args in (("../infra", "TST"), ("infra-to-classic", "TST"),
+                     ("infra", "../../prd"), ("acr", "TST")):
             with self.subTest(args=args), self.assertRaises(ValueError):
                 PARAMETERS.render(*args, fixtures())
 
