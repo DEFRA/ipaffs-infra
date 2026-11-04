@@ -19,7 +19,6 @@ import yaml
 
 
 ROOT = Path(__file__).resolve().parents[2]
-MAIN_ONLY = "and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))"
 COMPONENTS = {
     "resource-group": "DeployResourceGroup",
     "network": "DeployNetwork",
@@ -61,7 +60,10 @@ def evaluate(expression, context):
         functions = {"eq": lambda a, b: a == b, "ne": lambda a, b: a != b,
                      "or": lambda *items: any(items), "and": lambda *items: all(items),
                      "not": lambda value: not value, "lower": str.lower,
-                     "length": len, "gt": lambda a, b: a > b, "replace": str.replace}
+                     "length": len, "gt": lambda a, b: a > b, "replace": str.replace,
+                     "startsWith": lambda value, prefix: value.startswith(prefix),
+                     "failed": lambda: context.get("failed", False),
+                     "canceled": lambda: context.get("canceled", False)}
         return functions[name](*values)
     reference = re.fullmatch(r"(\w+)\.(\w+)", expression)
     if reference:
@@ -70,8 +72,8 @@ def evaluate(expression, context):
     reference = re.fullmatch(r"variables\['([^']+)'\]", expression)
     if reference:
         return context["variables"][reference[1]]
-    if expression in ("true", "false"):
-        return expression == "true"
+    if expression.lower() in ("true", "false"):
+        return expression.lower() == "true"
     if expression in context:
         return context[expression]
     return ast.literal_eval(expression)
@@ -85,6 +87,9 @@ def expand(node, context):
         return EXPRESSION.sub(lambda match: str(evaluate(match[1], context)), node)
     if not isinstance(node, (dict, list)):
         return node
+    # Stage variable templates are available to compile-time task inputs. Keep
+    # their original YAML entries while resolving the local, non-secret values.
+    context = {**context, "variables": dict(context.get("variables", {}))}
     result = [] if isinstance(node, list) else {}
     previous_condition = None
     entries = [(None, item) for item in node] if isinstance(node, list) else node.items()
@@ -124,8 +129,24 @@ def expand(node, context):
         elif isinstance(result, list):
             result.append(expand(value, context))
         else:
-            result[expand(key, context)] = expand(value, context)
+            expanded_key = expand(key, context)
+            result[expanded_key] = expand(value, context)
+            if expanded_key == "variables":
+                context["variables"].update(local_variables(result[expanded_key]))
     return result
+
+
+def local_variables(variables):
+    """Read checked-in variable templates; Library groups stay opaque."""
+    if isinstance(variables, dict):
+        return variables
+    values = {}
+    for variable in variables:
+        if "name" in variable:
+            values[variable["name"]] = variable["value"]
+        elif "template" in variable and "@" not in variable["template"]:
+            values.update(local_variables(load(variable["template"].lstrip("/"))["variables"]))
+    return values
 
 
 def load(path):
@@ -143,7 +164,8 @@ def expand_stages(path, overrides=None, branch="refs/heads/main"):
     stages = []
     for entry in expand(document["stages"], context):
         if "template" in entry:
-            template = str(Path(path).parent / entry["template"])
+            template = (entry["template"].lstrip("/") if entry["template"].startswith("/")
+                        else str(Path(path).parent / entry["template"]))
             stages.extend(expand_stages(template, entry.get("parameters"), branch))
         else:
             stages.append(entry)
@@ -156,6 +178,14 @@ def steps(stage):
 
 
 class ConsolidatedBicepJobTests(unittest.TestCase):
+    def assert_main_only(self, condition):
+        for branch in ("refs/heads/main", "refs/heads/feature", "refs/pull/1/merge", "refs/tags/1.2.3"):
+            for failed, canceled in ((False, False), (True, False), (False, True)):
+                self.assertEqual(branch == "refs/heads/main" and not failed and not canceled,
+                                 evaluate(condition, {"variables": {"Build.SourceBranch": branch},
+                                                      "failed": failed, "canceled": canceled}),
+                                 (condition, branch, failed, canceled))
+
     def test_six_components_each_use_one_gated_deployment_and_no_downloads(self):
         for component, stage_name in COMPONENTS.items():
             for environment in ("DEV", "TST", "PRE", "PRD"):
@@ -176,14 +206,16 @@ class ConsolidatedBicepJobTests(unittest.TestCase):
                     deploy, = [index for index, name in enumerate(task_names) if name.startswith("Deploy - ")]
                     self.assertLess(preview, deploy)
                     self.assertNotIn("condition", tasks[preview])
-                    self.assertEqual(MAIN_ONLY, tasks[deploy]["condition"])
-                    connection = "$(classicServiceConnection)" if component == "classic" else "$(serviceConnection)"
+                    self.assert_main_only(tasks[deploy]["condition"])
+                    connection_environment = "SND" if component == "classic" and environment == "DEV" else environment
+                    connection_variable = "classicServiceConnection" if component == "classic" else "serviceConnection"
+                    connection = load(f"pipelines/vars/{connection_environment.lower()}.yaml")["variables"][connection_variable]
                     for task in tasks:
                         if task.get("task") == "AzureCLI@2":
                             self.assertEqual(connection, task["inputs"]["azureSubscription"])
                         if "sync-deployment-outputs.py" in task.get("inputs", {}).get("inlineScript", ""):
                             self.assertGreater(tasks.index(task), deploy)
-                            self.assertEqual(MAIN_ONLY, task["condition"])
+                            self.assert_main_only(task["condition"])
 
     def test_all_environment_and_optional_paths_remain_serial_and_output_references_exist(self):
         for pipeline in ("infrastructure", "deploy-bicep"):

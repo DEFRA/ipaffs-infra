@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - ".github/workflows/pipeline-syntax.yaml"
+      - "release-pipeline.yaml"
       - "pipelines/*.yaml"
       - "pipelines/*.yml"
       - "pipelines/**/*.yaml"
@@ -23,6 +24,7 @@ on:
       - main
     paths:
       - ".github/workflows/pipeline-syntax.yaml"
+      - "release-pipeline.yaml"
       - "pipelines/*.yaml"
       - "pipelines/*.yml"
       - "pipelines/**/*.yaml"
@@ -54,7 +56,7 @@ jobs:
           files=()
           while IFS= read -r file; do
             files+=("${file}")
-          done < <(git ls-files "pipelines/*.yaml" "pipelines/*.yml" "pipelines/**/*.yaml" "pipelines/**/*.yml" | sort)
+          done < <(git ls-files "release-pipeline.yaml" "pipelines/*.yaml" "pipelines/*.yml" "pipelines/**/*.yaml" "pipelines/**/*.yml" | sort)
 
           if [[ ${#files[@]} -eq 0 ]]; then
             echo "No Azure DevOps pipeline YAML files found."
@@ -117,6 +119,9 @@ jobs:
 
       - name: Test consolidated Bicep jobs
         run: python scripts/pipeline/consolidated-bicep-jobs.test.py
+
+      - name: Test infrastructure release promotion
+        run: python scripts/pipeline/release-pipeline.test.py
 
       - name: Test infrastructure previews
         run: |

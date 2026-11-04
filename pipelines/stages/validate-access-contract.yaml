@@ -1,10 +1,27 @@
 parameters:
+  - name: stagePrefix
+    type: string
+    default: ''
+
+  - name: allowTaggedDeployments
+    type: boolean
+    default: false
+
   - name: environmentName
     type: string
 
+  - name: dependsOn
+    type: object
+    default: []
+  - name: deploymentVariables
+    type: object
+    default: {}
+
 stages:
-  - stage: ValidateAccessContract
+  - stage: ${{ parameters.stagePrefix }}ValidateAccessContract
     displayName: Validate operations access-group contract
+    ${{ if gt(length(parameters.dependsOn), 0) }}:
+      dependsOn: ${{ parameters.dependsOn }}
     variables:
       - group: Common
       - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
@@ -12,6 +29,9 @@ stages:
       - ${{ else }}:
         - group: LowerEnvs
       - group: "${{ parameters.environmentName }}"
+      - ${{ each variable in parameters.deploymentVariables }}:
+        - name: ${{ variable.key }}
+          value: ${{ variable.value }}
     jobs:
       - job: ValidateGroups
         displayName: Check existing group identifiers
