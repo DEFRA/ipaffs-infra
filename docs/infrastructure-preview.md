@@ -127,6 +127,17 @@ without relying on a DEV comparison. Resource creates, resource deletes and
 potential actions remain reviewable. JSON retains ARM's original resource action,
 expanded property operations and fixed metadata reasons; generated IDs stay redacted.
 
+For AKS, only evidenced omissions of schema-read-only, healthy output fields are
+background metadata. Node-pool fields require a uniquely matched pool name in
+the current and desired snapshots; an array index alone is not enough. Node
+counts, pool power state, identity profiles and writable security settings stay
+reviewable. Opaque, contradictory or unhealthy status is not classified as
+harmless. Original ARM operations and fixed reasons remain in the audit files.
+An **Existing AKS health warnings** section retains bounded cluster/pool failure
+signals separately from requested configuration changes, without publishing raw
+Azure diagnostic messages. See [the AKS investigation](aks-preview-omissions.md)
+for the declared settings and omissions still requiring review.
+
 Named resources and nested parent names make the review list readable without
 requiring a resource ID lookup. Each environment's artifact also has a standalone
 `summary.md` if a detailed environment-specific review is useful.

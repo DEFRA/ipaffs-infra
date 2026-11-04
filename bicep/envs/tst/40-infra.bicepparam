@@ -43,12 +43,14 @@ param aksParams = {
       maxCount: 5
       maxPods: 250
       vmSize: 'Standard_E2as_v7'
+      osDiskSizeGB: 128
     }
     user: {
       minCount: 3
       maxCount: 12
       maxPods: 250
       vmSize: 'Standard_E16as_v7'
+      osDiskSizeGB: 512
     }
   }
   adminGroupObjectIDs: [

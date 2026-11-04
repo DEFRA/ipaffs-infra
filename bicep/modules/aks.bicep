@@ -6,6 +6,7 @@ param location string
 param logAnalyticsId string
 param subnets object
 param tags object
+param tenantId string
 param vnetName string
 
 // Shared pin for the control plane and both node pools in every environment.
@@ -38,6 +39,7 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2025-10-01' = {
   name: aksParams.name
   location: location
   tags: tags
+  kind: 'Base'
 
   identity: {
     type: 'UserAssigned'
@@ -51,11 +53,14 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2025-10-01' = {
     kubernetesVersion: kubernetesVersion
     nodeResourceGroup: aksParams.nodeResourceGroup
     publicNetworkAccess: 'Disabled'
+    enableRBAC: true
+    supportPlan: 'KubernetesOfficial'
 
     aadProfile: {
       managed: true
       enableAzureRBAC: true
       adminGroupObjectIDs: aksParams.adminGroupObjectIDs
+      tenantID: tenantId
     }
 
     addonProfiles: {
@@ -74,6 +79,12 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2025-10-01' = {
         orchestratorVersion: kubernetesVersion
         enableAutoScaling: true
         enableNodePublicIP: false
+        enableFIPS: false
+        kubeletDiskType: 'OS'
+        osDiskSizeGB: aksParams.nodePools.system.osDiskSizeGB
+        osDiskType: 'Managed'
+        osSKU: 'Ubuntu'
+        scaleDownMode: 'Delete'
         minCount: aksParams.nodePools.system.minCount
         maxCount: aksParams.nodePools.system.maxCount
         maxPods: aksParams.nodePools.system.maxPods
@@ -86,6 +97,12 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2025-10-01' = {
         securityProfile: {
           enableSecureBoot: true
           enableVTPM: true
+          sshAccess: 'LocalUser'
+        }
+
+        upgradeSettings: {
+          maxSurge: '10%'
+          maxUnavailable: '0'
         }
       }
       {
@@ -93,6 +110,12 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2025-10-01' = {
         orchestratorVersion: kubernetesVersion
         enableAutoScaling: true
         enableNodePublicIP: false
+        enableFIPS: false
+        kubeletDiskType: 'OS'
+        osDiskSizeGB: aksParams.nodePools.user.osDiskSizeGB
+        osDiskType: 'Managed'
+        osSKU: 'Ubuntu'
+        scaleDownMode: 'Delete'
         minCount: aksParams.nodePools.user.minCount
         maxCount: aksParams.nodePools.user.maxCount
         maxPods: aksParams.nodePools.user.maxPods
@@ -105,12 +128,19 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2025-10-01' = {
         securityProfile: {
           enableSecureBoot: true
           enableVTPM: true
+          sshAccess: 'LocalUser'
+        }
+
+        upgradeSettings: {
+          maxSurge: '10%'
+          maxUnavailable: '0'
         }
       }
     ]
 
     apiServerAccessProfile: {
       enablePrivateCluster: true
+      enablePrivateClusterPublicFQDN: true
       enableVnetIntegration: true
       privateDNSZone: 'none'
       subnetId: subnets.aksApiServer.id
@@ -119,6 +149,16 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2025-10-01' = {
     autoUpgradeProfile: {
       nodeOSUpgradeChannel: 'SecurityPatch'
       upgradeChannel: 'none'
+    }
+
+    autoScalerProfile: {
+      'balance-similar-node-groups': 'false'
+      'daemonset-eviction-for-empty-nodes': false
+      'daemonset-eviction-for-occupied-nodes': true
+      'ignore-daemonsets-utilization': false
+      'max-node-provision-time': '15m'
+      'scale-down-delay-after-add': '10m'
+      'skip-nodes-with-local-storage': 'false'
     }
 
     azureMonitorProfile: {
@@ -147,6 +187,7 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2025-10-01' = {
       loadBalancerSku: 'standard'
       networkPlugin: 'azure'
       networkPluginMode: 'overlay'
+      networkDataplane: 'azure'
       networkPolicy: 'calico'
       outboundType: 'userDefinedRouting'
       podCidrs: aksParams.podCidrs
@@ -155,6 +196,28 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2025-10-01' = {
 
     oidcIssuerProfile: {
       enabled: true
+    }
+
+    nodeProvisioningProfile: {
+      mode: 'Manual'
+    }
+
+    metricsProfile: {
+      costAnalysis: {
+        enabled: false
+      }
+    }
+
+    storageProfile: {
+      diskCSIDriver: {
+        enabled: true
+      }
+      fileCSIDriver: {
+        enabled: true
+      }
+      snapshotController: {
+        enabled: true
+      }
     }
 
     securityProfile: {
