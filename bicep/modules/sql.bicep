@@ -56,12 +56,13 @@ resource elasticPool 'Microsoft.Sql/servers/elasticPools@2023-08-01' = {
   }
 }
 
-resource sqlPrivateEndpoint 'Microsoft.Network/privateEndpoints@2024-10-01' = {
+resource sqlPrivateEndpoint 'Microsoft.Network/privateEndpoints@2025-03-01' = {
   name: '${sqlParams.serverName}-${subnets.privateEndpoints.name}'
   location: location
   tags: tags
 
   properties: {
+    ipVersionType: 'IPv4'
     subnet: {
       id: subnets.privateEndpoints.id
     }

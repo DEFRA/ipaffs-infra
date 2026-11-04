@@ -78,12 +78,13 @@ resource searchSqlSharedPrivateLink 'Microsoft.Search/searchServices/sharedPriva
   }
 }
 
-resource searchServicePrivateEndpoint 'Microsoft.Network/privateEndpoints@2024-10-01' = {
+resource searchServicePrivateEndpoint 'Microsoft.Network/privateEndpoints@2025-03-01' = {
   name: '${searchParams.name}-${subnets.privateEndpoints.name}'
   location: location
   tags: tags
 
   properties: {
+    ipVersionType: 'IPv4'
     subnet: {
       id: subnets.privateEndpoints.id
     }

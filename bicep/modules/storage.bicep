@@ -51,12 +51,13 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2025-01-01' = {
   }
 }
 
-resource storagePrivateEndpoint 'Microsoft.Network/privateEndpoints@2024-10-01' = {
+resource storagePrivateEndpoint 'Microsoft.Network/privateEndpoints@2025-03-01' = {
   name: '${storageParams.name}-${subnets.privateEndpoints.name}'
   location: location
   tags: tags
 
   properties: {
+    ipVersionType: 'IPv4'
     subnet: {
       id: subnets.privateEndpoints.id
     }
