@@ -5,14 +5,17 @@ from infrastructure_plan_identity import (
     is_metadata_field as is_identity_metadata_field,
 )
 from infrastructure_plan_aks import aks_metadata_reason, has_aks_resource_id
+from infrastructure_plan_insights import insights_metadata_reason
 
 
-def metadata_reason(resource_type, field):
-    return identity_metadata_reason(resource_type, field) or aks_metadata_reason(resource_type, field)
+def metadata_reason(resource_type, field, resource_id=None):
+    return (identity_metadata_reason(resource_type, field) or aks_metadata_reason(resource_type, field)
+            or insights_metadata_reason(resource_type, field, resource_id))
 
 
-def is_metadata_field(resource_type, field):
-    return is_identity_metadata_field(resource_type, field) or bool(aks_metadata_reason(resource_type, field))
+def is_metadata_field(resource_type, field, resource_id=None):
+    return (is_identity_metadata_field(resource_type, field) or bool(aks_metadata_reason(resource_type, field))
+            or bool(insights_metadata_reason(resource_type, field, resource_id)))
 
 
 def is_metadata_only(resource):
@@ -28,4 +31,7 @@ def is_metadata_only(resource):
     if (any(aks_metadata_reason(resource.get("type"), field) for field in fields)
             and not has_aks_resource_id(resource.get("resourceId"))):
         return False
-    return all(is_metadata_field(resource.get("type"), field) for field in fields)
+    if (resource.get("unresolved") is True and any(insights_metadata_reason(
+            resource.get("type"), field, resource.get("resourceId")) for field in fields)):
+        return False
+    return all(is_metadata_field(resource.get("type"), field, resource.get("resourceId")) for field in fields)

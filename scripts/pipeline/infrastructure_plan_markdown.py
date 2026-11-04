@@ -13,6 +13,7 @@ import re
 from infrastructure_plan_identity import identity_metadata_reason
 from infrastructure_plan_metadata import metadata_reason, is_metadata_field, is_metadata_only
 from infrastructure_plan_aks import validated_aks_health_warnings
+from infrastructure_plan_insights import insights_metadata_reason
 
 
 TYPE_LABELS = {
@@ -176,11 +177,14 @@ def is_no_effect_only(resource):
             or resource.get("changeType") != "Modify" or resource.get("potential")):
         return False
     fields = resource.get("fields")
+    if (resource.get("unresolved") is True and isinstance(fields, list)
+            and any(insights_metadata_reason(resource.get("type"), field, resource.get("resourceId")) for field in fields)):
+        return False
     return (isinstance(fields, list) and bool(fields)
             and all(isinstance(field, dict) for field in fields)
             and any(field.get("changeType") == "NoEffect" for field in fields)
             and all(field.get("changeType") == "NoEffect"
-                    or is_metadata_field(resource.get("type"), field)
+                    or is_metadata_field(resource.get("type"), field, resource.get("resourceId"))
                     for field in fields))
 
 
@@ -193,7 +197,7 @@ def _runtime_fields(resource):
     metadata_context = resource.get("changeType") == "Modify" and not resource.get("potential")
     return [field for field in resource.get("fields", [])
             if str(field.get("path", "")).lower() != "tags.createddate"
-            and not (metadata_context and metadata_reason(resource.get("type"), field))]
+            and not (metadata_context and metadata_reason(resource.get("type"), field, resource.get("resourceId")))]
 
 
 def _words(value):
@@ -392,6 +396,10 @@ def change_details_markdown(report):
             if (resource.get("changeType") == "Modify" and not resource.get("potential")
                     and any(identity_metadata_reason(resource.get("type"), field) for field in resource.get("fields", []))):
                 lines.extend(["Generated identity ID omissions and an omitted `None` regional-isolation default are background metadata. ARM operations remain below for audit; other fields still require review.", ""])
+            if (resource.get("changeType") == "Modify" and not resource.get("potential")
+                    and any(insights_metadata_reason(resource.get("type"), field, resource.get("resourceId"))
+                            for field in resource.get("fields", []))):
+                lines.extend(["The API's `Bluefield`/`rest` creation-origin additions are background metadata. ARM operations remain below for audit; workspace, access and other configuration fields still require review.", ""])
             if resource.get("unresolved"):
                 lines.extend(["Some aspects were not fully assessed; consult the summary coverage gaps.", ""])
             fields = resource.get("fields", [])

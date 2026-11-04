@@ -723,7 +723,8 @@ def load_tests(loader, standard_tests, pattern):
     # Keep the classifier contract independently runnable for focused debugging.
     for name, filename in (("comparison_contract_tests", "infrastructure-plan-comparison.test.py"),
                            ("identity_properties_contract_tests", "infrastructure-identity-properties.test.py"),
-                           ("aks_properties_contract_tests", "infrastructure-aks-properties.test.py")):
+                           ("aks_properties_contract_tests", "infrastructure-aks-properties.test.py"),
+                           ("insights_properties_contract_tests", "infrastructure-insights-properties.test.py")):
         spec = importlib.util.spec_from_file_location(name, SCRIPT.with_name(filename))
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
