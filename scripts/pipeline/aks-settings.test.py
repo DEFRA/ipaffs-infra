@@ -137,7 +137,7 @@ class CompiledAksSettingsTests(unittest.TestCase):
         }, self.properties["autoScalerProfile"])
 
     def test_monitoring_storage_and_support_settings_are_explicit_without_changing_patch_policy(self):
-        self.assertEqual({"mode": "Manual"}, self.properties["nodeProvisioningProfile"])
+        self.assertEqual({"mode": "Manual", "defaultNodePools": "Auto"}, self.properties["nodeProvisioningProfile"])
         self.assertEqual("KubernetesOfficial", self.properties["supportPlan"])
         self.assertEqual({"costAnalysis": {"enabled": False}}, self.properties["metricsProfile"])
         self.assertEqual({"diskCSIDriver": {"enabled": True}, "fileCSIDriver": {"enabled": True},

@@ -200,6 +200,8 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2025-10-01' = {
 
     nodeProvisioningProfile: {
       mode: 'Manual'
+      // Preserve the provider default; it is inactive while mode is Manual.
+      defaultNodePools: 'Auto'
     }
 
     metricsProfile: {

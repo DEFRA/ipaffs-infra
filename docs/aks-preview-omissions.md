@@ -18,7 +18,7 @@ validation evidence, with no tenant values or Library parameters published.
 
 | Area | Explicit settings |
 |---|---|
-| Cluster type and support | `kind: Base`, `supportPlan: KubernetesOfficial`, manual node provisioning |
+| Cluster type and support | `kind: Base`, `supportPlan: KubernetesOfficial`, manual node provisioning; retain `defaultNodePools: Auto`, which is inactive in manual mode |
 | Authentication | Kubernetes RBAC enabled; the existing deployment tenant input passed into the managed AAD profile |
 | API server | Private cluster with public FQDN enabled, matching all four live clusters; public network access remains disabled |
 | Network | Azure dataplane, alongside the existing Azure Overlay and Calico configuration |
@@ -32,6 +32,12 @@ implicit disk defaults depend on the VM size and cache characteristics, while
 OS disk type cannot be changed after pool creation. Declaring the observed
 Managed disks avoids relying on a different implicit disk selection after a VM
 size change; it does not request a disk migration.
+
+Declaring manual provisioning initially exposed the nested `defaultNodePools`
+omission. Fresh reads showed `Auto` in all four environments. The pinned API
+schema documents that this default has no effect unless provisioning mode is
+`Auto`; declaring the existing value removes the warning without enabling
+automatic provisioning.
 
 The existing autoscaler tuning is also explicit:
 
