@@ -157,7 +157,7 @@ class InfrastructurePlanReportTests(unittest.TestCase):
         digest = "0123456789abcdef" * 4
         plan = self.report([component([], inputDigest=digest)])
         self.assertEqual(plan["components"][0]["inputDigest"], digest)
-        self.assertEqual(plan["metadata"]["parameterSource"], "candidate parameters with current Library/live identity inputs")
+        self.assertEqual(plan["metadata"]["parameterSource"], "candidate parameters with current Library identity inputs")
         plan = self.report([component([], inputDigest="SECRET-DIGEST")])
         self.assertIsNone(plan["components"][0]["inputDigest"])
         self.assertNotIn("SECRET-DIGEST", self.serialized)
