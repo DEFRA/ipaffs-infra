@@ -722,7 +722,8 @@ def load_tests(loader, standard_tests, pattern):
     # The existing CI reporting entry point also exercises its comparator.
     # Keep the classifier contract independently runnable for focused debugging.
     for name, filename in (("comparison_contract_tests", "infrastructure-plan-comparison.test.py"),
-                           ("identity_properties_contract_tests", "infrastructure-identity-properties.test.py")):
+                           ("identity_properties_contract_tests", "infrastructure-identity-properties.test.py"),
+                           ("aks_properties_contract_tests", "infrastructure-aks-properties.test.py")):
         spec = importlib.util.spec_from_file_location(name, SCRIPT.with_name(filename))
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)

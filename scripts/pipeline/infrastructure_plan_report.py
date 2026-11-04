@@ -16,9 +16,11 @@ import math
 from pathlib import Path
 import re
 
-from infrastructure_plan_markdown import TYPE_LABELS, environment_markdown, change_details_markdown, is_no_effect_only, resource_label, type_label, property_label
+from infrastructure_plan_markdown import TYPE_LABELS, environment_markdown, change_details_markdown, is_no_effect_only, resource_label, type_label, property_label, aks_health_rows, aks_health_markdown
 from infrastructure_plan_comparison import analyze_comparison
-from infrastructure_plan_identity import has_identity_resource_id, identity_metadata_reason, is_metadata_only
+from infrastructure_plan_identity import has_identity_resource_id, identity_metadata_reason
+from infrastructure_plan_metadata import is_metadata_only
+from infrastructure_plan_aks import annotate_aks_omissions, aks_health_warnings, validated_aks_health_warnings
 
 
 CHANGE_TYPES = ("Create", "Modify", "Delete", "NoChange", "Deploy", "Ignore", "Unsupported", "Unknown")
@@ -315,6 +317,7 @@ def _resource(change, potential=False):
                      potential=potential, after_snapshot=change.get("after"))
     if not fields and change_type in {"Create", "Delete"}:
         fields = _snapshot_fields(change.get("after" if change_type == "Create" else "before"), change_type, resource_type)
+    fields = annotate_aks_omissions(change, fields, potential=potential)
     if resource_type.lower() == _IDENTITY_TYPE and not has_identity_resource_id(resource_id):
         # Without a valid identity resource reference these otherwise harmless
         # leaves cannot establish which resource ARM assessed. Keep the gap in
@@ -342,6 +345,7 @@ def _resource(change, potential=False):
             "name": resource_id.rsplit("/", 1)[-1], "changeType": change_type,
             "category": category, "metadataOnly": metadata_only, "potential": potential,
             "potentialImpact": impacts, "fields": fields,
+            "healthWarnings": aks_health_warnings(change, potential=potential),
             "unresolved": potential or change_type in UNRESOLVED_TYPES or (change_type == "Modify" and not fields) or any(field["unresolved"] and not field["metadataOnly"] for field in fields)}
 
 
@@ -477,6 +481,10 @@ def _combined_markdown(report):
                   if item["executionStatus"] != "missing" else "—" for action in ("Create", "Modify", "Delete")]
         lines.append(f"| {item['environment']} | {' | '.join(values)} | {execution} |")
     lines.extend(["", "These are Azure predictions against the live environment. An update can include provider defaults or properties omitted from the proposed configuration; it is not proof of an operational change. Counts exclude deployment wrappers, metadata-only updates and NoEffect-only updates, and can repeat a resource across component previews.", ""])
+    lines.extend(aks_health_markdown([
+        {**warning, "environment": environment["environment"]}
+        for environment in environments for warning in environment.get("healthWarnings", [])
+    ], with_environment=True))
     lines.extend(_comparison_markdown(report["devComparison"]))
     types = sorted({label for item in environments for label in item["review"]["changes"]})
     if types:
@@ -683,6 +691,7 @@ def combine_reports(input_paths: list[Path], output_dir: Path) -> dict:
                 "executionStatus": source.get("executionStatus"),
                 "resourceTotals": totals if valid_totals else {},
                 "metadataOnlyTotals": metadata_totals if valid_metadata_totals else {},
+                "healthWarnings": aks_health_rows(source),
                 "unknowns": unknowns if valid_unknowns else 1,
                 "review": _review_breakdown(source),
             }
@@ -709,6 +718,7 @@ def combine_reports(input_paths: list[Path], output_dir: Path) -> dict:
                              "executionStatus": source.get("executionStatus") if source and source.get("executionStatus") in {"succeeded", "failed"} else "missing",
                              "totals": {name: value if isinstance((value := totals.get(name)), int) and not isinstance(value, bool) and value >= 0 else 0 for name in CHANGE_TYPES},
                              "metadataOnlyTotals": {name: value if isinstance((value := metadata_totals.get(name)), int) and not isinstance(value, bool) and value >= 0 else 0 for name in CHANGE_TYPES},
+                             "healthWarnings": source.get("healthWarnings", []) if source else [],
                              "unknowns": source.get("unknowns") if source and isinstance(source.get("unknowns"), int) and source["unknowns"] >= 0 else 1,
                              "review": source["review"] if source else {"changes": {}, "unpreviewed": {}, "unresolvedChanges": 0, "noEffectOnly": 0, "potential": {}}})
     comparisons = []

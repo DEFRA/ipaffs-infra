@@ -577,6 +577,7 @@ def load_tests(loader, standard_tests, pattern):
     for name, filename in (("compiler_preparation_contract", "ensure-bicep-version.test.py"),
                            ("network_rule_ownership_contract", "network-security-groups.test.py"),
                            ("sql_maintenance_ownership_contract", "sql-maintenance-ownership.test.py"),
+                           ("aks_explicit_settings_contract", "aks-settings.test.py"),
                            ("parameter_overlay_contract", "infrastructure-parameters.test.py")):
         standard_tests.addTests(loader.loadTestsFromModule(module(name, filename)))
     return standard_tests

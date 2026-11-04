@@ -10,7 +10,9 @@ import html
 import json
 import re
 
-from infrastructure_plan_identity import identity_metadata_reason, is_metadata_field, is_metadata_only
+from infrastructure_plan_identity import identity_metadata_reason
+from infrastructure_plan_metadata import metadata_reason, is_metadata_field, is_metadata_only
+from infrastructure_plan_aks import validated_aks_health_warnings
 
 
 TYPE_LABELS = {
@@ -132,6 +134,38 @@ def _resources(report):
             for resource in component.get("resources", [])]
 
 
+def aks_health_rows(report):
+    """Project fixed existing-health signals without copying Azure diagnostics."""
+    rows, seen = [], set()
+    for resource in _resources(report):
+        for warning in validated_aks_health_warnings(resource):
+            pool = warning.get("poolName", "")
+            key = (resource["resourceId"], warning["code"], pool)
+            if key in seen:
+                continue
+            seen.add(key)
+            rows.append({"resourceId": resource["resourceId"],
+                         "resource": resource["resourceId"].rsplit("/", 1)[-1],
+                         "code": warning["code"], "poolName": pool})
+    return rows
+
+
+def aks_health_markdown(rows, with_environment=False):
+    if not rows:
+        return []
+    lines = ["## Existing AKS health warnings", "",
+             "These warnings concern existing AKS management operations, not changes requested by Bicep. Investigate before applying and check workload health separately. Preview completion describes the assessment, not whether the cluster is healthy; raw diagnostic messages are withheld.", ""]
+    lines += (["| Environment | Resource | Existing condition |", "|---|---|---|"]
+              if with_environment else ["| Resource | Existing condition |", "|---|---|"])
+    for row in rows:
+        target = row["resource"] + (" / pool " + row["poolName"] if row["poolName"] else "")
+        condition = ("AKS reports an existing pool error" if row["code"] == "AKS_POOL_REPORTED_ERROR"
+                     else "Provisioning failed or canceled")
+        values = ([row["environment"]] if with_environment else []) + [target, condition]
+        lines.append("| " + " | ".join(md(value) for value in values) + " |")
+    return lines + [""]
+
+
 def is_no_effect_only(resource):
     """Identify confirmed Modify entries with only NoEffect/CreatedDate fields.
 
@@ -159,7 +193,7 @@ def _runtime_fields(resource):
     metadata_context = resource.get("changeType") == "Modify" and not resource.get("potential")
     return [field for field in resource.get("fields", [])
             if str(field.get("path", "")).lower() != "tags.createddate"
-            and not (metadata_context and identity_metadata_reason(resource.get("type"), field))]
+            and not (metadata_context and metadata_reason(resource.get("type"), field))]
 
 
 def _words(value):
@@ -283,7 +317,9 @@ def environment_markdown(report):
              + f"**{counts['Create']} creates, {counts['Modify']} reported updates and {counts['Delete']} resource deletions**."
              + (f" There are also {potential} potential action entries, labelled below." if potential else ""), "",
              "Read the resource actions first, then the coverage gaps. An update is a prediction, not proof of a runtime change: provider defaults and omitted properties can create differences. A removed property is not a resource deletion.", "",
-             "## Predicted changes", ""]
+             ]
+    lines.extend(aks_health_markdown(aks_health_rows(report)))
+    lines.extend(["## Predicted changes", ""])
     if counts["Delete"]:
         lines.extend(["**Resource deletions are predicted. Review every Delete entry before promotion.**", ""])
     if not actions:
@@ -330,6 +366,7 @@ def change_details_markdown(report):
     lines = [f"# Infrastructure change details: {md(metadata.get('environment', 'UNKNOWN'))}", "",
              f"Candidate: `{md(metadata.get('commit', 'unavailable'))}` · Source: `{md(metadata.get('sourceRef', 'unavailable'))}` · Build: {md(metadata.get('buildId', 'unavailable'))}", "",
              "ARM predictions can contain provider-default noise. Field removals describe the proposed configuration, not proof of a live reset. Potential-impact labels do not prove an outage, replacement or data loss. Ignore and ordinary NoChange inventory is retained only in plan.json.", ""]
+    lines.extend(aks_health_markdown(aks_health_rows(report)))
     for component in report.get("components", []):
         lines.extend([f"## {md(component.get('label', component.get('name', 'Component')))}", "",
                       f"Execution: {md(component.get('status', 'unavailable'))}. Assessment: {'complete' if component.get('complete') else 'incomplete'}.", ""])

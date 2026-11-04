@@ -54,6 +54,7 @@ module aks './modules/aks.bicep' = {
     logAnalyticsId: monitoring.outputs.logAnalyticsId
     subnets: subnets
     tags: tags
+    tenantId: tenantId
     vnetName: vnetName
   }
 }

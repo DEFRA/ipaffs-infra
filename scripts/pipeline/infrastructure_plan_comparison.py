@@ -10,7 +10,7 @@ from datetime import datetime
 import math
 import re
 
-from infrastructure_plan_identity import identity_metadata_reason, is_metadata_field
+from infrastructure_plan_metadata import metadata_reason, is_metadata_field
 
 
 COMPONENTS = {"resource-group", "network", "acr", "classic", "infra", "privatelink"}
@@ -327,7 +327,7 @@ def analyze_comparison(dev_report, target_report, baseline_evidence):
                 path, field_action = _path(field), field.get("changeType")
                 if _metadata_field(ref["type"], field) or field_action == "NoEffect":
                     result = _field_result(field, "background",
-                        identity_metadata_reason(ref["type"], field) or "METADATA_OR_NO_EFFECT")
+                        metadata_reason(ref["type"], field) or "METADATA_OR_NO_EFFECT")
                 elif field.get("unresolved") is True or path == "[unrecognised property]" or not _member(field_action, FIELD_ACTIONS):
                     result = _field_result(field, "unresolved-coverage", "FIELD_NOT_ASSESSED")
                 elif path.lower() == "properties.isolationscope":
