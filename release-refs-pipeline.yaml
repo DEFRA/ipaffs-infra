@@ -1,0 +1,59 @@
+# Create a release manually from main; commits to release branches get patch tags.
+trigger:
+  batch: true
+  branches:
+    include:
+      - "RELEASE/*"
+  tags:
+    exclude:
+      - "*"
+
+pr: none
+
+pool:
+  name: DEFRA-COMMON-ubuntu2204-SSV5
+
+parameters:
+  - name: version
+    displayName: Version (major.minor for a new release)
+    type: string
+    default: auto
+  - name: branchPrefix
+    displayName: Release Branch Prefix
+    type: string
+    values:
+      - RELEASE/
+    default: RELEASE/
+
+stages:
+  - stage: CreateInfrastructureRefs
+    displayName: Create ipaffs-infra release refs
+    jobs:
+      - job: CreateBranchAndTag
+        displayName: Create release refs
+        steps:
+          - checkout: self
+            persistCredentials: true
+            fetchDepth: 0
+
+          - task: Bash@3
+            displayName: Create release branch or next patch tag
+            env:
+              VERSION: ${{ parameters.version }}
+              BRANCH_PREFIX: ${{ parameters.branchPrefix }}
+              SOURCE_REF: $(Build.SourceBranch)
+              SOURCE_SHA: $(Build.SourceVersion)
+              REQUESTED_FOR_EMAIL: $(Build.RequestedForEmail)
+              REQUESTED_FOR_NAME: $(Build.RequestedFor)
+              RELEASE_METADATA_FILE: $(Build.ArtifactStagingDirectory)/release-metadata/release.json
+              RELEASE_RUN_ID: $(Build.BuildId)
+              RELEASE_PIPELINE_ID: $(System.DefinitionId)
+            inputs:
+              targetType: inline
+              script: |
+                set -euo pipefail
+                python3 scripts/pipeline/create-release-refs.py
+
+          - publish: $(Build.ArtifactStagingDirectory)/release-metadata
+            artifact: release-metadata
+            displayName: Publish the exact infrastructure release version
