@@ -52,6 +52,8 @@ param searchParams = {
 }
 
 param sejParams = {
+  // Keep the existing maintenance targets, SQL commands and schedules.
+  manageMaintenanceDefinitions: false
   databaseName: 'elasticjobs'
   databaseNames: ['notification-microservice']
   databaseMaxSizeGiB: 10

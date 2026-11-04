@@ -35,6 +35,7 @@ PROTECTED_PATHS = [
     "pipelines/stages/deploy-bicep-infra.yaml",
     "pipelines/stages/deploy-bicep-privatelink.yaml",
     "scripts/pipeline/infrastructure_parameters.py",
+    "scripts/pipeline/ensure-bicep-version.sh",
 ]
 DEPLOYMENT_TASKS = {
     "DeployResourceGroup": "Deploy - ResourceGroup",
@@ -98,6 +99,22 @@ def nested_keys(value):
 
 
 class InfrastructurePreviewPipelineTests(unittest.TestCase):
+    def test_owned_nsg_compilation_uses_the_verified_compiler_before_azure_operations(self):
+        network_stage, = load("pipelines/stages/deploy-bicep-network.yaml")["stages"]
+        steps = network_stage["jobs"][0]["strategy"]["runOnce"]["deploy"]["steps"]
+        for name in ("WhatIf - Network", "Deploy - Network"):
+            task, = [step for step in steps if step.get("displayName") == name]
+            self.assertEqual("false", task["env"]["AZURE_BICEP_USE_BINARY_FROM_PATH"])
+            script = task["inputs"]["inlineScript"]
+            self.assertTrue(script.startswith("set -euo pipefail\n"))
+            self.assertLess(script.index("ensure-bicep-version.sh"), script.index("az deployment"))
+        for environment in ("DEV", "TST", "PRE", "PRD"):
+            for task in environment_stage(environment)["jobs"][0]["steps"]:
+                if task.get("task") == "AzureCLI@2":
+                    self.assertEqual("false", task["env"]["AZURE_BICEP_USE_BINARY_FROM_PATH"])
+                    script = task["inputs"]["inlineScript"]
+                    self.assertLess(script.index("ensure-bicep-version.sh"), script.index("plan-infrastructure.py"))
+
     def test_only_successful_main_dev_completion_is_automatic(self):
         pipeline = load(PIPELINE)
         self.assertEqual("none", pipeline["trigger"])
@@ -422,12 +439,13 @@ class InfrastructurePreviewPipelineTests(unittest.TestCase):
             "parameters": TEMPLATES.parameters(entrypoint, {"environmentName": "DEV", "includePlatform": True}),
             "variables": {"Build.SourceBranch": "refs/heads/main"},
         })
-        self.assertEqual(PROTECTED_PATHS[3:-1],
+        stage_files = [path for path in PROTECTED_PATHS if path.startswith("pipelines/stages/deploy-bicep-")]
+        self.assertEqual(stage_files,
                          ["pipelines/" + entry["template"] for entry in entries
                           if entry.get("template", "").startswith("stages/deploy-bicep-")])
         self.assertEqual(set(PARAMETERS.COMPONENTS),
-                         {Path(path).stem.removeprefix("deploy-bicep-") for path in PROTECTED_PATHS[3:-1]})
-        for stage_file in PROTECTED_PATHS[3:-1]:
+                         {Path(path).stem.removeprefix("deploy-bicep-") for path in stage_files})
+        for stage_file in stage_files:
             stage, = load(stage_file)["stages"]
             self.assertIn(stage["stage"], DEPLOYMENT_TASKS)
             deployment, = stage["jobs"]
@@ -542,6 +560,24 @@ class InfrastructurePreviewPipelineTests(unittest.TestCase):
         publish, = [step for step in job["steps"] if step.get("task") == "PublishPipelineArtifact@1"]
         self.assertEqual("always()", publish["condition"])
         self.assertEqual("infrastructure-preview", publish["inputs"]["artifactName"])
+
+
+def load_tests(loader, standard_tests, pattern):
+    # This existing CI entry point exercises the compiled ownership boundaries.
+    # Install a local compiler only; no Azure login or subscription is involved.
+    if not os.environ.get("BICEP_BIN"):
+        subprocess.run(["az", "bicep", "install", "--version", "v0.43.8", "--only-show-errors"],
+                       check=True, stdout=subprocess.DEVNULL, timeout=180)
+        config = Path(os.environ.get("AZURE_CONFIG_DIR", str(Path.home() / ".azure")))
+        os.environ["BICEP_BIN"] = str(config / "bin/bicep")
+    for filename in ("20-network.bicep", "30-classic.bicep"):
+        subprocess.run([os.environ["BICEP_BIN"], "restore", str(ROOT / "bicep" / filename)],
+                       check=True, timeout=180)
+    for name, filename in (("compiler_preparation_contract", "ensure-bicep-version.test.py"),
+                           ("network_rule_ownership_contract", "network-security-groups.test.py"),
+                           ("sql_maintenance_ownership_contract", "sql-maintenance-ownership.test.py")):
+        standard_tests.addTests(loader.loadTestsFromModule(module(name, filename)))
+    return standard_tests
 
 
 if __name__ == "__main__":

@@ -229,7 +229,8 @@ class InfrastructurePlanComparisonTests(unittest.TestCase):
     def test_retired_bridge_cannot_establish_a_current_control_or_target(self):
         self.assertEqual(6, len(COMPARISON.COMPONENTS))
         self.assertEqual(6, len(COMPARISON.SOURCE_DEPLOYMENT_STAGES))
-        self.assertEqual(10, len(COMPARISON.COMPARED_PATHS))
+        self.assertEqual(11, len(COMPARISON.COMPARED_PATHS))
+        self.assertIn("scripts/pipeline/ensure-bicep-version.sh", COMPARISON.COMPARED_PATHS)
         bridge = {"name": "infra-to-classic", "status": "complete", "diagnosticCount": 0, "resources": []}
         dev = report(resources=[resource()])
         dev["components"].append(bridge)
