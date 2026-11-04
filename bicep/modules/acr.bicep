@@ -22,12 +22,13 @@ resource acr 'Microsoft.ContainerRegistry/registries@2025-04-01' = {
   }
 }
 
-resource acrPrivateEndpoint 'Microsoft.Network/privateEndpoints@2024-10-01' = {
+resource acrPrivateEndpoint 'Microsoft.Network/privateEndpoints@2025-03-01' = {
   name: format('{0}-{1}', acrParams.name, subnets.privateEndpoints.name)
   location: location
   tags: tags
 
   properties: {
+    ipVersionType: 'IPv4'
     subnet: {
       id: subnets.privateEndpoints.id
     }
