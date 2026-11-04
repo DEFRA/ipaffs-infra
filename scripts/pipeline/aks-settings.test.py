@@ -150,7 +150,8 @@ class CompiledAksSettingsTests(unittest.TestCase):
         self.assertNotIn("aiToolchainOperatorProfile", self.properties)
         self.assertNotIn("extensionManager", self.properties["addonProfiles"])
         self.assertNotIn("windowsProfile", self.properties)
-        self.assertNotIn("serviceMeshProfile", self.properties)
+        self.assertEqual({"mode": "Disabled"}, self.properties["serviceMeshProfile"])
+        self.assertEqual({"clientId": "msi"}, self.properties["servicePrincipalProfile"])
 
 
 if __name__ == "__main__":

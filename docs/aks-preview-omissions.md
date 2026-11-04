@@ -26,6 +26,7 @@ validation evidence, with no tenant values or Library parameters published.
 | Node security | FIPS disabled, local-user SSH access, existing Secure Boot and vTPM settings |
 | Pool scaling and upgrades | Delete scale-down mode; maximum surge `10%`, maximum unavailable `0` |
 | Metrics and storage | Cost analysis disabled; Azure Disk/File CSI drivers and snapshot controller enabled |
+| Service mesh and authentication profile | Service mesh disabled; service-principal client ID `msi`, Azure's marker for the existing managed identity |
 
 The disk sizes are parameters for each environment's named pools. The API's
 implicit disk defaults depend on the VM size and cache characteristics, while
@@ -67,7 +68,7 @@ them in the template or filtering them from review:
 | Defender | Enabled in DEV and TST; absent in PRE/PRD. Enabling it requires its intended Log Analytics workspace, so the ordinary monitoring workspace must not be substituted without verification. |
 | AI toolchain operator | Enabled in TST only. Its ownership and desired cross-environment state are not established by recurrence in DEV. |
 | Extension manager | Enabled in all four GETs, but AKS manages its lifecycle; a generic addon-profile shape does not establish that customer configuration is supported. |
-| Service-principal, kubelet-identity, Windows and service-mesh profiles | Provider-populated shapes can contain writable settings. The whole objects are not classified as harmless merely because they were omitted. |
+| Kubelet-identity and Windows profiles | Provider-populated shapes can contain writable settings. The whole objects are not classified as harmless merely because they were omitted. |
 
 The PRE user pool also reported a failed provisioning state with the bounded
 error code `KubernetesAPICallFailed`. This is an existing operational condition,

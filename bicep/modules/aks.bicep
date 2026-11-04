@@ -56,6 +56,14 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2025-10-01' = {
     enableRBAC: true
     supportPlan: 'KubernetesOfficial'
 
+    serviceMeshProfile: {
+      mode: 'Disabled'
+    }
+
+    servicePrincipalProfile: {
+      clientId: 'msi'
+    }
+
     aadProfile: {
       managed: true
       enableAzureRBAC: true

@@ -17,6 +17,7 @@ resource logAnalytics 'Microsoft.OperationalInsights/workspaces@2025-07-01' = {
   location: location
   tags: tags
   properties: {
+    retentionInDays: 30
     sku: {
       name: 'PerGB2018'
     }
@@ -43,6 +44,7 @@ resource grafanaDashboard 'Microsoft.Dashboard/grafana@2025-08-01' = {
   tags: tags
   sku: {
     name: 'Standard'
+    size: 'X1'
   }
   identity: {
     type: 'SystemAssigned'

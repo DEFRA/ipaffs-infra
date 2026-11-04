@@ -22,6 +22,7 @@ resource redis 'Microsoft.Cache/redis@2024-11-01' = {
     minimumTlsVersion: '1.2'
     publicNetworkAccess: 'Disabled'
     redisVersion: '6.0'
+    updateChannel: 'Stable'
 
     sku: {
       name: 'Standard'
