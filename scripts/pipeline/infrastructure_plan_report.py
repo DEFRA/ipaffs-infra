@@ -18,6 +18,7 @@ import re
 
 from infrastructure_plan_markdown import TYPE_LABELS, environment_markdown, change_details_markdown, is_no_effect_only, resource_label, type_label, property_label
 from infrastructure_plan_comparison import analyze_comparison
+from infrastructure_plan_identity import has_identity_resource_id, identity_metadata_reason, is_metadata_only
 
 
 CHANGE_TYPES = ("Create", "Modify", "Delete", "NoChange", "Deploy", "Ignore", "Unsupported", "Unknown")
@@ -45,6 +46,9 @@ _IDENTIFIER = re.compile(r"^[A-Za-z0-9/][A-Za-z0-9._/()@:+ -]{0,1023}$")
 _PROPERTY = re.compile(r"^[A-Za-z_][A-Za-z0-9_.\[\]-]{0,511}$")
 _SECRET = re.compile(r"password|secret|credential|connectionstring|token|protectedsettings|privatekey|accesskey|accountkey|sas|parameters|outputs|appsettings", re.I)
 _EXPRESSION = re.compile(r"^\s*\[.*\]\s*$", re.S)
+_UUID = re.compile(r"[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}\Z")
+_IDENTITY_TYPE = "microsoft.managedidentity/userassignedidentities"
+_IDENTITY_GENERATED_PATHS = {"properties.clientid", "properties.principalid", "properties.tenantid"}
 _BOOLEAN_LEAVES = {
     "enabled", "httpsonly", "supportshttpstrafficonly", "allowblobpublicaccess",
     "allowsharedkeyaccess", "ishnsenabled", "issftpenabled", "enablerbacauthorization",
@@ -114,7 +118,7 @@ def _unresolved(value):
     return False
 
 
-def _public_value(path, value, present=True):
+def _public_value(path, value, present=True, resource_type=""):
     if not present:
         return MISSING
     if _SECRET.search(path) or path == "[unrecognised property]":
@@ -127,6 +131,9 @@ def _public_value(path, value, present=True):
     enum = leaf in _ENUM_LEAVES or normal in {"location", "kind"} or sku
     if _unresolved(value):
         return "[unresolved expression]"
+    if (resource_type.lower() == _IDENTITY_TYPE and path.lower() == "properties.isolationscope"
+            and isinstance(value, str) and value in {"None", "Regional"}):
+        return value
     if boolean and isinstance(value, bool):
         return value
     if (numeric or normal == "sku.capacity") and isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value):
@@ -136,7 +143,74 @@ def _public_value(path, value, present=True):
     return WITHHELD
 
 
-def _fields(delta, parent=""):
+def _identity_omission(change, path, after_snapshot):
+    """Accept absent delta values, or ARM nulls backed by a desired snapshot.
+
+    Null is not itself proof of omission. In particular, an explicit null
+    isolationScope in the desired resource must stay visible for review.
+    """
+    if isinstance(after_snapshot, dict) and "properties" in after_snapshot:
+        properties = after_snapshot["properties"]
+        if (not isinstance(properties, dict) or path.lower() == "properties"
+                or any(str(key).lower() == path.rsplit(".", 1)[-1].lower() for key in properties)):
+            return False
+    if "after" not in change:
+        return True
+    if change["after"] is not None or not isinstance(after_snapshot, dict):
+        return False
+    if "properties" not in after_snapshot:
+        return True
+    return isinstance(after_snapshot["properties"], dict)
+
+
+def _identity_property_changes(change, after_snapshot):
+    """Split complete identity bags before redaction, preserving unknown keys.
+
+    Coarse, withheld or malformed property bags are deliberately not expanded:
+    they cannot establish that the omitted properties are generated fields.
+    """
+    action = change.get("propertyChangeType")
+    before, after = change.get("before"), change.get("after")
+    if action == "Delete" and isinstance(before, dict) and _identity_omission(change, "properties", after_snapshot):
+        old, new = before, {}
+    elif action == "Create" and isinstance(after, dict) and "before" not in change:
+        old, new = {}, after
+    elif action == "Modify" and isinstance(before, dict) and isinstance(after, dict):
+        old, new = before, after
+    else:
+        return None
+    keys = list(dict.fromkeys([*old, *new]))
+    if (not keys or any(not isinstance(key, str) or not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", key) for key in keys)
+            or len({key.lower() for key in keys}) != len(keys)):
+        return None
+    result = []
+    for key in keys:
+        if (key.lower() in {"clientid", "principalid", "tenantid", "isolationscope"}
+                and key in old and key in new and type(old[key]) is type(new[key])
+                and old[key] == new[key]):
+            continue
+        leaf = {"path": key, "propertyChangeType": "Modify" if key in old and key in new else "Delete" if key in old else "Create"}
+        if key in old:
+            leaf["before"] = old[key]
+        if key in new:
+            leaf["after"] = new[key]
+        result.append(leaf)
+    return result or None
+
+
+def _identity_metadata_reason(change, path, after_snapshot):
+    if (change.get("propertyChangeType") != "Delete"
+            or not _identity_omission(change, path, after_snapshot)):
+        return None
+    before = change.get("before")
+    if path.lower() in _IDENTITY_GENERATED_PATHS and isinstance(before, str) and _UUID.fullmatch(before):
+        return "GENERATED_IDENTITY_PROPERTY"
+    if path.lower() == "properties.isolationscope" and before == "None":
+        return "UNCHANGED_IDENTITY_SCOPE_DEFAULT"
+    return None
+
+
+def _fields(delta, parent="", resource_type="", resource_action="", potential=False, after_snapshot=None):
     fields = []
     if not isinstance(delta, list):
         return fields
@@ -146,23 +220,54 @@ def _fields(delta, parent=""):
         raw_path = change.get("path", "")
         full_path = _join_path(parent, raw_path) if isinstance(raw_path, str) else ""
         children = change.get("children", change.get("childDelta"))
-        if isinstance(children, list) and children:
-            fields.extend(_fields(children, full_path))
-            continue
         path = _path(full_path)
+        identity = resource_type.lower() == _IDENTITY_TYPE
+        child_fields = (_fields(children, full_path, resource_type, resource_action, potential, after_snapshot)
+                        if isinstance(children, list) and children else [])
+        if identity and path.lower() == "properties":
+            expanded = _identity_property_changes(change, after_snapshot)
+            malformed_children = ((children is not None and not isinstance(children, list))
+                                  or (isinstance(children, list) and any(not isinstance(child, dict) for child in children)))
+            if expanded is not None and not malformed_children:
+                expanded_fields = _fields(expanded, full_path, resource_type, resource_action, potential, after_snapshot)
+                # A child list must not erase a writable property present in the
+                # complete coarse bag, nor introduce a hidden additional change.
+                fields.extend(expanded_fields)
+                fields.extend(child for child in child_fields if child not in expanded_fields)
+                continue
+            fields.extend(child_fields)
+            if child_fields and "before" not in change and "after" not in change and not malformed_children:
+                continue
+        elif isinstance(children, list) and children:
+            fields.extend(child_fields)
+            continue
         change_type = change.get("propertyChangeType")
-        fields.append({
+        reason = (_identity_metadata_reason(change, path, after_snapshot)
+                  if identity and resource_action == "Modify" and not potential else None)
+        field = {
             "path": path,
             "changeType": change_type if change_type in {"Create", "Delete", "Modify", "Array", "NoEffect"} else "Unknown",
-            "before": _public_value(path, change.get("before"), "before" in change),
-            "after": _public_value(path, change.get("after"), "after" in change),
+            "before": _public_value(path, change.get("before"), "before" in change, resource_type),
+            "after": MISSING if reason else _public_value(path, change.get("after"), "after" in change, resource_type),
             "unresolved": _unresolved(change.get("before")) or _unresolved(change.get("after")),
-            "metadataOnly": path.lower() == "tags.createddate",
-        })
+            "metadataOnly": bool(reason) or path.lower() == "tags.createddate",
+        }
+        if reason:
+            field["metadataReason"] = reason
+        if identity and path.lower() == "properties":
+            field["unresolved"] = True
+        if (identity and path.lower() in _IDENTITY_GENERATED_PATHS and change_type == "Delete"
+                and not (isinstance(change.get("before"), str) and _UUID.fullmatch(change["before"]))):
+            field["unresolved"] = True
+        if (identity and change_type == "Delete"
+                and path.lower() in _IDENTITY_GENERATED_PATHS | {"properties.isolationscope"}
+                and not _identity_omission(change, path, after_snapshot)):
+            field["unresolved"] = True
+        fields.append(field)
     return fields
 
 
-def _snapshot_fields(snapshot, change_type):
+def _snapshot_fields(snapshot, change_type, resource_type=""):
     """Show approved create/delete configuration without copying entire snapshots."""
     result = []
 
@@ -175,7 +280,7 @@ def _snapshot_fields(snapshot, change_type):
             for index, child in enumerate(value):
                 visit(child, f"{path}[{index}]")
         else:
-            public = _public_value(path, value)
+            public = _public_value(path, value, resource_type=resource_type)
             if public != WITHHELD:
                 result.append({"path": _path(path), "changeType": change_type,
                                "before": MISSING if change_type == "Create" else public,
@@ -206,10 +311,21 @@ def _resource(change, potential=False):
     resource_id = _identifier(change.get("resourceId"))
     resource_type = _resource_type(change, resource_id)
     change_type = change.get("changeType") if change.get("changeType") in CHANGE_TYPES else "Unknown"
-    fields = _fields(change.get("delta"))
+    fields = _fields(change.get("delta"), resource_type=resource_type, resource_action=change_type,
+                     potential=potential, after_snapshot=change.get("after"))
     if not fields and change_type in {"Create", "Delete"}:
-        fields = _snapshot_fields(change.get("after" if change_type == "Create" else "before"), change_type)
-    metadata_only = change_type == "Modify" and bool(fields) and all(field["metadataOnly"] for field in fields)
+        fields = _snapshot_fields(change.get("after" if change_type == "Create" else "before"), change_type, resource_type)
+    if resource_type.lower() == _IDENTITY_TYPE and not has_identity_resource_id(resource_id):
+        # Without a valid identity resource reference these otherwise harmless
+        # leaves cannot establish which resource ARM assessed. Keep the gap in
+        # both environment counts and the downstream comparison projection.
+        for field in fields:
+            if identity_metadata_reason(resource_type, field):
+                field["unresolved"] = True
+                field["metadataOnly"] = False
+                field.pop("metadataReason", None)
+    metadata_only = (change_type == "Modify" and not potential and bool(fields)
+                     and all(field["metadataOnly"] for field in fields))
     category = "deployment-metadata" if resource_type.lower() == "microsoft.resources/deployments" else "resource"
     impacts = []
     if change_type != "NoChange" and not metadata_only:
@@ -313,7 +429,7 @@ def _review_breakdown(source):
     for component in components if isinstance(components, list) else []:
         resources = component.get("resources") if isinstance(component, dict) else None
         for resource in resources if isinstance(resources, list) else []:
-            if not isinstance(resource, dict) or resource.get("category") != "resource" or resource.get("metadataOnly") is True:
+            if not isinstance(resource, dict) or resource.get("category") != "resource" or is_metadata_only(resource):
                 continue
             if is_no_effect_only(resource):
                 no_effect_only += 1
@@ -360,7 +476,7 @@ def _combined_markdown(report):
                              - (item["review"]["noEffectOnly"] if action == "Modify" else 0)))
                   if item["executionStatus"] != "missing" else "—" for action in ("Create", "Modify", "Delete")]
         lines.append(f"| {item['environment']} | {' | '.join(values)} | {execution} |")
-    lines.extend(["", "These are Azure predictions against the live environment. An update can include provider defaults or properties omitted from the proposed configuration; it is not proof of an operational change. Counts exclude deployment wrappers, CreatedDate-only updates and NoEffect-only updates, and can repeat a resource across component previews.", ""])
+    lines.extend(["", "These are Azure predictions against the live environment. An update can include provider defaults or properties omitted from the proposed configuration; it is not proof of an operational change. Counts exclude deployment wrappers, metadata-only updates and NoEffect-only updates, and can repeat a resource across component previews.", ""])
     lines.extend(_comparison_markdown(report["devComparison"]))
     types = sorted({label for item in environments for label in item["review"]["changes"]})
     if types:
@@ -389,7 +505,7 @@ def _combined_markdown(report):
     lines.extend(["", "Unresolved values need checking against the intended configuration; Azure cannot determine them before deployment. Property-by-property evidence is in `change-details.md` in each `infrastructure-plan-ENV` artifact. `dev-comparison.json` records the comparison classifications without publishing source values.", "",
                   "## Background inventory", "",
                   "These are observations across component previews, not extra proposed changes. Individual inventory records are retained in `plan.json`.", "",
-                  "| Environment | Ignored observations | Unchanged observations | CreatedDate-only updates | NoEffect-only updates |", "|---|---:|---:|---:|---:|"])
+                  "| Environment | Ignored observations | Unchanged observations | Metadata-only updates | NoEffect-only updates |", "|---|---:|---:|---:|---:|"])
     for item in environments:
         counts = (["—", "—", "—", "—"] if item["executionStatus"] == "missing" else
                   [str(item["totals"]["Ignore"]), str(item["totals"]["NoChange"]),
@@ -397,6 +513,7 @@ def _combined_markdown(report):
         lines.append(f"| {item['environment']} | {' | '.join(counts)} |")
     lines.extend(["", "Azure usually marks existing resources outside an individual template as Ignore, and can also do so when template expansion reaches a limit. They are not listed as individual review items; their presence still prevents a claim of complete coverage.", ""])
     lines.extend(["NoEffect-only updates contain only fields Azure marks as having no effect, plus possible CreatedDate metadata. They are excluded from the review list, while the environment JSON and change-details.md retain the original evidence.", ""])
+    lines.extend(["Metadata-only updates can include CreatedDate, omitted generated managed-identity IDs and an omitted None regional-isolation default. Changes to Regional isolation, unknown properties and incomplete evidence remain reviewable. Original ARM operations and fixed metadata reasons remain in the environment artifacts.", ""])
     if report["missingEnvironments"]:
         lines.extend(["**Missing environment reports:** " + ", ".join(report["missingEnvironments"]) + ".", ""])
     if not report["sameCommit"]:

@@ -17,6 +17,9 @@ REPORT = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(REPORT)
 RID = "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/ipaffs-tst/providers/"
 COMMIT = "a" * 40
+GENERATED_IDENTITY_IDS = {"clientId": "22222222-2222-4222-8222-222222222222",
+                          "principalId": "33333333-3333-4333-8333-333333333333",
+                          "tenantId": "44444444-4444-4444-8444-444444444444"}
 
 
 def resource(resource_type="Microsoft.ContainerRegistry/registries", name="ipaffstst", change_type="Modify", delta=None):
@@ -102,7 +105,7 @@ class InfrastructurePlanReportTests(unittest.TestCase):
         self.assertTrue(resources[0]["metadataOnly"])
         self.assertFalse(resources[1]["metadataOnly"])
         self.assertEqual(plan["totals"]["Modify"], 2)
-        self.assertIn("CreatedDate-only updates: 1", self.markdown)
+        self.assertIn("Metadata-only updates: 1", self.markdown)
         self.assertNotIn("onlydate", self.markdown)
         self.assertIn("realchange", self.markdown)
         self.assertNotIn("yesterday", self.serialized + self.markdown)
@@ -133,9 +136,118 @@ class InfrastructurePlanReportTests(unittest.TestCase):
         self.assertEqual(combined["environments"][0]["totals"]["Modify"], 0)
         self.assertEqual(combined["environments"][0]["metadataOnlyTotals"]["Modify"], 1)
         summary = (self.directory / "combined" / "summary.md").read_text()
-        self.assertIn("CreatedDate-only updates", summary)
+        self.assertIn("Metadata-only updates", summary)
         self.assertIn("| TST | 0 | 0 | 0 | Completed |", summary)
         self.assertIn("| TST | 0 | 0 | 1 |", summary)
+
+    def managed_identity_change(self, name, before_scope="None", after_scope=None, **before_extras):
+        """The coarse ARM property deletion that originally produced noisy rows."""
+        properties = {**GENERATED_IDENTITY_IDS, "isolationScope": before_scope, **before_extras}
+        proposed = {"isolationScope": after_scope} if after_scope is not None else None
+        item = resource("Microsoft.ManagedIdentity/userAssignedIdentities", name, delta=[
+            field("properties", properties, proposed,
+                  propertyChangeType="Modify" if proposed is not None else "Delete"),
+            field("tags.CreatedDate", "BEFORE-DATE-PRIVATE", "[utcNow()]")])
+        item["before"]["properties"] = properties
+        if proposed is not None:
+            item["after"]["properties"] = proposed
+        return item
+
+    def test_generated_identity_properties_stay_background_through_environment_and_combined_reports(self):
+        inputs = []
+        for environment in REPORT.PREVIEW_ENVIRONMENTS:
+            scope_only = resource("Microsoft.ManagedIdentity/userAssignedIdentities", "background-scope-only", delta=[
+                field("properties", {"isolationScope": "None"}, None, propertyChangeType="Delete")])
+            scope_only["before"]["properties"] = {"isolationScope": "None"}
+            parts = [component(([self.managed_identity_change("background-generated-" + name)]
+                                if name in {"classic", "infra"} else [])
+                               + ([scope_only] if name == "infra" else []), name=name)
+                     for name in sorted(COMPARISON.COMPONENTS)]
+            plan = self.report(parts, environment)
+            self.assertTrue(plan["complete"])
+            self.assertEqual(3, plan["totals"]["Modify"], "Retain ARM's raw resource classifications")
+            self.assertEqual(0, plan["resourceTotals"]["Modify"])
+            self.assertEqual(3, plan["metadataOnlyTotals"]["Modify"])
+            self.assertNotIn("background-generated-", self.markdown)
+            self.assertNotIn("background-scope-only", self.markdown)
+            normalized = next(item for part in plan["components"] for item in part["resources"]
+                              if item["name"] == "background-scope-only")
+            self.assertEqual("UNCHANGED_IDENTITY_SCOPE_DEFAULT", normalized["fields"][0]["metadataReason"])
+            for secret in GENERATED_IDENTITY_IDS.values():
+                self.assertNotIn(secret, self.serialized + self.markdown + self.detail_markdown)
+            inputs.append(self.directory / environment / "plan.json")
+        combined = REPORT.combine_reports(inputs, self.directory / "combined")
+        self.assertTrue(combined["complete"])
+        self.assertFalse(combined["comparisonAvailable"], "Confirmed metadata needs no applied DEV baseline")
+        for environment in combined["environments"]:
+            self.assertEqual(0, environment["totals"]["Modify"])
+            self.assertEqual(3, environment["metadataOnlyTotals"]["Modify"])
+            self.assertEqual({}, environment["review"]["changes"])
+        for comparison in combined["devComparison"]:
+            self.assertEqual([], comparison["resources"])
+            self.assertEqual(3, comparison["counts"]["backgroundResources"])
+        summary = (self.directory / "combined" / "summary.md").read_text()
+        self.assertNotIn("background-generated-", summary)
+        self.assertNotIn("background-scope-only", summary)
+        self.assertNotIn("Remove property from config: resource properties", summary)
+
+    def test_mixed_identity_scope_and_unknown_properties_stay_visible_after_combining(self):
+        inputs = []
+        for environment in REPORT.PREVIEW_ENVIRONMENTS:
+            changes = [self.managed_identity_change("generated-only"),
+                       self.managed_identity_change("restricted-scope-removed", before_scope="Regional"),
+                       self.managed_identity_change("restricted-scope-added", after_scope="Regional"),
+                       self.managed_identity_change("unknown-writable-property", futureSetting="DO-NOT-PUBLISH-FUTURE")]
+            parts = [component(changes if name == "infra" else [], name=name)
+                     for name in sorted(COMPARISON.COMPONENTS)]
+            plan = self.report(parts, environment)
+            self.assertEqual(4, plan["totals"]["Modify"])
+            self.assertEqual(3, plan["resourceTotals"]["Modify"])
+            self.assertEqual(1, plan["metadataOnlyTotals"]["Modify"])
+            self.assertIn("restricted-scope-removed", self.markdown)
+            self.assertIn("restricted-scope-added", self.markdown)
+            self.assertIn("unknown-writable-property", self.markdown)
+            self.assertNotIn("DO-NOT-PUBLISH-FUTURE", self.serialized + self.markdown + self.detail_markdown)
+            self.assertNotIn("generated-only", self.markdown)
+            inputs.append(self.directory / environment / "plan.json")
+        combined = REPORT.combine_reports(inputs, self.directory / "combined")
+        summary = (self.directory / "combined" / "summary.md").read_text()
+        for comparison in combined["devComparison"]:
+            by_name = {item["name"]: item for item in comparison["resources"]}
+            self.assertNotIn("generated-only", by_name)
+            self.assertEqual(3, len(by_name))
+            for name in ("restricted-scope-removed", "restricted-scope-added"):
+                self.assertEqual("policy-security-review", by_name[name]["classification"])
+                scope = next(entry for entry in by_name[name]["fields"] if entry["path"] == "properties.isolationScope")
+                self.assertEqual("policy-security-review", scope["classification"])
+            self.assertNotEqual("background", by_name["unknown-writable-property"]["classification"])
+        self.assertIn("restricted-scope-removed", summary)
+        self.assertIn("restricted-scope-added", summary)
+        self.assertIn("unknown-writable-property", summary)
+        self.assertNotIn("generated-only", summary)
+
+    def test_forged_identity_metadata_flags_cannot_hide_scope_in_combined_action_tables(self):
+        inputs = []
+        for environment in REPORT.PREVIEW_ENVIRONMENTS:
+            self.report([component([self.managed_identity_change("real-scope-change", after_scope="Regional")], name=name)
+                         if name == "infra" else component([], name=name)
+                         for name in sorted(COMPARISON.COMPONENTS)], environment)
+            path = self.directory / environment / "plan.json"
+            document = json.loads(path.read_text())
+            for part in document["components"]:
+                for item in part["resources"]:
+                    item["metadataOnly"] = True
+                    for entry in item["fields"]:
+                        entry.update(metadataOnly=True, metadataReason="GENERATED_IDENTITY_PROPERTY")
+            path.write_text(json.dumps(document))
+            inputs.append(path)
+        combined = REPORT.combine_reports(inputs, self.directory / "combined")
+        summary = (self.directory / "combined" / "summary.md").read_text()
+        self.assertIn("Managed identity |", summary)
+        for comparison in combined["devComparison"]:
+            self.assertEqual(1, comparison["counts"]["policySecurityResources"])
+            self.assertEqual("real-scope-change", comparison["resources"][0]["name"])
+        self.assertIn("real-scope-change", summary)
 
     def test_deployment_metadata_is_grouped_and_child_resource_is_still_prominent(self):
         wrapper = resource("Microsoft.Resources/deployments", "childmodule", "Modify", [field("tags.CreatedDate", "before", "after")])
@@ -487,11 +599,12 @@ class InfrastructurePlanReportTests(unittest.TestCase):
 def load_tests(loader, standard_tests, pattern):
     # The existing CI reporting entry point also exercises its comparator.
     # Keep the classifier contract independently runnable for focused debugging.
-    spec = importlib.util.spec_from_file_location("comparison_contract_tests",
-        SCRIPT.with_name("infrastructure-plan-comparison.test.py"))
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    standard_tests.addTests(loader.loadTestsFromModule(module))
+    for name, filename in (("comparison_contract_tests", "infrastructure-plan-comparison.test.py"),
+                           ("identity_properties_contract_tests", "infrastructure-identity-properties.test.py")):
+        spec = importlib.util.spec_from_file_location(name, SCRIPT.with_name(filename))
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        standard_tests.addTests(loader.loadTestsFromModule(module))
     return standard_tests
 
 

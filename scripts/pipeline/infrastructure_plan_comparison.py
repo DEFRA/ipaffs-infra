@@ -10,6 +10,8 @@ from datetime import datetime
 import math
 import re
 
+from infrastructure_plan_identity import identity_metadata_reason, is_metadata_field
+
 
 COMPONENTS = {"resource-group", "network", "acr", "classic", "infra", "privatelink"}
 ACTIONS = {"Create", "Modify", "Delete", "NoChange", "Deploy", "Ignore", "Unsupported", "Unknown"}
@@ -36,7 +38,7 @@ _PATH = re.compile(r"[A-Za-z_][A-Za-z0-9_.\[\]-]{0,511}")
 _TYPE = re.compile(r"Microsoft\.[A-Za-z][A-Za-z0-9.]*(?:/[A-Za-z][A-Za-z0-9-]*)+", re.I)
 _TIMESTAMP = re.compile(r"(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})(?:\.(\d{1,9}))?(Z|[+-]\d{2}:\d{2})")
 _SENTINELS = {"[withheld]", "[not present]", "[unresolved expression]", "unavailable"}
-_SECURITY = re.compile(r"securityrules|securityprofile|authorization|accesspolic|principal|tenantid|credential|password|secret|token|encryption|disablelocalauth|enable.?rbac|publicnetworkaccess|firewall|networkacl|privatenetwork|privateendpointnetworkpolic", re.I)
+_SECURITY = re.compile(r"isolationscope|securityrules|securityprofile|authorization|accesspolic|principal|tenantid|credential|password|secret|token|encryption|disablelocalauth|enable.?rbac|publicnetworkaccess|firewall|networkacl|privatenetwork|privateendpointnetworkpolic", re.I)
 _CONFIGURATION = re.compile(r"version|(?:^|\.)sku(?:\.|$)|addressprefix|cidr|subnet|serviceendpoint|servicecidr|podcidr|jobagents|targetgroups|script|command|members|autopause|capacity|replicas|nodecount|mincount|maxcount|agentpoolprofiles|route", re.I)
 
 # Exact resource-type and whole-property matches only. Array indexes must not be
@@ -44,7 +46,6 @@ _CONFIGURATION = re.compile(r"version|(?:^|\.)sku(?:\.|$)|addressprefix|cidr|sub
 # These are deliberately limited to omitted provider defaults/generated fields.
 # A match here is always labelled pattern-only unless all values can be compared.
 _OMITTED_DEFAULTS = {
-    "microsoft.managedidentity/userassignedidentities": {"properties", "properties.clientid", "properties.principalid", "properties.tenantid"},
     "microsoft.network/privateendpoints": {"properties.ipversiontype"},
     "microsoft.cache/redis": {"properties.updatechannel", "properties.zonalallocationpolicy"},
     "microsoft.search/searchservices": {"properties.endpoint"},
@@ -242,8 +243,8 @@ def _field_result(field, classification, reason, confidence="none"):
             "classification": classification, "reasonCode": reason, "confidence": confidence}
 
 
-def _metadata_field(field):
-    return isinstance(field, dict) and _path(field).lower() == "tags.createddate"
+def _metadata_field(resource_type, field):
+    return is_metadata_field(resource_type, field)
 
 
 def _background(resource):
@@ -253,7 +254,8 @@ def _background(resource):
     return (_member(resource.get("changeType"), {"Ignore", "NoChange"})
             or _resource_ref(resource)["type"].lower() == "microsoft.resources/deployments"
             or resource.get("changeType") == "Modify" and bool(fields)
-            and all(isinstance(field, dict) and (_metadata_field(field) or field.get("changeType") == "NoEffect") for field in fields))
+            and all(isinstance(field, dict) and (_metadata_field(_resource_ref(resource)["type"], field)
+                                               or field.get("changeType") == "NoEffect") for field in fields))
 
 
 def analyze_comparison(dev_report, target_report, baseline_evidence):
@@ -306,10 +308,13 @@ def analyze_comparison(dev_report, target_report, baseline_evidence):
             for field in _list(resource.get("fields")):
                 field = _dict(field)
                 path, field_action = _path(field), field.get("changeType")
-                if _metadata_field(field) or field_action == "NoEffect":
-                    result = _field_result(field, "background", "METADATA_OR_NO_EFFECT")
+                if _metadata_field(ref["type"], field) or field_action == "NoEffect":
+                    result = _field_result(field, "background",
+                        identity_metadata_reason(ref["type"], field) or "METADATA_OR_NO_EFFECT")
                 elif field.get("unresolved") is True or path == "[unrecognised property]" or not _member(field_action, FIELD_ACTIONS):
                     result = _field_result(field, "unresolved-coverage", "FIELD_NOT_ASSESSED")
+                elif path.lower() == "properties.isolationscope":
+                    result = _field_result(field, "policy-security-review", "SECURITY_OR_POLICY_OWNERSHIP")
                 elif component == "classic":
                     result = _field_result(field, "review-needed", "CLASSIC_SCOPE_DIFFERS")
                 elif _known_default(ref["type"], path, field_action):
