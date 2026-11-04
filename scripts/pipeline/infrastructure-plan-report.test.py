@@ -405,6 +405,21 @@ class InfrastructurePlanReportTests(unittest.TestCase):
         self.assertFalse(combined["comparisonAvailable"])
         self.assertEqual(["DEV"], combined["missingEnvironments"])
 
+    def test_mixed_updates_keep_unresolved_fields_visible_in_the_overview(self):
+        inputs = self.comparison_inputs()
+        target = self.directory / "TST" / "plan.json"
+        source = json.loads(target.read_text())
+        for part in source["components"]:
+            for item in part["resources"]:
+                if item["name"] == "real-sku-update":
+                    item["fields"].append({"path": "properties.futureSetting", "changeType": "Modify",
+                                           "before": "[withheld]", "after": "[unresolved expression]", "unresolved": True})
+        target.write_text(json.dumps(source))
+        REPORT.combine_reports(inputs, self.directory / "combined")
+        summary = (self.directory / "combined" / "summary.md").read_text()
+        self.assertIn("| TST | 3 | 1 | 2 | Available |", summary)
+        self.assertIn("real-sku-update", summary.split("## Unresolved predictions", 1)[1])
+
     def test_pipeline_warns_for_successful_but_incomplete_assessment_without_changing_artifacts(self):
         for environment in REPORT.PREVIEW_ENVIRONMENTS:
             self.report([component([resource(change_type="Ignore"), resource(change_type="Unsupported"),

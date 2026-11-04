@@ -427,11 +427,14 @@ def _comparison_markdown(comparisons):
              "|---|---:|---:|---:|---|"]
     for comparison in comparisons:
         counts = comparison["counts"]
+        unresolved_count = sum(item["classification"] == "unresolved-coverage" or
+                               any(field["classification"] == "unresolved-coverage" for field in item["fields"])
+                               for item in comparison["resources"])
         status = "Available" if comparison["baseline"]["status"] == "usable" else "Unavailable"
         if comparison["executionStatus"] != "succeeded":
             lines.append(f"| {comparison['environment']} | — | — | — | Preview {comparison['executionStatus']} |")
         else:
-            lines.append(f"| {comparison['environment']} | {counts['reviewResources'] + counts['policySecurityResources']} | {counts['potentialNoiseResources']} | {counts['unresolvedResources']} | {status} |")
+            lines.append(f"| {comparison['environment']} | {counts['reviewResources'] + counts['policySecurityResources']} | {counts['potentialNoiseResources']} | {unresolved_count} | {status} |")
     lines.extend(["", "Potential noise remains included in the reported update totals above. Counts are observations across component previews, so the same resource can appear more than once.", ""])
     reasons = {item["baseline"]["reasonCode"] for item in comparisons}
     for reason in sorted(reasons):
@@ -475,12 +478,13 @@ def _comparison_markdown(comparisons):
     if patterns:
         lines.extend(["| Target | Resource type | Property | Observations | Evidence |", "|---|---|---|---:|---|"])
         for (env, label, path, confidence), count in sorted(patterns.items()):
-            lines.append(f"| {env} | {_md(label)} | {_md(path)} | {count} | {'Matching public values' if confidence == 'matching-values' else 'Pattern only; values withheld'} |")
+            lines.append(f"| {env} | {_md(label)} | {_md(property_label(path))} | {count} | {'Matching public values' if confidence == 'matching-values' else 'Pattern only; values withheld'} |")
         lines.extend(["", "Mixed updates remain in the review list when another property needs review. Each matched resource is retained in `dev-comparison.json`.", ""])
     else:
         lines.extend(["None identified with a usable matching DEV control.", ""])
     unresolved = [(comparison["environment"], item) for comparison in comparisons
-                  for item in comparison["resources"] if item["classification"] == "unresolved-coverage"]
+                  for item in comparison["resources"] if item["classification"] == "unresolved-coverage"
+                  or any(field["classification"] == "unresolved-coverage" for field in item["fields"])]
     if unresolved:
         lines.extend(["## Unresolved predictions", "", "These are assessment gaps, including uncertain action entries, rather than confirmed changes or noise.", "",
                       "| Target | Action | Resource |", "|---|---|---|"])
