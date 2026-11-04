@@ -1,4 +1,12 @@
 parameters:
+  - name: stagePrefix
+    type: string
+    default: ''
+
+  - name: allowTaggedDeployments
+    type: boolean
+    default: false
+
   - name: environmentName
     type: string
 
@@ -10,7 +18,7 @@ parameters:
     default: {}
 
 stages:
-  - stage: PrivateLink
+  - stage: ${{ parameters.stagePrefix }}PrivateLink
     displayName: Private Link
     ${{ if gt(length(parameters.dependsOn), 0) }}:
       dependsOn: ${{ parameters.dependsOn }}
@@ -56,13 +64,13 @@ stages:
                 - task: PublishPipelineArtifact@1
                   displayName: Publish artifact
                   inputs:
-                    artifactName: bicepparam-privatelink
+                    artifactName: ${{ parameters.stagePrefix }}bicepparam-privatelink
                     targetPath: $(Build.SourcesDirectory)/bicep/50-privatelink-runtime.bicepparam
 
                 - task: AzureCLI@2
                   displayName: WhatIf - PrivateLink
                   inputs:
-                    azureSubscription: $(serviceConnection)
+                    azureSubscription: ${{ variables.serviceConnection }}
                     scriptType: bash
                     scriptLocation: inlineScript
                     inlineScript: |
@@ -76,9 +84,9 @@ stages:
 
                 - task: AzureCLI@2
                   displayName: Deploy - PrivateLink
-                  condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+                  condition: and(not(failed()), not(canceled()), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), and(${{ parameters.allowTaggedDeployments }}, startsWith(variables['Build.SourceBranch'], 'refs/tags/'))))
                   inputs:
-                    azureSubscription: $(serviceConnection)
+                    azureSubscription: ${{ variables.serviceConnection }}
                     scriptType: bash
                     scriptLocation: inlineScript
                     inlineScript: |
@@ -92,9 +100,9 @@ stages:
 
                 - task: AzureCLI@2
                   displayName: Wait for Deployment - PrivateLink
-                  condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+                  condition: and(not(failed()), not(canceled()), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), and(${{ parameters.allowTaggedDeployments }}, startsWith(variables['Build.SourceBranch'], 'refs/tags/'))))
                   inputs:
-                    azureSubscription: $(serviceConnection)
+                    azureSubscription: ${{ variables.serviceConnection }}
                     scriptType: bash
                     scriptLocation: inlineScript
                     inlineScript: |

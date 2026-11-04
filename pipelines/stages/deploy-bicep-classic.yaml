@@ -3,6 +3,14 @@
 # for this stage template overridden to SND. This will achieve the necessary variable precedence.
 # See https://learn.microsoft.com/en-us/azure/devops/pipelines/process/variables?view=azure-devops&tabs=yaml%2Cbatch#expansion-of-variables
 parameters:
+  - name: stagePrefix
+    type: string
+    default: ''
+
+  - name: allowTaggedDeployments
+    type: boolean
+    default: false
+
   - name: environmentName
     type: string
   - name: classicEnvironmentName
@@ -16,7 +24,7 @@ parameters:
     default: {}
 
 stages:
-  - stage: DeployClassic
+  - stage: ${{ parameters.stagePrefix }}DeployClassic
     displayName: Deploy Classic
     ${{ if gt(length(parameters.dependsOn), 0) }}:
       dependsOn: ${{ parameters.dependsOn }}
@@ -68,13 +76,13 @@ stages:
                 - task: PublishPipelineArtifact@1
                   displayName: Publish artifact
                   inputs:
-                    artifactName: bicepparam-classic
+                    artifactName: ${{ parameters.stagePrefix }}bicepparam-classic
                     targetPath: $(Build.SourcesDirectory)/bicep/30-classic-runtime.bicepparam
 
                 - task: AzureCLI@2
                   displayName: WhatIf - Classic
                   inputs:
-                    azureSubscription: $(classicServiceConnection)
+                    azureSubscription: ${{ variables.classicServiceConnection }}
                     scriptType: bash
                     scriptLocation: inlineScript
                     inlineScript: |
@@ -89,9 +97,9 @@ stages:
 
                 - task: AzureCLI@2
                   displayName: Deploy - Classic
-                  condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+                  condition: and(not(failed()), not(canceled()), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), and(${{ parameters.allowTaggedDeployments }}, startsWith(variables['Build.SourceBranch'], 'refs/tags/'))))
                   inputs:
-                    azureSubscription: $(classicServiceConnection)
+                    azureSubscription: ${{ variables.classicServiceConnection }}
                     scriptType: bash
                     scriptLocation: inlineScript
                     inlineScript: |
@@ -106,9 +114,9 @@ stages:
 
                 - task: AzureCLI@2
                   displayName: Wait for Deployment - Classic
-                  condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+                  condition: and(not(failed()), not(canceled()), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), and(${{ parameters.allowTaggedDeployments }}, startsWith(variables['Build.SourceBranch'], 'refs/tags/'))))
                   inputs:
-                    azureSubscription: $(classicServiceConnection)
+                    azureSubscription: ${{ variables.classicServiceConnection }}
                     scriptType: bash
                     scriptLocation: inlineScript
                     inlineScript: |
@@ -122,7 +130,7 @@ stages:
                 - task: AzureCLI@2
                   name: ClassicOutputs
                   displayName: Classic outputs
-                  condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+                  condition: and(not(failed()), not(canceled()), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), and(${{ parameters.allowTaggedDeployments }}, startsWith(variables['Build.SourceBranch'], 'refs/tags/'))))
                   env:
                     ADO_ORG_URL: $(System.CollectionUri)
                     ADO_PROJECT: $(System.TeamProject)
@@ -132,7 +140,7 @@ stages:
                     RESOURCE_GROUP: $(classicResourceGroupName)
                     SUBSCRIPTION_ID: $(classicSubscriptionId)
                   inputs:
-                    azureSubscription: $(classicServiceConnection)
+                    azureSubscription: ${{ variables.classicServiceConnection }}
                     scriptType: bash
                     scriptLocation: inlineScript
                     inlineScript: |

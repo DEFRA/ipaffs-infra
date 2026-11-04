@@ -1,4 +1,12 @@
 parameters:
+  - name: stagePrefix
+    type: string
+    default: ''
+
+  - name: allowTaggedDeployments
+    type: boolean
+    default: false
+
   - name: environmentName
     type: string
 
@@ -6,9 +14,18 @@ parameters:
     type: boolean
     default: false
 
+  - name: dependsOn
+    type: object
+    default: []
+  - name: deploymentVariables
+    type: object
+    default: {}
+
 stages:
-  - stage: RunHooks
+  - stage: ${{ parameters.stagePrefix }}RunHooks
     displayName: Run Hooks
+    ${{ if gt(length(parameters.dependsOn), 0) }}:
+      dependsOn: ${{ parameters.dependsOn }}
     variables:
       - group: Common
       - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
@@ -18,6 +35,9 @@ stages:
       - group: "${{ parameters.environmentName }}"
       - template: "/pipelines/vars/common.yaml"
       - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
+      - ${{ each variable in parameters.deploymentVariables }}:
+        - name: ${{ variable.key }}
+          value: ${{ variable.value }}
     jobs:
       - deployment: Hooks
         displayName: Run deployment hooks
@@ -39,11 +59,11 @@ stages:
                     HOOKS_DIR: scripts/hooks
                     SUBSCRIPTION_ID: $(subscriptionId)
                     RESOURCE_GROUP_NAME: $(resourceGroupName)
-                    ${{ if or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), eq(parameters.applyOnBranch, true)) }}:
+                    ${{ if or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), eq(parameters.applyOnBranch, true), and(eq(parameters.allowTaggedDeployments, true), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))) }}:
                       DRY_RUN: "false"
                     ${{ else }}:
                       DRY_RUN: "true"
                   inputs:
-                    azureSubscription: $(serviceConnection)
+                    azureSubscription: ${{ variables.serviceConnection }}
                     scriptType: bash
                     scriptPath: scripts/pipeline/run-hooks.sh

@@ -1,4 +1,12 @@
 parameters:
+  - name: stagePrefix
+    type: string
+    default: ''
+
+  - name: allowTaggedDeployments
+    type: boolean
+    default: false
+
   - name: environmentName
     type: string
   - name: dependsOn
@@ -9,7 +17,7 @@ parameters:
     default: {}
 
 stages:
-  - stage: PrivateLinkDNSRecords
+  - stage: ${{ parameters.stagePrefix }}PrivateLinkDNSRecords
     displayName: Set Private Endpoint DNS Records
     ${{ if gt(length(parameters.dependsOn), 0) }}:
       dependsOn: ${{ parameters.dependsOn }}
@@ -40,7 +48,7 @@ stages:
                   parameters:
                     azureResourceManagerConnection: AZR-MST-PrivateLinkDNS
                     variables:
-                      projectServiceConnection: $(serviceConnection)
+                      projectServiceConnection: ${{ variables.serviceConnection }}
                     scriptsList:
                       - displayName: "Resolve Private Endpoint IPs"
                         serviceConnectionVariableName: projectServiceConnection
@@ -51,7 +59,7 @@ stages:
                           -Subscription '$(subscriptionName)'
 
                       - displayName: "Set DNS records"
-                        condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+                        condition: and(not(failed()), not(canceled()), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), and(${{ parameters.allowTaggedDeployments }}, startsWith(variables['Build.SourceBranch'], 'refs/tags/'))))
                         scriptPath: 'Set-PrivateDnsRecordSet.ps1@PipelineCommon'
                         scriptArguments: >
                           -UpdateAllDnsZones $true
@@ -68,7 +76,7 @@ stages:
                   parameters:
                     azureResourceManagerConnection: AZR-MST-PrivateLinkDNS
                     variables:
-                      projectServiceConnection: $(serviceConnection)
+                      projectServiceConnection: ${{ variables.serviceConnection }}
                     scriptsList:
                       - displayName: "Resolve Private Endpoint IPs"
                         serviceConnectionVariableName: projectServiceConnection
@@ -79,7 +87,7 @@ stages:
                           -Subscription '$(subscriptionName)'
 
                       - displayName: "Set DNS records"
-                        condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+                        condition: and(not(failed()), not(canceled()), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), and(${{ parameters.allowTaggedDeployments }}, startsWith(variables['Build.SourceBranch'], 'refs/tags/'))))
                         scriptPath: 'Set-PrivateDnsRecordSet.ps1@PipelineCommon'
                         scriptArguments: >
                           -UpdateAllDnsZones $true
@@ -89,7 +97,7 @@ stages:
                     parameters:
                       azureResourceManagerConnection: AZR-MST-PrivateLinkDNS
                       variables:
-                        projectServiceConnection: $(serviceConnection)
+                        projectServiceConnection: ${{ variables.serviceConnection }}
                       scriptsList:
                         - displayName: "Resolve Private Endpoint IPs"
                           serviceConnectionVariableName: projectServiceConnection
@@ -100,7 +108,7 @@ stages:
                             -Subscription '$(subscriptionName)'
 
                         - displayName: "Set DNS records"
-                          condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+                          condition: and(not(failed()), not(canceled()), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), and(${{ parameters.allowTaggedDeployments }}, startsWith(variables['Build.SourceBranch'], 'refs/tags/'))))
                           scriptPath: 'Set-PrivateDnsRecordSet.ps1@PipelineCommon'
                           scriptArguments: >
                             -UpdateAllDnsZones $true
@@ -117,7 +125,7 @@ stages:
                   parameters:
                     azureResourceManagerConnection: AZR-MST-PrivateLinkDNS
                     variables:
-                      projectServiceConnection: $(serviceConnection)
+                      projectServiceConnection: ${{ variables.serviceConnection }}
                     scriptsList:
                       - displayName: "Resolve Private Endpoint IPs"
                         serviceConnectionVariableName: projectServiceConnection
@@ -128,7 +136,7 @@ stages:
                           -Subscription '$(subscriptionName)'
 
                       - displayName: "Set DNS records"
-                        condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+                        condition: and(not(failed()), not(canceled()), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), and(${{ parameters.allowTaggedDeployments }}, startsWith(variables['Build.SourceBranch'], 'refs/tags/'))))
                         scriptPath: 'Set-PrivateDnsRecordSet.ps1@PipelineCommon'
                         scriptArguments: >
                           -UpdateAllDnsZones $true
@@ -146,7 +154,7 @@ stages:
       #            parameters:
       #              azureResourceManagerConnection: AZR-MST-PrivateLinkDNS
       #              variables:
-      #                projectServiceConnection: $(classicServiceConnection)
+      #                projectServiceConnection: ${{ variables.classicServiceConnection }}
       #              scriptsList:
       #                - displayName: "Resolve Private Endpoint IPs"
       #                  serviceConnectionVariableName: projectServiceConnection
@@ -157,7 +165,7 @@ stages:
       #                    -Subscription '$(classicSubscriptionName)'
 
       #                - displayName: "Set DNS records"
-      #                  condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+      #                  condition: and(not(failed()), not(canceled()), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), and(${{ parameters.allowTaggedDeployments }}, startsWith(variables['Build.SourceBranch'], 'refs/tags/'))))
       #                  scriptPath: 'Set-PrivateDnsRecordSet.ps1@PipelineCommon'
       #                  scriptArguments: >
       #                    -UpdateAllDnsZones $true
@@ -174,7 +182,7 @@ stages:
                   parameters:
                     azureResourceManagerConnection: AZR-MST-PrivateLinkDNS
                     variables:
-                      projectServiceConnection: $(serviceConnection)
+                      projectServiceConnection: ${{ variables.serviceConnection }}
                     scriptsList:
                       - displayName: "Resolve Private Endpoint IPs"
                         serviceConnectionVariableName: projectServiceConnection
@@ -185,7 +193,7 @@ stages:
                           -Subscription '$(subscriptionName)'
 
                       - displayName: "Set DNS records"
-                        condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+                        condition: and(not(failed()), not(canceled()), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), and(${{ parameters.allowTaggedDeployments }}, startsWith(variables['Build.SourceBranch'], 'refs/tags/'))))
                         scriptPath: 'Set-PrivateDnsRecordSet.ps1@PipelineCommon'
                         scriptArguments: >
                           -UpdateAllDnsZones $true
@@ -203,7 +211,7 @@ stages:
       #            parameters:
       #              azureResourceManagerConnection: AZR-MST-PrivateLinkDNS
       #              variables:
-      #                projectServiceConnection: $(classicServiceConnection)
+      #                projectServiceConnection: ${{ variables.classicServiceConnection }}
       #              scriptsList:
       #                - displayName: "Resolve Private Endpoint IPs"
       #                  serviceConnectionVariableName: projectServiceConnection
@@ -214,7 +222,7 @@ stages:
       #                    -Subscription '$(classicSubscriptionName)'
 
       #                - displayName: "Set DNS records"
-      #                  condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+      #                  condition: and(not(failed()), not(canceled()), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), and(${{ parameters.allowTaggedDeployments }}, startsWith(variables['Build.SourceBranch'], 'refs/tags/'))))
       #                  scriptPath: 'Set-PrivateDnsRecordSet.ps1@PipelineCommon'
       #                  scriptArguments: >
       #                    -UpdateAllDnsZones $true
@@ -231,7 +239,7 @@ stages:
                   parameters:
                     azureResourceManagerConnection: AZR-MST-PrivateLinkDNS
                     variables:
-                      projectServiceConnection: $(serviceConnection)
+                      projectServiceConnection: ${{ variables.serviceConnection }}
                     scriptsList:
                       - displayName: "Resolve Private Endpoint IPs"
                         serviceConnectionVariableName: projectServiceConnection
@@ -242,7 +250,7 @@ stages:
                           -Subscription '$(subscriptionName)'
 
                       - displayName: "Set DNS records"
-                        condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+                        condition: and(not(failed()), not(canceled()), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), and(${{ parameters.allowTaggedDeployments }}, startsWith(variables['Build.SourceBranch'], 'refs/tags/'))))
                         scriptPath: 'Set-PrivateDnsRecordSet.ps1@PipelineCommon'
                         scriptArguments: >
                           -UpdateAllDnsZones $true
@@ -259,7 +267,7 @@ stages:
                   parameters:
                     azureResourceManagerConnection: AZR-MST-PrivateLinkDNS
                     variables:
-                      projectServiceConnection: $(serviceConnection)
+                      projectServiceConnection: ${{ variables.serviceConnection }}
                     scriptsList:
                       - displayName: "Resolve Private Endpoint IPs"
                         serviceConnectionVariableName: projectServiceConnection
@@ -270,7 +278,7 @@ stages:
                           -Subscription '$(subscriptionName)'
 
                       - displayName: "Set DNS records"
-                        condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+                        condition: and(not(failed()), not(canceled()), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), and(${{ parameters.allowTaggedDeployments }}, startsWith(variables['Build.SourceBranch'], 'refs/tags/'))))
                         scriptPath: 'Set-PrivateDnsRecordSet.ps1@PipelineCommon'
                         scriptArguments: >
                           -UpdateAllDnsZones $true
@@ -288,7 +296,7 @@ stages:
       #            parameters:
       #              azureResourceManagerConnection: AZR-MST-PrivateLinkDNS
       #              variables:
-      #                projectServiceConnection: $(classicServiceConnection)
+      #                projectServiceConnection: ${{ variables.classicServiceConnection }}
       #              scriptsList:
       #                - displayName: "Resolve Private Endpoint IPs"
       #                  serviceConnectionVariableName: projectServiceConnection
@@ -299,7 +307,7 @@ stages:
       #                    -Subscription '$(classicSubscriptionName)'
 
       #                - displayName: "Set DNS records"
-      #                  condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+      #                  condition: and(not(failed()), not(canceled()), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), and(${{ parameters.allowTaggedDeployments }}, startsWith(variables['Build.SourceBranch'], 'refs/tags/'))))
       #                  scriptPath: 'Set-PrivateDnsRecordSet.ps1@PipelineCommon'
       #                  scriptArguments: >
       #                    -UpdateAllDnsZones $true

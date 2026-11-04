@@ -1,4 +1,12 @@
 parameters:
+  - name: stagePrefix
+    type: string
+    default: ''
+
+  - name: allowTaggedDeployments
+    type: boolean
+    default: false
+
   - name: environmentName
     type: string
 
@@ -10,7 +18,7 @@ parameters:
     default: {}
 
 stages:
-  - stage: DeployInfrastructure
+  - stage: ${{ parameters.stagePrefix }}DeployInfrastructure
     displayName: Deploy Infrastructure
     ${{ if gt(length(parameters.dependsOn), 0) }}:
       dependsOn: ${{ parameters.dependsOn }}
@@ -74,13 +82,13 @@ stages:
                 - task: PublishPipelineArtifact@1
                   displayName: Publish artifact
                   inputs:
-                    artifactName: bicepparam-infra
+                    artifactName: ${{ parameters.stagePrefix }}bicepparam-infra
                     targetPath: $(Build.SourcesDirectory)/bicep/40-infra-runtime.bicepparam
 
                 - task: AzureCLI@2
                   displayName: Check AGC resource providers
                   inputs:
-                    azureSubscription: $(serviceConnection)
+                    azureSubscription: ${{ variables.serviceConnection }}
                     scriptType: bash
                     scriptLocation: inlineScript
                     inlineScript: |
@@ -96,7 +104,7 @@ stages:
                 - task: AzureCLI@2
                   displayName: WhatIf - Infrastructure
                   inputs:
-                    azureSubscription: $(serviceConnection)
+                    azureSubscription: ${{ variables.serviceConnection }}
                     scriptType: bash
                     scriptLocation: inlineScript
                     inlineScript: |
@@ -112,9 +120,9 @@ stages:
 
                 - task: AzureCLI@2
                   displayName: Deploy - Infrastructure
-                  condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+                  condition: and(not(failed()), not(canceled()), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), and(${{ parameters.allowTaggedDeployments }}, startsWith(variables['Build.SourceBranch'], 'refs/tags/'))))
                   inputs:
-                    azureSubscription: $(serviceConnection)
+                    azureSubscription: ${{ variables.serviceConnection }}
                     scriptType: bash
                     scriptLocation: inlineScript
                     inlineScript: |
@@ -130,9 +138,9 @@ stages:
 
                 - task: AzureCLI@2
                   displayName: Wait for Deployment - Infrastructure
-                  condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+                  condition: and(not(failed()), not(canceled()), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), and(${{ parameters.allowTaggedDeployments }}, startsWith(variables['Build.SourceBranch'], 'refs/tags/'))))
                   inputs:
-                    azureSubscription: $(serviceConnection)
+                    azureSubscription: ${{ variables.serviceConnection }}
                     scriptType: bash
                     scriptLocation: inlineScript
                     inlineScript: |
@@ -146,7 +154,7 @@ stages:
                 - task: AzureCLI@2
                   name: InfrastructureOutputs
                   displayName: Infrastructure outputs
-                  condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+                  condition: and(not(failed()), not(canceled()), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), and(${{ parameters.allowTaggedDeployments }}, startsWith(variables['Build.SourceBranch'], 'refs/tags/'))))
                   env:
                     ADO_ORG_URL: $(System.CollectionUri)
                     ADO_PROJECT: $(System.TeamProject)
@@ -156,7 +164,7 @@ stages:
                     RESOURCE_GROUP: $(resourceGroupName)
                     SUBSCRIPTION_ID: $(subscriptionId)
                   inputs:
-                    azureSubscription: $(serviceConnection)
+                    azureSubscription: ${{ variables.serviceConnection }}
                     scriptType: bash
                     scriptLocation: inlineScript
                     inlineScript: |

@@ -1,4 +1,12 @@
 parameters:
+  - name: stagePrefix
+    type: string
+    default: ''
+
+  - name: allowTaggedDeployments
+    type: boolean
+    default: false
+
   - name: environmentName
     type: string
   - name: dependsOn
@@ -9,7 +17,7 @@ parameters:
     default: {}
 
 stages:
-  - stage: EstablishPeering
+  - stage: ${{ parameters.stagePrefix }}EstablishPeering
     displayName: Establish Peering
     ${{ if gt(length(parameters.dependsOn), 0) }}:
       dependsOn: ${{ parameters.dependsOn }}
@@ -36,7 +44,7 @@ stages:
                 - checkout: self
 
                 - task: Bash@3
-                  condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+                  condition: and(not(failed()), not(canceled()), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), and(${{ parameters.allowTaggedDeployments }}, startsWith(variables['Build.SourceBranch'], 'refs/tags/'))))
                   env:
                     ADO_ORG_URL: $(System.CollectionUri)
                     ADO_PROJECT: $(System.TeamProject)

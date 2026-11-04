@@ -90,6 +90,42 @@ Things are moving along quickly. At the time of writing, migration of ipaffs-imp
 * Run `scripts/build.sh` to build the service, package a container and push to the local registry.
 * Run `scripts/deploy.sh` to deploy the latest built container image and run with remote debugger enabled.
 
+### Infrastructure releases
+
+[`release-pipeline.yaml`](release-pipeline.yaml) promotes the same tagged commit
+through **TST → approval → PRE → approval → PRD**, following the manifest release
+pipeline. Only numeric `major.minor.patch` tags (for example `18.9.0`) are accepted.
+Branch pushes and pull requests do not trigger it; manually queued runs must also
+select a release tag. Tags are created separately from this deployment pipeline.
+
+Each environment runs the full infrastructure sequence: access-contract validation,
+hooks, resource group, network, optional hub peering, ACR (PRE/PRD), classic resources,
+infrastructure, runtime permissions, Private Endpoint DNS and optional Private Link.
+Each Bicep component runs what-if before applying. Stage names, parameter artifacts
+and output dependencies are scoped to the environment. Existing pipeline entry
+points retain their main-only apply behavior; this release flow explicitly enables
+tagged deployments.
+
+Manual approvals notify the requester and reject on timeout (just under 30 days by
+default). `releaseApprovalTimeoutInMinutes` accepts 1–43199 minutes, leaving time
+for rejection before the agentless job's 30-day limit.
+`establishPeering` defaults to `false`; `includePlatform` controls Azure Private Link
+and defaults to `true`. Shared platform Helm releases remain manifest-owned.
+
+To enable the flow, create an Azure DevOps YAML pipeline pointing to
+`/release-pipeline.yaml`. Authorize the existing Common, LowerEnvs, HigherEnvs and
+TST/PRE/PRD variable groups, environments, service connections and PipelineCommon
+repository used by the infrastructure pipeline. The pipeline identity also needs
+the existing Library permissions for deployment-output synchronization. Publish a
+release tag containing this pipeline after those resources are authorized.
+
+Local regression checks:
+
+```shell
+python3 scripts/pipeline/release-pipeline.test.py
+python3 scripts/pipeline/consolidated-bicep-jobs.test.py
+```
+
 ### Platform deployment ownership
 
 - **Manifest:** configuration, image mirrors and deployment of shared platform Helm

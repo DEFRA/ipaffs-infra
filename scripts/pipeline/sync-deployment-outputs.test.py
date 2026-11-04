@@ -1,6 +1,7 @@
 """Exercise output synchronisation and pipeline wiring without contacting Azure."""
 
 import copy
+import importlib.util
 import json
 import os
 from pathlib import Path
@@ -15,6 +16,10 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[2]
 SCRIPT = ROOT / "scripts/pipeline/sync-deployment-outputs.py"
+specification = importlib.util.spec_from_file_location(
+    "output_template_helpers", Path(__file__).with_name("consolidated-bicep-jobs.test.py"))
+TEMPLATES = importlib.util.module_from_spec(specification)
+specification.loader.exec_module(TEMPLATES)
 ENVIRONMENT = {
     "ADO_ORG_URL": "https://dev.azure.com/test-org",
     "ADO_PROJECT": "test-project",
@@ -395,8 +400,15 @@ sys.exit(int(os.environ["COLLECTOR_EXIT"]))
                              if "sync-deployment-outputs.py" in node.get("inputs", {}).get("inlineScript", "")]
                     self.assertEqual(1, len(tasks), str(path))
                     task, = tasks
-                    self.assertEqual("and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))",
-                                     task["condition"])
+                    guard = TEMPLATES.expand(task["condition"], {
+                        "parameters": TEMPLATES.parameters(pipeline, {"environmentName": environment})})
+                    for branch in ("refs/heads/main", "refs/heads/feature", "refs/pull/1/merge", "refs/tags/18.9.0"):
+                        for failed, canceled in ((False, False), (True, False), (False, True)):
+                            self.assertEqual(branch == "refs/heads/main" and not failed and not canceled,
+                                             TEMPLATES.evaluate(guard, {
+                                                 "variables": {"Build.SourceBranch": branch},
+                                                 "failed": failed, "canceled": canceled}),
+                                             (component, branch, failed, canceled))
                     self.assertEqual(set(ENVIRONMENT), set(task["env"]))
                     self.assertNotIn("set -x", task["inputs"]["inlineScript"])
                     script = task["inputs"]["inlineScript"].replace("${{ parameters.environmentName }}", environment)

@@ -1,4 +1,12 @@
 parameters:
+  - name: stagePrefix
+    type: string
+    default: ''
+
+  - name: allowTaggedDeployments
+    type: boolean
+    default: false
+
   - name: environmentName
     type: string
   - name: dependsOn
@@ -9,7 +17,7 @@ parameters:
     default: {}
 
 stages:
-  - stage: InfraPermissions
+  - stage: ${{ parameters.stagePrefix }}InfraPermissions
     displayName: Infrastructure Permissions
     ${{ if gt(length(parameters.dependsOn), 0) }}:
       dependsOn: ${{ parameters.dependsOn }}
@@ -30,7 +38,7 @@ stages:
         displayName: Group Memberships
         environment:
           name: "${{ parameters.environmentName }}"
-        condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+        condition: and(not(failed()), not(canceled()), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), and(${{ parameters.allowTaggedDeployments }}, startsWith(variables['Build.SourceBranch'], 'refs/tags/'))))
         strategy:
           runOnce:
             deploy:
@@ -40,7 +48,7 @@ stages:
                 - task: AzureCLI@2
                   name: ServiceConnPrincipalAKSClusterRBACAdmin
                   inputs:
-                    azureSubscription: $(serviceConnection)
+                    azureSubscription: ${{ variables.serviceConnection }}
                     scriptType: bash
                     scriptLocation: inlineScript
                     inlineScript: |
@@ -59,7 +67,7 @@ stages:
                     GROUP_ID: $(directoryReadersGroupObjectId)
                     PRINCIPAL_ID: $(sqlServerManagedIdentityObjectId)
                   inputs:
-                    azureSubscription: $(serviceConnection)
+                    azureSubscription: ${{ variables.serviceConnection }}
                     scriptType: bash
                     scriptPath: scripts/pipeline/add-principal-to-group.sh
 
@@ -70,7 +78,7 @@ stages:
                     GROUP_ID: $(directoryReadersGroupObjectId)
                     PRINCIPAL_ID: $(sqlServerClassicManagedIdentityObjectId)
                   inputs:
-                    azureSubscription: $(serviceConnection)
+                    azureSubscription: ${{ variables.serviceConnection }}
                     scriptType: bash
                     scriptPath: scripts/pipeline/add-principal-to-group.sh
 
@@ -80,7 +88,7 @@ stages:
                     GROUP_ID: $(sqlAdminGroupId)
                     PRINCIPAL_ID: $(searchServiceManagedIdentityPrincipalId)
                   inputs:
-                    azureSubscription: $(serviceConnection)
+                    azureSubscription: ${{ variables.serviceConnection }}
                     scriptType: bash
                     scriptPath: scripts/pipeline/add-principal-to-group.sh
 
@@ -90,7 +98,7 @@ stages:
                     GROUP_ID: $(acrPullGroupId)
                     PRINCIPAL_ID: $(aksKubeletPrincipalId)
                   inputs:
-                    azureSubscription: $(acrGroupsServiceConnection)
+                    azureSubscription: ${{ variables.acrGroupsServiceConnection }}
                     scriptType: bash
                     scriptPath: scripts/pipeline/add-principal-to-group.sh
 
@@ -100,7 +108,7 @@ stages:
                     GROUP_ID: $(defraCertificateReadersGroupId)
                     PRINCIPAL_ID: $(externalSecretsPrincipalObjectId)
                   inputs:
-                    azureSubscription: $(serviceConnection)
+                    azureSubscription: ${{ variables.serviceConnection }}
                     scriptType: bash
                     scriptPath: scripts/pipeline/add-principal-to-group.sh
 

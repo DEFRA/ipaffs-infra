@@ -1,4 +1,12 @@
 parameters:
+  - name: stagePrefix
+    type: string
+    default: ''
+
+  - name: allowTaggedDeployments
+    type: boolean
+    default: false
+
   - name: environmentName
     type: string
 
@@ -10,7 +18,7 @@ parameters:
     default: {}
 
 stages:
-  - stage: DeployResourceGroup
+  - stage: ${{ parameters.stagePrefix }}DeployResourceGroup
     displayName: Deploy Resource Group
     ${{ if gt(length(parameters.dependsOn), 0) }}:
       dependsOn: ${{ parameters.dependsOn }}
@@ -53,13 +61,13 @@ stages:
                 - task: PublishPipelineArtifact@1
                   displayName: Publish artifact
                   inputs:
-                    artifactName: bicepparam-resource-group
+                    artifactName: ${{ parameters.stagePrefix }}bicepparam-resource-group
                     targetPath: $(Build.SourcesDirectory)/bicep/10-resource-group-runtime.bicepparam
 
                 - task: AzureCLI@2
                   displayName: WhatIf - Resource Group
                   inputs:
-                    azureSubscription: $(serviceConnection)
+                    azureSubscription: ${{ variables.serviceConnection }}
                     scriptType: bash
                     scriptLocation: inlineScript
                     inlineScript: |
@@ -73,9 +81,9 @@ stages:
 
                 - task: AzureCLI@2
                   displayName: Deploy - ResourceGroup
-                  condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+                  condition: and(not(failed()), not(canceled()), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), and(${{ parameters.allowTaggedDeployments }}, startsWith(variables['Build.SourceBranch'], 'refs/tags/'))))
                   inputs:
-                    azureSubscription: $(serviceConnection)
+                    azureSubscription: ${{ variables.serviceConnection }}
                     scriptType: bash
                     scriptLocation: inlineScript
                     inlineScript: |

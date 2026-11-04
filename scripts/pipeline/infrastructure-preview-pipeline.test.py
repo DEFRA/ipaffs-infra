@@ -446,7 +446,8 @@ class InfrastructurePreviewPipelineTests(unittest.TestCase):
         self.assertEqual(set(PARAMETERS.COMPONENTS),
                          {Path(path).stem.removeprefix("deploy-bicep-") for path in stage_files})
         for stage_file in stage_files:
-            stage, = load(stage_file)["stages"]
+            stage, = TEMPLATES.expand_stages(stage_file, {
+                "environmentName": "DEV", "classicEnvironmentName": "SND"})
             self.assertIn(stage["stage"], DEPLOYMENT_TASKS)
             deployment, = stage["jobs"]
             steps = deployment["strategy"]["runOnce"]["deploy"]["steps"]
