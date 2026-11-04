@@ -228,7 +228,7 @@ class InfrastructurePlanReadabilityTests(unittest.TestCase):
 
     def write_combined_inputs(self, components):
         paths = []
-        for environment in REPORT.RELEASE_ENVIRONMENTS:
+        for environment in REPORT.PREVIEW_ENVIRONMENTS:
             destination = self.directory / environment
             REPORT.write_environment_report(
                 destination, {"environment": environment, "commit": "a" * 40}, components)
@@ -253,6 +253,9 @@ class InfrastructurePlanReadabilityTests(unittest.TestCase):
                 self.assertTrue(prd_rows)
                 self.assertFalse(any("None reported" in line for line in prd_rows),
                                  "Missing or failed coverage cannot be presented as having no gaps")
+                status = "missing" if missing else "failed"
+                self.assertIn(f"| PRD | — | — | — | Preview {status} |", summary)
+                self.assertNotIn("| PRD | 0 | 0 | 0 | Unavailable |", summary)
 
     def test_combined_counts_do_not_present_potential_creates_as_confirmed(self):
         paths = self.write_combined_inputs([component(

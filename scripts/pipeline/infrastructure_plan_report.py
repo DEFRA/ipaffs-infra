@@ -16,11 +16,13 @@ import math
 from pathlib import Path
 import re
 
-from infrastructure_plan_markdown import TYPE_LABELS, environment_markdown, change_details_markdown, is_no_effect_only
+from infrastructure_plan_markdown import TYPE_LABELS, environment_markdown, change_details_markdown, is_no_effect_only, resource_label, type_label, property_label
+from infrastructure_plan_comparison import analyze_comparison
 
 
 CHANGE_TYPES = ("Create", "Modify", "Delete", "NoChange", "Deploy", "Ignore", "Unsupported", "Unknown")
 RELEASE_ENVIRONMENTS = ("TST", "PRE", "PRD")
+PREVIEW_ENVIRONMENTS = ("DEV", *RELEASE_ENVIRONMENTS)
 UNRESOLVED_TYPES = {"Deploy", "Ignore", "Unsupported", "Unknown"}
 ERROR_CODES = {
     "AZURE_CLI_TOO_OLD", "AZURE_COMMAND_FAILED", "AZURE_RESPONSE_UNAVAILABLE",
@@ -343,7 +345,7 @@ def _combined_markdown(report):
     environments = report["environments"]
     executed = (not report["invalidInputs"] and not report["missingEnvironments"] and report["sameCommit"]
                 and all(item["executionStatus"] == "succeeded" for item in environments))
-    status = ("All three environment previews ran successfully." if executed
+    status = ("All four environment previews ran successfully." if executed
               else "Some environment previews failed or are missing; this report is incomplete.")
     lines = ["# Infrastructure release preview", "", "**" + status + "**", "",
              "**Assessment: " + ("Complete" if report["complete"] else "INCOMPLETE — review the coverage gaps below") + "**", "",
@@ -359,9 +361,10 @@ def _combined_markdown(report):
                   if item["executionStatus"] != "missing" else "—" for action in ("Create", "Modify", "Delete")]
         lines.append(f"| {item['environment']} | {' | '.join(values)} | {execution} |")
     lines.extend(["", "These are Azure predictions against the live environment. An update can include provider defaults or properties omitted from the proposed configuration; it is not proof of an operational change. Counts exclude deployment wrappers, CreatedDate-only updates and NoEffect-only updates, and can repeat a resource across component previews.", ""])
+    lines.extend(_comparison_markdown(report["devComparison"]))
     types = sorted({label for item in environments for label in item["review"]["changes"]})
     if types:
-        lines.extend(["## Changes by resource type", "", "| Resource | TST | PRE | PRD |", "|---|---|---|---|"])
+        lines.extend(["## Changes by resource type", "", "| Resource | DEV | TST | PRE | PRD |", "|---|---|---|---|---|"])
         for label in types:
             cells = []
             for item in environments:
@@ -381,7 +384,7 @@ def _combined_markdown(report):
                  if any(item["review"]["potential"].values())]
     if potential:
         lines.extend(["", "**Potential predictions:** " + "; ".join(potential) + ". These are uncertain action entries, excluded from the create/update/delete totals above and labelled in the environment summaries."])
-    lines.extend(["", "Review the named creates, updates and deletions in each environment summary. Unresolved values need checking against the intended configuration; Azure cannot determine them before deployment. Property-by-property evidence is in `change-details.md` in the corresponding `infrastructure-plan-TST`, `infrastructure-plan-PRE` or `infrastructure-plan-PRD` artifact.", "",
+    lines.extend(["", "Unresolved values need checking against the intended configuration; Azure cannot determine them before deployment. Property-by-property evidence is in `change-details.md` in each `infrastructure-plan-ENV` artifact. `dev-comparison.json` records the comparison classifications without publishing source values.", "",
                   "## Background inventory", "",
                   "These are observations across component previews, not extra proposed changes. Individual inventory records are retained in `plan.json`.", "",
                   "| Environment | Ignored observations | Unchanged observations | CreatedDate-only updates | NoEffect-only updates |", "|---|---:|---:|---:|---:|"])
@@ -402,6 +405,91 @@ def _combined_markdown(report):
     return "\n".join(lines)
 
 
+BASELINE_REASONS = {
+    "VERIFIED_POST_APPLY_CONTROL": "Verified successful DEV apply; deployment source inputs match the candidate.",
+    "DEV_REPORT_MISSING_OR_INVALID": "DEV report is missing or invalid.",
+    "BASELINE_EVIDENCE_UNAVAILABLE": "Successful DEV apply evidence is missing or could not be verified.",
+    "APPLIED_SOURCE_NOT_VERIFIED": "DEV apply provenance or deployment source inputs could not be verified.",
+    "BASELINE_CANDIDATE_MISMATCH": "The DEV control does not belong to this candidate and preview run.",
+    "BASELINE_TIMING_INVALID": "The DEV control's timing could not be verified.",
+    "DEV_EXECUTION_INCOMPLETE": "DEV did not complete every component without execution errors or diagnostics.",
+    "DEV_CONTROL_HAS_ACTIONS": "DEV still predicts resource creates, deletes or uncertain actions; it is not a usable post-apply control.",
+    "TARGET_REPORT_INVALID": "Target report is missing or invalid.",
+    "TARGET_EXECUTION_INCOMPLETE": "Target execution did not complete successfully.",
+}
+
+
+def _comparison_markdown(comparisons):
+    """Render the comparator's fixed, value-free projection only."""
+    lines = ["## Changes needing review", "",
+             "DEV is the post-apply control. Only tightly matched provider defaults can be labelled potential recurring noise; repetition alone does not establish a false positive.", "",
+             "| Target | Changes to review | Potential noise within updates | Unresolved observations | DEV comparison |",
+             "|---|---:|---:|---:|---|"]
+    for comparison in comparisons:
+        counts = comparison["counts"]
+        status = "Available" if comparison["baseline"]["status"] == "usable" else "Unavailable"
+        if comparison["executionStatus"] != "succeeded":
+            lines.append(f"| {comparison['environment']} | — | — | — | Preview {comparison['executionStatus']} |")
+        else:
+            lines.append(f"| {comparison['environment']} | {counts['reviewResources'] + counts['policySecurityResources']} | {counts['potentialNoiseResources']} | {counts['unresolvedResources']} | {status} |")
+    lines.extend(["", "Potential noise remains included in the reported update totals above. Counts are observations across component previews, so the same resource can appear more than once.", ""])
+    reasons = {item["baseline"]["reasonCode"] for item in comparisons}
+    for reason in sorted(reasons):
+        targets = ", ".join(item["environment"] for item in comparisons if item["baseline"]["reasonCode"] == reason)
+        lines.extend([f"**{targets}:** {BASELINE_REASONS.get(reason, 'DEV comparison unavailable.')}" +
+                      (" All target actions remain for review." if reason != "VERIFIED_POST_APPLY_CONTROL" else ""), ""])
+    for comparison in comparisons:
+        lines.extend([f"### {comparison['environment']}", ""])
+        if comparison["executionStatus"] != "succeeded":
+            lines.extend([f"Preview {comparison['executionStatus']}; no complete change list is available. Investigate execution before using any partial results.", ""])
+            continue
+        resources = [item for item in comparison["resources"] if item["classification"] in {"review-needed", "policy-security-review"}]
+        if not resources:
+            lines.extend(["No assessed actions in this review category. Check execution and coverage above before drawing conclusions.", ""])
+            continue
+        lines.extend(["| Action | Resource | Why review? | Relevant properties |", "|---|---|---|---|"])
+        for item in resources:
+            fields = [field for field in item["fields"] if field["classification"] not in {"background", "potential-noise"}]
+            reason = ("Security or policy ownership" if item["classification"] == "policy-security-review" else
+                      "Resource creation" if item["action"] == "Create" else
+                      "Resource deletion" if item["action"] == "Delete" else
+                      "Classic/SND control differs" if any(field["reasonCode"] == "CLASSIC_SCOPE_DIFFERS" for field in fields) else
+                      "Configuration or unmatched prediction")
+            operations = {"Modify": "Change", "Array": "Change", "Delete": "Remove property from config:", "Create": "Add property to config:"}
+            properties = "; ".join(dict.fromkeys(f"{operations.get(field['action'], 'Unassessed')} {property_label(field['path'])}" for field in fields))
+            property_groups = properties.split("; ")
+            properties = "; ".join(property_groups[:3])
+            if len(property_groups) > 3:
+                properties += f"; +{len(property_groups) - 3} more in comparison JSON"
+            action = "Update" if item['action'] == "Modify" else item['action']
+            lines.append(f"| {action} | {_md(type_label(item['type']) + ': ' + resource_label(item))} | {reason} | {_md(properties) if properties else 'See environment details'} |")
+        lines.append("")
+    lines.extend(["## Potential recurring noise", "",
+                  "These omitted provider defaults are also predicted by the verified DEV control. They may be false positives; this is not proof that an apply leaves the setting unchanged. Withheld values establish only a matching pattern, never matching actual values.", ""])
+    patterns = Counter()
+    for comparison in comparisons:
+        for item in comparison["resources"]:
+            for field in item["fields"]:
+                if field["classification"] == "potential-noise":
+                    patterns[(comparison["environment"], type_label(item["type"]), field["path"], field["confidence"])] += 1
+    if patterns:
+        lines.extend(["| Target | Resource type | Property | Observations | Evidence |", "|---|---|---|---:|---|"])
+        for (env, label, path, confidence), count in sorted(patterns.items()):
+            lines.append(f"| {env} | {_md(label)} | {_md(path)} | {count} | {'Matching public values' if confidence == 'matching-values' else 'Pattern only; values withheld'} |")
+        lines.extend(["", "Mixed updates remain in the review list when another property needs review. Each matched resource is retained in `dev-comparison.json`.", ""])
+    else:
+        lines.extend(["None identified with a usable matching DEV control.", ""])
+    unresolved = [(comparison["environment"], item) for comparison in comparisons
+                  for item in comparison["resources"] if item["classification"] == "unresolved-coverage"]
+    if unresolved:
+        lines.extend(["## Unresolved predictions", "", "These are assessment gaps, including uncertain action entries, rather than confirmed changes or noise.", "",
+                      "| Target | Action | Resource |", "|---|---|---|"])
+        for env, item in unresolved:
+            lines.append(f"| {env} | {item['action']} | {_md(type_label(item['type']) + ': ' + resource_label(item))} |")
+        lines.append("")
+    return lines
+
+
 def combine_reports(input_paths: list[Path], output_dir: Path) -> dict:
     """Combine all release environments; missing/mixed/invalid inputs fail closed.
 
@@ -409,6 +497,8 @@ def combine_reports(input_paths: list[Path], output_dir: Path) -> dict:
     projection below prevents accidental raw fields being copied into artifacts.
     """
     reports = {}
+    source_reports = {}
+    baseline_evidence = {}
     invalid = False
     for path in input_paths:
         try:
@@ -417,7 +507,7 @@ def combine_reports(input_paths: list[Path], output_dir: Path) -> dict:
                 invalid = True
                 continue
             environment = _metadata(source.get("metadata"))["environment"]
-            if environment not in RELEASE_ENVIRONMENTS or environment in reports:
+            if environment not in PREVIEW_ENVIRONMENTS or environment in reports:
                 invalid = True
                 continue
             # Retain headers and counts labelled only by fixed resource-type
@@ -440,16 +530,22 @@ def combine_reports(input_paths: list[Path], output_dir: Path) -> dict:
                 "unknowns": unknowns if valid_unknowns else 1,
                 "review": _review_breakdown(source),
             }
+            source_reports[environment] = source
+            if environment == "DEV":
+                try:
+                    baseline_evidence = json.loads(Path(path).with_name("baseline-evidence.json").read_text(encoding="utf-8"))
+                except (OSError, ValueError):
+                    baseline_evidence = {}
         except (OSError, ValueError, AttributeError, TypeError):
             invalid = True
     commits = {report.get("metadata", {}).get("commit") for report in reports.values()}
     same_commit = len(commits) == 1 and "unavailable" not in commits
-    missing = [environment for environment in RELEASE_ENVIRONMENTS if environment not in reports]
+    missing = [environment for environment in PREVIEW_ENVIRONMENTS if environment not in reports]
     complete = not invalid and not missing and same_commit and all(report.get("complete") is True for report in reports.values())
     # Summary-level fields have fixed schemas; component/resource artifacts remain
     # in their environment directories and are never blindly copied here.
     environments = []
-    for environment in RELEASE_ENVIRONMENTS:
+    for environment in PREVIEW_ENVIRONMENTS:
         source = reports.get(environment)
         totals = source.get("resourceTotals", {}) if source else {}
         metadata_totals = source.get("metadataOnlyTotals", {}) if source else {}
@@ -459,11 +555,24 @@ def combine_reports(input_paths: list[Path], output_dir: Path) -> dict:
                              "metadataOnlyTotals": {name: value if isinstance((value := metadata_totals.get(name)), int) and not isinstance(value, bool) and value >= 0 else 0 for name in CHANGE_TYPES},
                              "unknowns": source.get("unknowns") if source and isinstance(source.get("unknowns"), int) and source["unknowns"] >= 0 else 1,
                              "review": source["review"] if source else {"changes": {}, "unpreviewed": {}, "unresolvedChanges": 0, "noEffectOnly": 0, "potential": {}}})
+    comparisons = []
+    for environment in RELEASE_ENVIRONMENTS:
+        comparison = analyze_comparison(source_reports.get("DEV"), source_reports.get(environment),
+                                        baseline_evidence if not invalid and same_commit else {})
+        comparison["environment"] = environment
+        source_execution = reports.get(environment, {}).get("executionStatus")
+        comparison["executionStatus"] = source_execution if source_execution in {"succeeded", "failed"} else "missing"
+        # Background inventories already exist in each environment's plan.json.
+        comparison["resources"] = [item for item in comparison["resources"] if item["classification"] != "background"]
+        comparisons.append(comparison)
     report = {"schemaVersion": 1, "kind": "combined", "complete": complete,
               "outcome": "complete" if complete else "incomplete", "commit": next(iter(commits)) if same_commit and re.fullmatch(r"[a-fA-F0-9]{7,64}", str(next(iter(commits)))) else "unavailable",
               "missingEnvironments": missing, "sameCommit": same_commit, "invalidInputs": invalid,
-              "environments": environments, "limitations": LIMITATIONS}
+              "environments": environments, "devComparison": comparisons,
+              "comparisonAvailable": all(item["baseline"]["status"] == "usable" for item in comparisons),
+              "limitations": LIMITATIONS}
     _write(output_dir, report, _combined_markdown(report))
+    (output_dir / "dev-comparison.json").write_text(json.dumps({"schemaVersion": 1, "comparisons": comparisons}, indent=2) + "\n", encoding="utf-8")
     return report
 
 
@@ -482,12 +591,12 @@ def main():
                            and report["sameCommit"]
                            and all(environment["executionStatus"] == "succeeded"
                                    for environment in report["environments"]))
-    if args.azure_pipelines and execution_succeeded and not report["complete"]:
+    if args.azure_pipelines and execution_succeeded and (not report["complete"] or not report["comparisonAvailable"]):
         # Keep the assessment incomplete in both artifacts. Only the pipeline's
         # execution status changes; missing/invalid/failed plans still fail.
         print("##vso[task.logissue type=warning;]All environment what-ifs executed successfully, "
-              "but ARM assessment coverage is incomplete. Review the promotion preview summary.")
-        print("##vso[task.complete result=SucceededWithIssues;]Preview completed with incomplete coverage")
+              "but assessment coverage or the verified DEV comparison is incomplete. Review the promotion preview summary.")
+        print("##vso[task.complete result=SucceededWithIssues;]Preview completed with assessment limitations")
         return 0
     return 0 if report["complete"] else 1
 

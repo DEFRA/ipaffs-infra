@@ -8,6 +8,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+import infrastructure_plan_comparison as COMPARISON
 
 
 SCRIPT = Path(__file__).with_name("infrastructure_plan_report.py")
@@ -120,7 +121,7 @@ class InfrastructurePlanReportTests(unittest.TestCase):
 
     def test_combined_overview_counts_created_date_modifications_separately(self):
         inputs = []
-        for environment in REPORT.RELEASE_ENVIRONMENTS:
+        for environment in REPORT.PREVIEW_ENVIRONMENTS:
             timestamp = resource(delta=[field("tags.CreatedDate", "yesterday", "[utcNow()]")])
             plan = self.report([component([timestamp])], environment)
             self.assertEqual(plan["totals"]["Modify"], 1)
@@ -241,13 +242,13 @@ class InfrastructurePlanReportTests(unittest.TestCase):
 
     def test_complete_combined_report_requires_all_environments_and_same_commit(self):
         inputs = []
-        for environment in REPORT.RELEASE_ENVIRONMENTS:
+        for environment in REPORT.PREVIEW_ENVIRONMENTS:
             self.report([component([resource(change_type="NoChange")])], environment)
             inputs.append(self.directory / environment / "plan.json")
         combined = REPORT.combine_reports(inputs, self.directory / "combined")
         self.assertTrue(combined["complete"])
         self.assertEqual(combined["commit"], COMMIT)
-        self.assertEqual(len(combined["environments"]), 3)
+        self.assertEqual(len(combined["environments"]), 4)
         self.assertFalse(REPORT.combine_reports(inputs[:2], self.directory / "combined")["complete"])
         self.report([component([])], "PRD", commit="b" * 40)
         mixed = REPORT.combine_reports(inputs, self.directory / "combined")
@@ -262,12 +263,12 @@ class InfrastructurePlanReportTests(unittest.TestCase):
         plan = REPORT.combine_reports([path, path, invalid], self.directory / "combined")
         self.assertFalse(plan["complete"])
         self.assertTrue(plan["invalidInputs"])
-        self.assertEqual(plan["missingEnvironments"], ["PRE", "PRD"])
+        self.assertEqual(plan["missingEnvironments"], ["DEV", "PRE", "PRD"])
         self.assertNotIn("not-json-secret", (self.directory / "combined" / "plan.json").read_text())
 
     def test_combined_summary_compares_fixed_resource_categories_without_copying_artifact_payloads(self):
         inputs = []
-        for environment in REPORT.RELEASE_ENVIRONMENTS:
+        for environment in REPORT.PREVIEW_ENVIRONMENTS:
             self.report([component([resource(change_type="Create"),
                                     resource("Microsoft.Authorization/roleAssignments", "role", "Unsupported")])], environment)
             path = self.directory / environment / "plan.json"
@@ -287,7 +288,7 @@ class InfrastructurePlanReportTests(unittest.TestCase):
 
     def test_combined_summary_keeps_potential_changes_separate_from_predicted_action_counts(self):
         inputs = []
-        for environment in REPORT.RELEASE_ENVIRONMENTS:
+        for environment in REPORT.PREVIEW_ENVIRONMENTS:
             self.report([component([resource(name="proposed", change_type="Create")],
                                    result={"status": "Succeeded", "changes": [resource(name="proposed", change_type="Create")],
                                            "potentialChanges": [resource(name="potential", change_type="Create")]})], environment)
@@ -302,7 +303,7 @@ class InfrastructurePlanReportTests(unittest.TestCase):
 
     def test_modified_or_malformed_report_headers_cannot_create_a_green_combination(self):
         inputs = []
-        for environment in REPORT.RELEASE_ENVIRONMENTS:
+        for environment in REPORT.PREVIEW_ENVIRONMENTS:
             self.report([component([])], environment)
             inputs.append(self.directory / environment / "plan.json")
         original = json.loads(inputs[-1].read_text())
@@ -322,8 +323,90 @@ class InfrastructurePlanReportTests(unittest.TestCase):
                                "--output-dir", str(self.directory / "combined"), *flags],
                               text=True, capture_output=True, timeout=10)
 
+    def comparison_inputs(self):
+        """Full synthetic run, through the production sanitiser and combiner."""
+        inputs = []
+        default = resource("Microsoft.Network/privateEndpoints", "recurring-default", delta=[
+            field("properties.ipVersionType", "IPv4", None, propertyChangeType="Delete")])
+        for environment in REPORT.PREVIEW_ENVIRONMENTS:
+            changes = [default, resource("Microsoft.ContainerRegistry/registries", "ignored-inventory", "Ignore")]
+            if environment != "DEV":
+                changes += [resource(name="new-registry", change_type="Create"),
+                            resource(name="real-sku-update", delta=[field("sku.name", "Basic", "Premium")]),
+                            resource("Microsoft.Network/networkSecurityGroups", "policy-rule", delta=[
+                                field("properties.securityRules.0", "PRIVATE-BEFORE", "PRIVATE-AFTER")]),
+                            resource("Microsoft.Authorization/roleAssignments", "unassessed-role", "Unsupported")]
+            components = [component(changes if name == "infra" else [], name=name)
+                          for name in sorted(COMPARISON.COMPONENTS)]
+            destination = self.directory / environment
+            REPORT.write_environment_report(destination,
+                {"environment": environment, "commit": COMMIT, "buildId": "42",
+                 "generatedAt": "2026-11-04T10:05:00Z" if environment == "DEV" else "2026-11-04T10:20:00Z"}, components)
+            inputs.append(destination / "plan.json")
+        proof = {"schemaVersion": 1, "status": "usable", "appliedCommit": "b" * 40,
+                 "appliedBuildId": 41, "appliedPipelineId": 9217, "appliedBranch": "refs/heads/main",
+                 "appliedFinishTime": "2026-11-04T10:00:00Z", "verifiedAt": "2026-11-04T10:06:00Z",
+                 "previewCommit": COMMIT, "previewBuildId": "42", "deploymentInputsUnchanged": True,
+                 "sourceVerified": True, "sourceDeploymentVerified": True,
+                 "sourceDeploymentStages": COMPARISON.SOURCE_DEPLOYMENT_STAGES,
+                 "comparedPaths": COMPARISON.COMPARED_PATHS}
+        (self.directory / "DEV" / "baseline-evidence.json").write_text(json.dumps(proof))
+        return inputs
+
+    def test_automatic_dev_comparison_classifies_without_mutating_environment_evidence(self):
+        inputs = self.comparison_inputs()
+        original = [path.read_bytes() for path in inputs]
+        combined = REPORT.combine_reports(inputs, self.directory / "combined")
+        self.assertTrue(combined["comparisonAvailable"])
+        self.assertFalse(combined["complete"], "Ignore/Unsupported remain incomplete coverage")
+        self.assertEqual(4, len(combined["environments"]))
+        for comparison in combined["devComparison"]:
+            self.assertEqual(1, comparison["counts"]["potentialNoiseResources"])
+            self.assertEqual(2, comparison["counts"]["reviewResources"])
+            self.assertEqual(1, comparison["counts"]["policySecurityResources"])
+            self.assertEqual(1, comparison["counts"]["unresolvedResources"])
+            self.assertFalse(any(item["classification"] == "background" for item in comparison["resources"]))
+        summary = (self.directory / "combined" / "summary.md").read_text()
+        self.assertIn("All four environment previews ran successfully", summary)
+        self.assertIn("| TST | 3 | 1 | 1 | Available |", summary)
+        review = summary.split("## Changes needing review", 1)[1].split("## Potential recurring noise", 1)[0]
+        self.assertIn("new-registry", review)
+        self.assertIn("policy-rule", review)
+        self.assertNotIn("recurring-default", review)
+        self.assertIn("Pattern only; values withheld", summary)
+        self.assertNotIn("ignored-inventory", summary)
+        self.assertEqual(original, [path.read_bytes() for path in inputs])
+        published = json.dumps(combined) + summary + (self.directory / "combined" / "dev-comparison.json").read_text()
+        self.assertNotIn("PRIVATE-BEFORE", published)
+        self.assertNotIn("PRIVATE-AFTER", published)
+        self.assertNotIn('"before":', published)
+
+    def test_unusable_dev_evidence_never_labels_target_default_as_noise(self):
+        inputs = self.comparison_inputs()
+        evidence = self.directory / "DEV" / "baseline-evidence.json"
+        for contents in (None, "not-json-PRIVATE", "[]", '{"status":"usable","sourceVerified":true}'):
+            with self.subTest(contents=contents):
+                if contents is None:
+                    evidence.unlink(missing_ok=True)
+                else:
+                    evidence.write_text(contents)
+                combined = REPORT.combine_reports(inputs, self.directory / "combined")
+                self.assertFalse(combined["comparisonAvailable"])
+                self.assertTrue(all(item["counts"]["potentialNoiseResources"] == 0 for item in combined["devComparison"]))
+                self.assertTrue(all(item["counts"]["reviewResources"] == 3 for item in combined["devComparison"]))
+                summary = (self.directory / "combined" / "summary.md").read_text()
+                self.assertIn("recurring-default", summary)
+                self.assertNotIn("not-json-PRIVATE", summary)
+
+    def test_dev_is_required_in_the_default_combined_run(self):
+        inputs = self.comparison_inputs()[1:]
+        combined = REPORT.combine_reports(inputs, self.directory / "combined")
+        self.assertFalse(combined["complete"])
+        self.assertFalse(combined["comparisonAvailable"])
+        self.assertEqual(["DEV"], combined["missingEnvironments"])
+
     def test_pipeline_warns_for_successful_but_incomplete_assessment_without_changing_artifacts(self):
-        for environment in REPORT.RELEASE_ENVIRONMENTS:
+        for environment in REPORT.PREVIEW_ENVIRONMENTS:
             self.report([component([resource(change_type="Ignore"), resource(change_type="Unsupported"),
                                     resource(delta=[field("sku.name", "Basic", "[reference('future').sku.name]")])])], environment)
         self.assertEqual(1, self.combine_cli().returncode, "Default CLI remains strict")
@@ -343,7 +426,7 @@ class InfrastructurePlanReportTests(unittest.TestCase):
             with self.subTest(problem=problem):
                 extra = self.directory / "extra" / "plan.json"
                 extra.unlink(missing_ok=True)
-                for environment in REPORT.RELEASE_ENVIRONMENTS:
+                for environment in REPORT.PREVIEW_ENVIRONMENTS:
                     self.report([component([])], environment)
                 target = self.directory / "PRD" / "plan.json"
                 if problem == "missing":
@@ -375,14 +458,25 @@ class InfrastructurePlanReportTests(unittest.TestCase):
         self.assertEqual(result.returncode, 1)
         self.assertIn("incomplete", result.stdout)
         self.assertTrue((output / "summary.md").is_file())
-        for environment in ("PRE", "PRD"):
+        for environment in ("DEV", "PRE", "PRD"):
             self.report([component([])], environment)
         result = subprocess.run([sys.executable, str(SCRIPT), "--combine", str(self.directory), "--output-dir", str(output)], text=True, capture_output=True, timeout=10)
         self.assertEqual(result.returncode, 0, result.stderr)
         result = self.combine_cli("--azure-pipelines")
         self.assertEqual(0, result.returncode, result.stderr)
-        self.assertNotIn("task.logissue", result.stdout)
-        self.assertNotIn("SucceededWithIssues", result.stdout)
+        self.assertIn("task.logissue", result.stdout)
+        self.assertIn("SucceededWithIssues", result.stdout)
+
+
+def load_tests(loader, standard_tests, pattern):
+    # The existing CI reporting entry point also exercises its comparator.
+    # Keep the classifier contract independently runnable for focused debugging.
+    spec = importlib.util.spec_from_file_location("comparison_contract_tests",
+        SCRIPT.with_name("infrastructure-plan-comparison.test.py"))
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    standard_tests.addTests(loader.loadTestsFromModule(module))
+    return standard_tests
 
 
 if __name__ == "__main__":

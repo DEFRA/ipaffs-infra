@@ -1,7 +1,8 @@
 # Infrastructure promotion previews
 
 `pipelines/infrastructure-preview.yaml` previews the candidate infrastructure commit
-against live TST, PRE and PRD. It does not apply deployments, run hooks, update
+against live DEV, TST, PRE and PRD. DEV supplies a post-apply comparison baseline.
+The pipeline does not apply deployments, run hooks, update
 Library groups or change access-group memberships. Tag-triggered promotion is a
 separate follow-up; the current DEV deployment pipeline remains unchanged.
 
@@ -9,7 +10,8 @@ separate follow-up; the current DEV deployment pipeline remains unchanged.
 
 1. Merge infrastructure changes to `main`; the `infrastructure` pipeline applies DEV.
 2. When that run succeeds with the `Environment-DEV` build tag, the preview pipeline
-   runs automatically using the same Git commit. TST, PRE and PRD run sequentially.
+   runs automatically using the same Git commit. DEV, TST, PRE and PRD run in that
+   order, followed by the combined summary. No option is needed to include DEV.
 3. Review the **Infrastructure promotion preview** summary in Azure DevOps and the
    downloadable `infrastructure-preview` artifact before choosing a release tag.
    Record the full candidate commit; a tag created later must point at that commit
@@ -25,58 +27,88 @@ with whatever reports are available. No deployment environments are referenced b
 these ordinary agent jobs; service-connection checks and authorisation still apply.
 
 For a manual preview, select `main` in the Azure DevOps **Run pipeline** dialog
-and verify the queued commit in the report. Automatic runs verify both the
+and verify the queued commit in the report. The default source resource selects
+a successful main infrastructure run tagged `Environment-DEV`. Automatic runs verify both the
 checked-out commit and the completed DEV run's commit and branch before any
 authenticated preview work.
 The report records the commit, source ref, run ID and generation time. Changes to
 the live environment after that time can invalidate the prediction.
 
-### DEV post-apply baseline
+### Automatic DEV baseline
 
-To investigate recurring predictions, run the same preview pipeline manually with
-`devBaselineOnly: true` and `devAppliedCommit` set to the full commit from a
-successful DEV infrastructure apply. The job compares the candidate's Bicep,
-environment YAML and shared parameter renderer with that commit before any
-authenticated planning. Report-only code can differ; deployment inputs must not.
-The DEV plan includes Classic/SND and publishes its source comparison evidence.
-The normal TST/PRE/PRD flow remains the default.
+Every run plans DEV with its existing Modern and Classic/SND service connections.
+The pipeline obtains the applied commit and run ID from the `infrastructure`
+resource; users do not supply an applied SHA. Using its job token, the DEV job
+reads that build's metadata and verifies the expected infrastructure definition,
+successful completion, main branch, `Environment-DEV` tag and matching commit.
+It also checks the source timeline: all seven deployment stages and their actual
+Bicep deployment tasks must have succeeded. A successful run that omitted Private
+Link or skipped a deployment does not establish a full post-apply baseline.
+The job compares that commit's `bicep`, `pipelines/vars`, infrastructure pipeline,
+seven deployment stage mappings and shared parameter renderer with the preview
+checkout. Report-only code may differ while these deployment inputs remain unchanged.
 
-Compare the baseline with the release targets to find recurring provider/default
-differences and unresolved references. Repetition is evidence, not proof of a
-false positive: environment-specific values can differ, and another controller or
-policy can recreate settings after an apply. Keep those ownership differences
-visible. Always review new resource creates/deletes and explicit configuration
-changes. The current Library/live identity inputs and nondeterministic deployment
-metadata also mean this is not an exact replay of the apply's historical inputs.
+The DEV artifact contains `baseline-evidence.json` with the verified source run,
+commits, compared paths and whether the baseline is usable. If source verification
+fails or the deployment input trees differ, DEV and all release-target plans still
+run; the comparison explains why potential-noise assessment is unavailable.
+Missing reports and plan execution errors continue to fail the pipeline.
+
+The comparison also requires all seven DEV components to complete successfully,
+with no ARM diagnostics, proposed resource creates/deletes or potential actions.
+It checks that reports and evidence belong to the same preview run and candidate.
+A baseline with unapplied resource actions cannot establish recurring noise.
+
+Repetition after an apply is evidence, not proof of a false positive. Current
+Library values, live identities and nondeterministic metadata are not a replay of
+the apply's historical runtime inputs. Controllers or policies can also recreate
+settings after an apply. The report therefore labels only a narrow set of known
+provider-generated/default property differences as **potential noise** when they
+also recur in the verified DEV baseline. Visible scalar values must match; where
+values are withheld, the report identifies the weaker pattern-only evidence.
+Original observations remain available for review.
+
+Creates/deletes, explicit configuration changes, security/policy settings and
+unresolved values are kept for review. Classic differences stay visible because
+DEV's Classic scope is SND and does not establish equivalence with the release
+environments' Classic scopes.
 
 ## Reading the reports
 
-Start with the release comparison: it shows the create/update/delete counts and
-resource types affected in TST, PRE and PRD side by side. Then read the environment
-summary for the named resources and a short description of each predicted action.
-Nested resources include their parent names so security rules and identity
-credentials can be distinguished.
+Start with the **Infrastructure promotion preview** summary attached to the Azure
+DevOps run. This is the single combined report; individual environment reports
+are downloadable artifacts rather than additional copies in the summary tab.
+The report compares all four environments and separates the information needed
+for a release decision:
 
-The summary has three parts:
+- Changes that need review, including creates, resource deletions and explicit
+  configuration changes. A property removal is distinguished from deleting the
+  resource. An ARM update alone does not prove that a live setting will reset.
+- Potential noise supported by the verified post-apply DEV comparison. This is
+  advisory, with the original change retained; it is not a declaration that the
+  target is unchanged. Mixed updates keep their reviewable fields visible.
+- Security and policy ownership differences, which need review even when they
+  recur in DEV. Repeated NSG or access changes may reflect another controller
+  reapplying its intended configuration.
+- Coverage gaps for unsupported resources, unresolved deployment-time values
+  and potential actions. Check the intended Bicep configuration where these
+  gaps matter; the comparison does not turn them into no-change predictions.
 
-- **Predicted changes** lists creates, reported updates and resource deletions.
-  Property removals are described separately from resource deletions. An update
-  can include provider defaults or omitted properties; it does not prove a live
-  setting will reset. Potential changes remain explicitly labelled and are
-  excluded from the headline action counts.
-- **Coverage gaps** groups entries Azure did not preview and changes containing
-  unresolved deployment-time values. Inspect the intended Bicep configuration
-  and refresh the preview before promotion where those gaps matter.
-- **Background inventory** counts ignored/unchanged observations and metadata-only
-  updates. Updates containing only CreatedDate plus fields Azure explicitly marks
-  `NoEffect` are also counted here; mixed updates remain in the review list.
-  These can repeat across component previews. They are not presented as
-  individual actions to review; Ignore can mean outside-template inventory or
-  an expansion limit, so coverage is still marked incomplete.
+Ignored/unchanged inventory and metadata-only updates are counted as background.
+Updates containing only CreatedDate and fields Azure explicitly marks `NoEffect`
+also belong here. Inventory can repeat across component previews and is not listed
+as individual actions. Ignore can mean outside-template inventory or an expansion
+limit, so coverage may still be marked incomplete.
+
+Named resources and nested parent names make the review list readable without
+requiring a resource ID lookup. Each environment's artifact also has a standalone
+`summary.md` if a detailed environment-specific review is useful.
 
 Download `change-details.md` from each environment's artifact for property-level
 evidence, full resource identifiers and input fingerprints. `plan.json` retains
 every sanitised entry, including the ignored inventory omitted from Markdown.
+The combined artifact's `dev-comparison.json` records the classifications and
+supporting reason codes without publishing additional source values.
 Sensitive values are redacted in every file; a pair of withheld values is
 described as a change with values withheld in the summary. Raw what-if responses
 and generated runtime parameters are not published. Private state is removed
@@ -109,13 +141,15 @@ completion trigger from that default branch. The completion resource must use
 the full source pipeline path `\Infrastructure\infrastructure`; its successful
 DEV runs already carry `Environment-DEV`. The YAML alias remains `infrastructure`.
 
-Authorise the new pipeline to read `Common`, `LowerEnvs`, `HigherEnvs`, `TST`, `PRE`
-and `PRD` variable groups, and to use the Modern and Classic service connections
-configured by `pipelines/vars/{tst,pre,prd}.yaml`. Their Azure identities need the
+Authorise the new pipeline to read `Common`, `LowerEnvs`, `HigherEnvs`, `DEV`, `TST`,
+`PRE` and `PRD` variable groups, and to use the Modern and Classic service connections
+configured by `pipelines/vars/{dev,tst,pre,prd}.yaml`, including DEV's Classic/SND
+connection. Their Azure identities need the
 permissions required for resource-group and subscription-scope what-if operations.
-For the optional DEV baseline, also authorise the `DEV` variable group and the
-existing DEV/SND service connections for this pipeline. Pipeline-scoped access is
-sufficient; this does not require changing the Azure identities' roles.
+The preview job's Azure DevOps token needs permission to read the source
+infrastructure build metadata in the same project. That lookup does not use an
+Azure service connection. Pipeline-scoped access is sufficient; this does not
+require changing the Azure identities' roles.
 Missing authorisation can block the run before jobs start. Authentication failures
 after initialisation leave pending/incomplete component records visible in the
 report; they must not be treated as a successful plan.

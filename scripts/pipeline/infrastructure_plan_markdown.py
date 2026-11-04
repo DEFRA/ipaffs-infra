@@ -162,7 +162,7 @@ def _words(value):
     return value.replace("_", " ").replace("-", " ")
 
 
-def _property_label(path):
+def property_label(path):
     parts = [part for part in str(path).split(".") if part != "properties"]
     if not parts:
         return "resource properties"
@@ -196,7 +196,7 @@ def _change_summary(resource):
     for field in fields:
         operation = field.get("changeType", "Unknown")
         before, after = field.get("before"), field.get("after")
-        label = _property_label(field.get("path", ""))
+        label = property_label(field.get("path", ""))
         public_before = before not in (_WITHHELD, _UNRESOLVED, _MISSING, None)
         public_after = after not in (_WITHHELD, _UNRESOLVED, _MISSING, None)
         if operation == "Modify" and public_before and public_after:
@@ -238,7 +238,7 @@ def _coverage_rows(report):
                 pending = [field for field in fields if field.get("unresolved")]
                 if pending:
                     groups[("Deployment-time values", kind)] += 1
-                    unresolved[kind].extend(_property_label(field.get("path", "")) for field in pending)
+                    unresolved[kind].extend(property_label(field.get("path", "")) for field in pending)
                 elif change_type == "Modify" and not resource.get("fields"):
                     groups[("Missing property details", kind)] += 1
         reasons = {
