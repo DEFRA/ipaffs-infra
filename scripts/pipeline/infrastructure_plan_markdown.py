@@ -10,6 +10,8 @@ import html
 import json
 import re
 
+from infrastructure_plan_identity import identity_metadata_reason, is_metadata_field, is_metadata_only
+
 
 TYPE_LABELS = {
     "microsoft.alertsmanagement/prometheusrulegroups": "Prometheus rule group",
@@ -82,6 +84,7 @@ _GROUPS = {
     "updatechannel": "update channel", "zonalallocationpolicy": "zone allocation policy",
     "creatorcanadmin": "creator administrator access", "grafanamajorversion": "Grafana major version",
     "maxsizebytes": "maximum size in bytes", "accessmode": "access mode",
+    "isolationscope": "managed identity regional isolation",
 }
 
 
@@ -143,18 +146,20 @@ def is_no_effect_only(resource):
             and all(isinstance(field, dict) for field in fields)
             and any(field.get("changeType") == "NoEffect" for field in fields)
             and all(field.get("changeType") == "NoEffect"
-                    or str(field.get("path", "")).lower() == "tags.createddate"
+                    or is_metadata_field(resource.get("type"), field)
                     for field in fields))
 
 
 def _actionable(resource):
-    return (resource.get("category") == "resource" and not resource.get("metadataOnly")
+    return (resource.get("category") == "resource" and not is_metadata_only(resource)
             and resource.get("changeType") in _ACTIONS and not is_no_effect_only(resource))
 
 
 def _runtime_fields(resource):
+    metadata_context = resource.get("changeType") == "Modify" and not resource.get("potential")
     return [field for field in resource.get("fields", [])
-            if str(field.get("path", "")).lower() != "tags.createddate"]
+            if str(field.get("path", "")).lower() != "tags.createddate"
+            and not (metadata_context and identity_metadata_reason(resource.get("type"), field))]
 
 
 def _words(value):
@@ -311,8 +316,8 @@ def environment_markdown(report):
         lines.extend(["No unsupported types, unresolved runtime fields or component execution gaps were returned.", ""])
     lines.extend(["## Background inventory", "",
                   f"- Ignore: {sum(resource.get('changeType') == 'Ignore' for resource in resources)} occurrences across component previews. Ignore means Azure did not assess these entries in this component preview. They may be outside its template or beyond an expansion limit; this does not establish no change.",
-                  f"- Unchanged: {sum(resource.get('changeType') == 'NoChange' and resource.get('category') == 'resource' for resource in resources)} occurrences. CreatedDate-only updates: {sum(bool(resource.get('metadataOnly')) for resource in resources)}. Nested-deployment entries: {sum(resource.get('category') == 'deployment-metadata' for resource in resources)}.",
-                  f"- NoEffect-only updates: {sum(is_no_effect_only(resource) and not resource.get('metadataOnly') for resource in resources)}. Azure marks their non-CreatedDate fields as having no effect; these entries are excluded from the review counts and action rows. Their evidence remains in change-details.md and plan.json.",
+                  f"- Unchanged: {sum(resource.get('changeType') == 'NoChange' and resource.get('category') == 'resource' for resource in resources)} occurrences. Metadata-only updates: {sum(is_metadata_only(resource) for resource in resources)}. Nested-deployment entries: {sum(resource.get('category') == 'deployment-metadata' for resource in resources)}.",
+                  f"- NoEffect-only updates: {sum(is_no_effect_only(resource) and not is_metadata_only(resource) for resource in resources)}. Azure marks their effective fields as having no effect; these entries are excluded from the review counts and action rows. Their evidence remains in change-details.md and plan.json.",
                   "- These are occurrence counts, not distinct resources at risk. Individual inventory entries remain in plan.json.", "",
                   "Artifact files: `change-details.md` contains property-level evidence and identifiers; `plan.json` retains every sanitised entry. Values withheld by the report cannot be recovered from either artifact.", "",
                   "This live ARM prediction does not cover hooks, peering pipeline execution, Library output writes, Entra memberships or scripted DNS changes. Refresh it before promotion; it is not a saved executable plan or a guarantee of deployment success.", ""])
@@ -339,7 +344,7 @@ def change_details_markdown(report):
                 continue
             action = resource.get("changeType", "Unknown")
             prefix = "Potential " if resource.get("potential") else ""
-            metadata_note = " (metadata only)" if resource.get("metadataOnly") or resource.get("category") == "deployment-metadata" else ""
+            metadata_note = " (metadata only)" if is_metadata_only(resource) or resource.get("category") == "deployment-metadata" else ""
             lines.extend([f"### {md(prefix + action)}: {md(type_label(resource.get('type')))} — {md(resource_label(resource))}{metadata_note}", "",
                           f"Azure type: `{md(resource.get('type', 'unavailable'))}`", "",
                           f"Resource: {md(resource.get('resourceId', 'unavailable'))}", ""])
@@ -347,6 +352,9 @@ def change_details_markdown(report):
                 lines.extend(["Potential only; not a confirmed change.", ""])
             if resource.get("potentialImpact"):
                 lines.extend(["Potential impact: " + md(", ".join(resource["potentialImpact"])) + ".", ""])
+            if (resource.get("changeType") == "Modify" and not resource.get("potential")
+                    and any(identity_metadata_reason(resource.get("type"), field) for field in resource.get("fields", []))):
+                lines.extend(["Generated identity ID omissions and an omitted `None` regional-isolation default are background metadata. ARM operations remain below for audit; other fields still require review.", ""])
             if resource.get("unresolved"):
                 lines.extend(["Some aspects were not fully assessed; consult the summary coverage gaps.", ""])
             fields = resource.get("fields", [])

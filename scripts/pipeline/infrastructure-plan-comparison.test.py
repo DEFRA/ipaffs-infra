@@ -117,13 +117,82 @@ class InfrastructurePlanComparisonTests(unittest.TestCase):
         self.assertEqual(3, result["counts"]["policySecurityResources"])
         self.assertEqual(0, result["counts"]["potentialNoiseFields"])
 
-    def test_generated_identity_fields_have_a_specific_readonly_exception(self):
-        default = resource("Microsoft.ManagedIdentity/userAssignedIdentities", fields=[field("properties")])
-        result = self.compare(report(resources=[default]), report("TST", [default]))
-        self.assertEqual(1, result["counts"]["potentialNoiseResources"])
+    def test_generated_identity_fields_are_background_without_a_dev_baseline(self):
+        generated = resource("Microsoft.ManagedIdentity/userAssignedIdentities", fields=[
+            field("properties." + name, after="[not present]", metadataOnly=True, metadataReason="GENERATED_IDENTITY_PROPERTY")
+            for name in ("clientId", "principalId", "tenantId")], metadataOnly=True)
+        for component in ("infra", "classic"):
+            with self.subTest(component=component):
+                result = self.compare(target=report("TST", [generated], component), proof={})
+                self.assertEqual("unavailable", result["baseline"]["status"])
+                self.assertEqual(1, result["counts"]["backgroundResources"])
+                self.assertEqual(0, result["counts"]["potentialNoiseResources"])
+                self.assertEqual("Modify", result["resources"][0]["action"])
+
+    def test_opaque_identity_properties_cannot_borrow_a_readonly_exception(self):
+        opaque = resource("Microsoft.ManagedIdentity/userAssignedIdentities", fields=[
+            field("properties", metadataOnly=True, metadataReason="GENERATED_IDENTITY_PROPERTY")], metadataOnly=True)
+        result = self.compare(report(resources=[opaque]), report("TST", [opaque]))
+        self.assertEqual(0, result["counts"]["backgroundResources"])
+        self.assertEqual(0, result["counts"]["potentialNoiseResources"])
+
+    def test_generated_identity_leaf_names_are_not_metadata_on_other_resource_types(self):
         authorization = resource("Microsoft.Authorization/roleAssignments", fields=[field("properties.principalId")])
         result = self.compare(report(resources=[authorization]), report("TST", [authorization]))
         self.assertEqual(1, result["counts"]["policySecurityResources"])
+        for name in ("clientId", "principalId", "tenantId"):
+            impostor = resource("Microsoft.Network/privateEndpoints", fields=[
+                field("properties." + name, metadataOnly=True, metadataReason="GENERATED_IDENTITY_PROPERTY")], metadataOnly=True)
+            with self.subTest(name=name):
+                self.assertEqual(0, self.compare(target=report("TST", [impostor]))["counts"]["backgroundResources"])
+
+    def test_real_identity_scope_changes_are_security_review_even_with_forged_metadata_flags(self):
+        for component in ("infra", "classic"):
+            for action, before, after in (("Modify", "None", "Regional"),
+                                          ("Modify", "Regional", "None"),
+                                          ("Delete", "Regional", "[not present]")):
+                item = resource("Microsoft.ManagedIdentity/userAssignedIdentities", fields=[
+                    field("properties.clientId", after="[not present]", metadataOnly=True, metadataReason="GENERATED_IDENTITY_PROPERTY"),
+                    field("properties.isolationScope", action, before, after,
+                          metadataOnly=True, metadataReason="GENERATED_IDENTITY_PROPERTY")], metadataOnly=True)
+                with self.subTest(component=component, action=action, before=before):
+                    result = self.compare(target=report("TST", [item], component), proof={})
+                    self.assertEqual(1, result["counts"]["policySecurityResources"])
+                    scope = next(f for f in result["resources"][0]["fields"] if f["path"] == "properties.isolationScope")
+                    self.assertEqual("policy-security-review", scope["classification"])
+
+    def test_omitted_none_identity_scope_is_background_but_uncertain_values_are_not(self):
+        default = resource("Microsoft.ManagedIdentity/userAssignedIdentities", fields=[
+            field("properties.isolationScope", "Delete", "None", "[not present]",
+                  metadataOnly=True, metadataReason="UNCHANGED_IDENTITY_SCOPE_DEFAULT")], metadataOnly=True)
+        self.assertEqual(1, self.compare(target=report("TST", [default]), proof={})["counts"]["backgroundResources"])
+        for before in ("Regional", "[withheld]", "none", None):
+            item = copy.deepcopy(default)
+            item["fields"][0]["before"] = before
+            with self.subTest(before=before):
+                self.assertEqual(0, self.compare(target=report("TST", [item]), proof={})["counts"]["backgroundResources"])
+
+    def test_identity_readonly_fields_never_hide_create_delete_or_potential_actions(self):
+        for action, potential in (("Create", False), ("Delete", False), ("Modify", True)):
+            item = resource("Microsoft.ManagedIdentity/userAssignedIdentities", action=action, potential=potential,
+                            fields=[field("properties.clientId", after="[not present]", metadataOnly=True,
+                                          metadataReason="GENERATED_IDENTITY_PROPERTY")], metadataOnly=True)
+            with self.subTest(action=action, potential=potential):
+                result = self.compare(target=report("TST", [item]), proof={})
+                self.assertEqual(0, result["counts"]["backgroundResources"])
+                self.assertEqual(1, result["counts"]["reviewResources"] + result["counts"]["unresolvedResources"])
+
+    def test_generated_identity_fields_require_an_assessed_omission_not_an_arbitrary_flag(self):
+        valid = field("properties.clientId", "Delete", "[withheld]", "[not present]",
+                      metadataOnly=True, metadataReason="GENERATED_IDENTITY_PROPERTY")
+        for mutation in ({"changeType": "Modify"}, {"changeType": "Create"},
+                         {"unresolved": True}, {"after": "[withheld]"},
+                         {"before": "[not present]"}, {"path": "properties.clientId.extra"}):
+            edited = {**valid, **mutation}
+            item = resource("Microsoft.ManagedIdentity/userAssignedIdentities", fields=[edited], metadataOnly=True)
+            with self.subTest(mutation=mutation):
+                result = self.compare(target=report("TST", [item]), proof={})
+                self.assertEqual(0, result["counts"]["backgroundResources"])
 
     def test_classic_snd_is_not_an_equivalent_target_environment(self):
         default = resource("Microsoft.ManagedIdentity/userAssignedIdentities", fields=[field("properties")])
@@ -348,9 +417,11 @@ class InfrastructurePlanComparisonTests(unittest.TestCase):
     def test_lookalike_resource_type_cannot_borrow_default_classification(self):
         item = resource()
         item["type"] = "Microsoft.ManagedIdentity/userAssignedIdentities"
-        item["fields"] = [field("properties")]
+        item["fields"] = [field("properties.clientId", after="[not present]", metadataOnly=True,
+                                metadataReason="GENERATED_IDENTITY_PROPERTY")]
         result = self.compare(target=report("TST", [item]))
         self.assertEqual(0, result["counts"]["potentialNoiseResources"])
+        self.assertEqual(0, result["counts"]["backgroundResources"])
         self.assertEqual("unavailable", result["resources"][0]["type"])
 
     def test_malformed_artifact_containers_cannot_crash_or_supply_noise_matches(self):

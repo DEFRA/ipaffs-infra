@@ -105,6 +105,18 @@ also belong here. Inventory can repeat across component previews and is not list
 as individual actions. Ignore can mean outside-template inventory or an expansion
 limit, so coverage may still be marked incomplete.
 
+Managed-identity updates also count as background when the only differences are
+omitted Azure-generated `clientId`, `principalId` or `tenantId` fields, or an omitted
+`isolationScope` whose current value is exactly `None`. Microsoft documents that
+[an omitted isolation scope and `None` both allow use across regions](https://learn.microsoft.com/en-us/entra/identity/managed-identities-azure-resources/managed-identities-isolation-scope).
+The reporter examines individual fields before redaction; it does not treat an
+opaque identity `properties` object as harmless. Removing `Regional`, changing
+between `None` and `Regional`, expressions, unknown properties and incomplete
+evidence stay visible. This rule applies to both Modern and Classic identities
+without relying on a DEV comparison. Resource creates, resource deletes and
+potential actions remain reviewable. JSON retains ARM's original resource action,
+expanded property operations and fixed metadata reasons; generated IDs stay redacted.
+
 Named resources and nested parent names make the review list readable without
 requiring a resource ID lookup. Each environment's artifact also has a standalone
 `summary.md` if a detailed environment-specific review is useful.
