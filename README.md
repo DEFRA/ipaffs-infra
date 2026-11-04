@@ -160,6 +160,52 @@ alongside their managed identities and runtime permissions.
 The Grafana definition **11662** now reads `ipaffs-operations/main` in the
 Azure DevOps `\Operations` folder.
 
+### App Services disable and recover
+
+`pipelines/disable-app-services.yaml` stops (`disable`) or starts (`recover`) the
+classic App Services and Function Apps listed for each environment. It changes
+nothing else: no plan scaling, no autoscale, no deletes.
+
+**Lists:** `scripts/pipeline/decommission-legacy-apps/lists/<env>-decommission-apps.txt`, one file
+per environment (subscription `AZR-SND`, `AZR-TST`, `AZR-PRE`, `AZR-PRD`). Each
+line is `resourceGroup/appName`; `#` starts a comment. Lists are explicit
+because some apps are deliberately stopped for regression testing and must
+never be started, so only the apps that were running are listed. To create or
+refresh a list (read only), sign in to the subscription and run:
+
+```bash
+SUB=AZR-TST
+{ az webapp list --subscription "$SUB" --query "[?state=='Running'].join('/', [resourceGroup, name])" -o tsv
+  az functionapp list --subscription "$SUB" --query "[?state=='Running'].join('/', [resourceGroup, name])" -o tsv
+} | grep -i 'imp[^/]*/' | sort -fu
+```
+
+The `grep` keeps resource groups containing `IMP` in any case. Review the
+output, remove anything that is not IPAFFS, then save it with a header comment
+saying when it was generated.
+
+**Script:** `scripts/pipeline/decommission-legacy-apps/disable.sh <disable|recover>` checks that every
+listed app exists before changing anything, skips apps already in the target
+state, retries throttled calls and fails unless every listed app ends in the
+target state. Unlisted apps are never touched. Tests:
+`bash scripts/pipeline/decommission-legacy-apps/disable.test.sh`.
+
+**Stages and gates:** one run goes SND → TST → PRE → PRD. SND starts straight
+away. TST, PRE and PRD each start with a `ManualValidation` approval in the
+pipeline itself, which rejects after 24 hours, so a gate never depends on how
+an ADO Environment is configured. Their deployment jobs still target the ADO
+Environment of the same name, so any checks configured there apply as well. A
+rejected approval or a failure stops the run there. A stage whose list is
+empty fails.
+
+**Rollback:** queue a new run with `action=recover` and approve up to the
+environment that needs it. Lower environments run again first, which keeps
+them consistent with higher ones.
+
+**Approvers:** anyone who can queue the pipeline can approve, including the
+person who queued it. Set `approvers` on the `ManualValidation` task to restrict
+this.
+
 ### Human access ownership
 
 Human/team membership, access-group creation, human Azure RBAC and PIM eligibility
