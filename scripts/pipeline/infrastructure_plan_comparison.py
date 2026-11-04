@@ -195,10 +195,11 @@ def _baseline_status(dev_report, target_report, evidence):
         return "BASELINE_CANDIDATE_MISMATCH"
     applied, verified, generated, target_generated = (_time(evidence.get("appliedFinishTime")),
         _time(evidence.get("verifiedAt")), _time(dev_meta.get("generatedAt")), _time(target_meta.get("generatedAt")))
-    # DEV report metadata is initialised immediately before provenance is checked.
-    # Keep that ordering explicit and bounded; release jobs initialise later.
+    # DEV metadata is initialised immediately before provenance is checked.
+    # Other previews can initialise in any order while running concurrently;
+    # each must still start after the verified source apply finished.
     if (not applied or not verified or not generated or not target_generated
-            or not applied <= generated <= verified <= target_generated
+            or not applied <= generated <= verified or target_generated < applied
             or (verified - generated).total_seconds() > 300):
         return "BASELINE_TIMING_INVALID"
     components = _list(dev_report.get("components"))

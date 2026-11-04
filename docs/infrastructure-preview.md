@@ -10,8 +10,10 @@ separate follow-up; the current DEV deployment pipeline remains unchanged.
 
 1. Merge infrastructure changes to `main`; the `infrastructure` pipeline applies DEV.
 2. When that run succeeds with the `Environment-DEV` build tag, the preview pipeline
-   runs automatically using the same Git commit. DEV, TST, PRE and PRD run in that
-   order, followed by the combined summary. No option is needed to include DEV.
+   runs automatically using the same Git commit. DEV, TST, PRE and PRD run in
+   parallel, followed by the combined summary, which waits for all four reports.
+   No option is needed to include DEV. Available agents and parallel-job capacity
+   determine how many environment jobs can execute at once.
 3. Review the **Infrastructure promotion preview** summary in Azure DevOps and the
    downloadable `infrastructure-preview` artifact before choosing a release tag.
    Record the full candidate commit; a tag created later must point at that commit
@@ -22,8 +24,8 @@ When every environment's what-if executes successfully but ARM cannot assess all
 resources or fields, the pipeline finishes **succeeded with issues** and keeps the
 assessment marked **INCOMPLETE**. Execution errors, missing or invalid reports, and
 reports from different commits still fail the pipeline.
-The next environment is still attempted after a failure, and the overview runs
-with whatever reports are available. No deployment environments are referenced by
+Other environments continue after an environment fails, and the overview runs
+with whatever reports are available after all four finish. No deployment environments are referenced by
 these ordinary agent jobs; service-connection checks and authorisation still apply.
 
 For a manual preview, select `main` in the Azure DevOps **Run pipeline** dialog
@@ -58,6 +60,9 @@ The comparison also requires all six DEV components to complete successfully,
 with no ARM diagnostics, proposed resource creates/deletes or potential actions.
 It checks that reports and evidence belong to the same preview run and candidate.
 A baseline with unapplied resource actions cannot establish recurring noise.
+Each environment's preview must start after the verified DEV apply completed;
+the release-target previews do not need to wait for the DEV preview itself.
+Classification happens in the combined summary after every environment finishes.
 
 Repetition after an apply is evidence, not proof of a false positive. Current
 Library values, live identities and nondeterministic metadata are not a replay of

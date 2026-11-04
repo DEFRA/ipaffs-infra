@@ -111,11 +111,11 @@ class InfrastructurePreviewPipelineTests(unittest.TestCase):
                          resource["trigger"])
         self.assertNotIn("stages", resource["trigger"], "Wait for the entire DEV run to succeed")
 
-    def test_environment_plans_are_serial_and_failures_do_not_hide_later_targets(self):
+    def test_environment_plans_are_independent_and_failures_do_not_hide_other_targets(self):
         pipeline = load(PIPELINE)
         actual = [(entry["parameters"]["environmentName"], entry["parameters"]["dependsOn"])
                   for entry in pipeline_stages() if "template" in entry]
-        self.assertEqual([("DEV", []), ("TST", ["Preview_DEV"]), ("PRE", ["Preview_TST"]), ("PRD", ["Preview_PRE"])], actual)
+        self.assertEqual([("DEV", []), ("TST", []), ("PRE", []), ("PRD", [])], actual)
         for environment in ("DEV", "TST", "PRE", "PRD"):
             with self.subTest(environment=environment):
                 stage = environment_stage(environment)

@@ -261,6 +261,36 @@ class InfrastructurePlanComparisonTests(unittest.TestCase):
         proof = evidence(verifiedAt="2026-11-04T10:04:59Z")
         self.assertEqual("BASELINE_TIMING_INVALID", self.compare(proof=proof)["baseline"]["reasonCode"])
 
+    def test_concurrent_target_initialisation_can_precede_dev_and_its_verification(self):
+        for generated in ("2026-11-04T10:00:00Z", "2026-11-04T10:04:00Z",
+                          "2026-11-04T10:05:00Z", "2026-11-04T10:07:00Z", "2026-11-04T10:20:00Z"):
+            for environment in ("TST", "PRE", "PRD"):
+                with self.subTest(generated=generated, environment=environment):
+                    target = report(environment, [resource()])
+                    target["metadata"]["generatedAt"] = generated
+                    result = self.compare(target=target)
+                    self.assertEqual("usable", result["baseline"]["status"])
+                    self.assertEqual(1, result["counts"]["potentialNoiseResources"])
+
+    def test_concurrent_target_must_still_start_after_source_apply(self):
+        target = report("TST", [resource()])
+        target["metadata"]["generatedAt"] = "2026-11-04T09:59:59Z"
+        result = self.compare(target=target)
+        self.assertEqual("BASELINE_TIMING_INVALID", result["baseline"]["reasonCode"])
+        self.assertEqual(0, result["counts"]["potentialNoiseResources"])
+
+    def test_malformed_or_timezone_free_timestamps_fail_closed(self):
+        for invalid in (None, [], "bad", "2026-11-04T10:05:00", "2026-99-04T10:05:00Z"):
+            for location in ("dev", "target", "verifiedAt", "appliedFinishTime"):
+                with self.subTest(invalid=invalid, location=location):
+                    dev, target, proof = report(resources=[resource()]), report("TST", [resource()]), evidence()
+                    if location in {"dev", "target"}:
+                        (dev if location == "dev" else target)["metadata"]["generatedAt"] = invalid
+                    else:
+                        proof[location] = invalid
+                    result = self.compare(dev, target, proof)
+                    self.assertEqual("BASELINE_TIMING_INVALID", result["baseline"]["reasonCode"])
+
     def test_extension_resource_preserves_parent_scope_and_final_provider_type(self):
         item = resource("Microsoft.Authorization/roleAssignments", name="role")
         item["resourceId"] = PREFIX + "Microsoft.Sql/servers/sql-server/providers/Microsoft.Authorization/roleAssignments/role"
