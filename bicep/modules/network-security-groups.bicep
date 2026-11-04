@@ -4,6 +4,7 @@ param deploymentId string
 param location string
 param nsgParams object
 param tags object
+param existingNetworkSecurityGroupNames array = []
 
 module networkSecurityGroup './network-security-group.bicep' = [for nsg in nsgParams.networkSecurityGroups: {
   name: '${nsg.name}-${deploymentId}'
@@ -12,6 +13,7 @@ module networkSecurityGroup './network-security-group.bicep' = [for nsg in nsgPa
     location: location
     tags: tags
     securityRules: nsg.securityRules
+    parentExists: contains(map(existingNetworkSecurityGroupNames, existingName => toLower(existingName)), toLower(nsg.name))
   }
 }]
 

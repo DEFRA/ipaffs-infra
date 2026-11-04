@@ -11,6 +11,8 @@ import sys
 import tempfile
 import unittest
 
+import yaml
+
 
 ROOT = Path(__file__).resolve().parents[2]
 SPEC = importlib.util.spec_from_file_location("parameters", Path(__file__).with_name("infrastructure_parameters.py"))
@@ -75,6 +77,76 @@ class InfrastructureParameterTests(unittest.TestCase):
     def test_network_and_resource_group_have_no_runtime_overlays(self):
         for component in ("network", "resource-group"):
             self.assertEqual(2, len(PARAMETERS.render(component, "PRD", {}).splitlines()))
+
+    def test_network_overlay_accepts_valid_existing_names_and_explicit_empty_results(self):
+        names = ["Existing-PrivateEndpoint", "Existing-AKS"]
+        result = PARAMETERS.render("network", "PRE", {"existingNetworkSecurityGroupNames": names})
+        self.assertIn("param existingNetworkSecurityGroupNames = [\n  'Existing-AKS'\n  'Existing-PrivateEndpoint'\n]", result)
+        self.assertEqual(names, ["Existing-PrivateEndpoint", "Existing-AKS"], "Validation does not mutate caller data")
+        result = PARAMETERS.render("network", "PRE", {"existingNetworkSecurityGroupNames": []})
+        self.assertIn("param existingNetworkSecurityGroupNames = [\n]", result)
+
+    def test_invalid_network_name_reads_fail_without_publishing_values(self):
+        for names in (None, "[]", {}, [None], ["Name", "name"], ["private-value;unexpected"],
+                      ["$(pipelineVariable)"], ["a" * 81], ["Bad\nName"], ["-bad"], ["bad."]):
+            with self.subTest(names=names), self.assertRaisesRegex(ValueError, "Invalid existing network security group names") as failure:
+                PARAMETERS.render("network", "PRE", {"existingNetworkSecurityGroupNames": names})
+            self.assertNotIn("private-value", str(failure.exception))
+
+    def network_task(self, script, names, status=0):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            scripts = root / "scripts" / "pipeline"
+            scripts.mkdir(parents=True)
+            for filename in ("infrastructure_parameters.py", "ensure-bicep-version.sh"):
+                shutil.copyfile(ROOT / "scripts" / "pipeline" / filename, scripts / filename)
+            executables = root / "bin"
+            executables.mkdir()
+            calls = root / "calls.jsonl"
+            azure = executables / "az"
+            azure.write_text("#!" + sys.executable + "\n" + "\n".join([
+                "import json,os,sys",
+                "args=sys.argv[1:]",
+                f"with open({str(calls)!r},'a') as stream: stream.write(json.dumps(args)+'\\n')",
+                "if args[:2] == ['bicep','version']: print('Bicep CLI version 0.43.8 (fixture)')",
+                "elif args[:3] == ['network','nsg','list']:",
+                "    print(os.environ['FIXTURE_NAMES'])",
+                "    sys.exit(int(os.environ['FIXTURE_NSG_STATUS']))",
+                "elif args[:2] != ['deployment','group']: sys.exit(99)",
+            ]) + "\n")
+            azure.chmod(0o700)
+            script = (script.replace("$(subscriptionId)", "11111111-1111-4111-8111-111111111111")
+                      .replace("$(resourceGroupName)", "fixture-group").replace("$(Build.BuildId)", "123")
+                      .replace("${{ lower(parameters.environmentName) }}", "pre"))
+            result = subprocess.run(["bash", "-c", script], cwd=root,
+                                    env={**os.environ, "PATH": str(executables) + os.pathsep + os.environ["PATH"],
+                                         "FIXTURE_NAMES": json.dumps(names), "FIXTURE_NSG_STATUS": str(status)},
+                                    capture_output=True, text=True, timeout=10)
+            return result, [json.loads(line) for line in calls.read_text().splitlines()]
+
+    def test_network_what_if_and_apply_each_discover_and_validate_their_own_names_before_deployment(self):
+        document = yaml.safe_load((ROOT / "pipelines/stages/deploy-bicep-network.yaml").read_text())
+        steps = document["stages"][0]["jobs"][0]["strategy"]["runOnce"]["deploy"]["steps"]
+        tasks = [step for step in steps if step.get("displayName") in {"WhatIf - Network", "Deploy - Network"}]
+        self.assertEqual(2, len(tasks))
+        for task in tasks:
+            script = task["inputs"]["inlineScript"]
+            self.assertNotIn("set -x", script)
+            for names, status, success in ((["Existing-AKS"], 0, True), ([], 0, True),
+                                           (["private-value;unexpected"], 0, False), (None, 0, False), ([], 7, False)):
+                with self.subTest(task=task["displayName"], names=names, status=status):
+                    result, calls = self.network_task(script, names, status)
+                    self.assertEqual(success, result.returncode == 0, result.stderr)
+                    reads = [call for call in calls if call[:3] == ["network", "nsg", "list"]]
+                    self.assertEqual(1, len(reads))
+                    self.assertEqual("[].name", reads[0][reads[0].index("--query") + 1])
+                    writes = [call for call in calls if call[:2] == ["deployment", "group"]]
+                    self.assertEqual(int(success), len(writes))
+                    if success:
+                        override, = [argument for argument in writes[0] if argument.startswith("existingNetworkSecurityGroupNames=")]
+                        self.assertEqual(names, json.loads(override.split("=", 1)[1]))
+                        self.assertLess(writes[0].index("bicep/envs/pre/20-network.bicepparam"), writes[0].index(override))
+                    self.assertNotIn("private-value", result.stdout + result.stderr)
 
     def test_missing_and_unresolved_required_values_fail_without_echoing_values(self):
         for value in (None, "", " ", "$(sqlAdminGroupId)", "${{ variables.sqlAdminGroupId }}",
@@ -153,9 +225,10 @@ class InfrastructureParameterTests(unittest.TestCase):
 
 @unittest.skipUnless(os.environ.get("BICEP_BIN"), "Set BICEP_BIN to enable actual Bicep compilation")
 class CompiledParameterParityTests(unittest.TestCase):
-    def compile(self, path):
+    def compile(self, path, overrides=None):
         result = subprocess.run([os.environ["BICEP_BIN"], "build-params", str(path), "--stdout", "--no-restore"],
-                                text=True, capture_output=True, timeout=60)
+                                text=True, capture_output=True, timeout=60,
+                                env=None if overrides is None else {**os.environ, "BICEP_PARAMETERS_OVERRIDES": json.dumps(overrides)})
         self.assertEqual(0, result.returncode, result.stderr)
         return json.loads(json.loads(result.stdout)["parametersJson"])["parameters"]
 
@@ -175,6 +248,27 @@ class CompiledParameterParityTests(unittest.TestCase):
                         output = root / f"{filename}-runtime.bicepparam"
                         PARAMETERS.write_parameters(component, environment, values, output)
                         self.assertEqual(expected, self.compile(output))
+
+    def test_network_existing_names_overlay_compiles_for_existing_and_new_groups(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary) / "bicep"
+            shutil.copytree(ROOT / "bicep", root)
+            for environment in PARAMETERS.ENVIRONMENTS:
+                for names in ([], ["Existing-AKS", "Existing-PrivateEndpoint"]):
+                    with self.subTest(environment=environment, names=names):
+                        output = root / "20-network-runtime.bicepparam"
+                        PARAMETERS.write_parameters("network", environment, {"existingNetworkSecurityGroupNames": names}, output)
+                        self.assertEqual({"value": names}, self.compile(output)["existingNetworkSecurityGroupNames"])
+
+    def test_cli_supplemental_parameter_route_adds_new_default_parameter_missing_from_base_file(self):
+        # Azure CLI 2.75's supplemental .bicepparam path uses this Bicep override
+        # environment after resolving types from the compiled template itself.
+        base = ROOT / "bicep/envs/pre/20-network.bicepparam"
+        self.assertNotIn("existingNetworkSecurityGroupNames", base.read_text())
+        for names in ([], ["Existing-AKS"]):
+            with self.subTest(names=names):
+                result = self.compile(base, {"existingNetworkSecurityGroupNames": names})
+                self.assertEqual({"value": names}, result["existingNetworkSecurityGroupNames"])
 
     def test_escaped_bicep_string_compiles_to_original_value(self):
         value = "O'Brien \\ ${injected}\r\nsecond\t`touch /tmp/nope`"

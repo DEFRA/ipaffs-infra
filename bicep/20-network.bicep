@@ -16,6 +16,7 @@ var tags = union(loadJsonContent('default-tags.json'), {
 })
 
 param nsgParams object
+param existingNetworkSecurityGroupNames array = []
 param vnetParams object
 param agcNetworkConfig object
 
@@ -36,6 +37,7 @@ module nsg './modules/network-security-groups.bicep' = {
     location: location
     tags: tags
     nsgParams: nsgParams
+    existingNetworkSecurityGroupNames: existingNetworkSecurityGroupNames
   }
 }
 

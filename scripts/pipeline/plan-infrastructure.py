@@ -17,7 +17,8 @@ import sys
 import tempfile
 import uuid
 
-from infrastructure_parameters import COMPONENTS, ENVIRONMENT_VARIABLES, SUBNETS, render
+from infrastructure_parameters import (COMPONENTS, ENVIRONMENT_VARIABLES, SUBNETS, render,
+                                       validate_existing_network_security_group_names)
 from infrastructure_plan_report import write_environment_report
 
 
@@ -37,6 +38,8 @@ def az_json(arguments, timeout=900):
     # narrower than the credentials: accidentally adding an apply fails closed.
     allowed = (arguments[:1] == ["version"] or
                arguments[:2] == ["bicep", "build-params"] or
+               (len(arguments) == 9 and arguments[:4] == ["network", "nsg", "list", "--subscription"]
+                and arguments[5] == "--resource-group" and arguments[7:] == ["--query", "[].name"]) or
                arguments[:3] in (["deployment", "group", "what-if"],
                                  ["deployment", "sub", "what-if"]))
     if not allowed:
@@ -154,6 +157,17 @@ def scope_for(component, environ):
 
 def preview(component, environment, values, environ, private_dir, build_id):
     scope = scope_for(component, environ)
+    if component == "network":
+        # A fresh, names-only read controls parent bootstrap in this actual plan.
+        # Compile-only desired_inputs deliberately does not read Modern resources,
+        # so Classic credentials need no cross-subscription NSG access.
+        names = az_json(["network", "nsg", "list", "--subscription", scope["subscriptionId"],
+                         "--resource-group", scope["resourceGroup"], "--query", "[].name"], timeout=60)
+        try:
+            names = validate_existing_network_security_group_names(names)
+        except ValueError:
+            raise PlanError("INVALID_EXISTING_NETWORK_SECURITY_GROUP_NAMES") from None
+        values = {**values, "existingNetworkSecurityGroupNames": names}
     _, template, parameters = compile_parameters(component, environment, values, private_dir)
     arguments = ["deployment", "sub" if scope["kind"] == "subscription" else "group", "what-if",
                  "--subscription", scope["subscriptionId"], "--name", f"Preview-{component}-{build_id}",

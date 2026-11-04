@@ -570,12 +570,13 @@ def load_tests(loader, standard_tests, pattern):
                        check=True, stdout=subprocess.DEVNULL, timeout=180)
         config = Path(os.environ.get("AZURE_CONFIG_DIR", str(Path.home() / ".azure")))
         os.environ["BICEP_BIN"] = str(config / "bin/bicep")
-    for filename in ("20-network.bicep", "30-classic.bicep"):
-        subprocess.run([os.environ["BICEP_BIN"], "restore", str(ROOT / "bicep" / filename)],
+    for stem in PARAMETERS.COMPONENTS.values():
+        subprocess.run([os.environ["BICEP_BIN"], "restore", str(ROOT / "bicep" / (stem + ".bicep"))],
                        check=True, timeout=180)
     for name, filename in (("compiler_preparation_contract", "ensure-bicep-version.test.py"),
                            ("network_rule_ownership_contract", "network-security-groups.test.py"),
-                           ("sql_maintenance_ownership_contract", "sql-maintenance-ownership.test.py")):
+                           ("sql_maintenance_ownership_contract", "sql-maintenance-ownership.test.py"),
+                           ("parameter_overlay_contract", "infrastructure-parameters.test.py")):
         standard_tests.addTests(loader.loadTestsFromModule(module(name, filename)))
     return standard_tests
 

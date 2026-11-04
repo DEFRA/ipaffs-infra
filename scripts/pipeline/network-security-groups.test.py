@@ -37,9 +37,9 @@ def resolve(expression, parameters, index=0):
         token = tokens[position]
         position += 1
         if token.startswith("'"):
-            result = token[1:-1].replace("''", "'")
+            result = ("literal", token[1:-1].replace("''", "'"))
         elif token.isdigit():
-            result = int(token)
+            result = ("literal", int(token))
         else:
             if tokens[position] != "(":
                 raise AssertionError(f"Unsupported ARM expression: {expression}")
@@ -54,26 +54,40 @@ def resolve(expression, parameters, index=0):
             if tokens[position] != ")":
                 raise AssertionError(f"Invalid ARM expression: {expression}")
             position += 1
-            functions = {"parameters": lambda name: parameters[name], "copyIndex": lambda *args: index,
-                         "length": len, "format": lambda pattern, *args: pattern.format(*args)}
-            result = functions[token](*arguments)
+            result = ("call", token, arguments)
         while position < len(tokens) and tokens[position] in (".", "["):
             accessor = tokens[position]
             position += 1
             if accessor == ".":
-                result = result[tokens[position]]
+                result = ("lookup", result, ("literal", tokens[position]))
                 position += 1
             else:
-                result = result[value()]
+                result = ("lookup", result, value())
                 if tokens[position] != "]":
                     raise AssertionError(f"Invalid ARM index: {expression}")
                 position += 1
         return result
 
+    def evaluate(node, bindings):
+        if node[0] == "literal":
+            return node[1]
+        if node[0] == "lookup":
+            return evaluate(node[1], bindings)[evaluate(node[2], bindings)]
+        name, arguments = node[1:]
+        if name == "lambda":
+            names = [evaluate(argument, bindings) for argument in arguments[:-1]]
+            return lambda *values: evaluate(arguments[-1], {**bindings, **dict(zip(names, values))})
+        functions = {"parameters": lambda name: parameters[name], "copyIndex": lambda *args: index,
+                     "length": len, "format": lambda pattern, *args: pattern.format(*args),
+                     "contains": lambda values, item: item in values, "not": lambda argument: not argument,
+                     "toLower": lambda text: text.lower(), "lambdaVariables": lambda name: bindings[name],
+                     "map": lambda values, function: [function(item) for item in values]}
+        return functions[name](*(evaluate(argument, bindings) for argument in arguments))
+
     result = value()
     if position != len(tokens):
         raise AssertionError(f"Unconsumed ARM expression: {expression}")
-    return result
+    return evaluate(result, {})
 
 
 class NetworkSecurityGroupOwnershipTests(unittest.TestCase):
@@ -93,9 +107,11 @@ class NetworkSecurityGroupOwnershipTests(unittest.TestCase):
         cls.child, = [item for item in cls.group_resources.values()
                       if item["type"] == "Microsoft.Network/networkSecurityGroups/securityRules"]
         cls.environment_groups = {}
+        cls.network_templates = {}
         for environment in ("dev", "tst", "pre", "prd"):
             compiled = cls.compile("build-params", ROOT / f"bicep/envs/{environment}/20-network.bicepparam")
             cls.environment_groups[environment] = json.loads(compiled["parametersJson"])["parameters"]["nsgParams"]["value"]["networkSecurityGroups"]
+            cls.network_templates[environment] = json.loads(compiled["templateJson"])
 
     @classmethod
     def compile(cls, command, path):
@@ -105,9 +121,10 @@ class NetworkSecurityGroupOwnershipTests(unittest.TestCase):
             raise AssertionError(result.stderr)
         return json.loads(result.stdout)
 
-    def group_inputs(self, groups, index):
+    def group_inputs(self, groups, index, existing_names=None):
         inputs = {"nsgParams": {"networkSecurityGroups": groups}, "deploymentId": "fixture",
-                  "location": "uksouth", "tags": {"Environment": "fixture"}}
+                  "location": "uksouth", "tags": {"Environment": "fixture"},
+                  "existingNetworkSecurityGroupNames": existing_names or []}
         return {name: resolve(parameter["value"], inputs, index)
                 for name, parameter in self.loop["properties"]["parameters"].items()}
 
@@ -123,8 +140,34 @@ class NetworkSecurityGroupOwnershipTests(unittest.TestCase):
     def test_managed_rules_depend_on_the_bootstrapped_parent(self):
         self.assertIn(self.parent_key, self.child["dependsOn"])
         self.assertNotIn("@options", self.child, "Owned rules must still update on subsequent deployments")
+        self.assertNotIn("condition", self.child, "Existing parents must not disable managed child-rule updates")
+        existing, = [item for item in self.group_resources.values() if item.get("existing") is True]
+        self.assertEqual("Microsoft.Network/networkSecurityGroups", existing["type"])
         self.assertEqual("serial", self.child["copy"]["mode"])
         self.assertEqual(1, self.child["copy"]["batchSize"], "A group cannot accept concurrent child-rule writes")
+
+    def test_network_entrypoint_forwards_the_observed_group_names_without_changing_case(self):
+        observed = ["preimpnetns1401-Aks", "PREIMPNETNS1401-PrivateEndpoint"]
+        for environment, template in self.network_templates.items():
+            with self.subTest(environment=environment):
+                self.assertEqual([], template["parameters"]["existingNetworkSecurityGroupNames"]["defaultValue"])
+                group_module, = [item for item in resources(template).values()
+                                 if "nsgParams" in item.get("properties", {}).get("parameters", {})]
+                value = group_module["properties"]["parameters"]["existingNetworkSecurityGroupNames"]["value"]
+                self.assertEqual(observed, resolve(value, {"existingNetworkSecurityGroupNames": observed}))
+
+    def test_only_missing_parents_are_planned_for_creation_while_children_stay_managed(self):
+        groups = self.environment_groups["pre"]
+        for index, group in enumerate(groups):
+            for existing_names, exists in (([], False), ([group["name"]], True),
+                                           ([group["name"].lower()], True),
+                                           ([group["name"] + "-another-group"], False)):
+                with self.subTest(group=group["name"], existing_names=existing_names):
+                    parameters = self.group_inputs(groups, index, existing_names)
+                    self.assertEqual(exists, parameters["parentExists"])
+                    self.assertEqual(not exists, resolve(self.parent["condition"], parameters))
+                    self.assertEqual(len(group["securityRules"]), resolve(self.child["copy"]["count"], parameters))
+                    self.assertNotIn("condition", self.child)
 
     def test_every_environment_keeps_every_owned_rule_name_and_property(self):
         property_names = set()
@@ -162,6 +205,7 @@ class NetworkSecurityGroupOwnershipTests(unittest.TestCase):
             agc = [group for group in groups if group["purpose"] == "App Gateway for Containers"]
             self.assertEqual(1, len(agc), environment)
             self.assertTrue(agc[0]["securityRules"], environment)
+            self.assertTrue(resolve(self.parent["condition"], self.group_inputs(groups, groups.index(agc[0]))))
             empty = [index for index, group in enumerate(groups) if not group["securityRules"]]
             self.assertTrue(empty, environment)
             for index in empty:

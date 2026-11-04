@@ -52,6 +52,16 @@ SUBNETS = ("aksApiServer", "aksSystemNodes", "aksUserNodes",
 ENVIRONMENTS = ("DEV", "TST", "PRE", "PRD")
 
 
+def validate_existing_network_security_group_names(names):
+    """Accept only an explicit names-only read; never coerce failure to empty."""
+    pattern = r"[A-Za-z0-9](?:[A-Za-z0-9_.-]{0,78}[A-Za-z0-9_])?"
+    if (not isinstance(names, list) or len(names) > 10000
+            or any(not isinstance(name, str) or not re.fullmatch(pattern, name) for name in names)
+            or len({name.lower() for name in names}) != len(names)):
+        raise ValueError("Invalid existing network security group names")
+    return sorted(names, key=str.lower)
+
+
 def _value(values, name, allow_empty=False):
     value = values.get(name)
     if value is None and allow_empty:
@@ -105,6 +115,11 @@ def render(component, environment, values, classic_environment=None):
     lines = [f"using '{filename}.bicep'",
              f"extends 'envs/{source_environment.lower()}/{filename}.bicepparam'"]
     get = lambda name, **kwargs: _value(values, name, **kwargs)
+    if component == "network" and "existingNetworkSecurityGroupNames" in values:
+        names = validate_existing_network_security_group_names(values["existingNetworkSecurityGroupNames"])
+        lines.append("param existingNetworkSecurityGroupNames = [")
+        lines.extend("  " + _quote(name) for name in names)
+        lines.append("]")
     if component == "acr":
         _object(lines, "entraGroups", {"acrPull": {
             "id": get("acrPullGroupId"), "name": get("acrPullGroupName")}})
