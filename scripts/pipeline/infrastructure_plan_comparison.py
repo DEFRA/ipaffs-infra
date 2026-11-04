@@ -10,8 +10,6 @@ from datetime import datetime
 import math
 import re
 
-from infrastructure_plan_markdown import TYPE_LABELS
-
 
 COMPONENTS = {"resource-group", "network", "acr", "classic", "infra", "privatelink"}
 ACTIONS = {"Create", "Modify", "Delete", "NoChange", "Deploy", "Ignore", "Unsupported", "Unknown"}
@@ -109,6 +107,8 @@ def _unavailable_ref(resource, preserve_type=False):
     Type is useful coverage context, not evidence of resource identity. Never
     use a claimed type to establish a noise match or resolve a conflicting ID.
     """
+    from infrastructure_plan_markdown import TYPE_LABELS
+
     claimed_type = resource.get("type")
     safe_type = (claimed_type.lower() if preserve_type
                  and resource.get("changeType") == "Unsupported"

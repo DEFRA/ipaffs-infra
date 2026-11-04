@@ -342,7 +342,9 @@ class InfrastructurePlanComparisonTests(unittest.TestCase):
                     self.assertEqual(0, result["counts"]["potentialNoiseResources"])
 
     def test_every_catalog_fallback_remains_an_unresolved_observation(self):
-        for kind in COMPARISON.TYPE_LABELS:
+        from infrastructure_plan_markdown import TYPE_LABELS
+
+        for kind in TYPE_LABELS:
             with self.subTest(kind=kind):
                 item = resource(kind.upper(), action="Unsupported", fields=[])
                 item["resourceId"] = "unavailable"
