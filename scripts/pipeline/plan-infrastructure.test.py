@@ -52,6 +52,7 @@ class RunnerTests(unittest.TestCase):
         }
         self.calls = []
         self.cli_version = "2.75.0"
+        self.nsg_names = ["Existing-PrivateEndpoint", "Existing-AKS"]
         self.results = {}
         self.compilations = []
         self.patches = ExitStack()
@@ -85,6 +86,10 @@ class RunnerTests(unittest.TestCase):
         self.calls.append(arguments)
         if arguments == ["version"]:
             return {"azure-cli": self.cli_version}
+        if arguments[:3] == ["network", "nsg", "list"]:
+            if isinstance(self.nsg_names, Exception):
+                raise self.nsg_names
+            return self.nsg_names
         if arguments[:3] in (["deployment", "group", "what-if"], ["deployment", "sub", "what-if"]):
             component = arguments[arguments.index("--name") + 1].removeprefix("Preview-").removesuffix("-123")
             result = self.results.get(component, {"status": "Succeeded", "changes": []})
@@ -108,7 +113,10 @@ class RunnerTests(unittest.TestCase):
         for arguments in (["deployment", "group", "create"], ["deployment", "sub", "create"],
                           ["deployment", "group", "wait"], ["resource", "update"],
                           ["resource", "show", "--ids", "retired-grafana"],
-                          ["role", "assignment", "create"], ["pipelines", "variable-group", "variable", "update"]):
+                          ["role", "assignment", "create"], ["pipelines", "variable-group", "variable", "update"],
+                          ["network", "nsg", "list"], ["network", "nsg", "show"],
+                          ["network", "nsg", "list", "--subscription", MODERN_SUBSCRIPTION, "--resource-group", "rg", "--query", "[]"],
+                          ["network", "nsg", "list", "--subscription", MODERN_SUBSCRIPTION, "--resource-group", "rg", "--query", "[].name", "--debug"]):
             with self.subTest(arguments=arguments), self.assertRaisesRegex(RUNNER.PlanError, "COMMAND_NOT_ALLOWED"):
                 RUNNER.az_json(arguments)
         self.git.assert_not_called()
@@ -116,7 +124,9 @@ class RunnerTests(unittest.TestCase):
     def test_allowed_operations_use_argument_lists_without_a_shell(self):
         self.git.return_value = SimpleNamespace(returncode=0, stdout='{"ok": true}')
         for arguments in (["version"], ["bicep", "build-params", "--file", "input.bicepparam"],
-                          ["deployment", "sub", "what-if"], ["deployment", "group", "what-if"]):
+                          ["deployment", "sub", "what-if"], ["deployment", "group", "what-if"],
+                          ["network", "nsg", "list", "--subscription", MODERN_SUBSCRIPTION,
+                           "--resource-group", "rg", "--query", "[].name"]):
             with self.subTest(arguments=arguments):
                 self.assertEqual({"ok": True}, RUNNER.az_json(arguments))
                 positional, keyword = self.git.call_args
@@ -224,6 +234,57 @@ class RunnerTests(unittest.TestCase):
         self.assertEqual(set(RUNNER.COMPONENTS), {item for scope in RUNNER.SCOPES.values() for item in scope})
         self.assertFalse(any(arguments[:2] == ["resource", "show"] for arguments in self.calls))
 
+    def test_network_discovers_fresh_parent_names_and_does_not_reuse_supplied_or_previous_names(self):
+        self.assertEqual(0, self.run_preview())
+        network_compilations = [values for component, values in self.compilations if component == "network"]
+        self.assertEqual(2, len(network_compilations))
+        self.assertNotIn("existingNetworkSecurityGroupNames", network_compilations[0], "Desired-input compilation needs no Azure read")
+        self.assertEqual(["Existing-AKS", "Existing-PrivateEndpoint"], network_compilations[1]["existingNetworkSecurityGroupNames"])
+        reads = [arguments for arguments in self.calls if arguments[:3] == ["network", "nsg", "list"]]
+        self.assertEqual([["network", "nsg", "list", "--subscription", MODERN_SUBSCRIPTION,
+                           "--resource-group", "proposed-modern-group", "--query", "[].name"]], reads)
+        self.nsg_names = ["Newly-Observed"]
+        self.compilations.clear()
+        with mock.patch.object(RUNNER, "compile_parameters", side_effect=self.compile), \
+             mock.patch.object(RUNNER, "az_json", side_effect=self.az):
+            RUNNER.preview("network", "TST", {"existingNetworkSecurityGroupNames": ["Stale-Supplied"]},
+                           self.environment, self.args.state_dir, "123")
+        self.assertEqual(["Newly-Observed"], self.compilations[-1][1]["existingNetworkSecurityGroupNames"])
+
+    def test_empty_network_name_read_is_an_explicit_new_resource_case(self):
+        self.nsg_names = []
+        self.assertEqual(0, self.run_preview())
+        actual = [values for component, values in self.compilations if component == "network"][-1]
+        self.assertEqual([], actual["existingNetworkSecurityGroupNames"])
+        self.assertEqual("complete", self.component("network")["status"])
+
+    def test_network_read_failures_and_malformed_names_cannot_plan_with_empty_or_stale_fallback(self):
+        for result, error in ((RUNNER.PlanError("AZURE_COMMAND_FAILED"), "AZURE_COMMAND_FAILED"),
+                              (None, "INVALID_EXISTING_NETWORK_SECURITY_GROUP_NAMES"),
+                              ({"value": []}, "INVALID_EXISTING_NETWORK_SECURITY_GROUP_NAMES"),
+                              ([RAW_VALUE + ";unexpected"], "INVALID_EXISTING_NETWORK_SECURITY_GROUP_NAMES"),
+                              (["Name", "name"], "INVALID_EXISTING_NETWORK_SECURITY_GROUP_NAMES")):
+            with self.subTest(result=result):
+                self.nsg_names = result
+                self.calls.clear()
+                self.compilations.clear()
+                self.assertEqual(1, self.run_preview())
+                self.assertEqual("failed", self.component("network")["status"])
+                self.assertEqual(error, self.component("network")["errorCode"])
+                self.assertFalse(any("Preview-network-123" in arguments for arguments in self.calls))
+                self.assertEqual(1, sum(component == "network" for component, _ in self.compilations))
+                self.assertEqual("complete", self.component("infra")["status"])
+                for artifact in self.args.output_dir.iterdir():
+                    self.assertNotIn(RAW_VALUE, artifact.read_text())
+
+    def test_classic_scope_compiles_desired_network_inputs_without_reading_modern_nsgs(self):
+        self.args.scope = "classic"
+        self.nsg_names = RUNNER.PlanError("SHOULD_NOT_READ_MODERN")
+        self.assertEqual(0, self.run_preview())
+        self.assertTrue(any(component == "network" for component, _ in self.compilations))
+        self.assertFalse(any(arguments[:3] == ["network", "nsg", "list"] for arguments in self.calls))
+        self.assertEqual("complete", self.component("classic")["status"])
+
     def test_failed_retry_cannot_reuse_a_previous_component_plan(self):
         self.results["infra"] = {"status": "Succeeded", "changes": [{
             "resourceId": "/subscriptions/sub/resourceGroups/rg/providers/Microsoft.Authorization/roleAssignments/previous",
@@ -298,6 +359,7 @@ class RunnerTests(unittest.TestCase):
             f"with open({str(calls)!r}, 'a') as log: log.write(json.dumps(sys.argv[1:]) + '\\n')",
             "args = sys.argv[1:]",
             "if args[:1] == ['version']: print(json.dumps({'azure-cli': '2.75.0'}))",
+            "elif args[:3] == ['network', 'nsg', 'list']: print('[]')",
             "elif args[:3] in (['deployment', 'group', 'what-if'], ['deployment', 'sub', 'what-if']):",
             "    if '--validation-level' in args: sys.exit(98)",
             "    if 'Preview-network-123' in args:",
@@ -326,7 +388,7 @@ class RunnerTests(unittest.TestCase):
         invocations = [json.loads(line) for line in calls.read_text().splitlines()]
         self.assertTrue(any(arguments[:3] == ["deployment", "group", "what-if"] for arguments in invocations))
         self.assertTrue(all(arguments[:1] == ["version"] or
-                            arguments[:3] in (["deployment", "group", "what-if"], ["deployment", "sub", "what-if"])
+                            arguments[:3] in (["deployment", "group", "what-if"], ["deployment", "sub", "what-if"], ["network", "nsg", "list"])
                             for arguments in invocations))
 
 

@@ -6,6 +6,10 @@ param location string
 param sejParams object
 param tags object
 
+// PRE/PRD maintenance definitions are preserved outside this deployment. Omitting
+// these child resources in incremental mode leaves their live schedules intact.
+var manageMaintenanceDefinitions = sejParams.?manageMaintenanceDefinitions ?? true
+
 resource sqlServer 'Microsoft.Sql/servers@2023-08-01' existing = {
   name: sejParams.sqlServerName
 }
@@ -62,7 +66,7 @@ resource jobAgent 'Microsoft.Sql/servers/jobAgents@2023-08-01' = {
   }
 }
 
-resource targetGroup 'Microsoft.Sql/servers/jobAgents/targetGroups@2023-08-01' = {
+resource targetGroup 'Microsoft.Sql/servers/jobAgents/targetGroups@2023-08-01' = if (manageMaintenanceDefinitions) {
   parent: jobAgent
   name: 'index-maintenance'
   properties: {
@@ -75,7 +79,7 @@ resource targetGroup 'Microsoft.Sql/servers/jobAgents/targetGroups@2023-08-01' =
   }
 }
 
-resource jobMaintIndexWeekly 'Microsoft.Sql/servers/jobAgents/jobs@2023-08-01' = {
+resource jobMaintIndexWeekly 'Microsoft.Sql/servers/jobAgents/jobs@2023-08-01' = if (manageMaintenanceDefinitions) {
   parent: jobAgent
   name: 'DBA_MAINT_INDEX_WEEKLY'
   properties: {
@@ -90,7 +94,7 @@ resource jobMaintIndexWeekly 'Microsoft.Sql/servers/jobAgents/jobs@2023-08-01' =
   }
 }
 
-resource jobMaintStatsDaily 'Microsoft.Sql/servers/jobAgents/jobs@2023-08-01' = {
+resource jobMaintStatsDaily 'Microsoft.Sql/servers/jobAgents/jobs@2023-08-01' = if (manageMaintenanceDefinitions) {
   parent: jobAgent
   name: 'DBA_MAINT_STATS_DAILY'
   properties: {
@@ -105,12 +109,12 @@ resource jobMaintStatsDaily 'Microsoft.Sql/servers/jobAgents/jobs@2023-08-01' = 
   }
 }
 
-resource jobMaintIndexWeeklyStep 'Microsoft.Sql/servers/jobAgents/jobs/steps@2023-08-01' = {
+resource jobMaintIndexWeeklyStep 'Microsoft.Sql/servers/jobAgents/jobs/steps@2023-08-01' = if (manageMaintenanceDefinitions) {
   parent: jobMaintIndexWeekly
   name: 'JobStep'
   properties: {
     stepId: 1
-    targetGroup: targetGroup.id
+    targetGroup: targetGroup!.id
     action: {
       type: 'TSql'
       source: 'Inline'
@@ -126,12 +130,12 @@ resource jobMaintIndexWeeklyStep 'Microsoft.Sql/servers/jobAgents/jobs/steps@202
   }
 }
 
-resource jobMaintStatsDailyStep 'Microsoft.Sql/servers/jobAgents/jobs/steps@2023-08-01' = {
+resource jobMaintStatsDailyStep 'Microsoft.Sql/servers/jobAgents/jobs/steps@2023-08-01' = if (manageMaintenanceDefinitions) {
   parent: jobMaintStatsDaily
   name: 'JobStep'
   properties: {
     stepId: 1
-    targetGroup: targetGroup.id
+    targetGroup: targetGroup!.id
     action: {
       type: 'TSql'
       source: 'Inline'

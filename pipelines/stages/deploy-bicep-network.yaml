@@ -40,34 +40,74 @@ stages:
 
                 - task: AzureCLI@2
                   displayName: WhatIf - Network
+                  env:
+                    AZURE_BICEP_USE_BINARY_FROM_PATH: 'false'
                   inputs:
                     azureSubscription: $(serviceConnection)
                     scriptType: bash
                     scriptLocation: inlineScript
                     inlineScript: |
-                      set -x
+                      set -euo pipefail
+                      bash scripts/pipeline/ensure-bicep-version.sh
+                      existing_network_security_group_names="$(az network nsg list \
+                        --subscription "$(subscriptionId)" \
+                        --resource-group "$(resourceGroupName)" \
+                        --query '[].name' --output json --only-show-errors)"
+                      EXISTING_NETWORK_SECURITY_GROUP_NAMES="$existing_network_security_group_names" python3 - <<'PY_NAMES'
+                      import json
+                      import os
+                      import sys
+                      sys.path.insert(0, 'scripts/pipeline')
+                      from infrastructure_parameters import validate_existing_network_security_group_names
+                      try:
+                          validate_existing_network_security_group_names(json.loads(os.environ['EXISTING_NETWORK_SECURITY_GROUP_NAMES']))
+                      except (TypeError, ValueError):
+                          print('Existing NSG discovery returned invalid names; refusing to plan or deploy Network.', file=sys.stderr)
+                          raise SystemExit(1)
+                      PY_NAMES
                       az deployment group what-if \
                         --name "Network-$(Build.BuildId)" \
                         --subscription $(subscriptionId) \
                         --resource-group $(resourceGroupName) \
                         --template-file bicep/20-network.bicep \
-                        --parameters bicep/envs/${{ lower(parameters.environmentName) }}/20-network.bicepparam
+                        --parameters bicep/envs/${{ lower(parameters.environmentName) }}/20-network.bicepparam \
+                        existingNetworkSecurityGroupNames="$existing_network_security_group_names"
 
                 - task: AzureCLI@2
                   displayName: Deploy - Network
                   condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+                  env:
+                    AZURE_BICEP_USE_BINARY_FROM_PATH: 'false'
                   inputs:
                     azureSubscription: $(serviceConnection)
                     scriptType: bash
                     scriptLocation: inlineScript
                     inlineScript: |
-                      set -x
+                      set -euo pipefail
+                      bash scripts/pipeline/ensure-bicep-version.sh
+                      existing_network_security_group_names="$(az network nsg list \
+                        --subscription "$(subscriptionId)" \
+                        --resource-group "$(resourceGroupName)" \
+                        --query '[].name' --output json --only-show-errors)"
+                      EXISTING_NETWORK_SECURITY_GROUP_NAMES="$existing_network_security_group_names" python3 - <<'PY_NAMES'
+                      import json
+                      import os
+                      import sys
+                      sys.path.insert(0, 'scripts/pipeline')
+                      from infrastructure_parameters import validate_existing_network_security_group_names
+                      try:
+                          validate_existing_network_security_group_names(json.loads(os.environ['EXISTING_NETWORK_SECURITY_GROUP_NAMES']))
+                      except (TypeError, ValueError):
+                          print('Existing NSG discovery returned invalid names; refusing to plan or deploy Network.', file=sys.stderr)
+                          raise SystemExit(1)
+                      PY_NAMES
                       az deployment group create \
                         --name "Network-$(Build.BuildId)" \
                         --subscription $(subscriptionId) \
                         --resource-group $(resourceGroupName) \
                         --template-file bicep/20-network.bicep \
-                        --parameters bicep/envs/${{ lower(parameters.environmentName) }}/20-network.bicepparam
+                        --parameters bicep/envs/${{ lower(parameters.environmentName) }}/20-network.bicepparam \
+                        existingNetworkSecurityGroupNames="$existing_network_security_group_names"
 
                 - task: AzureCLI@2
                   displayName: Wait for Deployment - Network

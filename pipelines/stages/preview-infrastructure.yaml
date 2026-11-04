@@ -110,6 +110,7 @@ stages:
                       "pipelines/stages/deploy-bicep-infra.yaml",
                       "pipelines/stages/deploy-bicep-privatelink.yaml",
                       "scripts/pipeline/infrastructure_parameters.py",
+                      "scripts/pipeline/ensure-bicep-version.sh",
                   ]
                   required_deployments = {
                       "DeployResourceGroup": "Deploy - ResourceGroup",

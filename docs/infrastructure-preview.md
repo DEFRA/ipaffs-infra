@@ -137,6 +137,35 @@ scripts. These are unassessed by Azure what-if; the preview does not imply that
 those actions are safe or unchanged. Refresh the preview before a later promotion
 if the environment or its configuration has changed.
 
+## Preserving configuration owned outside the infrastructure templates
+
+Existing network security groups are left untouched at the parent-resource level.
+Network deployment and preview tasks first read the existing group names. The
+infrastructure template explicitly skips those parents, creates a missing group,
+and manages only the named IPAFFS security-rule child resources. The create-only
+decorator also protects against a group appearing after the lookup. This avoids
+copying or redeploying CCoE policy rules or replacing the complete parent rule list.
+A failed name lookup stops planning or deployment. Existing group tags are also
+left unchanged. Removing an IPAFFS rule from the template requires an explicit,
+reviewed cleanup of that child resource; omission
+in an incremental deployment does not delete it. Rule writes within a group are
+serial; separate groups and environment previews remain independent.
+Direct CLI previews should supply the same `existingNetworkSecurityGroupNames`
+input so what-if can accurately exclude existing parents.
+
+PRE and PRD set `sejParams.manageMaintenanceDefinitions: false`. Their existing
+SQL maintenance target group, weekly/daily jobs, schedules and steps remain in
+place. Infrastructure continues to manage the job database, identity, agent and
+failure alert. SND and TST keep their current template-managed definitions. An
+intentional change to PRE/PRD maintenance should reconcile the live definitions
+with its owner rather than enable the bootstrap definitions without review. A
+newly rebuilt PRE/PRD job agent requires its maintenance definitions to be restored
+or provisioned by that owner.
+
+Network deployment tasks and previews use Bicep 0.43.8 because the create-only
+resource decorator requires Bicep 0.38.3 or later. Compiler preparation fails
+before compilation or deployment if that version cannot be installed and verified.
+
 ## Azure DevOps setup
 
 Create a YAML pipeline named `infrastructure-preview` in the same repository and
