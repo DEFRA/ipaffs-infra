@@ -50,6 +50,8 @@ resource grafanaDashboard 'Microsoft.Dashboard/grafana@2025-08-01' = {
     type: 'SystemAssigned'
   }
   properties: {
+    creatorCanAdmin: 'Disabled'
+    grafanaMajorVersion: '12'
     grafanaIntegrations: {
       azureMonitorWorkspaceIntegrations: [
         {
