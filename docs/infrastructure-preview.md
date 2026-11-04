@@ -127,6 +127,16 @@ without relying on a DEV comparison. Resource creates, resource deletes and
 potential actions remain reviewable. JSON retains ARM's original resource action,
 expanded property operations and fixed metadata reasons; generated IDs stay redacted.
 
+Application Insights' `Flow_Type: Bluefield` and `Request_Source: rest` describe
+[how the component was created](https://learn.microsoft.com/en-us/azure/templates/microsoft.insights/2020-02-02/components).
+Only exact additions of these values to an existing component are background
+metadata, with matching full before/after snapshots and unambiguous ARM deltas.
+Explicit nulls in the current snapshot, changed origins, unknown values and
+incomplete evidence remain reviewable. The canonical nonsecret markers, original
+ARM operations and fixed reasons remain in `plan.json` and `change-details.md`.
+Mixed workspace, authentication, network and other changes still require review.
+This classification does not depend on the DEV comparison or change its proof.
+
 For AKS, only evidenced omissions of schema-read-only, healthy output fields are
 background metadata. Node-pool fields require a uniquely matched pool name in
 the current and desired snapshots; an array index alone is not enough. Node

@@ -11,6 +11,7 @@ import math
 import re
 
 from infrastructure_plan_metadata import metadata_reason, is_metadata_field
+from infrastructure_plan_insights import insights_metadata_reason
 
 
 COMPONENTS = {"resource-group", "network", "acr", "classic", "infra", "privatelink"}
@@ -260,18 +261,21 @@ def _field_result(field, classification, reason, confidence="none"):
             "classification": classification, "reasonCode": reason, "confidence": confidence}
 
 
-def _metadata_field(resource_type, field):
-    return is_metadata_field(resource_type, field)
+def _metadata_field(resource_type, field, resource_id=None):
+    return is_metadata_field(resource_type, field, resource_id)
 
 
 def _background(resource):
     fields = _list(resource.get("fields"))
     if resource.get("potential") is True or resource.get("changeType") == "Unsupported":
         return False
+    if (resource.get("unresolved") is True and any(insights_metadata_reason(
+            _resource_ref(resource)["type"], field, _resource_ref(resource)["resourceId"]) for field in fields)):
+        return False
     return (_member(resource.get("changeType"), {"Ignore", "NoChange"})
             or _resource_ref(resource)["type"].lower() == "microsoft.resources/deployments"
             or resource.get("changeType") == "Modify" and bool(fields)
-            and all(isinstance(field, dict) and (_metadata_field(_resource_ref(resource)["type"], field)
+            and all(isinstance(field, dict) and (_metadata_field(_resource_ref(resource)["type"], field, _resource_ref(resource)["resourceId"])
                                                or field.get("changeType") == "NoEffect") for field in fields))
 
 
@@ -325,9 +329,9 @@ def analyze_comparison(dev_report, target_report, baseline_evidence):
             for field in _list(resource.get("fields")):
                 field = _dict(field)
                 path, field_action = _path(field), field.get("changeType")
-                if _metadata_field(ref["type"], field) or field_action == "NoEffect":
+                if _metadata_field(ref["type"], field, ref["resourceId"]) or field_action == "NoEffect":
                     result = _field_result(field, "background",
-                        metadata_reason(ref["type"], field) or "METADATA_OR_NO_EFFECT")
+                        metadata_reason(ref["type"], field, ref["resourceId"]) or "METADATA_OR_NO_EFFECT")
                 elif field.get("unresolved") is True or path == "[unrecognised property]" or not _member(field_action, FIELD_ACTIONS):
                     result = _field_result(field, "unresolved-coverage", "FIELD_NOT_ASSESSED")
                 elif path.lower() == "properties.isolationscope":

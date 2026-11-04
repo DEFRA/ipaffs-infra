@@ -21,6 +21,7 @@ from infrastructure_plan_comparison import analyze_comparison
 from infrastructure_plan_identity import has_identity_resource_id, identity_metadata_reason
 from infrastructure_plan_metadata import is_metadata_only
 from infrastructure_plan_aks import annotate_aks_omissions, aks_health_warnings, validated_aks_health_warnings
+from infrastructure_plan_insights import annotate_insights_origin
 
 
 CHANGE_TYPES = ("Create", "Modify", "Delete", "NoChange", "Deploy", "Ignore", "Unsupported", "Unknown")
@@ -318,6 +319,7 @@ def _resource(change, potential=False):
     if not fields and change_type in {"Create", "Delete"}:
         fields = _snapshot_fields(change.get("after" if change_type == "Create" else "before"), change_type, resource_type)
     fields = annotate_aks_omissions(change, fields, potential=potential)
+    fields = annotate_insights_origin(change, fields, potential=potential)
     if resource_type.lower() == _IDENTITY_TYPE and not has_identity_resource_id(resource_id):
         # Without a valid identity resource reference these otherwise harmless
         # leaves cannot establish which resource ARM assessed. Keep the gap in
@@ -522,6 +524,7 @@ def _combined_markdown(report):
     lines.extend(["", "Azure usually marks existing resources outside an individual template as Ignore, and can also do so when template expansion reaches a limit. They are not listed as individual review items; their presence still prevents a claim of complete coverage.", ""])
     lines.extend(["NoEffect-only updates contain only fields Azure marks as having no effect, plus possible CreatedDate metadata. They are excluded from the review list, while the environment JSON and change-details.md retain the original evidence.", ""])
     lines.extend(["Metadata-only updates can include CreatedDate, omitted generated managed-identity IDs and an omitted None regional-isolation default. Changes to Regional isolation, unknown properties and incomplete evidence remain reviewable. Original ARM operations and fixed metadata reasons remain in the environment artifacts.", ""])
+    lines.extend(["Application Insights' evidenced Bluefield/rest creation-origin additions are also background metadata. Workspace, authentication, network and other configuration changes remain reviewable; the original field operations and fixed reasons remain in each environment's audit files.", ""])
     if report["missingEnvironments"]:
         lines.extend(["**Missing environment reports:** " + ", ".join(report["missingEnvironments"]) + ".", ""])
     if not report["sameCommit"]:
