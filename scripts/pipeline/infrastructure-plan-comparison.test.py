@@ -324,6 +324,78 @@ class InfrastructurePlanComparisonTests(unittest.TestCase):
         self.assertEqual("Microsoft.Authorization/roleAssignments", output["type"])
         self.assertEqual("policy-security-review", output["classification"])
 
+    def test_unsupported_entries_retain_known_types_without_inventing_identity(self):
+        for kind in ("Microsoft.Authorization/roleAssignments",
+                     "Microsoft.Search/searchServices/sharedPrivateLinkResources"):
+            for identifier in (None, "unavailable", "[unresolved expression]", [], {}, "invalid-resource-id"):
+                with self.subTest(kind=kind, identifier=identifier):
+                    item = resource(kind, action="Unsupported", fields=[])
+                    item.update(resourceId=identifier, name="must-not-be-forwarded")
+                    result = self.compare(target=report("TST", [item]))
+                    output = result["resources"][0]
+                    self.assertEqual(kind.lower(), output["type"])
+                    self.assertEqual("unavailable", output["resourceId"])
+                    self.assertEqual("unavailable", output["name"])
+                    self.assertEqual("unresolved-coverage", output["classification"])
+                    self.assertEqual("ACTION_NOT_ASSESSED", output["reasonCode"])
+                    self.assertEqual(1, result["counts"]["unresolvedResources"])
+                    self.assertEqual(0, result["counts"]["potentialNoiseResources"])
+
+    def test_every_catalog_fallback_remains_an_unresolved_observation(self):
+        for kind in COMPARISON.TYPE_LABELS:
+            with self.subTest(kind=kind):
+                item = resource(kind.upper(), action="Unsupported", fields=[])
+                item["resourceId"] = "unavailable"
+                result = self.compare(target=report("PRE", [item]))
+                self.assertEqual(kind, result["resources"][0]["type"])
+                self.assertEqual("unresolved-coverage", result["resources"][0]["classification"])
+                self.assertEqual(0, result["counts"]["backgroundResources"])
+
+    def test_type_fallback_cannot_resolve_actions_or_potential_entries(self):
+        for action in ("Create", "Modify", "Delete", "NoChange", "Ignore", "Deploy", "Unknown"):
+            with self.subTest(action=action):
+                item = resource("Microsoft.ManagedIdentity/userAssignedIdentities", action=action)
+                item["resourceId"] = "unavailable"
+                result = self.compare(target=report("TST", [item]))
+                self.assertEqual("unavailable", result["resources"][0]["type"])
+                self.assertEqual(0, result["counts"]["potentialNoiseResources"])
+        for potential in (True, None, [], {}, "false"):
+            with self.subTest(potential=potential):
+                item = resource("Microsoft.Authorization/roleAssignments", action="Unsupported", potential=potential)
+                item["resourceId"] = "unavailable"
+                result = self.compare(target=report("TST", [item]))
+                self.assertEqual("unavailable", result["resources"][0]["type"])
+                self.assertEqual("unresolved-coverage", result["resources"][0]["classification"])
+
+    def test_valid_but_conflicting_identifier_never_uses_claimed_type_fallback(self):
+        item = resource("Microsoft.Network/privateEndpoints", action="Unsupported", fields=[])
+        item["type"] = "Microsoft.Authorization/roleAssignments"
+        result = self.compare(target=report("PRD", [item]))
+        output = result["resources"][0]
+        self.assertEqual("unavailable", output["resourceId"])
+        self.assertEqual("unavailable", output["type"])
+        self.assertEqual("unresolved-coverage", output["classification"])
+
+    def test_unsupported_type_fallback_does_not_publish_arbitrary_type_strings(self):
+        secret = "PASSWORD-SENSITIVE"
+        for kind in (None, [], {}, True, "Microsoft.Private/" + secret,
+                     "Microsoft.Authorization/roleAssignments/" + secret, "<script>" + secret):
+            with self.subTest(kind=kind):
+                item = resource(action="Unsupported", fields=[])
+                item.update(resourceId="unavailable", type=kind, name=secret)
+                result = self.compare(target=report("TST", [item]))
+                self.assertEqual("unavailable", result["resources"][0]["type"])
+                self.assertEqual("unresolved-coverage", result["resources"][0]["classification"])
+                self.assertNotIn(secret, json.dumps(result))
+
+    def test_unsupported_entries_with_valid_ids_keep_their_exact_resource_reference(self):
+        item = resource("Microsoft.Authorization/roleAssignments", action="Unsupported", fields=[])
+        output = self.compare(target=report("TST", [item]))["resources"][0]
+        self.assertEqual(item["resourceId"], output["resourceId"])
+        self.assertEqual(item["type"], output["type"])
+        self.assertEqual(item["name"], output["name"])
+        self.assertEqual("unresolved-coverage", output["classification"])
+
     def test_invalid_and_missing_dev_reports_fail_closed(self):
         for dev in ({}, {"schemaVersion": 1}, report("TST"), []):
             with self.subTest(dev=dev):
