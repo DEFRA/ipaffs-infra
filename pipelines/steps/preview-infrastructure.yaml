@@ -55,3 +55,18 @@ steps:
           --commit "$BUILD_SOURCEVERSION" \
           --source-ref "$BUILD_SOURCEBRANCH" \
           --build-id "$BUILD_BUILDID"
+
+  # Temporary branch-only investigation; never merge this diagnostic task.
+  - ${{ if and(eq(parameters.scope, 'classic'), or(eq(parameters.environmentName, 'PRE'), eq(parameters.environmentName, 'PRD'))) }}:
+    - task: AzureCLI@2
+      displayName: Inspect DBA-owned SQL maintenance (read-only)
+      condition: and(not(canceled()), eq(variables['PreviewInputsReady'], 'true'))
+      inputs:
+        azureSubscription: ${{ parameters.serviceConnection }}
+        scriptType: bash
+        scriptLocation: inlineScript
+        inlineScript: |
+          set -euo pipefail
+          python3 scripts/pipeline/inspect-classic-sql-readonly.py \
+            --environment ${{ parameters.environmentName }} \
+            --output-dir "$(Build.ArtifactStagingDirectory)/infrastructure-plan-${{ parameters.environmentName }}"

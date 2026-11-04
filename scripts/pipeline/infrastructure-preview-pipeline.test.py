@@ -123,7 +123,7 @@ class InfrastructurePreviewPipelineTests(unittest.TestCase):
                 job, = stage["jobs"]
                 self.assertEqual(150, job["timeoutInMinutes"])
                 self.assertEqual(5, job["cancelTimeoutInMinutes"])
-                scopes = [step for step in job["steps"] if step.get("task") == "AzureCLI@2"]
+                scopes = [step for step in job["steps"] if step.get("task") == "AzureCLI@2" and step.get("displayName", "").startswith("What-if ")]
                 self.assertEqual(2, len(scopes))
                 self.assertIn("--scope modern", scopes[0]["inputs"]["inlineScript"])
                 self.assertIn("--scope classic", scopes[1]["inputs"]["inlineScript"])
@@ -141,7 +141,7 @@ class InfrastructurePreviewPipelineTests(unittest.TestCase):
             self.assertEqual("WhatIf", job["job"])
             self.assertEqual({"checkout": "self", "clean": True, **({"fetchDepth": 0} if environment == "DEV" else {})}, job["steps"][0])
             for step in job["steps"]:
-                if step.get("task") != "AzureCLI@2":
+                if step.get("task") != "AzureCLI@2" or not step.get("displayName", "").startswith("What-if "):
                     continue
                 script = step["inputs"]["inlineScript"]
                 self.assertIn("python3 scripts/pipeline/plan-infrastructure.py", script)
@@ -242,7 +242,7 @@ class InfrastructurePreviewPipelineTests(unittest.TestCase):
         for environment in ("DEV", "TST", "PRE", "PRD"):
             with self.subTest(environment=environment):
                 job, = environment_stage(environment)["jobs"]
-                modern, classic = [step for step in job["steps"] if step.get("task") == "AzureCLI@2"]
+                modern, classic = [step for step in job["steps"] if step.get("task") == "AzureCLI@2" and step.get("displayName", "").startswith("What-if ")]
                 configured = load(f"pipelines/vars/{environment.lower()}.yaml")["variables"]
                 for step, key in ((modern, "serviceConnection"), (classic, "classicServiceConnection")):
                     connection = step["inputs"]["azureSubscription"]
@@ -271,7 +271,7 @@ class InfrastructurePreviewPipelineTests(unittest.TestCase):
         self.assertEqual([""], [item["value"] for item in stage["variables"] if item.get("name") == "qaAutomationServiceConnectionPrincipalId"])
         job, = stage["jobs"]
         self.assertEqual({"checkout": "self", "clean": True, "fetchDepth": 0}, job["steps"][0])
-        modern, classic = [step for step in job["steps"] if step.get("task") == "AzureCLI@2"]
+        modern, classic = [step for step in job["steps"] if step.get("task") == "AzureCLI@2" and step.get("displayName", "").startswith("What-if ")]
         self.assertEqual("ADO-DefraGovUK-AZR-IMP-DEV1", modern["inputs"]["azureSubscription"])
         self.assertEqual("ADO-DefraGovUK-AZR-IMP-SND1", classic["inputs"]["azureSubscription"])
         step, = [step for step in job["steps"] if "Verify successful DEV apply" in step.get("displayName", "")]
@@ -485,7 +485,7 @@ class InfrastructurePreviewPipelineTests(unittest.TestCase):
                 self.assertEqual(head, evidence["previewCommit"])
 
     def test_shared_parameter_allowlist_and_environment_scopes_are_explicit(self):
-        task, = load(STEP)["steps"]
+        task, = [step for step in load(STEP)["steps"] if step.get("task") == "AzureCLI@2"]
         mapping = task["env"]
         self.assertEqual(set(PARAMETERS.ENVIRONMENT_VARIABLES.values()), {key for key in mapping if key.startswith("BICEP_")})
         for name, variable in PARAMETERS.ENVIRONMENT_VARIABLES.items():
