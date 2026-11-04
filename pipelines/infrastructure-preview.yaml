@@ -1,100 +1,58 @@
----
-# A successful DEV apply previews DEV as a baseline and every promotion target.
-# Register this YAML as the separate `infrastructure-preview` pipeline.
 trigger: none
 pr: none
 
 pool:
   name: DEFRA-COMMON-ubuntu2204-SSV5
 
-resources:
-  pipelines:
-    - pipeline: infrastructure
-      source: '\Infrastructure\infrastructure'
-      branch: refs/heads/main
-      tags:
-        - Environment-DEV
-      trigger:
-        branches:
-          include:
-            - refs/heads/main
-        tags:
-          - Environment-DEV
-
-stages:
-  - template: stages/preview-infrastructure.yaml
-    parameters:
-      environmentName: DEV
-      serviceConnection: ADO-DefraGovUK-AZR-IMP-DEV1
-      classicServiceConnection: ADO-DefraGovUK-AZR-IMP-SND1
-      dependsOn: []
-
-  - template: stages/preview-infrastructure.yaml
-    parameters:
-      environmentName: TST
-      serviceConnection: ADO-DefraGovUK-AZR-IMP-TST1
-      classicServiceConnection: ADO-DefraGovUK-AZR-IMP-TST1
-      dependsOn: []
-
-  - template: stages/preview-infrastructure.yaml
-    parameters:
-      environmentName: PRE
-      serviceConnection: ADO-DefraGovUK-AZR-IMP-PRE1
-      classicServiceConnection: ADO-DefraGovUK-AZR-PRE_IMP
-      dependsOn: []
-
-  - template: stages/preview-infrastructure.yaml
-    parameters:
-      environmentName: PRD
-      serviceConnection: ADO-DefraGovUK-AZR-IMP-PRD1
-      classicServiceConnection: ADO-DefraGovUK-AZR-PRD_IMP
-      dependsOn: []
-
-  - stage: PreviewSummary
-    displayName: Infrastructure promotion preview
-    dependsOn: [Preview_DEV, Preview_TST, Preview_PRE, Preview_PRD]
-    condition: always()
-    jobs:
-      - job: Summary
-        displayName: Publish environment comparison
+jobs:
+  - job: InspectPrePdb
+    displayName: Read-only PRE PDB investigation
+    timeoutInMinutes: 30
+    steps:
+      - checkout: self
+        clean: true
+      - task: AzureCLI@2
+        displayName: Read PRE workload and PDB metadata
+        env:
+          KUBECONFIG: $(Agent.TempDirectory)/pre-pdb-$(System.JobId)/kubeconfig
+          PRE_PRIVATE: $(Agent.TempDirectory)/pre-pdb-$(System.JobId)
+          PRE_REPORT: $(Build.ArtifactStagingDirectory)/pre-pdb-readonly
+        inputs:
+          azureSubscription: ADO-DefraGovUK-AZR-IMP-PRE1
+          visibleAzLogin: false
+          useGlobalConfig: false
+          scriptType: bash
+          scriptLocation: inlineScript
+          inlineScript: |
+            set -euo pipefail
+            umask 077
+            mkdir -p "$PRE_PRIVATE/bin" "$PRE_REPORT"
+            trap 'rm -rf -- "$PRE_PRIVATE"' EXIT
+            export PATH="$PRE_PRIVATE/bin:$PATH"
+            if ! aks_version="$(az aks show --name PREIMPINFAK1401 --resource-group PREIMPINFRG1401 --subscription 3978eb4f-add1-415d-839b-db398e65a7d9 --query currentKubernetesVersion --output tsv --only-show-errors 2>/dev/null)"; then
+              echo 'PRE_CLUSTER_READ_FAILED'
+              exit 1
+            fi
+            if ! [[ "$aks_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+              echo 'PRE_CLIENT_VERSION_UNAVAILABLE'
+              exit 1
+            fi
+            if ! az aks install-cli --client-version "v$aks_version" --kubelogin-version v0.2.18 --install-location "$PRE_PRIVATE/bin/kubectl" --kubelogin-install-location "$PRE_PRIVATE/bin/kubelogin" >/dev/null 2>&1; then
+              echo 'PRE_CLIENT_PREPARATION_FAILED'
+              exit 1
+            fi
+            if ! az aks get-credentials --name PREIMPINFAK1401 --resource-group PREIMPINFRG1401 --subscription 3978eb4f-add1-415d-839b-db398e65a7d9 --context PRE-PDB-READONLY --file "$KUBECONFIG" >/dev/null 2>&1; then
+              echo 'PRE_USER_ACCESS_PREPARATION_FAILED'
+              exit 1
+            fi
+            if ! kubelogin convert-kubeconfig -l azurecli >/dev/null 2>&1; then
+              echo 'PRE_USER_AUTHENTICATION_PREPARATION_FAILED'
+              exit 1
+            fi
+            python3 scripts/pipeline/inspect-pre-pdb.py --output-dir "$PRE_REPORT"
+      - task: PublishPipelineArtifact@1
+        displayName: Publish sanitized PRE diagnostic
         condition: always()
-        workspace:
-          clean: all
-        steps:
-          - checkout: self
-            clean: true
-          - task: DownloadPipelineArtifact@2
-            displayName: Download available environment reports
-            continueOnError: true
-            inputs:
-              buildType: current
-              itemPattern: '**'
-              targetPath: $(Pipeline.Workspace)/plans
-          - task: Bash@3
-            displayName: Build promotion preview overview
-            condition: always()
-            inputs:
-              targetType: inline
-              script: |
-                set -euo pipefail
-                python3 scripts/pipeline/infrastructure_plan_report.py \
-                  --azure-pipelines \
-                  --combine "$(Pipeline.Workspace)/plans" \
-                  --output-dir "$(Build.ArtifactStagingDirectory)/infrastructure-preview"
-          - task: Bash@3
-            displayName: Attach promotion preview overview
-            condition: always()
-            inputs:
-              targetType: inline
-              script: |
-                set -euo pipefail
-                summary="$(Build.ArtifactStagingDirectory)/infrastructure-preview/summary.md"
-                if [ -f "$summary" ]; then
-                  echo "##vso[task.uploadsummary]$summary"
-                fi
-          - task: PublishPipelineArtifact@1
-            displayName: Publish promotion preview reports
-            condition: always()
-            inputs:
-              artifactName: infrastructure-preview
-              targetPath: $(Build.ArtifactStagingDirectory)/infrastructure-preview
+        inputs:
+          targetPath: $(Build.ArtifactStagingDirectory)/pre-pdb-readonly
+          artifact: pre-pdb-readonly
