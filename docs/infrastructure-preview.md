@@ -99,6 +99,16 @@ for a release decision:
   and potential actions. Check the intended Bicep configuration where these
   gaps matter; the comparison does not turn them into no-change predictions.
 
+The **Unresolved predictions** table retains a known resource type even when
+Azure's sanitized result has no usable resource identity. Repeated unidentified
+`Unsupported` observations are grouped by environment, component and resource
+type with an entry count. For example, nine unidentified infrastructure role
+assignments appear as one row with nine entries; a Classic role assignment has
+its own row. Counts describe observations, not confirmed changes or distinct
+resources. Named resources stay individual, and the JSON artifacts retain every
+observation. Unrecognized types are labelled unresolved; names and resource IDs
+are never inferred from template expressions or other private payloads.
+
 Ignored/unchanged inventory and metadata-only updates are counted as background.
 Updates containing only CreatedDate and fields Azure explicitly marks `NoEffect`
 also belong here. Inventory can repeat across component previews and is not listed

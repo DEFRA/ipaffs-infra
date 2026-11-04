@@ -533,6 +533,128 @@ class InfrastructurePlanReportTests(unittest.TestCase):
         self.assertIn("| TST | 3 | 1 | 2 | Available |", summary)
         self.assertIn("real-sku-update", summary.split("## Unresolved predictions", 1)[1])
 
+    def unresolved_inputs(self, changes):
+        """Exercise the real projection before rendering grouped coverage gaps."""
+        paths = []
+        for environment in REPORT.PREVIEW_ENVIRONMENTS:
+            components = [component(copy.deepcopy(changes.get(environment, {}).get(name, [])), name=name)
+                          for name in sorted(COMPARISON.COMPONENTS)]
+            self.report(components, environment)
+            paths.append(self.directory / environment / "plan.json")
+        return paths
+
+    @staticmethod
+    def unavailable_resource(resource_type="Microsoft.Authorization/roleAssignments", action="Unsupported"):
+        change = resource(resource_type, change_type=action)
+        change["resourceId"] = "[reference('unresolved-resource-name')]"
+        return change
+
+    def unresolved_rows(self):
+        summary = (self.directory / "combined" / "summary.md").read_text()
+        section = summary.split("## Unresolved predictions", 1)[1].split("\n## ", 1)[0]
+        self.assertIn("| Target | Component | Action | Resource | Entries |", section)
+        return [tuple(cell.strip() for cell in line.strip("|").split("|"))
+                for line in section.splitlines() if line.startswith(("| TST |", "| PRE |", "| PRD |"))]
+
+    def test_unavailable_unsupported_rows_group_by_known_type_without_losing_evidence(self):
+        role = self.unavailable_resource()
+        search = self.unavailable_resource("Microsoft.Search/searchServices/sharedPrivateLinkResources")
+        inputs = self.unresolved_inputs({"TST": {"classic": [role], "infra": [role] * 9 + [search]}})
+        originals = [path.read_bytes() for path in inputs]
+        combined = REPORT.combine_reports(inputs, self.directory / "combined")
+        rows = self.unresolved_rows()
+        self.assertCountEqual(rows, [
+            ("TST", "Classic services", "Unsupported", "Role assignment — resource identity unresolved", "1"),
+            ("TST", "Infrastructure", "Unsupported", "Role assignment — resource identity unresolved", "9"),
+            ("TST", "Infrastructure", "Unsupported", "Search private-link resource — resource identity unresolved", "1")])
+        comparison = next(item for item in combined["devComparison"] if item["environment"] == "TST")
+        self.assertEqual(11, len(comparison["resources"]))
+        self.assertEqual(11, comparison["counts"]["unresolvedResources"])
+        self.assertTrue(all(item["classification"] == "unresolved-coverage" for item in comparison["resources"]))
+        self.assertCountEqual([item["type"].lower() for item in comparison["resources"]],
+                              ["microsoft.authorization/roleassignments"] * 10 + ["microsoft.search/searchservices/sharedprivatelinkresources"])
+        self.assertFalse(combined["complete"])
+        self.assertFalse(combined["invalidInputs"])
+        self.assertEqual([], combined["missingEnvironments"])
+        self.assertEqual(originals, [path.read_bytes() for path in inputs])
+        tst = next(item for item in combined["environments"] if item["environment"] == "TST")
+        self.assertEqual(11, tst["unknowns"])
+        self.assertEqual(11, tst["totals"]["Unsupported"])
+        self.assertEqual("succeeded", tst["executionStatus"])
+        details = (self.directory / "TST" / "change-details.md").read_text()
+        self.assertEqual(11, details.count("### Unsupported:"))
+        self.assertNotIn("unavailable: unavailable", (self.directory / "combined" / "summary.md").read_text())
+
+    def test_grouping_keeps_environments_components_and_named_resources_separate(self):
+        role = self.unavailable_resource()
+        named = [resource("Microsoft.Authorization/roleAssignments", name, "Unsupported")
+                 for name in ("named-role-one", "named-role-two")]
+        inputs = self.unresolved_inputs({
+            "TST": {"classic": [role], "infra": [role] * 2 + named},
+            "PRE": {"infra": [role] * 3}, "PRD": {"classic": [role] * 4}})
+        REPORT.combine_reports(inputs, self.directory / "combined")
+        rows = self.unresolved_rows()
+        grouped = [row for row in rows if "resource identity unresolved" in row[3]]
+        self.assertCountEqual([(row[0], row[1], row[4]) for row in grouped], [
+            ("TST", "Classic services", "1"), ("TST", "Infrastructure", "2"),
+            ("PRE", "Infrastructure", "3"), ("PRD", "Classic services", "4")])
+        for name in ("named-role-one", "named-role-two"):
+            individual = [row for row in rows if name in row[3]]
+            self.assertEqual(1, len(individual))
+            self.assertEqual(("TST", "Infrastructure", "Unsupported"), individual[0][:3])
+            self.assertEqual("1", individual[0][4])
+
+    def test_grouping_never_collapses_other_uncertain_actions_or_named_updates(self):
+        deploy = self.unavailable_resource(action="Deploy")
+        updates = [resource(name=name, delta=[field("properties.futureSetting", "PRIVATE", "[reference('runtime')]")])
+                   for name in ("unresolved-one", "unresolved-two")]
+        inputs = self.unresolved_inputs({"TST": {"infra": [self.unavailable_resource()] * 2 + [deploy] * 2 + updates}})
+        combined = REPORT.combine_reports(inputs, self.directory / "combined")
+        rows = self.unresolved_rows()
+        self.assertEqual(5, len(rows), "Only the two unnamed Unsupported observations are grouped")
+        self.assertEqual(["2"], [row[4] for row in rows if row[2] == "Unsupported"])
+        self.assertEqual(["1", "1"], [row[4] for row in rows if row[2] == "Deploy"])
+        self.assertEqual(2, len([row for row in rows if row[2] == "Modify" and row[4] == "1"]))
+        target = next(item for item in combined["devComparison"] if item["environment"] == "TST")
+        self.assertEqual(6, len(target["resources"]))
+        self.assertTrue(all(item["classification"] == "unresolved-coverage" for item in target["resources"]))
+
+    def test_unknown_unavailable_types_and_component_markup_are_not_forwarded(self):
+        inputs = self.unresolved_inputs({"TST": {"infra": [self.unavailable_resource()] * 3}})
+        target = self.directory / "TST" / "plan.json"
+        source = json.loads(target.read_text())
+        items = next(part for part in source["components"] if part["name"] == "infra")["resources"]
+        for item, value in zip(items, ("Microsoft.Private/DO-NOT-PUBLISH-TYPE", {"PRIVATE-TYPE": "value"},
+                                      "Microsoft.Authorization/roleAssignments##vso[task.setvariable]")):
+            item["type"] = value
+            item["name"] = "DO-NOT-PUBLISH-NAME"
+        source["components"][0]["name"] = "<script>DO-NOT-PUBLISH-COMPONENT</script>"
+        source["components"][0]["label"] = "##vso[task.setvariable variable=PRIVATE]value"
+        target.write_text(json.dumps(source))
+        combined = REPORT.combine_reports(inputs, self.directory / "combined")
+        published = json.dumps(combined) + (self.directory / "combined" / "summary.md").read_text()
+        self.assertNotIn("DO-NOT-PUBLISH", published)
+        self.assertNotIn("PRIVATE-TYPE", published)
+        self.assertNotIn("<script>", published)
+        self.assertNotIn("##vso[", published)
+        rows = self.unresolved_rows()
+        self.assertEqual(1, len(rows))
+        self.assertEqual("Resource type unresolved — resource identity unresolved", rows[0][3])
+        self.assertEqual("3", rows[0][4])
+        self.assertEqual(3, next(item for item in combined["devComparison"] if item["environment"] == "TST")["counts"]["unresolvedResources"])
+
+    def test_grouped_coverage_does_not_turn_missing_or_failed_previews_into_zero_changes(self):
+        inputs = self.unresolved_inputs({"TST": {"infra": [self.unavailable_resource()] * 2}})
+        self.report([component(status="failed", errorCode="AZURE_COMMAND_FAILED")], "PRE")
+        combined = REPORT.combine_reports(inputs[:-1], self.directory / "combined")
+        summary = (self.directory / "combined" / "summary.md").read_text()
+        self.assertFalse(combined["complete"])
+        self.assertEqual(["PRD"], combined["missingEnvironments"])
+        self.assertIn("Preview failed", summary)
+        self.assertIn("Preview missing", summary)
+        self.assertIn("| PRD | — | — | — | Missing |", summary)
+        self.assertIn("| TST | Infrastructure | Unsupported | Role assignment — resource identity unresolved | 2 |", summary)
+
     def test_pipeline_warns_for_successful_but_incomplete_assessment_without_changing_artifacts(self):
         for environment in REPORT.PREVIEW_ENVIRONMENTS:
             self.report([component([resource(change_type="Ignore"), resource(change_type="Unsupported"),

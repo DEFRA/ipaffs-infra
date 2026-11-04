@@ -538,6 +538,37 @@ BASELINE_REASONS = {
     "TARGET_EXECUTION_INCOMPLETE": "Target execution did not complete successfully.",
 }
 
+_COMPONENT_LABELS = {
+    "resource-group": "Resource group", "network": "Network",
+    "acr": "Container registry", "classic": "Classic services",
+    "infra": "Infrastructure", "privatelink": "Private Link",
+}
+
+
+def _unresolved_rows(unresolved):
+    """Group unidentified Unsupported observations without inventing identities.
+
+    Counts are occurrences, not unique resources. Named observations stay
+    individual, and the underlying JSON retains every original observation.
+    """
+    rows, groups = [], {}
+    for environment, item in unresolved:
+        component = _COMPONENT_LABELS.get(item["component"], "Unresolved component")
+        unidentified = item["resourceId"] == "unavailable" and item["name"] == "unavailable"
+        if unidentified:
+            kind = type_label(item["type"]) if item["type"] != "unavailable" else "Resource type unresolved"
+            label = kind + " — resource identity unresolved"
+        else:
+            label = type_label(item["type"]) + ": " + resource_label(item)
+        key = (environment, item["component"], item["action"], item["type"])
+        if unidentified and item["action"] == "Unsupported":
+            if key in groups:
+                rows[groups[key]][-1] += 1
+                continue
+            groups[key] = len(rows)
+        rows.append([environment, component, item["action"], label, 1])
+    return rows
+
 
 def _comparison_markdown(comparisons):
     """Render the comparator's fixed, value-free projection only."""
@@ -607,9 +638,10 @@ def _comparison_markdown(comparisons):
                   or any(field["classification"] == "unresolved-coverage" for field in item["fields"])]
     if unresolved:
         lines.extend(["## Unresolved predictions", "", "These are assessment gaps, including uncertain action entries, rather than confirmed changes or noise.", "",
-                      "| Target | Action | Resource |", "|---|---|---|"])
-        for env, item in unresolved:
-            lines.append(f"| {env} | {item['action']} | {_md(type_label(item['type']) + ': ' + resource_label(item))} |")
+                      "Unsupported entries with unresolved resource identities are grouped by target, component and resource type. Entries count observations, not unique resources. Named resources stay individual; every observation remains in the JSON artifacts.", "",
+                      "| Target | Component | Action | Resource | Entries |", "|---|---|---|---|---:|"])
+        for row in _unresolved_rows(unresolved):
+            lines.append("| " + " | ".join(_md(value) for value in row) + " |")
         lines.append("")
     return lines
 

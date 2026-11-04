@@ -102,6 +102,23 @@ def _component_set_matches(report):
                  if isinstance(component, dict) and isinstance(component.get("name"), str)} == COMPONENTS)
 
 
+def _unavailable_ref(resource, preserve_type=False):
+    """Retain only a fixed known type for an unassessed, unidentified entry.
+
+    Type is useful coverage context, not evidence of resource identity. Never
+    use a claimed type to establish a noise match or resolve a conflicting ID.
+    """
+    from infrastructure_plan_markdown import TYPE_LABELS
+
+    claimed_type = resource.get("type")
+    safe_type = (claimed_type.lower() if preserve_type
+                 and resource.get("changeType") == "Unsupported"
+                 and resource.get("potential") is False
+                 and isinstance(claimed_type, str)
+                 and claimed_type.lower() in TYPE_LABELS else "unavailable")
+    return {"resourceId": "unavailable", "type": safe_type, "name": "unavailable"}
+
+
 def _resource_ref(resource):
     """Reproject Azure identifiers; never forward arbitrary artifact strings."""
     rid = resource.get("resourceId")
@@ -133,10 +150,10 @@ def _resource_ref(resource):
             resource_type = "/".join([namespace, *types])
             valid = valid and bool(_TYPE.fullmatch(resource_type))
     if not valid:
-        return {"resourceId": "unavailable", "type": "unavailable", "name": "unavailable"}
+        return _unavailable_ref(resource, preserve_type=True)
     claimed_type = resource.get("type")
     if not isinstance(claimed_type, str) or claimed_type.lower() != resource_type.lower():
-        return {"resourceId": "unavailable", "type": "unavailable", "name": "unavailable"}
+        return _unavailable_ref(resource)
     return {"resourceId": rid, "type": resource_type, "name": parts[-1]}
 
 
@@ -249,7 +266,7 @@ def _metadata_field(resource_type, field):
 
 def _background(resource):
     fields = _list(resource.get("fields"))
-    if resource.get("potential") is True:
+    if resource.get("potential") is True or resource.get("changeType") == "Unsupported":
         return False
     return (_member(resource.get("changeType"), {"Ignore", "NoChange"})
             or _resource_ref(resource)["type"].lower() == "microsoft.resources/deployments"
