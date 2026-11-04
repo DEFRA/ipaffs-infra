@@ -96,7 +96,21 @@ Things are moving along quickly. At the time of writing, migration of ipaffs-imp
 through **TST → approval → PRE → approval → PRD**, following the manifest release
 pipeline. Only numeric `major.minor.patch` tags (for example `18.9.0`) are accepted.
 Branch pushes and pull requests do not trigger it; manually queued runs must also
-select a release tag. Tags are created separately from this deployment pipeline.
+select a release tag.
+
+Use **Create Infrastructure Release** in Azure DevOps's `Infrastructure/Releasing`
+folder ([`release-refs-pipeline.yaml`](release-refs-pipeline.yaml)) to create those
+tags. Queue it from `main` with a major/minor `version`, for example `18.9`, to
+create `RELEASE/18.9.x` and the annotated tag `18.9.0` from the latest remote
+`main`. If that release branch already exists, the initial tag uses its current
+commit. Existing tags are never moved or overwritten.
+
+Subsequent commits to `RELEASE/18.9.x` automatically receive the next patch tag
+(`18.9.1`, `18.9.2`, and so on). Retrying an already tagged release-branch commit
+reuses its tag. Each successful run publishes `release-metadata/release.json`
+with the exact infrastructure version, commit and pipeline run identifiers.
+The resulting tag starts **Infrastructure Release Pipeline** for TST, PRE and
+PRD. Merge the YAML and its script into `main` before using the new definition.
 
 Each environment runs the full infrastructure sequence: access-contract validation,
 hooks, resource group, network, optional hub peering, ACR (PRE/PRD), classic resources,
@@ -123,6 +137,7 @@ Local regression checks:
 
 ```shell
 python3 scripts/pipeline/release-pipeline.test.py
+python3 scripts/pipeline/release-refs.test.py
 python3 scripts/pipeline/consolidated-bicep-jobs.test.py
 ```
 
