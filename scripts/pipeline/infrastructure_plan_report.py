@@ -363,7 +363,9 @@ def _combined_markdown(report):
     lines.extend(_comparison_markdown(report["devComparison"]))
     types = sorted({label for item in environments for label in item["review"]["changes"]})
     if types:
-        lines.extend(["## Changes by resource type", "", "| Resource | DEV | TST | PRE | PRD |", "|---|---|---|---|---|"])
+        lines.extend(["## Reported actions by resource type", "",
+                      "This table includes potential recurring noise alongside changes needing review. Equal counts can refer to different properties; use the classifications above to assess the changes.", "",
+                      "| Resource | DEV | TST | PRE | PRD |", "|---|---|---|---|---|"])
         for label in types:
             cells = []
             for item in environments:

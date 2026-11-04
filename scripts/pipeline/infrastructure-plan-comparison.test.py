@@ -280,7 +280,9 @@ class InfrastructurePlanComparisonTests(unittest.TestCase):
         self.assertEqual(0, result["counts"]["potentialNoiseResources"])
 
     def test_malformed_or_timezone_free_timestamps_fail_closed(self):
-        for invalid in (None, [], "bad", "2026-11-04T10:05:00", "2026-99-04T10:05:00Z"):
+        for invalid in (None, [], "bad", "2026-11-04T10:05:00", "2026-99-04T10:05:00Z",
+                        "2026-11-04T10:05:00.1234567890Z", "2026-11-04T10:05:00.Z",
+                        "2026-11-04T10:05:00+99:00", "2026-11-04T10:05:00Zjunk"):
             for location in ("dev", "target", "verifiedAt", "appliedFinishTime"):
                 with self.subTest(invalid=invalid, location=location):
                     dev, target, proof = report(resources=[resource()]), report("TST", [resource()]), evidence()
@@ -290,6 +292,27 @@ class InfrastructurePlanComparisonTests(unittest.TestCase):
                         proof[location] = invalid
                     result = self.compare(dev, target, proof)
                     self.assertEqual("BASELINE_TIMING_INVALID", result["baseline"]["reasonCode"])
+
+    def test_actual_azure_seven_digit_finish_timestamp_is_compatible_with_agent_python(self):
+        proof = evidence(appliedFinishTime="2026-11-04T09:52:18.2173814Z")
+        result = self.compare(proof=proof)
+        self.assertEqual("usable", result["baseline"]["status"])
+        self.assertEqual(1, result["counts"]["potentialNoiseResources"])
+        parsed = COMPARISON._time(proof["appliedFinishTime"])
+        self.assertEqual(217381, parsed.microsecond)
+        self.assertEqual(0, parsed.utcoffset().total_seconds())
+
+    def test_fraction_normalisation_retains_offsets_and_apply_ordering_guards(self):
+        for fraction in ("1", "12", "123", "1234", "12345", "123456", "1234567", "123456789"):
+            with self.subTest(fraction=fraction):
+                timestamp = "2026-11-04T11:00:00." + fraction + "+01:00"
+                parsed = COMPARISON._time(timestamp)
+                self.assertEqual(3600, parsed.utcoffset().total_seconds())
+                self.assertEqual(int(fraction[:6].ljust(6, "0")), parsed.microsecond)
+                proof = evidence(appliedFinishTime=timestamp)
+                self.assertEqual("usable", self.compare(proof=proof)["baseline"]["status"])
+        proof = evidence(appliedFinishTime="2026-11-04T10:05:00.0000010Z")
+        self.assertEqual("BASELINE_TIMING_INVALID", self.compare(proof=proof)["baseline"]["reasonCode"])
 
     def test_extension_resource_preserves_parent_scope_and_final_provider_type(self):
         item = resource("Microsoft.Authorization/roleAssignments", name="role")

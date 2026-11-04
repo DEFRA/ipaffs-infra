@@ -33,6 +33,7 @@ _UUID = re.compile(r"[a-fA-F0-9]{8}(?:-[a-fA-F0-9]{4}){3}-[a-fA-F0-9]{12}")
 _SEGMENT = re.compile(r"[A-Za-z0-9][A-Za-z0-9._()@:+ -]{0,255}")
 _PATH = re.compile(r"[A-Za-z_][A-Za-z0-9_.\[\]-]{0,511}")
 _TYPE = re.compile(r"Microsoft\.[A-Za-z][A-Za-z0-9.]*(?:/[A-Za-z][A-Za-z0-9-]*)+", re.I)
+_TIMESTAMP = re.compile(r"(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})(?:\.(\d{1,9}))?(Z|[+-]\d{2}:\d{2})")
 _SENTINELS = {"[withheld]", "[not present]", "[unresolved expression]", "unavailable"}
 _SECURITY = re.compile(r"securityrules|securityprofile|authorization|accesspolic|principal|tenantid|credential|password|secret|token|encryption|disablelocalauth|enable.?rbac|publicnetworkaccess|firewall|networkacl|privatenetwork|privateendpointnetworkpolic", re.I)
 _CONFIGURATION = re.compile(r"version|(?:^|\.)sku(?:\.|$)|addressprefix|cidr|subnet|serviceendpoint|servicecidr|podcidr|jobagents|targetgroups|script|command|members|autopause|capacity|replicas|nodecount|mincount|maxcount|agentpoolprofiles|route", re.I)
@@ -59,9 +60,17 @@ def _list(value):
 
 
 def _time(value):
+    match = _TIMESTAMP.fullmatch(value) if isinstance(value, str) else None
+    if not match:
+        return None
+    # Azure Build timestamps can have seven fractional digits (.NET ticks),
+    # while the agents' Python 3.10 accepts only three or six. Normalise the
+    # fractional part to datetime's microsecond precision, retaining the offset.
+    fraction = match.group(2)
+    normal = match.group(1) + ("." + fraction[:6].ljust(6, "0") if fraction else "")
+    normal += "+00:00" if match.group(3) == "Z" else match.group(3)
     try:
-        parsed = datetime.fromisoformat(value.replace("Z", "+00:00")) if isinstance(value, str) else None
-        return parsed if parsed and parsed.utcoffset() is not None else None
+        return datetime.fromisoformat(normal)
     except ValueError:
         return None
 
