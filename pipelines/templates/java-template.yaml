@@ -70,11 +70,20 @@ stages:
             displayName: Detect deployment-only values changes
             env:
               SOURCE_VERSION: $(Build.SourceVersion)
+              BUILD_REASON: $(Build.Reason)
             inputs:
               targetType: inline
               workingDirectory: $(Pipeline.Workspace)/s/self
               script: |
                 set -euo pipefail
+
+                # A manually queued run always builds, so a base image fix can be picked up
+                # even when the latest commit only changed values.yaml.
+                if [[ "${BUILD_REASON:-}" == "Manual" ]]; then
+                  echo "Manually queued run. Container build and package stages will run."
+                  echo "##vso[task.setvariable variable=skipContainerBuild;isOutput=true]false"
+                  exit 0
+                fi
 
                 head_commit="${SOURCE_VERSION:-}"
                 if [[ -z "${head_commit}" ]] || ! git cat-file -e "${head_commit}^{commit}" >/dev/null 2>&1; then
