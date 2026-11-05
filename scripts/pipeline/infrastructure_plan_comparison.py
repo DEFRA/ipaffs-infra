@@ -12,6 +12,7 @@ import re
 
 from infrastructure_plan_metadata import metadata_reason, is_metadata_field
 from infrastructure_plan_insights import insights_metadata_reason
+from infrastructure_plan_redis import metadata_reason as redis_metadata_reason, comparison_setting
 
 
 COMPONENTS = {"resource-group", "network", "acr", "classic", "infra", "privatelink"}
@@ -48,7 +49,7 @@ _CONFIGURATION = re.compile(r"version|(?:^|\.)sku(?:\.|$)|addressprefix|cidr|sub
 # A match here is always labelled pattern-only unless all values can be compared.
 _OMITTED_DEFAULTS = {
     "microsoft.network/privateendpoints": {"properties.ipversiontype"},
-    "microsoft.cache/redis": {"properties.updatechannel", "properties.zonalallocationpolicy"},
+    "microsoft.cache/redis": {"properties.updatechannel"},
     "microsoft.search/searchservices": {"properties.endpoint"},
     "microsoft.operationalinsights/workspaces": {"properties.retentionindays"},
 }
@@ -270,7 +271,8 @@ def _background(resource):
     if resource.get("potential") is True or resource.get("changeType") == "Unsupported":
         return False
     if (resource.get("unresolved") is True and any(insights_metadata_reason(
-            _resource_ref(resource)["type"], field, _resource_ref(resource)["resourceId"]) for field in fields)):
+            _resource_ref(resource)["type"], field, _resource_ref(resource)["resourceId"]) or redis_metadata_reason(
+                _resource_ref(resource)["type"], field, _resource_ref(resource)["resourceId"]) for field in fields)):
         return False
     return (_member(resource.get("changeType"), {"Ignore", "NoChange"})
             or _resource_ref(resource)["type"].lower() == "microsoft.resources/deployments"
@@ -351,6 +353,7 @@ def analyze_comparison(dev_report, target_report, baseline_evidence):
                     result = _field_result(field, "review-needed", "CONFIGURATION_REQUIRES_REVIEW")
                 else:
                     result = _field_result(field, "review-needed", "NO_KNOWN_NOISE_PATTERN" if usable else "BASELINE_UNAVAILABLE")
+                result.update(comparison_setting(ref["type"], field, ref["resourceId"]))
                 output["fields"].append(result)
             classes = {field["classification"] for field in output["fields"]} - {"background"}
             if "policy-security-review" in classes:

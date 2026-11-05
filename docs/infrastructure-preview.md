@@ -137,6 +137,27 @@ ARM operations and fixed reasons remain in `plan.json` and `change-details.md`.
 Mixed workspace, authentication, network and other changes still require review.
 This classification does not depend on the DEV comparison or change its proof.
 
+Redis configuration bags are expanded into individual settings before redaction.
+The three writable memory settings (`maxmemory-reserved`, `maxmemory-delta` and
+`maxfragmentationmemory-reserved`) remain for review: an omitted setting is shown
+as **not explicitly configured**, with its current MB value. Their defaults depend
+on the cache; the reporter does not assume that a recurring value such as 125 MB
+is harmless. Actual memory edits and explicit zone-policy edits remain visible,
+and take priority over omission details in the short summaries.
+
+Only a proven omission of the API's [read-only `maxclients` field](https://github.com/Azure/azure-rest-api-specs/blob/main/specification/redis/resource-manager/Microsoft.Cache/Redis/stable/2024-11-01/redis.json)
+or an unchanged existing `Automatic` zone policy counts as background. Microsoft
+documents that [automatic zone allocation cannot be modified or disabled once enabled](https://learn.microsoft.com/en-us/azure/azure-cache-for-redis/cache-how-to-zone-redundancy).
+Both exceptions require matching raw deltas and snapshots and a validated Redis
+resource identity. The Automatic policy exception also requires an unchanged
+documented SKU and no zone changes. Other zone
+policies, explicit writes, resizes, resource creations and incomplete evidence
+stay reviewable; the new-cache omission fallback is a separate behaviour.
+The audit retains the original coarse configuration operation and identifies
+the inferred individual operations as expanded from that bag. Only canonical
+numeric strings for the known memory and connection-limit settings are published;
+unknown, authentication and persistence configuration values stay withheld.
+
 For AKS, only evidenced omissions of schema-read-only, healthy output fields are
 background metadata. Node-pool fields require a uniquely matched pool name in
 the current and desired snapshots; an array index alone is not enough. Node

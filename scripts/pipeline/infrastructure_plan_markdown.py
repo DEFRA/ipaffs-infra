@@ -14,6 +14,7 @@ from infrastructure_plan_identity import identity_metadata_reason
 from infrastructure_plan_metadata import metadata_reason, is_metadata_field, is_metadata_only
 from infrastructure_plan_aks import validated_aks_health_warnings
 from infrastructure_plan_insights import insights_metadata_reason
+from infrastructure_plan_redis import metadata_reason as redis_metadata_reason, omission_reason as redis_omission_reason, property_label as redis_property_label, expansion_operation as redis_expansion_operation
 
 
 TYPE_LABELS = {
@@ -178,7 +179,8 @@ def is_no_effect_only(resource):
         return False
     fields = resource.get("fields")
     if (resource.get("unresolved") is True and isinstance(fields, list)
-            and any(insights_metadata_reason(resource.get("type"), field, resource.get("resourceId")) for field in fields)):
+            and any(insights_metadata_reason(resource.get("type"), field, resource.get("resourceId")) or redis_metadata_reason(
+                resource.get("type"), field, resource.get("resourceId")) for field in fields)):
         return False
     return (isinstance(fields, list) and bool(fields)
             and all(isinstance(field, dict) for field in fields)
@@ -206,6 +208,9 @@ def _words(value):
 
 
 def property_label(path):
+    redis_label = redis_property_label(path)
+    if redis_label:
+        return redis_label
     parts = [part for part in str(path).split(".") if part != "properties"]
     if not parts:
         return "resource properties"
@@ -236,10 +241,15 @@ def _change_summary(resource):
         return "ARM reports an update without property-level details."
     operations = defaultdict(list)
     comparisons = []
-    for field in fields:
+    # Explicit edits take precedence over the three writable Redis omissions
+    # when the short summary cannot display every setting.
+    for field in sorted(fields, key=lambda item: bool(redis_omission_reason(resource.get("type"), item, resource.get("resourceId")))):
         operation = field.get("changeType", "Unknown")
         before, after = field.get("before"), field.get("after")
         label = property_label(field.get("path", ""))
+        if redis_omission_reason(resource.get("type"), field, resource.get("resourceId")):
+            comparisons.append(f"Not explicitly configured: {label} (current: {before} MB; writable setting)")
+            continue
         public_before = before not in (_WITHHELD, _UNRESOLVED, _MISSING, None)
         public_after = after not in (_WITHHELD, _UNRESOLVED, _MISSING, None)
         if operation == "Modify" and public_before and public_after:
@@ -402,11 +412,18 @@ def change_details_markdown(report):
                 lines.extend(["The API's `Bluefield`/`rest` creation-origin additions are background metadata. ARM operations remain below for audit; workspace, access and other configuration fields still require review.", ""])
             if resource.get("unresolved"):
                 lines.extend(["Some aspects were not fully assessed; consult the summary coverage gaps.", ""])
+            if any(redis_metadata_reason(resource.get("type"), field, resource.get("resourceId"))
+                   or redis_omission_reason(resource.get("type"), field, resource.get("resourceId")) for field in resource.get("fields", [])):
+                lines.extend(["Proven read-only connection-limit and unchanged Automatic zone-policy omissions are background metadata. Writable memory settings remain for review: their omission from Bicep does not prove Azure will clear them. Original ARM operations and current approved numeric values remain below.", ""])
+            if any(redis_expansion_operation(resource.get("type"), field, resource.get("resourceId")) for field in resource.get("fields", [])):
+                lines.extend(["Individual Redis setting operations were expanded from a complete ARM redisConfiguration bag. The original coarse operation is retained on each leaf in plan.json; raw configuration bags are not published.", ""])
             fields = resource.get("fields", [])
             if fields:
                 lines.extend(["| Property | ARM operation | Current | Proposed |", "|---|---|---|---|"])
                 for field in fields:
-                    values = (field.get("path", "unavailable"), field.get("changeType", "Unknown"),
+                    original = redis_expansion_operation(resource.get("type"), field, resource.get("resourceId"))
+                    operation = field.get("changeType", "Unknown") + (f" (expanded from {original} configuration bag)" if original else "")
+                    values = (field.get("path", "unavailable"), operation,
                               field.get("before", _MISSING), field.get("after", _MISSING))
                     lines.append("| " + " | ".join(md(value) for value in values) + " |")
                 lines.append("")

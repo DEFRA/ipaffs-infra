@@ -60,6 +60,15 @@ class InfrastructurePlanComparisonTests(unittest.TestCase):
         self.assertNotIn("before", item["fields"][0])
         self.assertNotIn("after", item["fields"][0])
 
+    def test_recurring_redis_zone_policy_omission_stays_reviewable_without_narrow_proof(self):
+        for value in ("NoZones", "UserDefined", "Automatic", "[withheld]"):
+            resources = [resource("Microsoft.Cache/redis", fields=[
+                field("properties.zonalAllocationPolicy", before=value, after="[not present]")])]
+            result = self.compare(report(resources=resources), report("TST", resources))
+            self.assertEqual("usable", result["baseline"]["status"])
+            self.assertEqual("review-needed", result["resources"][0]["classification"])
+            self.assertEqual(0, result["counts"]["potentialNoiseFields"])
+
     def test_component_type_property_and_operation_must_match(self):
         cases = [report(resources=[resource()], component="acr"),
                  report(resources=[resource("Microsoft.Network/privateLinkServices")]),

@@ -22,6 +22,7 @@ from infrastructure_plan_identity import has_identity_resource_id, identity_meta
 from infrastructure_plan_metadata import is_metadata_only
 from infrastructure_plan_aks import annotate_aks_omissions, aks_health_warnings, validated_aks_health_warnings
 from infrastructure_plan_insights import annotate_insights_origin
+from infrastructure_plan_redis import CONFIG as REDIS_CONFIG, project_redis_fields, comparison_omission
 
 
 CHANGE_TYPES = ("Create", "Modify", "Delete", "NoChange", "Deploy", "Ignore", "Unsupported", "Unknown")
@@ -134,6 +135,10 @@ def _public_value(path, value, present=True, resource_type=""):
     enum = leaf in _ENUM_LEAVES or normal in {"location", "kind"} or sku
     if _unresolved(value):
         return "[unresolved expression]"
+    if normal == REDIS_CONFIG.lower() or normal.startswith(REDIS_CONFIG.lower() + "."):
+        # Redis's projection publishes only known numeric leaves after matching
+        # their raw delta to full, correctly identified resource snapshots.
+        return WITHHELD
     if (resource_type.lower() == _IDENTITY_TYPE and path.lower() == "properties.isolationscope"
             and isinstance(value, str) and value in {"None", "Regional"}):
         return value
@@ -316,6 +321,9 @@ def _resource(change, potential=False):
     change_type = change.get("changeType") if change.get("changeType") in CHANGE_TYPES else "Unknown"
     fields = _fields(change.get("delta"), resource_type=resource_type, resource_action=change_type,
                      potential=potential, after_snapshot=change.get("after"))
+    fields = project_redis_fields(change, fields, lambda delta: _fields(
+        delta, resource_type=resource_type, resource_action=change_type,
+        potential=potential, after_snapshot=change.get("after")), potential=potential)
     if not fields and change_type in {"Create", "Delete"}:
         fields = _snapshot_fields(change.get("after" if change_type == "Create" else "before"), change_type, resource_type)
     fields = annotate_aks_omissions(change, fields, potential=potential)
@@ -525,6 +533,7 @@ def _combined_markdown(report):
     lines.extend(["NoEffect-only updates contain only fields Azure marks as having no effect, plus possible CreatedDate metadata. They are excluded from the review list, while the environment JSON and change-details.md retain the original evidence.", ""])
     lines.extend(["Metadata-only updates can include CreatedDate, omitted generated managed-identity IDs and an omitted None regional-isolation default. Changes to Regional isolation, unknown properties and incomplete evidence remain reviewable. Original ARM operations and fixed metadata reasons remain in the environment artifacts.", ""])
     lines.extend(["Application Insights' evidenced Bluefield/rest creation-origin additions are also background metadata. Workspace, authentication, network and other configuration changes remain reviewable; the original field operations and fixed reasons remain in each environment's audit files.", ""])
+    lines.extend(["Redis's proven read-only connection-limit omission and unchanged Automatic zone-policy omission are background metadata. Writable memory settings remain individually reviewable, with current approved numeric values; omission from Bicep does not prove that Azure will clear them. Original ARM operations and proof reasons remain in the environment audit files.", ""])
     if report["missingEnvironments"]:
         lines.extend(["**Missing environment reports:** " + ", ".join(report["missingEnvironments"]) + ".", ""])
     if not report["sameCommit"]:
@@ -582,7 +591,7 @@ def _unresolved_rows(unresolved):
 
 
 def _comparison_markdown(comparisons):
-    """Render the comparator's fixed, value-free projection only."""
+    """Render the comparator's fixed projection and approved Redis memory values."""
     lines = ["## Changes needing review", "",
              "DEV is the post-apply control. Only tightly matched provider defaults can be labelled potential recurring noise; repetition alone does not establish a false positive.", "",
              "| Target | Changes to review | Potential noise within updates | Unresolved observations | DEV comparison |",
@@ -621,8 +630,11 @@ def _comparison_markdown(comparisons):
                       "Classic/SND control differs" if any(field["reasonCode"] == "CLASSIC_SCOPE_DIFFERS" for field in fields) else
                       "Configuration or unmatched prediction")
             operations = {"Modify": "Change", "Array": "Change", "Delete": "Remove property from config:", "Create": "Add property to config:"}
-            properties = "; ".join(dict.fromkeys(f"{operations.get(field['action'], 'Unassessed')} {property_label(field['path'])}" for field in fields))
-            property_groups = properties.split("; ")
+            fields.sort(key=lambda field: bool(comparison_omission(item["type"], field, item["resourceId"])))
+            property_groups = list(dict.fromkeys(
+                (f"Not explicitly configured: {property_label(field['path'])} (current: {field['currentMemoryMB']} MB; writable setting)"
+                 if comparison_omission(item["type"], field, item["resourceId"]) else
+                 f"{operations.get(field['action'], 'Unassessed')} {property_label(field['path'])}") for field in fields))
             properties = "; ".join(property_groups[:3])
             if len(property_groups) > 3:
                 properties += f"; +{len(property_groups) - 3} more in comparison JSON"
