@@ -24,6 +24,16 @@ resource redis 'Microsoft.Cache/redis@2024-11-01' = {
     redisVersion: '6.0'
     updateChannel: 'Stable'
 
+    // Require automatic zone allocation for existing and newly created caches.
+    zonalAllocationPolicy: 'Automatic'
+
+    // Current Standard C1 reservations in MB; review these when changing the SKU or size.
+    redisConfiguration: {
+      'maxmemory-reserved': '125'
+      'maxmemory-delta': '125'
+      'maxfragmentationmemory-reserved': '125'
+    }
+
     sku: {
       name: 'Standard'
       family: 'C'
