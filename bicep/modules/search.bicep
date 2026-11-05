@@ -51,14 +51,22 @@ resource searchService 'Microsoft.Search/searchServices@2025-05-01' = {
 
   properties: {
     computeType: 'Default'
+    // Standard Azure public-cloud endpoint for this API; review when upgrading it.
+    endpoint: 'https://${searchParams.name}.search.windows.net'
     partitionCount: searchParams.partitionCount
     replicaCount: searchParams.replicaCount
     semanticSearch: 'disabled'
 
+    disableLocalAuth: false
     authOptions: {
       aadOrApiKey: {
         aadAuthFailureMode: 'http401WithBearerChallenge'
       }
+    }
+
+    // Preserve the current CMK policy; Azure manages the compliance status.
+    encryptionWithCmk: {
+      enforcement: 'Unspecified'
     }
 
     publicNetworkAccess: 'Disabled'
