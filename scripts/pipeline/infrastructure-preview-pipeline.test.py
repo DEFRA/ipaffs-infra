@@ -115,9 +115,9 @@ class InfrastructurePreviewPipelineTests(unittest.TestCase):
                     script = task["inputs"]["inlineScript"]
                     self.assertLess(script.index("ensure-bicep-version.sh"), script.index("plan-infrastructure.py"))
 
-    def test_only_successful_main_dev_completion_is_automatic(self):
+    def test_only_release_tags_and_successful_main_dev_completion_are_automatic(self):
         pipeline = load(PIPELINE)
-        self.assertEqual("none", pipeline["trigger"])
+        self.assertEqual({"branches": {"exclude": ["*"]}, "tags": {"include": ["*.*.*"]}}, pipeline["trigger"])
         self.assertEqual("none", pipeline["pr"])
         resource, = pipeline["resources"]["pipelines"]
         self.assertEqual("infrastructure", resource["pipeline"])
@@ -255,6 +255,60 @@ class InfrastructurePreviewPipelineTests(unittest.TestCase):
         self.assertTrue(initialised)
         self.assertNotIn("task.setvariable variable=PreviewInputsReady", result.stdout)
 
+    def test_ci_release_tags_preview_the_tagged_commit_in_every_environment(self):
+        for reason in ("IndividualCI", "BatchedCI"):
+            for reference in ("refs/tags/0.0.0", "refs/tags/26.5.1", "refs/tags/123.456.789"):
+                for environment in ("DEV", "TST", "PRE", "PRD"):
+                    with self.subTest(reason=reason, reference=reference, environment=environment):
+                        result, initialised = self.source_validation({
+                            "BUILD_REASON": reason, "BUILD_SOURCEBRANCH": reference,
+                            "BUILD_SOURCEVERSION": "b" * 40, "FIXTURE_HEAD": "b" * 40,
+                            "SOURCE_PIPELINE_COMMIT": "a" * 40}, environment)
+                        self.assertEqual(0, result.returncode, result.stderr)
+                        self.assertTrue(initialised)
+                        self.assertIn("task.setvariable variable=PreviewInputsReady]true", result.stdout)
+
+    def test_ci_branches_pr_refs_and_noncanonical_tags_fail_before_initialisation(self):
+        references = ("refs/heads/main", "refs/heads/RELEASE/26.5.x", "refs/pull/42/merge", "",
+                      "26.5.1", "refs/tags/v26.5.1", "refs/tags/26.5", "refs/tags/26.5.1-rc.1",
+                      "refs/tags/26.5.1+build", "refs/tags/01.5.1", "refs/tags/26.05.1", "refs/tags/26.5.01",
+                      "refs/tags/26.5.1/other", "refs/tags/26.5.1\n")
+        for reason in ("IndividualCI", "BatchedCI"):
+            for reference in references:
+                with self.subTest(reason=reason, reference=reference):
+                    result, initialised = self.source_validation({"BUILD_REASON": reason, "BUILD_SOURCEBRANCH": reference})
+                    self.assertNotEqual(0, result.returncode)
+                    self.assertFalse(initialised)
+                    self.assertNotIn("task.setvariable variable=PreviewInputsReady", result.stdout)
+
+    def test_ci_tag_text_is_not_executed_and_all_automatic_sources_still_require_their_checkout(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            marker = Path(temporary) / "unexpected"
+            for reason in ("IndividualCI", "BatchedCI"):
+                for reference in (f"refs/tags/1.2.$(touch '{marker}')", f"refs/tags/1.2.`touch '{marker}'`"):
+                    result, initialised = self.source_validation({"BUILD_REASON": reason, "BUILD_SOURCEBRANCH": reference})
+                    self.assertNotEqual(0, result.returncode)
+                    self.assertFalse(initialised)
+                    self.assertFalse(marker.exists())
+                    self.assertNotIn("task.setvariable variable=PreviewInputsReady", result.stdout)
+                result, initialised = self.source_validation({"BUILD_REASON": reason,
+                    "BUILD_SOURCEBRANCH": "refs/tags/26.5.1", "FIXTURE_HEAD": "b" * 40})
+                self.assertNotEqual(0, result.returncode)
+                self.assertFalse(initialised)
+                self.assertNotIn("task.setvariable variable=PreviewInputsReady", result.stdout)
+        result, initialised = self.source_validation({"BUILD_SOURCEBRANCH": "refs/tags/26.5.1"})
+        self.assertNotEqual(0, result.returncode, "DEV completion triggers must still use main")
+        self.assertFalse(initialised)
+        self.assertNotIn("task.setvariable variable=PreviewInputsReady", result.stdout)
+
+    def test_manual_branch_and_tag_diagnostic_previews_keep_their_existing_source_behavior(self):
+        for reference in ("refs/heads/main", "refs/heads/feature/preview", "refs/tags/26.5.1", "refs/tags/diagnostic"):
+            with self.subTest(reference=reference):
+                result, initialised = self.source_validation({"BUILD_REASON": "Manual", "BUILD_SOURCEBRANCH": reference,
+                                                              "SOURCE_PIPELINE_COMMIT": "b" * 40})
+                self.assertEqual(0, result.returncode, result.stderr)
+                self.assertTrue(initialised)
+
     def test_both_scopes_share_environment_source_and_separate_authentication(self):
         for environment in ("DEV", "TST", "PRE", "PRD"):
             with self.subTest(environment=environment):
@@ -374,6 +428,23 @@ class InfrastructurePreviewPipelineTests(unittest.TestCase):
         self.assertEqual("", warning)
         self.assertEqual([["git", "cat-file", "-e", "a" * 40 + "^{commit}"],
                           ["git", "diff", "--quiet", "a" * 40, "HEAD", "--", *PROTECTED_PATHS]], commands)
+
+    def test_tag_ci_keeps_the_existing_dev_deployment_input_proof(self):
+        for reason in ("IndividualCI", "BatchedCI"):
+            for statuses, expected in (((0, 0), "VERIFIED_SUCCESSFUL_DEV_APPLY"),
+                                       ((0, 1), "DEPLOYMENT_INPUTS_CHANGED")):
+                with self.subTest(reason=reason, statuses=statuses):
+                    evidence, warning, commands = self.baseline_evidence(environment_overrides={
+                        "BUILD_REASON": reason, "BUILD_SOURCEBRANCH": "refs/tags/26.5.1",
+                        "BUILD_SOURCEVERSION": "b" * 40}, git_statuses=statuses)
+                    self.assertEqual(expected, evidence["reasonCode"])
+                    self.assertEqual("b" * 40, evidence["previewCommit"])
+                    self.assertEqual("a" * 40, evidence["appliedCommit"])
+                    self.assertTrue(evidence["sourceVerified"])
+                    self.assertTrue(evidence["sourceDeploymentVerified"])
+                    self.assertEqual(statuses[-1] == 0, evidence["deploymentInputsUnchanged"])
+                    self.assertEqual("usable" if statuses[-1] == 0 else "unusable", evidence["status"])
+                    self.assertEqual(["git", "diff", "--quiet", "a" * 40, "HEAD", "--", *PROTECTED_PATHS], commands[-1])
 
     def test_unusable_source_provenance_is_published_without_stopping_any_plans(self):
         cases = [({"result": "failed"}, {}, "SOURCE_RUN_NOT_SUCCESSFUL"),

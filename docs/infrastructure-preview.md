@@ -3,8 +3,9 @@
 `pipelines/infrastructure-preview.yaml` previews the candidate infrastructure commit
 against live DEV, TST, PRE and PRD. DEV supplies a post-apply comparison baseline.
 The pipeline does not apply deployments, run hooks, update
-Library groups or change access-group memberships. Tag-triggered promotion is a
-separate follow-up; the current DEV deployment pipeline remains unchanged.
+Library groups or change access-group memberships. Tagged deployments run
+separately through `release-pipeline.yaml`; the preview is advisory and is not
+an approval gate or dependency of that release pipeline.
 
 ## Release workflow
 
@@ -18,6 +19,15 @@ separate follow-up; the current DEV deployment pipeline remains unchanged.
    downloadable `infrastructure-preview` artifact before choosing a release tag.
    Record the full candidate commit; a tag created later must point at that commit
    for this report to describe its inputs.
+4. Creating a numeric `major.minor.patch` tag, such as `26.5.1`, also starts a fresh
+   preview of that tagged commit across the same four environments in parallel.
+   The release pipeline starts independently from the tag and does not wait for
+   this preview. The successful DEV completion preview remains available before
+   choosing a tag.
+
+Only tags whose commits contain this tag-trigger configuration can start the
+preview automatically. Existing tags and tags of older pipeline code do not gain
+the new trigger when this change is merged to `main`.
 
 A failed or unresolved preview is incomplete, rather than evidence of no changes.
 When every environment's what-if executes successfully but ARM cannot assess all
@@ -30,9 +40,12 @@ these ordinary agent jobs; service-connection checks and authorisation still app
 
 For a manual preview, select `main` in the Azure DevOps **Run pipeline** dialog
 and verify the queued commit in the report. The default source resource selects
-a successful main infrastructure run tagged `Environment-DEV`. Automatic runs verify both the
-checked-out commit and the completed DEV run's commit and branch before any
-authenticated preview work.
+a successful main infrastructure run tagged `Environment-DEV`. Every run verifies
+that the checkout matches its queued commit. DEV completion runs also require
+the exact completed main DEV commit. Tag CI runs validate the full tag ref as
+numeric `major.minor.patch`, without leading zeroes, a `v` prefix or prerelease
+suffix, before authenticated preview work. The selected DEV source run remains
+baseline evidence and does not replace the tagged candidate commit.
 The report records the commit, source ref, run ID and generation time. Changes to
 the live environment after that time can invalidate the prediction.
 
@@ -231,14 +244,17 @@ Missing authorisation can block the run before jobs start. Authentication failur
 after initialisation leave pending/incomplete component records visible in the
 report; they must not be treated as a successful plan.
 
-The YAML has no CI or PR trigger. Its automatic trigger requires a successful
-source-pipeline completion on `refs/heads/main` with `Environment-DEV`. It does not
-react to release tags and does not alter the manifest-style batching of DEV.
+The YAML excludes branch CI and PR triggers. Its native tag CI filter is `*.*.*`;
+the source-validation step rejects matching tags that are not numeric release
+versions. The existing successful main `Environment-DEV` pipeline-completion
+trigger is retained. Neither trigger changes DEV deployment batching or the
+baseline's source-run, deployment-task and deployment-input verification.
 
 Repository tests and Azure DevOps YAML preview compilation validate structure;
-the first live what-if run still needs checking after registration. A pre-tag
-preview is advisory and does not yet enforce that a future promotion uses the
-reviewed commit.
+a manual read-only run can validate live execution. These checks do not establish
+that a real tag push started a preview; verify the source ref, tagged commit and
+reports on the first future release-tag run. A pre-tag preview remains advisory
+and does not enforce that a future promotion uses the reviewed commit.
 
 References: [pipeline completion triggers](https://learn.microsoft.com/en-us/azure/devops/pipelines/process/pipeline-triggers?view=azure-devops)
 and [Bicep what-if limitations](https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/deploy-what-if#limitations).

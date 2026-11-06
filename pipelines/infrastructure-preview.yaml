@@ -1,7 +1,13 @@
 ---
-# A successful DEV apply previews DEV as a baseline and every promotion target.
+# Preview a successful DEV apply or a numeric release tag against every environment.
 # Register this YAML as the separate `infrastructure-preview` pipeline.
-trigger: none
+trigger:
+  branches:
+    exclude:
+      - '*'
+  tags:
+    include:
+      - '*.*.*'
 pr: none
 
 pool:

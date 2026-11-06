@@ -65,6 +65,13 @@ stages:
                     echo '##vso[task.logissue type=error]Preview must use the exact main commit from the completed DEV infrastructure run.'
                     exit 1
                   fi
+                elif [ "$BUILD_REASON" = IndividualCI ] || [ "$BUILD_REASON" = BatchedCI ]; then
+                  release_version="${BUILD_SOURCEBRANCH#refs/tags/}"
+                  release_version_regex='^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$'
+                  if [[ "$BUILD_SOURCEBRANCH" != refs/tags/* ]] || [[ ! "$release_version" =~ $release_version_regex ]]; then
+                    echo '##vso[task.logissue type=error]Automatic CI previews require a numeric major.minor.patch release tag.'
+                    exit 1
+                  fi
                 fi
                 python3 scripts/pipeline/plan-infrastructure.py \
                   --initialize \
