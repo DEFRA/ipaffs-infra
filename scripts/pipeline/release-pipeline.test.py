@@ -31,7 +31,7 @@ def mappings(node):
 
 
 def release_stages(**overrides):
-    return TEMPLATES.expand_stages("release-pipeline.yaml", overrides, "refs/tags/18.9.0")
+    return TEMPLATES.expand_stages("release-pipeline.yaml", overrides, "refs/tags/42")
 
 
 def dependency_graph(stages):
@@ -50,10 +50,10 @@ def dependency_graph(stages):
 
 
 class ReleasePipelineTests(unittest.TestCase):
-    def test_only_version_tags_trigger_a_named_release(self):
+    def test_tag_pushes_trigger_source_validation_for_a_named_release(self):
         pipeline = TEMPLATES.load("release-pipeline.yaml")
         self.assertEqual({"exclude": ["*"]}, pipeline["trigger"]["branches"])
-        self.assertEqual({"include": ["*.*.*"]}, pipeline["trigger"]["tags"])
+        self.assertEqual({"include": ["*"], "exclude": ["ipaffs-infra-pin-*"]}, pipeline["trigger"]["tags"])
         self.assertEqual("none", pipeline["pr"])
         self.assertEqual("$(Build.SourceBranchName)", pipeline["name"])
         self.assertIs(False, pipeline["appendCommitMessageToRunName"])
@@ -72,15 +72,19 @@ class ReleasePipelineTests(unittest.TestCase):
         return subprocess.run(["bash", "-c", macros(script)], cwd=ROOT, env=environment,
                               text=True, capture_output=True, timeout=10)
 
-    def test_validation_accepts_canonical_versions_and_rejects_branches_and_other_tags(self):
-        for reference in ("refs/tags/0.0.0", "refs/tags/18.9.0", "refs/tags/123.456.789"):
+    def test_validation_accepts_positive_integer_tags_and_rejects_other_refs(self):
+        for reference in ("refs/tags/1", "refs/tags/2", "refs/tags/42", "refs/tags/123456789",
+                          "refs/tags/99999999999999999999999999999999999999999999999999"):
             with self.subTest(reference=reference):
                 result = self.run_validation(reference)
                 self.assertEqual(0, result.returncode, result.stderr)
-        for reference in ("refs/heads/main", "refs/heads/RELEASE/18.9.x", "refs/pull/42/merge",
-                          "refs/tags/v18.9.0", "refs/tags/18.9", "refs/tags/18.9.0-rc.1",
-                          "refs/tags/01.9.0", "refs/tags/18.09.0", "refs/tags/18.9.00",
-                          "refs/tags/18.9.0/other", "refs/tags/18.9.0\n", ""):
+        for reference in ("refs/heads/main", "refs/heads/RELEASE/42", "refs/pull/42/merge",
+                          "refs/tags/ipaffs-infra-pin-abc", "refs/tags/0", "refs/tags/01", "refs/tags/00", "refs/tags/-1",
+                          "refs/tags/+1", "refs/tags/v1", "refs/tags/1.0.0", "refs/tags/18.9.0",
+                          "refs/tags/1e3", "refs/tags/１", "refs/tags/١",
+                          "refs/tags/1-rc.1", "refs/tags/1+build", "refs/tags/1/other",
+                          "refs/tags/nested/1", "refs/tags/ 1", "refs/tags/1 ",
+                          "refs/tags/1\n", "refs/tags/1\n2", "refs/tags/1\t", "1", ""):
             with self.subTest(reference=reference):
                 result = self.run_validation(reference)
                 self.assertNotEqual(0, result.returncode, result.stdout)
@@ -88,18 +92,20 @@ class ReleasePipelineTests(unittest.TestCase):
     def test_validation_does_not_execute_text_in_a_tag(self):
         with tempfile.TemporaryDirectory() as temporary:
             marker = Path(temporary) / "unexpected"
-            result = self.run_validation(f"refs/tags/1.2.$(touch '{marker}')")
-            self.assertNotEqual(0, result.returncode)
-            self.assertFalse(marker.exists())
+            for reference in (f"refs/tags/1$(touch '{marker}')", f"refs/tags/1`touch '{marker}'`"):
+                with self.subTest(reference=reference):
+                    result = self.run_validation(reference)
+                    self.assertNotEqual(0, result.returncode)
+                    self.assertFalse(marker.exists())
 
     def test_approval_timeout_is_a_positive_integer_below_the_agentless_job_limit(self):
         for timeout in (1, 60, 43199):
             with self.subTest(timeout=timeout):
-                result = self.run_validation("refs/tags/18.9.0", timeout)
+                result = self.run_validation("refs/tags/1", timeout)
                 self.assertEqual(0, result.returncode, result.stderr)
         for timeout in (0, -1, 43200, 100000, 1.5):
             with self.subTest(timeout=timeout):
-                result = self.run_validation("refs/tags/18.9.0", timeout)
+                result = self.run_validation("refs/tags/1", timeout)
                 self.assertNotEqual(0, result.returncode, result.stdout)
 
     def test_every_environment_is_serial_and_promotion_gates_cover_all_deployment_stages(self):
@@ -215,7 +221,7 @@ class ReleasePipelineTests(unittest.TestCase):
                           if "Build.SourceBranch" in entry.get("condition", "")]
                 self.assertTrue(guards, template)
                 for guard in guards:
-                    for reference in ("refs/heads/main", "refs/heads/feature", "refs/pull/1/merge", "refs/tags/18.9.0"):
+                    for reference in ("refs/heads/main", "refs/heads/feature", "refs/pull/1/merge", "refs/tags/42"):
                         for failed, canceled in ((False, False), (True, False), (False, True)):
                             expected = (reference == "refs/heads/main" or opt_in and reference.startswith("refs/tags/")) and not failed and not canceled
                             self.assertEqual(expected, TEMPLATES.evaluate(guard, {
@@ -228,13 +234,13 @@ class ReleasePipelineTests(unittest.TestCase):
                 guard = entry.get("condition", "")
                 if "Build.SourceBranch" in guard:
                     self.assertTrue(TEMPLATES.evaluate(guard, {
-                        "variables": {"Build.SourceBranch": "refs/tags/18.9.0"}}),
+                        "variables": {"Build.SourceBranch": "refs/tags/42"}}),
                         (stage["stage"], entry.get("name"), guard))
                 if entry.get("name") == "RunHooks":
                     self.assertEqual("false", entry["env"]["DRY_RUN"])
 
     def test_hooks_retain_dry_run_defaults_and_the_existing_branch_override(self):
-        for reference in ("refs/heads/main", "refs/heads/feature", "refs/tags/18.9.0"):
+        for reference in ("refs/heads/main", "refs/heads/feature", "refs/tags/42"):
             for tagged in (False, True):
                 for branch_override in (False, True):
                     stage, = TEMPLATES.expand_stages("pipelines/stages/run-hooks.yaml", {

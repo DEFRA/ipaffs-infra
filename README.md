@@ -94,23 +94,28 @@ Things are moving along quickly. At the time of writing, migration of ipaffs-imp
 
 [`release-pipeline.yaml`](release-pipeline.yaml) promotes the same tagged commit
 through **TST → approval → PRE → approval → PRD**, following the manifest release
-pipeline. Only numeric `major.minor.patch` tags (for example `18.9.0`) are accepted.
+pipeline. Only positive integer tags (for example `1`, `2` or `3`) are accepted.
 Branch pushes and pull requests do not trigger it; manually queued runs must also
 select a release tag.
 
 Use **Create Infrastructure Release** in Azure DevOps's `Infrastructure/Releasing`
 folder ([`release-refs-pipeline.yaml`](release-refs-pipeline.yaml)) to create those
-tags. Queue it from `main` with a major/minor `version`, for example `18.9`, to
-create `RELEASE/18.9.x` and the annotated tag `18.9.0` from the latest remote
-`main`. If that release branch already exists, the initial tag uses its current
-commit. Existing tags are never moved or overwritten.
+tags. Queue it manually from `main` with the explicit integer `version` you want,
+such as `1` or `2`. It rejects zero, leading zeroes, whitespace and dotted versions.
+It reads the latest remote `main` when the job runs and creates only that annotated
+tag; this can be newer than the commit checked out when the run was queued. It does
+not create release branches, calculate the next number or automatically tag branch
+commits. Existing tags are never moved, overwritten or reused, even if they already
+point at the same commit; choose an unused number for each release.
 
-Subsequent commits to `RELEASE/18.9.x` automatically receive the next patch tag
-(`18.9.1`, `18.9.2`, and so on). Retrying an already tagged release-branch commit
-reuses its tag. Each successful run publishes `release-metadata/release.json`
-with the exact infrastructure version, commit and pipeline run identifiers.
-The resulting tag starts **Infrastructure Release Pipeline** for TST, PRE and
-PRD. Merge the YAML and its script into `main` before using the new definition.
+Each successful run publishes `release-metadata/release.json` with the exact chosen
+integer, tagged infrastructure commit and pipeline run identifiers. Its
+`releaseBranch` field remains `main`. Check that commit against the preview you
+reviewed. The tag starts **Infrastructure Release Pipeline** for TST, PRE and PRD
+and an independent read-only infrastructure preview. Merge the YAML and its script
+into `main` before using the new definition. Existing tags and release branches
+retain their checked-in pipeline code; use a commit containing the integer-tag
+configuration for the new flow.
 
 Each environment runs the full infrastructure sequence: access-contract validation,
 hooks, resource group, network, optional hub peering, ACR (PRE/PRD), classic resources,

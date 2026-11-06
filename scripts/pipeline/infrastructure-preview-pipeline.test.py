@@ -115,9 +115,9 @@ class InfrastructurePreviewPipelineTests(unittest.TestCase):
                     script = task["inputs"]["inlineScript"]
                     self.assertLess(script.index("ensure-bicep-version.sh"), script.index("plan-infrastructure.py"))
 
-    def test_only_release_tags_and_successful_main_dev_completion_are_automatic(self):
+    def test_tag_pushes_validate_sources_and_main_dev_completion_remains_automatic(self):
         pipeline = load(PIPELINE)
-        self.assertEqual({"branches": {"exclude": ["*"]}, "tags": {"include": ["*.*.*"]}}, pipeline["trigger"])
+        self.assertEqual({"branches": {"exclude": ["*"]}, "tags": {"include": ["*"], "exclude": ["ipaffs-infra-pin-*"]}}, pipeline["trigger"])
         self.assertEqual("none", pipeline["pr"])
         resource, = pipeline["resources"]["pipelines"]
         self.assertEqual("infrastructure", resource["pipeline"])
@@ -257,7 +257,8 @@ class InfrastructurePreviewPipelineTests(unittest.TestCase):
 
     def test_ci_release_tags_preview_the_tagged_commit_in_every_environment(self):
         for reason in ("IndividualCI", "BatchedCI"):
-            for reference in ("refs/tags/0.0.0", "refs/tags/26.5.1", "refs/tags/123.456.789"):
+            for reference in ("refs/tags/1", "refs/tags/2", "refs/tags/42", "refs/tags/123456789",
+                              "refs/tags/99999999999999999999999999999999999999999999999999"):
                 for environment in ("DEV", "TST", "PRE", "PRD"):
                     with self.subTest(reason=reason, reference=reference, environment=environment):
                         result, initialised = self.source_validation({
@@ -269,10 +270,13 @@ class InfrastructurePreviewPipelineTests(unittest.TestCase):
                         self.assertIn("task.setvariable variable=PreviewInputsReady]true", result.stdout)
 
     def test_ci_branches_pr_refs_and_noncanonical_tags_fail_before_initialisation(self):
-        references = ("refs/heads/main", "refs/heads/RELEASE/26.5.x", "refs/pull/42/merge", "",
-                      "26.5.1", "refs/tags/v26.5.1", "refs/tags/26.5", "refs/tags/26.5.1-rc.1",
-                      "refs/tags/26.5.1+build", "refs/tags/01.5.1", "refs/tags/26.05.1", "refs/tags/26.5.01",
-                      "refs/tags/26.5.1/other", "refs/tags/26.5.1\n")
+        references = ("refs/heads/main", "refs/heads/RELEASE/42", "refs/pull/42/merge", "",
+                      "42", "refs/tags/ipaffs-infra-pin-abc", "refs/tags/0", "refs/tags/01", "refs/tags/00", "refs/tags/-1",
+                      "refs/tags/+1", "refs/tags/v1", "refs/tags/1.0.0", "refs/tags/26.5.1",
+                      "refs/tags/1e3", "refs/tags/１", "refs/tags/١",
+                      "refs/tags/1-rc.1", "refs/tags/1+build", "refs/tags/1/other",
+                      "refs/tags/nested/1", "refs/tags/ 1", "refs/tags/1 ", "refs/tags/1\n",
+                      "refs/tags/1\n2", "refs/tags/1\t")
         for reason in ("IndividualCI", "BatchedCI"):
             for reference in references:
                 with self.subTest(reason=reason, reference=reference):
@@ -285,24 +289,25 @@ class InfrastructurePreviewPipelineTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary:
             marker = Path(temporary) / "unexpected"
             for reason in ("IndividualCI", "BatchedCI"):
-                for reference in (f"refs/tags/1.2.$(touch '{marker}')", f"refs/tags/1.2.`touch '{marker}'`"):
+                for reference in (f"refs/tags/1$(touch '{marker}')", f"refs/tags/1`touch '{marker}'`"):
                     result, initialised = self.source_validation({"BUILD_REASON": reason, "BUILD_SOURCEBRANCH": reference})
                     self.assertNotEqual(0, result.returncode)
                     self.assertFalse(initialised)
                     self.assertFalse(marker.exists())
                     self.assertNotIn("task.setvariable variable=PreviewInputsReady", result.stdout)
                 result, initialised = self.source_validation({"BUILD_REASON": reason,
-                    "BUILD_SOURCEBRANCH": "refs/tags/26.5.1", "FIXTURE_HEAD": "b" * 40})
+                    "BUILD_SOURCEBRANCH": "refs/tags/42", "FIXTURE_HEAD": "b" * 40})
                 self.assertNotEqual(0, result.returncode)
                 self.assertFalse(initialised)
                 self.assertNotIn("task.setvariable variable=PreviewInputsReady", result.stdout)
-        result, initialised = self.source_validation({"BUILD_SOURCEBRANCH": "refs/tags/26.5.1"})
+        result, initialised = self.source_validation({"BUILD_SOURCEBRANCH": "refs/tags/42"})
         self.assertNotEqual(0, result.returncode, "DEV completion triggers must still use main")
         self.assertFalse(initialised)
         self.assertNotIn("task.setvariable variable=PreviewInputsReady", result.stdout)
 
     def test_manual_branch_and_tag_diagnostic_previews_keep_their_existing_source_behavior(self):
-        for reference in ("refs/heads/main", "refs/heads/feature/preview", "refs/tags/26.5.1", "refs/tags/diagnostic"):
+        for reference in ("refs/heads/main", "refs/heads/feature/preview", "refs/tags/42",
+                          "refs/tags/26.5.1", "refs/tags/0", "refs/tags/diagnostic"):
             with self.subTest(reference=reference):
                 result, initialised = self.source_validation({"BUILD_REASON": "Manual", "BUILD_SOURCEBRANCH": reference,
                                                               "SOURCE_PIPELINE_COMMIT": "b" * 40})
@@ -435,7 +440,7 @@ class InfrastructurePreviewPipelineTests(unittest.TestCase):
                                        ((0, 1), "DEPLOYMENT_INPUTS_CHANGED")):
                 with self.subTest(reason=reason, statuses=statuses):
                     evidence, warning, commands = self.baseline_evidence(environment_overrides={
-                        "BUILD_REASON": reason, "BUILD_SOURCEBRANCH": "refs/tags/26.5.1",
+                        "BUILD_REASON": reason, "BUILD_SOURCEBRANCH": "refs/tags/42",
                         "BUILD_SOURCEVERSION": "b" * 40}, git_statuses=statuses)
                     self.assertEqual(expected, evidence["reasonCode"])
                     self.assertEqual("b" * 40, evidence["previewCommit"])
