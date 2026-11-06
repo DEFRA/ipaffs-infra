@@ -10,11 +10,9 @@ param name string
 param entraGroups object = {}
 param principalsNeedingReader array
 
-param createdDate string = utcNow('yyyy-MM-dd')
 param deploymentId string = uniqueString(utcNow())
 
 var tags = union(loadJsonContent('default-tags.json'), {
-  CreatedDate: createdDate
   Environment: environment
   Location: location
 })

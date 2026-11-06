@@ -128,6 +128,15 @@ also belong here. Inventory can repeat across component previews and is not list
 as individual actions. Ignore can mean outside-template inventory or an expansion
 limit, so coverage may still be marked incomplete.
 
+The Bicep entry points no longer generate a `CreatedDate` tag from the deployment
+date. The first deployment of this change removes existing `CreatedDate` values
+on managed resources because ARM replaces the supplied tag set; the other declared
+tags are unchanged. Its first preview can therefore still show one-time `CreatedDate`
+deletions as background metadata, with the original operations in the audit files.
+Later deployments no longer generate date changes from this tag. Use the Azure
+provider's creation metadata, such as `systemData.createdAt`, where available;
+the old tag recorded the latest deployment date rather than resource creation.
+
 Managed-identity updates also count as background when the only differences are
 omitted Azure-generated `clientId`, `principalId` or `tenantId` fields, or an omitted
 `isolationScope` whose current value is exactly `None`. Microsoft documents that

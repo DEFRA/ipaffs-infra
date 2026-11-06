@@ -5,12 +5,10 @@ param environment string
 
 param subnets object = {}
 
-param createdDate string = utcNow('yyyy-MM-dd')
 param deploymentId string = uniqueString(utcNow())
 param location string = resourceGroup().location
 
 var tags = union(loadJsonContent('default-tags.json'), {
-  CreatedDate: createdDate
   Environment: environment
   Location: location
 })
