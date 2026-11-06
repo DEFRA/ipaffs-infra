@@ -1,4 +1,4 @@
-# Promote the same tagged infrastructure commit through TST, PRE and PRD.
+# Promote the same integer-tagged infrastructure commit through TST, PRE and PRD.
 # Branch pushes (including RELEASE/*) must not start a second deployment.
 trigger:
   branches:
@@ -6,7 +6,9 @@ trigger:
       - "*"
   tags:
     include:
-      - "*.*.*"
+      - "*" # The source-validation stage restricts tags to positive integers.
+    exclude:
+      - "ipaffs-infra-pin-*"
 
 pr: none
 
@@ -64,9 +66,9 @@ stages:
                 fi
 
                 release_version="${SOURCE_REF#refs/tags/}"
-                release_version_regex='^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$'
+                release_version_regex='^[1-9][0-9]*$'
                 if [[ ! "${release_version}" =~ ${release_version_regex} ]]; then
-                  echo "Release tag '${release_version}' must be a numeric major.minor.patch version." >&2
+                  echo "Release tag '${release_version}' must be a positive integer without leading zeroes, for example 1." >&2
                   exit 1
                 fi
 

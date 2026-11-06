@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Create infrastructure release branches and annotated version tags.
+"""Create an explicitly numbered annotated infrastructure tag from remote main.
 
 Inputs are supplied by release-refs-pipeline.yaml. Remote refs determine the
-version so a retried job cannot mistake a local, unpushed tag for a release.
+source and collisions; release numbers are never calculated automatically.
 """
 
 import json
@@ -13,9 +13,7 @@ import subprocess
 import sys
 
 
-VERSION = re.compile(r"(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)")
-RELEASE_BRANCH = re.compile(r"RELEASE/(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.x")
-TAG = re.compile(r"(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)")
+VERSION = re.compile(r"[1-9][0-9]*")
 COMMIT = re.compile(r"[0-9a-f]{40}")
 
 
@@ -36,8 +34,10 @@ def positive_id(name):
 
 
 def available_commit(commit):
-    # ADO may fetch only the queued source branch. Fetch the chosen remote tip
-    # explicitly when cutting a release from a different checkout.
+    # The queued checkout may be older than remote main. Fetch the chosen tip
+    # explicitly if the earlier branch fetch did not include it.
+    if not COMMIT.fullmatch(commit):
+        raise ValueError("Release source did not resolve to a full commit SHA")
     result = subprocess.run(["git", "cat-file", "-e", f"{commit}^{{commit}}"],
                             capture_output=True, text=True)
     if result.returncode:
@@ -60,25 +60,11 @@ def annotated_tag(version, commit):
 
 
 def main():
-    version = os.environ.get("VERSION", "auto").strip()
-    source_ref = os.environ.get("SOURCE_REF", "").strip()
-    source_sha = os.environ.get("SOURCE_SHA", "").strip()
-    if os.environ.get("BRANCH_PREFIX", "RELEASE/") != "RELEASE/":
-        raise ValueError("Release branch prefix must be RELEASE/")
-    if not source_ref.startswith("refs/heads/"):
-        raise ValueError("Create Release must run from a branch, not a tag or pull request ref")
-
-    branch = source_ref.removeprefix("refs/heads/")
-    git("check-ref-format", "--branch", branch)
-    patch_release = branch.startswith("RELEASE/")
-    match = RELEASE_BRANCH.fullmatch(branch) if patch_release else VERSION.fullmatch(version)
-    if not match:
-        if patch_release:
-            raise ValueError("Release branch must match RELEASE/<major>.<minor>.x")
-        raise ValueError("Version must identify a major and minor release, for example: 18.9")
-    major, minor = match.groups()
-    if patch_release and not COMMIT.fullmatch(source_sha):
-        raise ValueError("Build source commit must be a full commit SHA")
+    version = os.environ.get("VERSION", "")
+    if not VERSION.fullmatch(version):
+        raise ValueError("Version must be an explicit positive integer without leading zeroes, for example: 1")
+    if os.environ.get("SOURCE_REF", "") != "refs/heads/main":
+        raise ValueError("Create Release must run from refs/heads/main")
 
     run_id = positive_id("RELEASE_RUN_ID")
     pipeline_id = positive_id("RELEASE_PIPELINE_ID")
@@ -89,60 +75,25 @@ def main():
     metadata_path.parent.mkdir(parents=True, exist_ok=True)
 
     # ADO's GitHub checkout may omit remote.origin.fetch. Supply it explicitly;
-    # only remote-tracking refs are refreshed, never local release branches.
-    git("fetch", "--prune", "--tags", "origin", "+refs/heads/*:refs/remotes/origin/*")
+    # only remote-tracking refs are refreshed. Tags are checked directly on origin.
+    git("fetch", "--prune", "--no-tags", "origin", "+refs/heads/*:refs/remotes/origin/*")
     refs = dict(line.split("\t", 1)[::-1] for line in git("ls-remote", "--heads", "--tags", "origin").splitlines())
-    tags = {}
-    for reference, commit in refs.items():
-        if not reference.startswith("refs/tags/") or reference.endswith("^{}"):
-            continue
-        tag = reference.removeprefix("refs/tags/")
-        tag_match = TAG.fullmatch(tag)
-        if tag_match and tag_match.groups()[:2] == (major, minor):
-            tags[tag] = (int(tag_match[3]), refs.get(reference + "^{}", commit))
-
-    if patch_release:
-        source_sha = available_commit(source_sha)
-        existing = [(patch, tag) for tag, (patch, commit) in tags.items() if commit == source_sha]
-        if existing:
-            version = max(existing)[1]
-            print(f"Commit {source_sha} is already tagged '{version}'. No patch tag is required.")
-        else:
-            patch = max((patch for patch, _ in tags.values()), default=-1) + 1
-            version = f"{major}.{minor}.{patch}"
-            tag_object = annotated_tag(version, source_sha)
-            # No force: Git rejects a competing run that has claimed this tag.
-            git("push", "origin", f"{tag_object}:refs/tags/{version}")
-            print(f"Created patch tag '{version}' at {source_sha}")
-    else:
-        version = f"{major}.{minor}.0"
-        branch = f"RELEASE/{major}.{minor}.x"
-        if version in tags:
-            raise ValueError(f"Tag '{version}' already exists. Choose a new major/minor version.")
-        existing_branch = refs.get(f"refs/heads/{branch}")
-        source_sha = existing_branch or refs.get("refs/heads/main")
-        if not source_sha:
-            raise ValueError("Trunk branch refs/heads/main was not found on origin")
-        source_sha = available_commit(source_sha)
-        tag_object = annotated_tag(version, source_sha)
-        if existing_branch:
-            git("push", "origin", f"{tag_object}:refs/tags/{version}")
-            print(f"Reused existing release branch '{branch}'")
-        else:
-            # Empty expected value is a create-only compare-and-swap: even an
-            # ancestor branch created concurrently must not be fast-forwarded.
-            # The lease applies only to this absent branch; the tag is unforced.
-            git("push", "--atomic", f"--force-with-lease=refs/heads/{branch}:",
-                "origin", f"{source_sha}:refs/heads/{branch}",
-                f"{tag_object}:refs/tags/{version}")
-            print(f"Created branch '{branch}' at {source_sha}")
-        print(f"Created tag '{version}' at {source_sha}")
+    if f"refs/tags/{version}" in refs:
+        raise ValueError(f"Tag '{version}' already exists. Choose a different release number.")
+    source_sha = refs.get("refs/heads/main")
+    if not source_sha:
+        raise ValueError("Trunk branch refs/heads/main was not found on origin")
+    source_sha = available_commit(source_sha)
+    tag_object = annotated_tag(version, source_sha)
+    # No force or branch writes: Git rejects a competing run that claims the tag.
+    git("push", "origin", f"{tag_object}:refs/tags/{version}")
+    print(f"Created tag '{version}' at {source_sha}")
 
     metadata = {
         "schemaVersion": 1,
         "version": version,
         "tag": version,
-        "releaseBranch": branch,
+        "releaseBranch": "main",
         "infraCommit": source_sha,
         "createReleaseRunId": run_id,
         "createReleasePipelineId": pipeline_id,

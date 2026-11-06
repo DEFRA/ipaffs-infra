@@ -1,5 +1,5 @@
 ---
-# Preview a successful DEV apply or a numeric release tag against every environment.
+# Preview a successful DEV apply or an integer release tag against every environment.
 # Register this YAML as the separate `infrastructure-preview` pipeline.
 trigger:
   branches:
@@ -7,7 +7,9 @@ trigger:
       - '*'
   tags:
     include:
-      - '*.*.*'
+      - '*' # Source validation restricts automatic tag previews to positive integers.
+    exclude:
+      - 'ipaffs-infra-pin-*'
 pr: none
 
 pool:

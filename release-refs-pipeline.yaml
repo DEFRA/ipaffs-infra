@@ -1,12 +1,5 @@
-# Create a release manually from main; commits to release branches get patch tags.
-trigger:
-  batch: true
-  branches:
-    include:
-      - "RELEASE/*"
-  tags:
-    exclude:
-      - "*"
+# Manually tag the latest main commit with an integer infrastructure release.
+trigger: none
 
 pr: none
 
@@ -15,34 +8,26 @@ pool:
 
 parameters:
   - name: version
-    displayName: Version (major.minor for a new release)
+    displayName: Infrastructure release number (positive integer, for example 1)
     type: string
-    default: auto
-  - name: branchPrefix
-    displayName: Release Branch Prefix
-    type: string
-    values:
-      - RELEASE/
-    default: RELEASE/
+    default: '1'
 
 stages:
   - stage: CreateInfrastructureRefs
-    displayName: Create ipaffs-infra release refs
+    displayName: Create ipaffs-infra release tag
     jobs:
-      - job: CreateBranchAndTag
-        displayName: Create release refs
+      - job: CreateReleaseTag
+        displayName: Create release tag
         steps:
           - checkout: self
             persistCredentials: true
             fetchDepth: 0
 
           - task: Bash@3
-            displayName: Create release branch or next patch tag
+            displayName: Create integer release tag from main
             env:
               VERSION: ${{ parameters.version }}
-              BRANCH_PREFIX: ${{ parameters.branchPrefix }}
               SOURCE_REF: $(Build.SourceBranch)
-              SOURCE_SHA: $(Build.SourceVersion)
               REQUESTED_FOR_EMAIL: $(Build.RequestedForEmail)
               REQUESTED_FOR_NAME: $(Build.RequestedFor)
               RELEASE_METADATA_FILE: $(Build.ArtifactStagingDirectory)/release-metadata/release.json

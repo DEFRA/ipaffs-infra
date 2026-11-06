@@ -19,7 +19,7 @@ an approval gate or dependency of that release pipeline.
    downloadable `infrastructure-preview` artifact before choosing a release tag.
    Record the full candidate commit; a tag created later must point at that commit
    for this report to describe its inputs.
-4. Creating a numeric `major.minor.patch` tag, such as `26.5.1`, also starts a fresh
+4. Creating a canonical positive integer tag, such as `1`, `2` or `42`, also starts a fresh
    preview of that tagged commit across the same four environments in parallel.
    The release pipeline starts independently from the tag and does not wait for
    this preview. The successful DEV completion preview remains available before
@@ -42,9 +42,13 @@ For a manual preview, select `main` in the Azure DevOps **Run pipeline** dialog
 and verify the queued commit in the report. The default source resource selects
 a successful main infrastructure run tagged `Environment-DEV`. Every run verifies
 that the checkout matches its queued commit. DEV completion runs also require
-the exact completed main DEV commit. Tag CI runs validate the full tag ref as
-numeric `major.minor.patch`, without leading zeroes, a `v` prefix or prerelease
-suffix, before authenticated preview work. The selected DEV source run remains
+the exact completed main DEV commit. Tag CI runs validate the full tag ref using
+`^[1-9][0-9]*$` for the tag name, before authenticated preview work. Zero, leading
+zeroes, signs, a `v` prefix, semantic versions and suffixes are rejected. The
+integer is a release identifier, so it is validated as text rather than limited
+to a machine-sized number. Manual diagnostic previews retain their existing
+ability to select any branch or tag, including older semantic-version tags.
+The selected DEV source run remains
 baseline evidence and does not replace the tagged candidate commit.
 The report records the commit, source ref, run ID and generation time. Changes to
 the live environment after that time can invalidate the prediction.
@@ -244,9 +248,13 @@ Missing authorisation can block the run before jobs start. Authentication failur
 after initialisation leave pending/incomplete component records visible in the
 report; they must not be treated as a successful plan.
 
-The YAML excludes branch CI and PR triggers. Its native tag CI filter is `*.*.*`;
-the source-validation step rejects matching tags that are not numeric release
-versions. The existing successful main `Environment-DEV` pipeline-completion
+The YAML excludes branch CI and PR triggers. Its native tag CI filter is `*`,
+excluding the separate `ipaffs-infra-pin-*` manifest-pinning tags. Azure DevOps
+tag filters do not express the canonical-integer rule, so another tag push
+can queue validation even when it is not a valid infrastructure release tag.
+The source-validation step rejects every noncanonical tag before authenticated
+preview work. The release pipeline applies the same positive-integer guard
+before its deployment stages. The existing successful main `Environment-DEV` pipeline-completion
 trigger is retained. Neither trigger changes DEV deployment batching or the
 baseline's source-run, deployment-task and deployment-input verification.
 
