@@ -175,7 +175,7 @@ class InfrastructurePlanReadabilityTests(unittest.TestCase):
         self.assertTrue(report["complete"])
         self.assertEqual(report["resourceTotals"]["Modify"], 2)
         self.assertEqual(report["metadataOnlyTotals"]["Modify"], 0)
-        self.assertIn("0 reported updates", self.summary)
+        self.assertIn("0 updates to review", self.summary)
         self.assertIn("NoEffect-only updates: 2", self.summary)
         for name in ("no-effect-only-store", "no-effect-with-date"):
             self.assertNotIn(name, self.summary)
@@ -194,7 +194,7 @@ class InfrastructurePlanReadabilityTests(unittest.TestCase):
 
         self.assertEqual(report["resourceTotals"]["Modify"], 1)
         self.assertIn("mixed-effect-store", self.summary)
-        self.assertIn("1 reported updates", self.summary)
+        self.assertIn("1 updates to review", self.summary)
         self.assertIn("Disabled", self.summary)
         self.assertIn("NoEffect-only updates: 0", self.summary)
 
@@ -299,7 +299,7 @@ class InfrastructurePlanReadabilityTests(unittest.TestCase):
             self.assertEqual(environment["review"]["potential"]["Modify"], 1)
             self.assertEqual(sum(counts["Modify"] for counts in environment["review"]["changes"].values()), 1)
         self.assertEqual([path.read_bytes() for path in paths], originals)
-        self.assertRegex(summary, r"\| TST \| 1 \| 1 \| 0 \| Completed \|")
+        self.assertRegex(summary, r"\| TST \| 1 \| 1 \| 0 \| 0 \| Completed \|")
         self.assertIn("NoEffect-only updates", summary)
         self.assertIn("| TST | 0 | 0 | 1 | 1 |", summary)
 

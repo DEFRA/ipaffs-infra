@@ -113,8 +113,10 @@ for a release decision:
   recur in DEV. Repeated NSG or access changes may reflect another controller
   reapplying its intended configuration.
 - Coverage gaps for unsupported resources, unresolved deployment-time values
-  and potential actions. Check the intended Bicep configuration where these
-  gaps matter; the comparison does not turn them into no-change predictions.
+  and potential actions. The headline counts updates containing only unresolved
+  expressions separately. Updates with both assessed and unresolved properties
+  appear in the review list and the coverage gaps. Check the intended Bicep
+  configuration where these gaps matter.
 
 The **Unresolved predictions** table retains a known resource type even when
 Azure's sanitized result has no usable resource identity. Repeated unidentified

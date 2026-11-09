@@ -137,7 +137,7 @@ class InfrastructurePlanReportTests(unittest.TestCase):
         self.assertEqual(combined["environments"][0]["metadataOnlyTotals"]["Modify"], 1)
         summary = (self.directory / "combined" / "summary.md").read_text()
         self.assertIn("Metadata-only updates", summary)
-        self.assertIn("| TST | 0 | 0 | 0 | Completed |", summary)
+        self.assertIn("| TST | 0 | 0 | 0 | 0 | Completed |", summary)
         self.assertIn("| TST | 0 | 0 | 1 |", summary)
 
     def managed_identity_change(self, name, before_scope="None", after_scope=None, **before_extras):
@@ -302,10 +302,27 @@ class InfrastructurePlanReportTests(unittest.TestCase):
 
     def test_unresolved_expressions_make_assessment_incomplete_without_exposing_expression(self):
         expression = "[reference('/subscriptions/hidden-resource').sku.name]"
-        plan = self.report([component([resource(delta=[field("sku.name", "Basic", expression)])])])
+        unresolved = field("sku.name", "Basic", expression)
+        plan = self.report([component([
+            resource(name="unassessed-registry", delta=[unresolved]),
+            resource(name="mixed-registry", delta=[
+                unresolved, field("properties.publicNetworkAccess", "Enabled", "Disabled")]),
+        ])])
         self.assertFalse(plan["complete"])
+        self.assertEqual(2, plan["resourceTotals"]["Modify"])
+        self.assertIn("1 updates to review", self.markdown)
+        self.assertIn("Updates Azure could not assess: **1**", self.markdown)
+        self.assertIn("mixed-registry", self.markdown)
+        self.assertNotIn("unassessed-registry", self.markdown)
+        self.assertIn("unassessed-registry", self.detail_markdown)
         self.assertIn("unresolved expression", self.serialized)
         self.assertNotIn(expression, self.serialized + self.markdown)
+        combined_dir = self.directory / "combined"
+        REPORT.combine_reports([self.directory / "TST" / "plan.json"], combined_dir)
+        combined = (combined_dir / "summary.md").read_text()
+        self.assertIn("| TST | 0 | 1 | 0 | 1 | Completed |", combined)
+        self.assertIn("| Container registry | — | 1 update | — | — |", combined)
+        self.assertIn("unassessed-registry", combined.split("## Unresolved predictions", 1)[1])
 
     def test_failed_blocked_missing_and_azure_failed_payloads_do_not_claim_no_changes(self):
         fixtures = [component(status="failed", errorCode="WHAT_IF_FAILED"),
@@ -324,7 +341,7 @@ class InfrastructurePlanReportTests(unittest.TestCase):
         plan = self.report([component([resource(change_type="NoChange")]), component(name="optional", status="not-applicable", result=None)])
         self.assertTrue(plan["complete"])
         self.assertEqual(plan["resourceTotals"]["NoChange"], 1)
-        self.assertIn("0 creates, 0 reported updates and 0 resource deletions", self.markdown)
+        self.assertIn("0 creates, 0 updates to review and 0 resource deletions", self.markdown)
         self.assertIn("No resource actions are listed for review", self.markdown)
         self.assertTrue(self.report([component([])])["complete"])
         self.assertFalse(self.report([])["complete"])
@@ -410,7 +427,7 @@ class InfrastructurePlanReportTests(unittest.TestCase):
         summary = (self.directory / "combined" / "summary.md").read_text()
         self.assertFalse(combined["complete"])
         self.assertEqual(combined["environments"][0]["totals"]["Create"], 2)
-        self.assertIn("| TST | 1 | 0 | 0 | Completed |", summary)
+        self.assertIn("| TST | 1 | 0 | 0 | 0 | Completed |", summary)
         self.assertIn("Potential predictions", summary)
         self.assertIn("TST: 1", summary)
 
@@ -652,7 +669,7 @@ class InfrastructurePlanReportTests(unittest.TestCase):
         self.assertEqual(["PRD"], combined["missingEnvironments"])
         self.assertIn("Preview failed", summary)
         self.assertIn("Preview missing", summary)
-        self.assertIn("| PRD | — | — | — | Missing |", summary)
+        self.assertIn("| PRD | — | — | — | — | Missing |", summary)
         self.assertIn("| TST | Infrastructure | Unsupported | Role assignment — resource identity unresolved | 2 |", summary)
 
     def test_pipeline_warns_for_successful_but_incomplete_assessment_without_changing_artifacts(self):

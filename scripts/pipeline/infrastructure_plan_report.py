@@ -16,7 +16,7 @@ import math
 from pathlib import Path
 import re
 
-from infrastructure_plan_markdown import TYPE_LABELS, environment_markdown, change_details_markdown, is_no_effect_only, resource_label, type_label, property_label, aks_health_rows, aks_health_markdown
+from infrastructure_plan_markdown import TYPE_LABELS, environment_markdown, change_details_markdown, is_no_effect_only, is_unresolved_only_update, resource_label, type_label, property_label, aks_health_rows, aks_health_markdown
 from infrastructure_plan_comparison import analyze_comparison
 from infrastructure_plan_identity import has_identity_resource_id, identity_metadata_reason
 from infrastructure_plan_metadata import is_metadata_only
@@ -430,6 +430,7 @@ def _review_breakdown(source):
     gaps = Counter()
     potential = Counter()
     unresolved = 0
+    unassessed_updates = Counter()
     no_effect_only = 0
     components = source.get("components")
     for component in components if isinstance(components, list) else []:
@@ -448,6 +449,8 @@ def _review_breakdown(source):
                     potential[action] += 1
                 else:
                     changes.setdefault(label, Counter())[action] += 1
+                    if is_unresolved_only_update(resource):
+                        unassessed_updates[label] += 1
                 fields = resource.get("fields")
                 fields = fields if isinstance(fields, list) else []
                 runtime_unknown = any(isinstance(field, dict) and field.get("unresolved") is True
@@ -459,7 +462,7 @@ def _review_breakdown(source):
     return {"changes": {label: {action: counts[action] for action in ("Create", "Modify", "Delete")}
                         for label, counts in sorted(changes.items())},
             "unpreviewed": dict(sorted(gaps.items())), "unresolvedChanges": unresolved,
-            "noEffectOnly": no_effect_only,
+            "noEffectOnly": no_effect_only, "unassessedUpdates": dict(sorted(unassessed_updates.items())),
             "potential": {action: potential[action] for action in ("Create", "Modify", "Delete")}}
 
 
@@ -472,31 +475,44 @@ def _combined_markdown(report):
     lines = ["# Infrastructure release preview", "", "**" + status + "**", "",
              "**Assessment: " + ("Complete" if report["complete"] else "INCOMPLETE — review the coverage gaps below") + "**", "",
              f"Candidate commit: `{report['commit']}`", "",
-             "## What would change?", "",
-             "| Environment | Create | Reported updates | Delete resources | Plans |",
-             "|---|---:|---:|---:|---|"]
+             "## Predicted resource actions", "",
+             "| Environment | Create | Assessed updates | Delete resources | Unassessed updates | Plans |",
+             "|---|---:|---:|---:|---:|---|"]
     for item in environments:
         totals = item["totals"]
+        review = item["review"]
         execution = {"succeeded": "Completed", "failed": "Failed", "missing": "Missing"}[item["executionStatus"]]
-        values = [str(max(0, totals[action] - item["review"]["potential"].get(action, 0)
-                             - (item["review"]["noEffectOnly"] if action == "Modify" else 0)))
-                  if item["executionStatus"] != "missing" else "—" for action in ("Create", "Modify", "Delete")]
+        unassessed = sum(review["unassessedUpdates"].values())
+        values = [str(max(0, totals[action] - review["potential"].get(action, 0)
+                             - (review["noEffectOnly"] + unassessed if action == "Modify" else 0)))
+                  for action in ("Create", "Modify", "Delete")] + [str(unassessed)]
+        if item["executionStatus"] == "missing":
+            values = ["—"] * len(values)
         lines.append(f"| {item['environment']} | {' | '.join(values)} | {execution} |")
-    lines.extend(["", "These are Azure predictions against the live environment. An update can include provider defaults or properties omitted from the proposed configuration; it is not proof of an operational change. Counts exclude deployment wrappers, metadata-only updates and NoEffect-only updates, and can repeat a resource across component previews.", ""])
+    lines.extend(["", "Unassessed updates contain only unresolved deployment-time expressions. Updates with both assessed and unresolved properties count as assessed and also appear under Unresolved predictions. Assessed updates can include provider defaults or omissions. Counts can repeat a resource across component previews.", ""])
     lines.extend(aks_health_markdown([
         {**warning, "environment": environment["environment"]}
         for environment in environments for warning in environment.get("healthWarnings", [])
     ], with_environment=True))
     lines.extend(_comparison_markdown(report["devComparison"]))
-    types = sorted({label for item in environments for label in item["review"]["changes"]})
+    assessed_by_type = []
+    for item in environments:
+        review = item["review"]
+        counts_by_type = {}
+        for label, counts in review["changes"].items():
+            assessed = {**counts, "Modify": counts["Modify"] - review["unassessedUpdates"].get(label, 0)}
+            if any(assessed.values()):
+                counts_by_type[label] = assessed
+        assessed_by_type.append(counts_by_type)
+    types = sorted({label for counts_by_type in assessed_by_type for label in counts_by_type})
     if types:
         lines.extend(["## Reported actions by resource type", "",
                       "This table includes potential recurring noise alongside changes needing review. Equal counts can refer to different properties; use the classifications above to assess the changes.", "",
                       "| Resource | DEV | TST | PRE | PRD |", "|---|---|---|---|---|"])
         for label in types:
             cells = []
-            for item in environments:
-                counts = item["review"]["changes"].get(label, {})
+            for counts_by_type in assessed_by_type:
+                counts = counts_by_type.get(label, {})
                 cells.append(", ".join(f"{counts[action]} {verb}" for action, verb in (("Create", "create"), ("Modify", "update"), ("Delete", "delete")) if counts.get(action)) or "—")
             lines.append("| " + _md(label) + " | " + " | ".join(cells) + " |")
         lines.append("")
@@ -596,13 +612,13 @@ def _comparison_markdown(comparisons):
         if comparison["executionStatus"] != "succeeded":
             lines.append(f"| {comparison['environment']} | — | — | — | Preview {comparison['executionStatus']} |")
         else:
-            lines.append(f"| {comparison['environment']} | {counts['reviewResources'] + counts['policySecurityResources']} | {counts['potentialNoiseResources']} | {unresolved_count} | {status} |")
-    lines.extend(["", "Potential noise remains included in the reported update totals above. Counts are observations across component previews, so the same resource can appear more than once.", ""])
+            noise_count = counts["potentialNoiseResources"] if status == "Available" else "—"
+            lines.append(f"| {comparison['environment']} | {counts['reviewResources'] + counts['policySecurityResources']} | {noise_count} | {unresolved_count} | {status} |")
+    lines.extend(["", "The assessed update totals include potential noise. Counts are observations across component previews, so the same resource can appear more than once.", ""])
     reasons = {item["baseline"]["reasonCode"] for item in comparisons}
     for reason in sorted(reasons):
         targets = ", ".join(item["environment"] for item in comparisons if item["baseline"]["reasonCode"] == reason)
-        lines.extend([f"**{targets}:** {BASELINE_REASONS.get(reason, 'DEV comparison unavailable.')}" +
-                      (" All target actions remain for review." if reason != "VERIFIED_POST_APPLY_CONTROL" else ""), ""])
+        lines.extend([f"**{targets}:** {BASELINE_REASONS.get(reason, 'DEV comparison unavailable.')}", ""])
     for comparison in comparisons:
         lines.extend([f"### {comparison['environment']}", ""])
         if comparison["executionStatus"] != "succeeded":
@@ -642,8 +658,10 @@ def _comparison_markdown(comparisons):
         for (env, label, path, confidence), count in sorted(patterns.items()):
             lines.append(f"| {env} | {_md(label)} | {_md(property_label(path))} | {count} | {'Matching public values' if confidence == 'matching-values' else 'Pattern only; values withheld'} |")
         lines.extend(["", "Mixed updates remain in the review list when another property needs review. Each matched resource is retained in `dev-comparison.json`.", ""])
-    else:
+    elif any(comparison["baseline"]["status"] == "usable" for comparison in comparisons):
         lines.extend(["None identified with a usable matching DEV control.", ""])
+    else:
+        lines.extend(["The DEV comparison was unavailable for all targets.", ""])
     unresolved = [(comparison["environment"], item) for comparison in comparisons
                   for item in comparison["resources"] if item["classification"] == "unresolved-coverage"
                   or any(field["classification"] == "unresolved-coverage" for field in item["fields"])]
@@ -723,7 +741,7 @@ def combine_reports(input_paths: list[Path], output_dir: Path) -> dict:
                              "metadataOnlyTotals": {name: value if isinstance((value := metadata_totals.get(name)), int) and not isinstance(value, bool) and value >= 0 else 0 for name in CHANGE_TYPES},
                              "healthWarnings": source.get("healthWarnings", []) if source else [],
                              "unknowns": source.get("unknowns") if source and isinstance(source.get("unknowns"), int) and source["unknowns"] >= 0 else 1,
-                             "review": source["review"] if source else {"changes": {}, "unpreviewed": {}, "unresolvedChanges": 0, "noEffectOnly": 0, "potential": {}}})
+                             "review": source["review"] if source else {"changes": {}, "unpreviewed": {}, "unresolvedChanges": 0, "unassessedUpdates": {}, "noEffectOnly": 0, "potential": {}}})
     comparisons = []
     for environment in RELEASE_ENVIRONMENTS:
         comparison = analyze_comparison(source_reports.get("DEV"), source_reports.get(environment),
