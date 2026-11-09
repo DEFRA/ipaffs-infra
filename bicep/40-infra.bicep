@@ -3,12 +3,6 @@ targetScope = 'resourceGroup'
 @allowed(['DEV', 'TST', 'PRE', 'PRD'])
 param environment string
 
-@allowed(['permanent', 'eligible'])
-param roleAssignmentsType string
-
-param builtInGroups object
-param classicLocation string
-param classicResourceIds object
 param entraGroups object
 param subnets object
 param tenantId string
@@ -29,7 +23,7 @@ param agcParams object
 param aksParams object
 param alertsParams object
 param asoParams object
-param externalSecretsParams object
+param externalIdentityName string
 param keyVaultParams object
 param monitoringParams object
 param qaKeyVaultParams object = {}
@@ -39,10 +33,6 @@ param searchParams object
 param sqlParams object
 param insightsParams object
 param storageParams object
-
-resource vnet 'Microsoft.Network/virtualNetworks@2025-05-01' existing = {
-  name: vnetName
-}
 
 module aks './modules/aks.bicep' = {
   name: 'aks-${deploymentId}'
@@ -79,8 +69,6 @@ module alerts './modules/alerts.bicep' = {
   scope: resourceGroup()
   params: {
     alertsParams: alertsParams
-    deploymentId: deploymentId
-    location: location
     tags: tags
   }
 }
@@ -90,7 +78,6 @@ module aso './modules/azure-service-operator.bicep' = {
   scope: resourceGroup()
   params: {
     asoParams: asoParams
-    deploymentId: deploymentId
     oidcIssuerUrl: aks.outputs.oidcIssuerUrl
     location: location
     tags: tags
@@ -102,7 +89,7 @@ module externalSecrets './modules/external-secrets-identity.bicep' = {
   scope: resourceGroup()
   params: {
     deploymentId: deploymentId
-    externalSecretsParams: externalSecretsParams
+    managedIdentityName: externalIdentityName
     keyVaultName: keyVault.outputs.keyVaultName
     location: location
     oidcIssuerUrl: aks.outputs.oidcIssuerUrl
@@ -157,12 +144,10 @@ module redis './modules/redis.bicep' = {
   name: 'redis-${deploymentId}'
   scope: resourceGroup()
   params: {
-    deploymentId: deploymentId
     redisParams: redisParams
     location: location
     subnets: subnets
     tags: tags
-    tenantId: tenantId
   }
 }
 
@@ -176,7 +161,6 @@ module search './modules/search.bicep' = {
     sqlServerName: sql.outputs.sqlServerName
     subnets: subnets
     tags: tags
-    tenantId: tenantId
   }
 }
 
@@ -184,7 +168,6 @@ module sql './modules/sql.bicep' = {
   name: 'sql-${deploymentId}'
   scope: resourceGroup()
   params: {
-    deploymentId: deploymentId
     entraGroups: entraGroups
     location: location
     sqlParams: sqlParams
@@ -211,7 +194,6 @@ module insights './modules/insights.bicep' = {
   scope: resourceGroup()
   params: {
     insightsParams: insightsParams
-    deploymentId: deploymentId
     logAnalyticsId: monitoring.outputs.logAnalyticsId
     location: location
     tags: tags
@@ -222,7 +204,6 @@ module storage './modules/storage.bicep' = {
   name: 'storage-${deploymentId}'
   scope: resourceGroup()
   params: {
-    deploymentId: deploymentId
     location: location
     storageParams: storageParams
     subnets: subnets

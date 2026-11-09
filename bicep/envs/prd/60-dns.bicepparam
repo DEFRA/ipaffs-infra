@@ -1,7 +1,5 @@
 using '../../60-dns.bicep'
 
-param environment = 'PRD'
-
 param loadBalancer = {
   name: 'kubernetes-internal'
   resourceGroup: 'PRDIMPINFRG1402'

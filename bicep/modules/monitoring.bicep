@@ -69,7 +69,6 @@ module grafanaDeploySpAdmin './grafana-role-assignment.bicep' = {
   scope: resourceGroup()
   params: {
     grafanaName: grafanaDashboard.name
-    deploymentId: deploymentId
     principalObjectId: deployServicePrincipalObjectId
     principalType: 'ServicePrincipal'
     roleDefinitionId: grafanaAdminRoleId
@@ -80,7 +79,6 @@ module grafanaMonitoringReader './rg-role-assignment.bicep' = {
   name: 'grafanaMonitoringReader-${deploymentId}'
   scope: resourceGroup()
   params: {
-    deploymentId: deploymentId
     principalObjectId: grafanaDashboard.identity.principalId
     roleDefinitionId: monitoringReaderRoleId
   }

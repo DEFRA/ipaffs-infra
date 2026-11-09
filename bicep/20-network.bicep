@@ -57,7 +57,6 @@ module vnet './modules/virtual-network.bicep' = {
   scope: resourceGroup()
   params: {
     deploymentId: deploymentId
-    environment: environment
     location: location
     tags: tags
     vnetParams: vnetParams

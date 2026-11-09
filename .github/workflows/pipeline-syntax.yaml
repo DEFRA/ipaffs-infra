@@ -21,6 +21,7 @@ on:
       - "bicep/*.bicepparam"
       - "bicep/**/*.bicep"
       - "bicep/**/*.bicepparam"
+      - "bicep/bicepconfig.json"
   push:
     branches:
       - main
@@ -43,6 +44,7 @@ on:
       - "bicep/*.bicepparam"
       - "bicep/**/*.bicep"
       - "bicep/**/*.bicepparam"
+      - "bicep/bicepconfig.json"
 
 jobs:
   ado-pipeline-yaml:
@@ -139,16 +141,24 @@ jobs:
   bicep:
     name: Bicep
     runs-on: ubuntu-latest
+    env:
+      AZURE_BICEP_USE_BINARY_FROM_PATH: 'false'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Install and verify pinned Bicep compiler
+        shell: bash
+        run: |
+          set -euo pipefail
+          export AZURE_CONFIG_DIR="${RUNNER_TEMP}/azure"
+          bash scripts/pipeline/ensure-bicep-version.sh
+          printf 'AZURE_CONFIG_DIR=%s\n' "$AZURE_CONFIG_DIR" >> "$GITHUB_ENV"
 
       - name: Build Bicep files
         shell: bash
         run: |
           set -euo pipefail
-
-          export AZURE_CONFIG_DIR="${RUNNER_TEMP}/azure"
 
           files=()
           while IFS= read -r file; do
@@ -162,15 +172,13 @@ jobs:
 
           for file in "${files[@]}"; do
             echo "Building ${file}"
-            az bicep build --file "${file}" --stdout --only-show-errors > /dev/null
+            az bicep build --file "${file}" --stdout > /dev/null
           done
 
       - name: Build Bicep parameter files
         shell: bash
         run: |
           set -euo pipefail
-
-          export AZURE_CONFIG_DIR="${RUNNER_TEMP}/azure"
 
           files=()
           while IFS= read -r file; do
@@ -184,5 +192,5 @@ jobs:
 
           for file in "${files[@]}"; do
             echo "Building ${file}"
-            az bicep build-params --file "${file}" --stdout --only-show-errors > /dev/null
+            az bicep build-params --file "${file}" --stdout > /dev/null
           done

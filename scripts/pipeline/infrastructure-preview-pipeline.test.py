@@ -99,21 +99,38 @@ def nested_keys(value):
 
 
 class InfrastructurePreviewPipelineTests(unittest.TestCase):
-    def test_owned_nsg_compilation_uses_the_verified_compiler_before_azure_operations(self):
-        network_stage, = load("pipelines/stages/deploy-bicep-network.yaml")["stages"]
-        steps = network_stage["jobs"][0]["strategy"]["runOnce"]["deploy"]["steps"]
-        for name in ("WhatIf - Network", "Deploy - Network"):
-            task, = [step for step in steps if step.get("displayName") == name]
-            self.assertEqual("false", task["env"]["AZURE_BICEP_USE_BINARY_FROM_PATH"])
-            script = task["inputs"]["inlineScript"]
-            self.assertTrue(script.startswith("set -euo pipefail\n"))
-            self.assertLess(script.index("ensure-bicep-version.sh"), script.index("az deployment"))
+    def test_bicep_compilation_uses_the_verified_compiler_before_azure_operations(self):
+        stage_files = sorted((ROOT / "pipelines/stages").glob("deploy-bicep-*.yaml"))
+        for stage_file in [*stage_files, ROOT / "pipelines/legacy.yml"]:
+            with self.subTest(stage=stage_file.name):
+                stage, = load(stage_file)["stages"]
+                deployment, = stage["jobs"]
+                steps = deployment["strategy"]["runOnce"]["deploy"]["steps"]
+                compile_tasks = [step for step in steps if step.get("task") == "AzureCLI@2"
+                                 and "--template-file" in step["inputs"].get("inlineScript", "")]
+                self.assertEqual(2, len(compile_tasks))
+                for task in compile_tasks:
+                    self.assertEqual("false", task["env"]["AZURE_BICEP_USE_BINARY_FROM_PATH"])
+                    script = task["inputs"]["inlineScript"]
+                    self.assertTrue(script.startswith("set -euo pipefail\n"))
+                    self.assertLess(script.index("ensure-bicep-version.sh"), script.index("az deployment"))
         for environment in ("DEV", "TST", "PRE", "PRD"):
             for task in environment_stage(environment)["jobs"][0]["steps"]:
                 if task.get("task") == "AzureCLI@2":
                     self.assertEqual("false", task["env"]["AZURE_BICEP_USE_BINARY_FROM_PATH"])
                     script = task["inputs"]["inlineScript"]
                     self.assertLess(script.index("ensure-bicep-version.sh"), script.index("plan-infrastructure.py"))
+
+    def test_github_compilation_reuses_the_verified_compiler_and_shows_warnings(self):
+        job = load(".github/workflows/pipeline-syntax.yaml")["jobs"]["bicep"]
+        self.assertEqual("false", job["env"]["AZURE_BICEP_USE_BINARY_FROM_PATH"])
+        scripts = [step["run"] for step in job["steps"] if "run" in step]
+        setup, build_templates, build_params = scripts
+        self.assertIn("ensure-bicep-version.sh", setup)
+        self.assertIn('>> "$GITHUB_ENV"', setup)
+        for script, subcommand in ((build_templates, "build"), (build_params, "build-params")):
+            self.assertIn(f"az bicep {subcommand} ", script)
+            self.assertNotIn("--only-show-errors", script)
 
     def test_tag_pushes_validate_sources_and_main_dev_completion_remains_automatic(self):
         pipeline = load(PIPELINE)
@@ -651,8 +668,7 @@ def load_tests(loader, standard_tests, pattern):
     # This existing CI entry point exercises the compiled ownership boundaries.
     # Install a local compiler only; no Azure login or subscription is involved.
     if not os.environ.get("BICEP_BIN"):
-        subprocess.run(["az", "bicep", "install", "--version", "v0.43.8", "--only-show-errors"],
-                       check=True, stdout=subprocess.DEVNULL, timeout=180)
+        subprocess.run(["bash", str(ROOT / "scripts/pipeline/ensure-bicep-version.sh")], check=True, timeout=180)
         config = Path(os.environ.get("AZURE_CONFIG_DIR", str(Path.home() / ".azure")))
         os.environ["BICEP_BIN"] = str(config / "bin/bicep")
     for stem in PARAMETERS.COMPONENTS.values():

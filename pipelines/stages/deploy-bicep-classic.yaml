@@ -63,6 +63,7 @@ stages:
                   env:
                     BICEP_PARAMETER_SQL_ADMIN_GROUP_ID: $(parameterSqlAdminGroupId)
                     BICEP_PARAMETER_SQL_ADMIN_GROUP_NAME: $(parameterSqlAdminGroupName)
+                    BICEP_TENANT_ID: $(tenantId)
                   inputs:
                     targetType: inline
                     script: |
@@ -81,36 +82,42 @@ stages:
 
                 - task: AzureCLI@2
                   displayName: WhatIf - Classic
+                  env:
+                    AZURE_BICEP_USE_BINARY_FROM_PATH: 'false'
                   inputs:
                     azureSubscription: ${{ variables.classicServiceConnection }}
                     scriptType: bash
                     scriptLocation: inlineScript
                     inlineScript: |
+                      set -euo pipefail
+                      bash scripts/pipeline/ensure-bicep-version.sh
                       set -x
                       az deployment group what-if \
                         --name "Classic-$(Build.BuildId)" \
                         --subscription $(classicSubscriptionId) \
                         --resource-group $(classicResourceGroupName) \
                         --template-file bicep/30-classic.bicep \
-                        --parameters bicep/30-classic-runtime.bicepparam \
-                        --parameters tenantId="$(tenantId)"
+                        --parameters bicep/30-classic-runtime.bicepparam
 
                 - task: AzureCLI@2
                   displayName: Deploy - Classic
                   condition: and(not(failed()), not(canceled()), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), and(${{ parameters.allowTaggedDeployments }}, startsWith(variables['Build.SourceBranch'], 'refs/tags/'))))
+                  env:
+                    AZURE_BICEP_USE_BINARY_FROM_PATH: 'false'
                   inputs:
                     azureSubscription: ${{ variables.classicServiceConnection }}
                     scriptType: bash
                     scriptLocation: inlineScript
                     inlineScript: |
+                      set -euo pipefail
+                      bash scripts/pipeline/ensure-bicep-version.sh
                       set -x
                       az deployment group create \
                         --name "Classic-$(Build.BuildId)" \
                         --subscription $(classicSubscriptionId) \
                         --resource-group $(classicResourceGroupName) \
                         --template-file bicep/30-classic.bicep \
-                        --parameters bicep/30-classic-runtime.bicepparam \
-                        --parameters tenantId="$(tenantId)"
+                        --parameters bicep/30-classic-runtime.bicepparam
 
                 - task: AzureCLI@2
                   displayName: Wait for Deployment - Classic

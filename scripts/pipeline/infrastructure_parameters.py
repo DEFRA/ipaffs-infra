@@ -6,6 +6,7 @@ interpolated into shell scripts. This module never prints parameter values.
 """
 
 import argparse
+import json
 import os
 from pathlib import Path
 import re
@@ -27,10 +28,6 @@ ENVIRONMENT_VARIABLES = {
     "parameterSqlAdminGroupId": "BICEP_PARAMETER_SQL_ADMIN_GROUP_ID",
     "parameterSqlAdminGroupName": "BICEP_PARAMETER_SQL_ADMIN_GROUP_NAME",
     "qaAutomationServiceConnectionPrincipalId": "BICEP_QA_AUTOMATION_SERVICE_CONNECTION_PRINCIPAL_ID",
-    "classicRedisResourceId": "BICEP_CLASSIC_REDIS_RESOURCE_ID",
-    "classicSearchServiceResourceId": "BICEP_CLASSIC_SEARCH_SERVICE_RESOURCE_ID",
-    "classicServiceBusNamespaceResourceId": "BICEP_CLASSIC_SERVICE_BUS_NAMESPACE_RESOURCE_ID",
-    "classicSqlServerResourceId": "BICEP_CLASSIC_SQL_SERVER_RESOURCE_ID",
     "sqlAdminGroupId": "BICEP_SQL_ADMIN_GROUP_ID",
     "sqlAdminGroupName": "BICEP_SQL_ADMIN_GROUP_NAME",
     "aksApiServerSubnetId": "BICEP_AKS_API_SERVER_SUBNET_ID",
@@ -97,9 +94,8 @@ def _object(lines, name, entries):
 def render(component, environment, values, classic_environment=None):
     """Return a runtime .bicepparam body with the deployment's exact overlays.
 
-    Classic uses SND for DEV by default. Classic/infra deployment tasks still pass
-    tenant/deployment principal via CLI; preview callers can supply those values
-    here to obtain a self-contained parameter file instead.
+    Classic uses SND for DEV by default. Deployment and preview tasks supply
+    tenant and principal IDs here so the CLI can compile the file once.
     """
     if component not in COMPONENTS:
         raise ValueError("Unsupported infrastructure component")
@@ -129,11 +125,6 @@ def render(component, environment, values, classic_environment=None):
     if component == "infra":
         qa = get("qaAutomationServiceConnectionPrincipalId", allow_empty=environment != "TST")
         lines.append(f"param qaAutomationPrincipalObjectId = {_quote(qa)}")
-        _object(lines, "classicResourceIds", {
-            "redis": get("classicRedisResourceId"),
-            "searchService": get("classicSearchServiceResourceId"),
-            "serviceBusNamespace": get("classicServiceBusNamespaceResourceId"),
-            "sqlServer": get("classicSqlServerResourceId")})
         _object(lines, "entraGroups", {"sqlAdmins": {
             "id": get("sqlAdminGroupId"), "name": get("sqlAdminGroupName")}})
     if component in ("acr", "infra", "privatelink"):
@@ -141,9 +132,9 @@ def render(component, environment, values, classic_environment=None):
         _object(lines, "subnets", {prefix: {
             "id": get(prefix + "SubnetId"), "name": get(prefix + "SubnetName")}
             for prefix in prefixes})
-    if component in ("classic", "infra") and "tenantId" in values:
+    if component in ("classic", "infra"):
         lines.append(f"param tenantId = {_quote(get('tenantId'))}")
-    if component == "infra" and "serviceConnectionPrincipalId" in values:
+    if component == "infra":
         lines.append(f"param deployServicePrincipalObjectId = {_quote(get('serviceConnectionPrincipalId'))}")
     return "\n".join(lines) + "\n"
 
@@ -168,6 +159,9 @@ def main():
     values = {name: os.environ[variable] for name, variable in ENVIRONMENT_VARIABLES.items()
               if variable in os.environ}
     try:
+        if args.component == "network":
+            values["existingNetworkSecurityGroupNames"] = json.loads(
+                os.environ.get("BICEP_EXISTING_NETWORK_SECURITY_GROUP_NAMES", "null"))
         write_parameters(args.component, args.environment, values, args.output, args.classic_environment)
     except (OSError, ValueError) as error:
         # OSError includes file paths, not parameter contents.

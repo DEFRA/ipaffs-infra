@@ -54,10 +54,8 @@ stages:
                   displayName: Generate Bicep Params
                   env:
                     BICEP_QA_AUTOMATION_SERVICE_CONNECTION_PRINCIPAL_ID: $(qaAutomationServiceConnectionPrincipalId)
-                    BICEP_CLASSIC_REDIS_RESOURCE_ID: $(classicRedisResourceId)
-                    BICEP_CLASSIC_SEARCH_SERVICE_RESOURCE_ID: $(classicSearchServiceResourceId)
-                    BICEP_CLASSIC_SERVICE_BUS_NAMESPACE_RESOURCE_ID: $(classicServiceBusNamespaceResourceId)
-                    BICEP_CLASSIC_SQL_SERVER_RESOURCE_ID: $(classicSqlServerResourceId)
+                    BICEP_TENANT_ID: $(tenantId)
+                    BICEP_SERVICE_CONNECTION_PRINCIPAL_ID: $(serviceConnectionPrincipalId)
                     BICEP_SQL_ADMIN_GROUP_ID: $(sqlAdminGroupId)
                     BICEP_SQL_ADMIN_GROUP_NAME: $(sqlAdminGroupName)
                     BICEP_AKS_API_SERVER_SUBNET_ID: $(aksApiServerSubnetId)
@@ -103,38 +101,42 @@ stages:
 
                 - task: AzureCLI@2
                   displayName: WhatIf - Infrastructure
+                  env:
+                    AZURE_BICEP_USE_BINARY_FROM_PATH: 'false'
                   inputs:
                     azureSubscription: ${{ variables.serviceConnection }}
                     scriptType: bash
                     scriptLocation: inlineScript
                     inlineScript: |
+                      set -euo pipefail
+                      bash scripts/pipeline/ensure-bicep-version.sh
                       set -x
                       az deployment group what-if \
                         --name "Infrastructure-$(Build.BuildId)" \
                         --subscription $(subscriptionId) \
                         --resource-group $(resourceGroupName) \
                         --template-file bicep/40-infra.bicep \
-                        --parameters bicep/40-infra-runtime.bicepparam \
-                        --parameters tenantId="$(tenantId)" \
-                        --parameters deployServicePrincipalObjectId="$(serviceConnectionPrincipalId)"
+                        --parameters bicep/40-infra-runtime.bicepparam
 
                 - task: AzureCLI@2
                   displayName: Deploy - Infrastructure
                   condition: and(not(failed()), not(canceled()), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), and(${{ parameters.allowTaggedDeployments }}, startsWith(variables['Build.SourceBranch'], 'refs/tags/'))))
+                  env:
+                    AZURE_BICEP_USE_BINARY_FROM_PATH: 'false'
                   inputs:
                     azureSubscription: ${{ variables.serviceConnection }}
                     scriptType: bash
                     scriptLocation: inlineScript
                     inlineScript: |
+                      set -euo pipefail
+                      bash scripts/pipeline/ensure-bicep-version.sh
                       set -x
                       az deployment group create \
                         --name "Infrastructure-$(Build.BuildId)" \
                         --subscription $(subscriptionId) \
                         --resource-group $(resourceGroupName) \
                         --template-file bicep/40-infra.bicep \
-                        --parameters bicep/40-infra-runtime.bicepparam \
-                        --parameters tenantId="$(tenantId)" \
-                        --parameters deployServicePrincipalObjectId="$(serviceConnectionPrincipalId)"
+                        --parameters bicep/40-infra-runtime.bicepparam
 
                 - task: AzureCLI@2
                   displayName: Wait for Deployment - Infrastructure

@@ -7,7 +7,6 @@ param environment string
 param location string
 
 param name string
-param entraGroups object = {}
 param principalsNeedingReader array
 
 param createdDate string = utcNow('yyyy-MM-dd')

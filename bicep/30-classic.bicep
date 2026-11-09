@@ -3,9 +3,6 @@ targetScope = 'resourceGroup'
 @allowed(['SND', 'TST', 'PRE', 'PRD'])
 param environment string
 
-@allowed(['permanent', 'eligible'])
-param roleAssignmentsType string
-
 param entraGroups object
 
 param createdDate string = utcNow('yyyy-MM-dd')
@@ -77,8 +74,6 @@ module alerts './modules/alerts-classic.bicep' = {
   scope: resourceGroup()
   params: {
     alertsParams: alertsParams
-    deploymentId: deploymentId
-    location: location
     tags: tags
   }
 }
@@ -88,7 +83,6 @@ module dbw './modules/database-watcher.bicep' = {
   scope: resourceGroup()
   params: {
     databaseNames: databaseNames
-    deploymentId: deploymentId
     location: location
     dbwParams: dbwParams
     tags: tags
@@ -99,9 +93,7 @@ module redis './modules/redis-classic.bicep' = {
   name: 'redis-${deploymentId}'
   scope: resourceGroup()
   params: {
-    deploymentId: deploymentId
     redisParams: redisParams
-    tags: tags
   }
 }
 
@@ -122,7 +114,6 @@ module sej './modules/sql-elastic-jobs.bicep' = {
   scope: resourceGroup()
   params: {
     alertsActionGroups: alerts.outputs.actionGroups
-    deploymentId: deploymentId
     location: location
     sejParams: sejParams
     tags: tags
@@ -133,9 +124,7 @@ module serviceBus './modules/servicebus-classic.bicep' = {
   name: 'serviceBus-${deploymentId}'
   scope: resourceGroup()
   params: {
-    deploymentId: deploymentId
     serviceBusParams: serviceBusParams
-    tags: tags
   }
 }
 
@@ -143,11 +132,8 @@ module sql './modules/sql-classic.bicep' = {
   name: 'sql-${deploymentId}'
   scope: resourceGroup()
   params: {
-    deploymentId: deploymentId
     entraGroups: entraGroups
-    location: location
     sqlParams: sqlParams
-    tags: tags
     tenantId: tenantId
   }
 }

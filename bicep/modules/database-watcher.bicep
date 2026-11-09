@@ -2,7 +2,6 @@ targetScope = 'resourceGroup'
 
 param databaseNames array
 param dbwParams object
-param deploymentId string
 param location string
 param tags object
 
