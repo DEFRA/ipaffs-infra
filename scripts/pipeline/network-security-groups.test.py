@@ -138,13 +138,32 @@ class NetworkSecurityGroupOwnershipTests(unittest.TestCase):
                          {item["type"] for item in self.group_resources.values()})
 
     def test_managed_rules_depend_on_the_bootstrapped_parent(self):
-        self.assertIn(self.parent_key, self.child["dependsOn"])
+        self.assertEqual([self.parent_key], self.child["dependsOn"])
         self.assertNotIn("@options", self.child, "Owned rules must still update on subsequent deployments")
         self.assertNotIn("condition", self.child, "Existing parents must not disable managed child-rule updates")
-        existing, = [item for item in self.group_resources.values() if item.get("existing") is True]
-        self.assertEqual("Microsoft.Network/networkSecurityGroups", existing["type"])
         self.assertEqual("serial", self.child["copy"]["mode"])
         self.assertEqual(1, self.child["copy"]["batchSize"], "A group cannot accept concurrent child-rule writes")
+
+    def test_each_new_or_existing_group_has_one_declared_nsg_identity_and_active_children(self):
+        # Count existing aliases too: when the bootstrap is active, a second
+        # declaration of the same NSG makes ARM reject the template even though
+        # only the bootstrap is intended to issue a parent PUT.
+        declarations = [item for item in self.group_resources.values()
+                        if item["type"].lower() == "microsoft.network/networksecuritygroups"]
+        for environment, groups in self.environment_groups.items():
+            for index, group in enumerate(groups):
+                for existing_names, exists in (([], False), ([group["name"].lower()], True)):
+                    with self.subTest(environment=environment, group=group["name"], parentExists=exists):
+                        parameters = self.group_inputs(groups, index, existing_names)
+                        identities = [(item["type"].lower(), resolve(item["name"], parameters).lower())
+                                      for item in declarations]
+                        self.assertEqual([("microsoft.network/networksecuritygroups", group["name"].lower())],
+                                         identities, "The emitted template must contain one NSG declaration, not a second existing alias")
+                        self.assertFalse(any(item.get("existing") is True for item in declarations))
+                        self.assertEqual(not exists, resolve(self.parent["condition"], parameters))
+                        self.assertEqual(len(group["securityRules"]), resolve(self.child["copy"]["count"], parameters))
+                        self.assertNotIn("condition", self.child, "Parent existence must not switch off owned rules")
+                        self.assertEqual([self.parent_key], self.child["dependsOn"])
 
     def test_network_entrypoint_forwards_the_observed_group_names_without_changing_case(self):
         observed = ["preimpnetns1401-Aks", "PREIMPNETNS1401-PrivateEndpoint"]
@@ -173,18 +192,19 @@ class NetworkSecurityGroupOwnershipTests(unittest.TestCase):
         property_names = set()
         for environment, groups in self.environment_groups.items():
             for group_index, group in enumerate(groups):
-                with self.subTest(environment=environment, group=group["name"]):
-                    parameters = self.group_inputs(groups, group_index)
-                    self.assertEqual(group["name"], resolve(self.parent["name"], parameters))
-                    self.assertEqual(group["securityRules"], parameters["securityRules"])
-                    count = resolve(self.child["copy"]["count"], parameters)
-                    self.assertEqual(len(group["securityRules"]), count)
-                    for rule_index, rule in enumerate(group["securityRules"]):
-                        property_names.update(rule["properties"])
-                        self.assertEqual(group["name"] + "/" + rule["name"], resolve(self.child["name"], parameters, rule_index))
-                        self.assertEqual(rule["properties"], resolve(self.child["properties"], parameters, rule_index))
-                    self.assertTrue(all(not rule["name"].lower().startswith("ccoe") for rule in parameters["securityRules"]),
-                                    "Central rules must not be copied into the IPAFFS ownership list")
+                for existing_names in ([], [group["name"]]):
+                    with self.subTest(environment=environment, group=group["name"], existing=bool(existing_names)):
+                        parameters = self.group_inputs(groups, group_index, existing_names)
+                        self.assertEqual(group["name"], resolve(self.parent["name"], parameters))
+                        self.assertEqual(group["securityRules"], parameters["securityRules"])
+                        count = resolve(self.child["copy"]["count"], parameters)
+                        self.assertEqual(len(group["securityRules"]), count)
+                        for rule_index, rule in enumerate(group["securityRules"]):
+                            property_names.update(rule["properties"])
+                            self.assertEqual(group["name"] + "/" + rule["name"], resolve(self.child["name"], parameters, rule_index))
+                            self.assertEqual(rule["properties"], resolve(self.child["properties"], parameters, rule_index))
+                        self.assertTrue(all(not rule["name"].lower().startswith("ccoe") for rule in parameters["securityRules"]),
+                                        "Central rules must not be copied into the IPAFFS ownership list")
         self.assertTrue({"description", "protocol", "priority", "direction", "access", "sourceAddressPrefix",
                          "destinationAddressPrefix", "destinationAddressPrefixes",
                          "sourcePortRange", "destinationPortRange", "destinationPortRanges"}.issubset(property_names))
