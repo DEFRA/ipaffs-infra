@@ -13,7 +13,7 @@ import subprocess
 import sys
 
 
-VERSION = re.compile(r"[1-9][0-9]*")
+VERSION = re.compile(r"[1-9][0-9]*(?:\.(0|[1-9][0-9]*))?")
 COMMIT = re.compile(r"[0-9a-f]{40}")
 
 
@@ -62,7 +62,7 @@ def annotated_tag(version, commit):
 def main():
     version = os.environ.get("VERSION", "")
     if not VERSION.fullmatch(version):
-        raise ValueError("Version must be an explicit positive integer without leading zeroes, for example: 1")
+        raise ValueError("Version must be a positive integer with an optional patch number, such as 1 or 1.1, without leading zeroes")
     if os.environ.get("SOURCE_REF", "") != "refs/heads/main":
         raise ValueError("Create Release must run from refs/heads/main")
 

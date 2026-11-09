@@ -72,8 +72,9 @@ class ReleasePipelineTests(unittest.TestCase):
         return subprocess.run(["bash", "-c", macros(script)], cwd=ROOT, env=environment,
                               text=True, capture_output=True, timeout=10)
 
-    def test_validation_accepts_positive_integer_tags_and_rejects_other_refs(self):
+    def test_validation_accepts_release_tags_and_rejects_other_refs(self):
         for reference in ("refs/tags/1", "refs/tags/2", "refs/tags/42", "refs/tags/123456789",
+                          "refs/tags/1.0", "refs/tags/1.1", "refs/tags/1.10", "refs/tags/42.123456789",
                           "refs/tags/99999999999999999999999999999999999999999999999999"):
             with self.subTest(reference=reference):
                 result = self.run_validation(reference)
@@ -81,6 +82,9 @@ class ReleasePipelineTests(unittest.TestCase):
         for reference in ("refs/heads/main", "refs/heads/RELEASE/42", "refs/pull/42/merge",
                           "refs/tags/ipaffs-infra-pin-abc", "refs/tags/0", "refs/tags/01", "refs/tags/00", "refs/tags/-1",
                           "refs/tags/+1", "refs/tags/v1", "refs/tags/1.0.0", "refs/tags/18.9.0",
+                          "refs/tags/0.1", "refs/tags/01.1", "refs/tags/1.01", "refs/tags/1.00",
+                          "refs/tags/1.-1", "refs/tags/1.+1", "refs/tags/.1", "refs/tags/1.",
+                          "refs/tags/v1.1", "refs/tags/1. 1", "refs/tags/1.١", "refs/tags/1.1\n",
                           "refs/tags/1e3", "refs/tags/１", "refs/tags/١",
                           "refs/tags/1-rc.1", "refs/tags/1+build", "refs/tags/1/other",
                           "refs/tags/nested/1", "refs/tags/ 1", "refs/tags/1 ",
@@ -92,7 +96,7 @@ class ReleasePipelineTests(unittest.TestCase):
     def test_validation_does_not_execute_text_in_a_tag(self):
         with tempfile.TemporaryDirectory() as temporary:
             marker = Path(temporary) / "unexpected"
-            for reference in (f"refs/tags/1$(touch '{marker}')", f"refs/tags/1`touch '{marker}'`"):
+            for reference in (f"refs/tags/1.1$(touch '{marker}')", f"refs/tags/1.1`touch '{marker}'`"):
                 with self.subTest(reference=reference):
                     result = self.run_validation(reference)
                     self.assertNotEqual(0, result.returncode)
