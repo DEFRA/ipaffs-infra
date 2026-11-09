@@ -113,11 +113,15 @@ module sej './modules/sql-elastic-jobs.bicep' = {
   name: 'sej-${deploymentId}'
   scope: resourceGroup()
   params: {
-    alertsActionGroups: alerts.outputs.actionGroups
+    // Calculate the ID without a deployment output so what-if can resolve it.
+    alertsActionGroups: {
+      notifyDba: resourceId('Microsoft.Insights/actionGroups', alertsParams.actionGroups.notifyDba.name)
+    }
     location: location
     sejParams: sejParams
     tags: tags
   }
+  dependsOn: [alerts]
 }
 
 module serviceBus './modules/servicebus-classic.bicep' = {
