@@ -209,11 +209,11 @@ target state. Unlisted apps are never touched. Tests:
 
 **Stages and gates:** one run goes SND → TST → PRE → PRD. SND starts straight
 away. TST, PRE and PRD each start with a `ManualValidation` approval in the
-pipeline itself, which rejects after 24 hours, so a gate never depends on how
-an ADO Environment is configured. Their deployment jobs still target the ADO
-Environment of the same name, so any checks configured there apply as well. A
-rejected approval or a failure stops the run there. A stage whose list is
-empty fails.
+pipeline itself, which rejects after 43,199 minutes (one minute short of 30
+days), matching the [infrastructure release pipeline](release-pipeline.yaml).
+Their deployment jobs still target the ADO Environment of the same name, so
+any checks configured there apply as well. A rejected approval or a failure
+stops the run there. A stage whose list is empty fails.
 
 **Rollback:** queue a new run with `action=recover` and approve up to the
 environment that needs it. Lower environments run again first, which keeps
