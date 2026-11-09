@@ -14,7 +14,7 @@ parameters:
 
   - name: approvalTimeoutInMinutes
     type: number
-    default: 1440
+    default: 43199 # Match the infrastructure release approval window; leave one minute before the job times out.
 
 stages:
   - stage: AppServices${{ parameters.environmentName }}
@@ -29,7 +29,7 @@ stages:
         - job: Approve
           displayName: Approve ${{ parameters.action }} in ${{ parameters.environmentName }}
           pool: server
-          timeoutInMinutes: ${{ parameters.approvalTimeoutInMinutes }}
+          timeoutInMinutes: 43200
           steps:
             - task: ManualValidation@1
               displayName: Approve ${{ parameters.action }} in ${{ parameters.environmentName }}
