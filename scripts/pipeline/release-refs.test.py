@@ -1,4 +1,4 @@
-"""Exercise manual integer release tags against disposable local Git origins.
+"""Exercise manual release tags against disposable local Git origins.
 
 Only temporary file-protocol repositories can be reached by these tests. No
 GitHub, Azure credentials, pipeline run or infrastructure deployment is used.
@@ -164,6 +164,24 @@ os.execv({real_git!r}, [{real_git!r}, *arguments])
         self.assert_tag("1", latest)
         self.assert_metadata("1", latest)
 
+    def test_explicit_patch_tags_preserve_the_requested_version_and_use_latest_main(self):
+        for tag in ("1", "1.9"):
+            self.git(self.seed, "tag", tag, self.base)
+        self.git(self.seed, "push", "origin", "--tags")
+        latest = self.commit("Main advanced after the previous release")
+        self.git(self.seed, "push", "origin", "main")
+        before_branches = self.branches()
+        versions = ("1.1", "1.10", "42.0")
+        for version in versions:
+            with self.subTest(version=version):
+                self.assert_success(self.run_release(version))
+                self.assert_tag(version, latest)
+                self.assert_metadata(version, latest)
+        self.assertEqual(before_branches, self.branches())
+        self.assertEqual({"1", "1.9", *versions}, set(self.git(self.origin, "tag", "--list").splitlines()))
+        self.assertEqual(self.base, self.git(self.origin, "rev-parse", "refs/tags/1"))
+        self.assertEqual(self.base, self.git(self.origin, "rev-parse", "refs/tags/1.9"))
+
     def test_ado_checkout_without_a_default_fetch_refspec_can_release_current_main(self):
         self.git(self.checkout, "config", "--unset-all", "remote.origin.fetch")
         latest = self.commit("Merged after checkout")
@@ -182,8 +200,9 @@ os.execv({real_git!r}, [{real_git!r}, *arguments])
         self.assertEqual("500", self.git(self.origin, "tag", "--list", "500"))
         self.assertEqual("", self.git(self.origin, "tag", "--list", "501"))
 
-    def test_current_remote_integer_collisions_fail_even_for_the_same_commit(self):
-        for tag, annotated in (("7", True), ("8", False)):
+    def test_current_remote_tag_collisions_fail_even_for_the_same_commit(self):
+        tags = (("7", True), ("8", False), ("7.1", True), ("8.0", False))
+        for tag, annotated in tags:
             if annotated:
                 self.git(self.seed, "tag", "-a", tag, self.base, "-m", "Reserved version")
             else:
@@ -191,7 +210,7 @@ os.execv({real_git!r}, [{real_git!r}, *arguments])
         self.git(self.seed, "push", "origin", "--tags")
         before = self.refs()
         self.assertEqual("", self.git(self.checkout, "tag", "--list"))
-        for version in ("7", "8"):
+        for version, _ in tags:
             with self.subTest(version=version):
                 self.assertNotEqual(0, self.run_release(version).returncode)
                 self.assertEqual(before, self.refs())
@@ -210,8 +229,9 @@ os.execv({real_git!r}, [{real_git!r}, *arguments])
         trace = self.directory / "git-was-called"
         path = self.git_wrapper(f"Path({str(trace)!r}).write_text('called')")
         before = self.refs()
-        versions = ("", "auto", "0", "01", "-1", "+1", "1.0", "18.9.0", "v1", "1-rc", "1+build",
-                    " 1", "1 ", "1\n", "1\nwrong", "١", "１")
+        versions = ("", "auto", "0", "01", "-1", "+1", "18.9.0", "v1", "1-rc", "1+build",
+                    " 1", "1 ", "1\n", "1\nwrong", "١", "１", "0.1", "01.1", "1.01", "1.",
+                    ".1", "1.-1", "1.1.1", "1.١", "1.1 ")
         sources = ("refs/heads/feature", "refs/heads/RELEASE/18.9.x", "refs/tags/1",
                    "refs/pull/42/merge", "main", "", " refs/heads/main", "refs/heads/main\n")
         for version in versions:
@@ -226,7 +246,7 @@ os.execv({real_git!r}, [{real_git!r}, *arguments])
                 self.assertFalse(trace.exists())
         self.assertFalse(self.metadata.exists())
 
-    def test_old_semver_tag_cannot_be_overwritten_or_interpreted_as_an_integer(self):
+    def test_old_semver_tag_cannot_be_overwritten_or_used_as_a_release_number(self):
         self.git(self.seed, "tag", "-a", "18.9.0", self.base, "-m", "Old version")
         self.git(self.seed, "push", "origin", "refs/tags/18.9.0")
         before = self.refs()

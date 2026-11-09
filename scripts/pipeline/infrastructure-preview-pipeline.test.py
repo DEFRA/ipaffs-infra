@@ -210,6 +210,7 @@ class InfrastructurePreviewPipelineTests(unittest.TestCase):
                         'printf "%s\\n" "$FIXTURE_HEAD"\n'),
                 "python3": ('#!/bin/sh\n'
                             f'if [ "$1" = - ]; then exec {shlex.quote(sys.executable)} "$@"; fi\n'
+                            'printf "fixture-arg=%s\\n" "$@"\n'
                             'touch "$FIXTURE_INITIALISED"\nexit "${FIXTURE_INIT_STATUS:-0}"\n'),
             }.items():
                 executable = commands / name
@@ -258,6 +259,7 @@ class InfrastructurePreviewPipelineTests(unittest.TestCase):
     def test_ci_release_tags_preview_the_tagged_commit_in_every_environment(self):
         for reason in ("IndividualCI", "BatchedCI"):
             for reference in ("refs/tags/1", "refs/tags/2", "refs/tags/42", "refs/tags/123456789",
+                              "refs/tags/1.0", "refs/tags/1.1", "refs/tags/1.10", "refs/tags/42.123456789",
                               "refs/tags/99999999999999999999999999999999999999999999999999"):
                 for environment in ("DEV", "TST", "PRE", "PRD"):
                     with self.subTest(reason=reason, reference=reference, environment=environment):
@@ -268,11 +270,17 @@ class InfrastructurePreviewPipelineTests(unittest.TestCase):
                         self.assertEqual(0, result.returncode, result.stderr)
                         self.assertTrue(initialised)
                         self.assertIn("task.setvariable variable=PreviewInputsReady]true", result.stdout)
+                        arguments = [line.removeprefix("fixture-arg=") for line in result.stdout.splitlines()
+                                     if line.startswith("fixture-arg=")]
+                        self.assertEqual(reference, arguments[arguments.index("--source-ref") + 1])
 
     def test_ci_branches_pr_refs_and_noncanonical_tags_fail_before_initialisation(self):
         references = ("refs/heads/main", "refs/heads/RELEASE/42", "refs/pull/42/merge", "",
                       "42", "refs/tags/ipaffs-infra-pin-abc", "refs/tags/0", "refs/tags/01", "refs/tags/00", "refs/tags/-1",
                       "refs/tags/+1", "refs/tags/v1", "refs/tags/1.0.0", "refs/tags/26.5.1",
+                      "refs/tags/0.1", "refs/tags/01.1", "refs/tags/1.01", "refs/tags/1.00",
+                      "refs/tags/1.-1", "refs/tags/1.+1", "refs/tags/.1", "refs/tags/1.",
+                      "refs/tags/v1.1", "refs/tags/1. 1", "refs/tags/1.١", "refs/tags/1.1\n",
                       "refs/tags/1e3", "refs/tags/１", "refs/tags/١",
                       "refs/tags/1-rc.1", "refs/tags/1+build", "refs/tags/1/other",
                       "refs/tags/nested/1", "refs/tags/ 1", "refs/tags/1 ", "refs/tags/1\n",
@@ -289,14 +297,14 @@ class InfrastructurePreviewPipelineTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary:
             marker = Path(temporary) / "unexpected"
             for reason in ("IndividualCI", "BatchedCI"):
-                for reference in (f"refs/tags/1$(touch '{marker}')", f"refs/tags/1`touch '{marker}'`"):
+                for reference in (f"refs/tags/1.1$(touch '{marker}')", f"refs/tags/1.1`touch '{marker}'`"):
                     result, initialised = self.source_validation({"BUILD_REASON": reason, "BUILD_SOURCEBRANCH": reference})
                     self.assertNotEqual(0, result.returncode)
                     self.assertFalse(initialised)
                     self.assertFalse(marker.exists())
                     self.assertNotIn("task.setvariable variable=PreviewInputsReady", result.stdout)
                 result, initialised = self.source_validation({"BUILD_REASON": reason,
-                    "BUILD_SOURCEBRANCH": "refs/tags/42", "FIXTURE_HEAD": "b" * 40})
+                    "BUILD_SOURCEBRANCH": "refs/tags/1.1", "FIXTURE_HEAD": "b" * 40})
                 self.assertNotEqual(0, result.returncode)
                 self.assertFalse(initialised)
                 self.assertNotIn("task.setvariable variable=PreviewInputsReady", result.stdout)
@@ -440,7 +448,7 @@ class InfrastructurePreviewPipelineTests(unittest.TestCase):
                                        ((0, 1), "DEPLOYMENT_INPUTS_CHANGED")):
                 with self.subTest(reason=reason, statuses=statuses):
                     evidence, warning, commands = self.baseline_evidence(environment_overrides={
-                        "BUILD_REASON": reason, "BUILD_SOURCEBRANCH": "refs/tags/42",
+                        "BUILD_REASON": reason, "BUILD_SOURCEBRANCH": "refs/tags/1.1",
                         "BUILD_SOURCEVERSION": "b" * 40}, git_statuses=statuses)
                     self.assertEqual(expected, evidence["reasonCode"])
                     self.assertEqual("b" * 40, evidence["previewCommit"])

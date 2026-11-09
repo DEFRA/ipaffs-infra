@@ -1,4 +1,4 @@
-# Manually tag the latest main commit with an integer infrastructure release.
+# Manually tag the latest main commit with an infrastructure release version.
 trigger: none
 
 pr: none
@@ -8,7 +8,7 @@ pool:
 
 parameters:
   - name: version
-    displayName: Infrastructure release number (positive integer, for example 1)
+    displayName: Infrastructure release version (e.g. 1 or 1.1)
     type: string
     default: '1'
 
@@ -24,7 +24,7 @@ stages:
             fetchDepth: 0
 
           - task: Bash@3
-            displayName: Create integer release tag from main
+            displayName: Create infrastructure release tag from main
             env:
               VERSION: ${{ parameters.version }}
               SOURCE_REF: $(Build.SourceBranch)
