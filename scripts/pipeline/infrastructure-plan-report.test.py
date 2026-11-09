@@ -307,12 +307,16 @@ class InfrastructurePlanReportTests(unittest.TestCase):
             resource(name="unassessed-registry", delta=[unresolved]),
             resource(name="mixed-registry", delta=[
                 unresolved, field("properties.publicNetworkAccess", "Enabled", "Disabled")]),
+            resource(name="opaque-network-change", delta=[
+                field("properties.networkAcls", {"defaultAction": "Deny"},
+                      {"defaultAction": "Allow", "virtualNetworkRules": [expression]})]),
         ])])
         self.assertFalse(plan["complete"])
-        self.assertEqual(2, plan["resourceTotals"]["Modify"])
-        self.assertIn("1 updates to review", self.markdown)
+        self.assertEqual(3, plan["resourceTotals"]["Modify"])
+        self.assertIn("2 updates to review", self.markdown)
         self.assertIn("Updates Azure could not assess: **1**", self.markdown)
         self.assertIn("mixed-registry", self.markdown)
+        self.assertIn("opaque-network-change", self.markdown)
         self.assertNotIn("unassessed-registry", self.markdown)
         self.assertIn("unassessed-registry", self.detail_markdown)
         self.assertIn("unresolved expression", self.serialized)
@@ -320,9 +324,11 @@ class InfrastructurePlanReportTests(unittest.TestCase):
         combined_dir = self.directory / "combined"
         REPORT.combine_reports([self.directory / "TST" / "plan.json"], combined_dir)
         combined = (combined_dir / "summary.md").read_text()
-        self.assertIn("| TST | 0 | 1 | 0 | 1 | Completed |", combined)
-        self.assertIn("| Container registry | — | 1 update | — | — |", combined)
+        self.assertIn("| TST | 0 | 2 | 0 | 1 | Completed |", combined)
+        self.assertIn("| Container registry | — | 2 update | — | — |", combined)
         self.assertIn("unassessed-registry", combined.split("## Unresolved predictions", 1)[1])
+        plan["components"][0]["resources"][0]["fields"][0].pop("deploymentTimeExpression")
+        self.assertIn("unassessed-registry", REPORT.environment_markdown(plan))
 
     def test_failed_blocked_missing_and_azure_failed_payloads_do_not_claim_no_changes(self):
         fixtures = [component(status="failed", errorCode="WHAT_IF_FAILED"),

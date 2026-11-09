@@ -257,6 +257,8 @@ def _fields(delta, parent="", resource_type="", resource_action="", potential=Fa
         }
         if reason:
             field["metadataReason"] = reason
+        if change_type == "Modify" and isinstance(change.get("after"), str) and _unresolved(change["after"]):
+            field["deploymentTimeExpression"] = True
         if identity and path.lower() == "properties":
             field["unresolved"] = True
         if (identity and path.lower() in _IDENTITY_GENERATED_PATHS and change_type == "Delete"
@@ -489,7 +491,7 @@ def _combined_markdown(report):
         if item["executionStatus"] == "missing":
             values = ["—"] * len(values)
         lines.append(f"| {item['environment']} | {' | '.join(values)} | {execution} |")
-    lines.extend(["", "Unassessed updates contain only unresolved deployment-time expressions. Updates with both assessed and unresolved properties count as assessed and also appear under Unresolved predictions. Assessed updates can include provider defaults or omissions. Counts can repeat a resource across component previews.", ""])
+    lines.extend(["", "Unassessed updates contain only property changes whose proposed value is an unresolved expression. Updates with other changes, including objects Azure reports as a single field, stay in the action counts. Unresolved predictions lists the coverage gaps. Counts can repeat a resource across component previews.", ""])
     lines.extend(aks_health_markdown([
         {**warning, "environment": environment["environment"]}
         for environment in environments for warning in environment.get("healthWarnings", [])

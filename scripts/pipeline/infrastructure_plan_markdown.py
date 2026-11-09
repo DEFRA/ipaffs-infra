@@ -197,7 +197,8 @@ def is_unresolved_only_update(resource):
         return False
     effective = [field for field in fields if field.get("changeType") != "NoEffect"
                  and not is_metadata_field(resource.get("type"), field, resource.get("resourceId"))]
-    return bool(effective) and all(field.get("unresolved") is True and field.get("after") == _UNRESOLVED
+    return bool(effective) and all(field.get("deploymentTimeExpression") is True
+                                   and field.get("unresolved") is True and field.get("after") == _UNRESOLVED
                                    for field in effective)
 
 
