@@ -1,6 +1,5 @@
 targetScope = 'resourceGroup'
 
-param deploymentId string
 param location string
 param loadBalancerFrontendIpConfigurations array
 param privateLinkParams object

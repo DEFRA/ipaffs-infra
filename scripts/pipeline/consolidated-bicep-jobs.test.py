@@ -262,7 +262,7 @@ class ConsolidatedBicepJobTests(unittest.TestCase):
                                         expected_imports.update({
                                             "EstablishPeering": {"vnetName"},
                                             "DeployACR": {"privateEndpointsSubnetId", "privateEndpointsSubnetName"},
-                                            "DeployInfrastructure": subnet_names | {"classicRedisResourceId", "classicSearchServiceResourceId", "classicServiceBusNamespaceResourceId", "classicSqlServerResourceId"},
+                                            "DeployInfrastructure": subnet_names,
                                             "InfraPermissions": {"aksClusterResourceId", "aksKubeletPrincipalId", "externalSecretsPrincipalObjectId", "sqlServerManagedIdentityObjectId", "searchServiceManagedIdentityPrincipalId"},
                                             "PrivateLinkDNSRecords": {"keyVaultName", "redisName", "searchServiceName", "sqlServerName", "storageAccountName", "qaKeyVaultName" if environment == "TST" else "acrName"},
                                             "PrivateLink": {"privateEndpointsSubnetId", "privateEndpointsSubnetName"},
@@ -387,7 +387,16 @@ class ConsolidatedBicepJobTests(unittest.TestCase):
                         if component == "classic":
                             self.assertIn("id: 'modern-sql-admin-id'", content)
                             self.assertIn("name: 'modern-sql-admin-name'", content)
+                        if component in ("classic", "infra"):
+                            self.assertIn("param tenantId = 'fixture-tenantId'", content)
+                            deployment_scripts = [step["inputs"]["inlineScript"] for step in steps(stage)
+                                                  if step.get("displayName", "").startswith(("WhatIf - ", "Deploy - "))]
+                            self.assertEqual(2, len(deployment_scripts))
+                            for deployment_script in deployment_scripts:
+                                _, *parameter_arguments = deployment_script.strip().split("--parameters ")
+                                self.assertEqual([f"bicep/{filename}-runtime.bicepparam"], parameter_arguments)
                         if component == "infra":
+                            self.assertIn("param deployServicePrincipalObjectId = 'fixture-serviceConnectionPrincipalId'", content)
                             self.assertIn("param qaAutomationPrincipalObjectId = '" + ("qa-id" if environment == "TST" else "") + "'", content)
                             for prefix in ("aksApiServer", "aksSystemNodes", "aksUserNodes", "appGatewayForContainers", "privateEndpoints"):
                                 self.assertRegex(content, prefix + r": \{\s+id: 'fixture-" + prefix + r"SubnetId'\s+name: 'fixture-" + prefix + r"SubnetName'")

@@ -162,10 +162,6 @@ stages:
           appGatewayForContainersSubnetName: $[ stageDependencies.DeployNetwork.RunBicep.outputs['RunBicep.NetworkOutputs.appGatewayForContainersSubnetName'] ]
           privateEndpointsSubnetId: $[ stageDependencies.DeployNetwork.RunBicep.outputs['RunBicep.NetworkOutputs.privateEndpointsSubnetId'] ]
           privateEndpointsSubnetName: $[ stageDependencies.DeployNetwork.RunBicep.outputs['RunBicep.NetworkOutputs.privateEndpointsSubnetName'] ]
-          classicRedisResourceId: $[ stageDependencies.DeployClassic.RunBicep.outputs['RunBicep.ClassicOutputs.classicRedisResourceId'] ]
-          classicSearchServiceResourceId: $[ stageDependencies.DeployClassic.RunBicep.outputs['RunBicep.ClassicOutputs.classicSearchServiceResourceId'] ]
-          classicServiceBusNamespaceResourceId: $[ stageDependencies.DeployClassic.RunBicep.outputs['RunBicep.ClassicOutputs.classicServiceBusNamespaceResourceId'] ]
-          classicSqlServerResourceId: $[ stageDependencies.DeployClassic.RunBicep.outputs['RunBicep.ClassicOutputs.classicSqlServerResourceId'] ]
 
   - template: stages/infra-permissions.yaml
     parameters:

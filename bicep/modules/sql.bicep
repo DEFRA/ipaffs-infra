@@ -1,6 +1,5 @@
 targetScope = 'resourceGroup'
 
-param deploymentId string
 param entraGroups object
 param location string
 param sqlParams object

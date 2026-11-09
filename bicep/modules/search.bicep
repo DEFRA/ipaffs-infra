@@ -6,7 +6,6 @@ param searchParams object
 param sqlServerName string
 param subnets object
 param tags object
-param tenantId string
 
 resource userAssignedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2024-11-30' = {
   name: searchParams.userAssignedIdentityName

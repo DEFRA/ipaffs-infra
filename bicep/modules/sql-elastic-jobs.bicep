@@ -1,7 +1,6 @@
 targetScope = 'resourceGroup'
 
 param alertsActionGroups object
-param deploymentId string
 param location string
 param sejParams object
 param tags object

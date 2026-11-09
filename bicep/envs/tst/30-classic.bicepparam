@@ -2,7 +2,6 @@ using '../../30-classic.bicep'
 
 param entraGroups = {}
 param environment = 'TST'
-param roleAssignmentsType = 'permanent'
 param tenantId = ''
 
 param principalsNeedingContributor = [

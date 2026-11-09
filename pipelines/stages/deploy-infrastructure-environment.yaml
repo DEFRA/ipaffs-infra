@@ -110,10 +110,6 @@ stages:
         appGatewayForContainersSubnetName: $[ stageDependencies.${{ parameters.stagePrefix }}DeployNetwork.RunBicep.outputs['RunBicep.NetworkOutputs.appGatewayForContainersSubnetName'] ]
         privateEndpointsSubnetId: $[ stageDependencies.${{ parameters.stagePrefix }}DeployNetwork.RunBicep.outputs['RunBicep.NetworkOutputs.privateEndpointsSubnetId'] ]
         privateEndpointsSubnetName: $[ stageDependencies.${{ parameters.stagePrefix }}DeployNetwork.RunBicep.outputs['RunBicep.NetworkOutputs.privateEndpointsSubnetName'] ]
-        classicRedisResourceId: $[ stageDependencies.${{ parameters.stagePrefix }}DeployClassic.RunBicep.outputs['RunBicep.ClassicOutputs.classicRedisResourceId'] ]
-        classicSearchServiceResourceId: $[ stageDependencies.${{ parameters.stagePrefix }}DeployClassic.RunBicep.outputs['RunBicep.ClassicOutputs.classicSearchServiceResourceId'] ]
-        classicServiceBusNamespaceResourceId: $[ stageDependencies.${{ parameters.stagePrefix }}DeployClassic.RunBicep.outputs['RunBicep.ClassicOutputs.classicServiceBusNamespaceResourceId'] ]
-        classicSqlServerResourceId: $[ stageDependencies.${{ parameters.stagePrefix }}DeployClassic.RunBicep.outputs['RunBicep.ClassicOutputs.classicSqlServerResourceId'] ]
 
   - template: infra-permissions.yaml
     parameters:

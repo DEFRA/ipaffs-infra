@@ -222,9 +222,9 @@ with its owner rather than enable the bootstrap definitions without review. A
 newly rebuilt PRE/PRD job agent requires its maintenance definitions to be restored
 or provisioned by that owner.
 
-Network deployment tasks and previews use Bicep 0.43.8 because the create-only
-resource decorator requires Bicep 0.38.3 or later. Compiler preparation fails
-before compilation or deployment if that version cannot be installed and verified.
+Deployment tasks, previews and CI use the compiler pinned in
+`scripts/pipeline/ensure-bicep-version.sh`. Each Azure CLI task selects the
+verified Azure CLI-managed binary and stops before compilation if verification fails.
 
 ## Azure DevOps setup
 
