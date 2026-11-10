@@ -8,6 +8,7 @@ import re
 import subprocess
 import sys
 import time
+from urllib.parse import parse_qsl, urlencode, urlsplit
 
 
 GUID = r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
@@ -27,7 +28,10 @@ VERIFY_ATTEMPTS = 6
 VERIFY_INTERVAL = 10
 APP_SITE = "microsoft.web/sites"
 APP_SLOT = "microsoft.web/sites/slots"
+APP_PLAN = "microsoft.web/serverfarms"
 APP_SERVICE_TYPES = {APP_SITE, APP_SLOT}
+APP_SERVICE_API = "2025-05-01"
+SUBNET_TYPE = "microsoft.network/virtualnetworks/subnets"
 
 
 class DecommissionError(Exception):
@@ -96,9 +100,9 @@ def verify_subscription(subscription):
         raise DecommissionError(f"{operation}: Azure CLI returned a different subscription")
 
 
-def resource_exists(resource_id, subscription, *, require_stopped=False):
+def read_resource(resource_id, subscription, *, require_stopped=False):
     operation = f"Check {resource_id}"
-    query = "{id:id,state:properties.state}" if require_stopped else "id"
+    query = "{id:id,state:properties.state,subnetId:properties.virtualNetworkSubnetId}" if require_stopped else "id"
     output = "json" if require_stopped else "tsv"
     result = run_az([
         "resource", "show", "--ids", resource_id, "--subscription", subscription,
@@ -107,18 +111,28 @@ def resource_exists(resource_id, subscription, *, require_stopped=False):
     # The CLI exits with status 3 on an HTTP 404. Require a resource
     # absence code too, since provider discovery can itself return 404.
     if result.returncode == 3 and ABSENT_ERROR.search(result.stderr):
-        return False
+        return None
     if require_stopped:
-        app = read_azure_json(result, operation)
-        returned_id = app.get("id") if isinstance(app, dict) else None
+        resource = read_azure_json(result, operation)
     else:
         require_success(result, operation)
-        returned_id = result.stdout.strip()
+        resource = {"id": result.stdout.strip()}
+    returned_id = resource.get("id") if isinstance(resource, dict) else None
     if not isinstance(returned_id, str) or returned_id.lower() != resource_id.lower():
         raise DecommissionError(f"{operation}: Azure CLI did not return the requested resource ID")
-    if require_stopped and app.get("state") != "Stopped":
-        raise DecommissionError(f"{operation}: App Service or slot must be Stopped (state: {app.get('state')!r})")
-    return True
+    if require_stopped and resource.get("state") != "Stopped":
+        raise DecommissionError(f"{operation}: App Service or slot must be Stopped (state: {resource.get('state')!r})")
+    return resource
+
+
+def resource_exists(resource_id, subscription):
+    return read_resource(resource_id, subscription) is not None
+
+
+def is_scoped_id(resource_id, subscription, kind, segments):
+    match = RESOURCE_ID.fullmatch(resource_id) if isinstance(resource_id, str) else None
+    return (match and match["subscription"].lower() == subscription
+            and len(resource_id.split("/")) == segments and resource_type(resource_id).lower() == kind)
 
 
 def app_service_target(resource_id, kind):
@@ -157,25 +171,91 @@ def verify_app_slots(resource_id, subscription, target, earlier_present):
         print(f"{resource_id} has a stopped slot listed earlier: {slot_id}", flush=True)
 
 
-def app_service_exists(resource_id, subscription, kind, earlier_present=None):
+def inspect_app_service(resource_id, subscription, kind, earlier_present=None):
     target = app_service_target(resource_id, kind)
-    if not resource_exists(resource_id, subscription, require_stopped=True):
-        return False
+    app = read_resource(resource_id, subscription, require_stopped=True)
+    if app is None:
+        return False, None
 
     operation = f"Check App Service VNet integrations for {resource_id}"
     result = run_az([
         "webapp", "vnet-integration", "list", *target, "--subscription", subscription,
+        "--query", "[].{subnetId:vnetResourceId,certThumbprint:certThumbprint}",
         "--output", "json", "--only-show-errors",
     ], operation)
     integrations = read_azure_json(result, operation)
     if not isinstance(integrations, list):
         raise DecommissionError(f"{operation}: Azure did not return a VNet integration list")
+    if "subnetId" not in app:
+        raise DecommissionError(f"{operation}: Azure did not return the regional subnet property")
+    subnet_id = None
     if integrations:
-        raise DecommissionError(f"{operation}: disconnect VNet integration before deletion")
+        integration = integrations[0]
+        if len(integrations) != 1 or not isinstance(integration, dict):
+            raise DecommissionError(f"{operation}: expected one regional VNet integration")
+        subnet_id = integration.get("subnetId")
+        if (not is_scoped_id(subnet_id, subscription, SUBNET_TYPE, 11)
+                or integration.get("certThumbprint") not in (None, "")
+                or not isinstance(app["subnetId"], str) or app["subnetId"].lower() != subnet_id.lower()):
+            raise DecommissionError(f"{operation}: native integration does not match an exact regional subnet")
+    elif app["subnetId"] not in (None, ""):
+        raise DecommissionError(f"{operation}: Azure subnet property disagrees with the native integration list")
 
     if kind == APP_SITE:
         verify_app_slots(resource_id, subscription, target, earlier_present)
-    return True
+    return True, subnet_id
+
+
+def next_plan_page(link, collection, operation):
+    try:
+        if not isinstance(link, str) or any(char.isspace() or char == "\\" for char in link):
+            raise ValueError("invalid URL")
+        parsed = urlsplit(link)
+        pairs = parse_qsl(parsed.query, keep_blank_values=True, strict_parsing=True, max_num_fields=3)
+    except ValueError as exc:
+        raise DecommissionError(f"{operation}: Azure returned an invalid continuation link") from exc
+    query = dict(pairs)
+    if (parsed.path.lower() != collection.lower() or parsed.fragment or parsed.username or parsed.password
+            or (parsed.netloc and parsed.scheme != "https") or (parsed.scheme and not parsed.netloc)
+            or len(query) != len(pairs) or query.keys() - {"api-version", "$skipToken", "$top"}
+            or query.get("api-version", APP_SERVICE_API) != APP_SERVICE_API or not query.get("$skipToken")
+            or ("$top" in query and not re.fullmatch(r"[1-9][0-9]*", query["$top"]))):
+        raise DecommissionError(f"{operation}: Azure returned an unexpected continuation link")
+    # Keep every request on the original collection and configured ARM endpoint.
+    query["api-version"] = APP_SERVICE_API
+    return f"{collection}?{urlencode(sorted(query.items()))}"
+
+
+def verify_plan_members(resource_id, subscription, earlier_present=None):
+    operation = f"Check App Service plan membership for {resource_id}"
+    if not is_scoped_id(resource_id, subscription, APP_PLAN, 9):
+        raise DecommissionError(f"{operation}: expected a direct App Service plan ID")
+    collection = f"{resource_id}/sites"
+    url = f"{collection}?api-version={APP_SERVICE_API}"
+    visited = set()
+    while url:
+        if url in visited:
+            raise DecommissionError(f"{operation}: Azure repeated a continuation link")
+        visited.add(url)
+        result = run_az([
+            "rest", "--method", "get", "--url", url, "--subscription", subscription,
+            "--query", "{value:map(&{id:id},value),nextLink:nextLink}",
+            "--output", "json", "--only-show-errors",
+        ], operation)
+        page = read_azure_json(result, operation)
+        if not isinstance(page, dict) or not isinstance(page.get("value"), list) or "nextLink" not in page:
+            raise DecommissionError(f"{operation}: Azure did not return a membership list")
+        for member in page["value"]:
+            member_id = member.get("id") if isinstance(member, dict) else None
+            if not is_scoped_id(member_id, subscription, APP_SITE, 9):
+                raise DecommissionError(f"{operation}: Azure returned an invalid member ID")
+            if earlier_present is None:
+                raise DecommissionError(f"{operation}: plan must be empty before deletion; found {member_id}")
+            if member_id.lower() not in earlier_present:
+                raise DecommissionError(f"{operation}: app must be present and listed earlier: {member_id}")
+            print(f"{resource_id} has an app listed earlier: {member_id}", flush=True)
+        link = page.get("nextLink")
+        url = next_plan_page(link, collection, operation) if link is not None else None
 
 
 def verify_orphaned_autoscale(resource_id, subscription):
@@ -189,9 +269,7 @@ def verify_orphaned_autoscale(resource_id, subscription):
     if not isinstance(setting, dict) or setting.get("enabled") is not False:
         raise DecommissionError(f"{operation}: only disabled autoscale settings can be deleted")
     target = setting.get("target")
-    match = RESOURCE_ID.fullmatch(target) if isinstance(target, str) else None
-    if (not match or match["subscription"].lower() != subscription
-            or len(target.split("/")) != 9 or resource_type(target).lower() != "microsoft.web/serverfarms"):
+    if not is_scoped_id(target, subscription, APP_PLAN, 9):
         raise DecommissionError(f"{operation}: target must be an App Service plan in the same subscription")
     if resource_exists(target, subscription):
         raise DecommissionError(f"{operation}: target plan still exists: {target}")
@@ -205,25 +283,33 @@ def resource_states(resources, subscription, plan):
     for resource_id in resources:
         kind = resource_type(resource_id)
         kind_key = kind.lower()
+        entry = {"id": resource_id}
         try:
             if kind_key in APP_SERVICE_TYPES:
-                exists = app_service_exists(resource_id, subscription, kind_key, earlier_present)
+                exists, subnet_id = inspect_app_service(resource_id, subscription, kind_key, earlier_present)
+                entry["subnetId"] = subnet_id
+                if plan and subnet_id:
+                    print(f"{resource_id} will disconnect from {subnet_id} before deletion", flush=True)
             else:
                 exists = resource_exists(resource_id, subscription)
+            if exists and kind_key == APP_PLAN:
+                verify_plan_members(resource_id, subscription, earlier_present)
             if exists and kind_key == "microsoft.insights/autoscalesettings":
                 verify_orphaned_autoscale(resource_id, subscription)
         except DecommissionError as exc:
             print(f"ERROR: {exc}", file=sys.stderr)
             failures += 1
             continue
-        states.append(exists)
+        entry["exists"] = exists
+        states.append(entry)
         if exists:
             earlier_present.add(resource_id.lower())
         state = "exists" if exists else ("already gone" if plan else "already deleted")
         print(f"{state}\t{kind}\t{resource_id}", flush=True)
     if plan or failures:
-        print(f"Summary: {len(resources)} listed, {sum(states)} exist, "
-              f"{states.count(False)} already gone, {failures} checks failed", flush=True)
+        exists_count = sum(entry["exists"] for entry in states)
+        print(f"Summary: {len(resources)} listed, {exists_count} exist, "
+              f"{len(states) - exists_count} already gone, {failures} checks failed", flush=True)
     if failures:
         raise DecommissionError("Could not verify every listed resource")
     return states
@@ -242,21 +328,56 @@ def read_plan(path, resources, subscription):
                    or type(entry.get("exists")) is not bool
                    for entry, resource_id in zip(entries, resources))):
         raise DecommissionError("Plan does not match the ordered resource list")
-    return [entry["exists"] for entry in entries]
+    for entry in entries:
+        resource_id = entry["id"]
+        if resource_type(resource_id).lower() in APP_SERVICE_TYPES:
+            subnet_id = entry.get("subnetId")
+            if ("subnetId" not in entry or (subnet_id is not None and
+                    (not entry["exists"] or not is_scoped_id(subnet_id, subscription, SUBNET_TYPE, 11)))):
+                raise DecommissionError(f"Plan lacks a valid subnet decision for {resource_id}")
+    return entries
 
 
-def delete_resource(resource_id, subscription):
+def verify_approved_subnet(resource_id, subnet_id, approved_subnet):
+    # An already-disconnected app can finish deletion on retry. Any connection
+    # still present must be the exact subnet reviewed in the approved plan.
+    if subnet_id is not None and (approved_subnet is None or subnet_id.lower() != approved_subnet.lower()):
+        raise DecommissionError(f"VNet integration changed after the plan: {resource_id}. Run a new plan.")
+
+
+def delete_resource(resource_id, subscription, expected_subnet=None):
     operation = f"Delete {resource_id}"
     kind = resource_type(resource_id).lower()
     if kind in APP_SERVICE_TYPES:
-        if not app_service_exists(resource_id, subscription, kind):
+        exists, subnet_id = inspect_app_service(resource_id, subscription, kind)
+        if not exists:
             print(f"Already deleted {resource_id}", flush=True)
             return False
+        verify_approved_subnet(resource_id, subnet_id, expected_subnet)
+        target = app_service_target(resource_id, kind)
+        if subnet_id:
+            disconnect = f"Disconnect {resource_id} from {subnet_id}"
+            print(disconnect, flush=True)
+            result = run_az([
+                "webapp", "vnet-integration", "remove", *target, "--subscription", subscription,
+                "--output", "none", "--only-show-errors",
+            ], disconnect)
+            require_success(result, disconnect)
+            exists, remaining_subnet = inspect_app_service(resource_id, subscription, kind)
+            if not exists:
+                print(f"Already deleted {resource_id}", flush=True)
+                return False
+            if remaining_subnet is not None:
+                raise DecommissionError(f"{disconnect}: VNet integration still present")
         # Generic ARM deletion can delete the hosting plan when it becomes
         # empty. Pass the slot explicitly so the CLI targets the slot endpoint.
-        command = ["webapp", "delete", *app_service_target(resource_id, kind),
-                   "--keep-empty-plan", "--keep-metrics"]
+        command = ["webapp", "delete", *target, "--keep-empty-plan", "--keep-metrics"]
     else:
+        if kind == APP_PLAN:
+            if not resource_exists(resource_id, subscription):
+                print(f"Already deleted {resource_id}", flush=True)
+                return False
+            verify_plan_members(resource_id, subscription)
         command = ["resource", "delete", "--ids", resource_id]
 
     print(f"Deleting {resource_id}", flush=True)
@@ -299,20 +420,21 @@ def run(args):
         if args.plan_file:
             plan = {
                 "subscriptionId": subscription,
-                "resources": [{"id": resource_id, "exists": exists}
-                              for resource_id, exists in zip(resources, states)],
+                "resources": states,
             }
             args.plan_file.write_text(json.dumps(plan, indent=2) + "\n", encoding="utf-8")
         return
 
-    for resource_id, was_present, is_present in zip(resources, planned, states):
-        if is_present and not was_present:
+    for approved, current in zip(planned, states):
+        resource_id = current["id"]
+        if current["exists"] and not approved["exists"]:
             raise DecommissionError(f"Resource appeared after the plan: {resource_id}. Run a new plan.")
+        verify_approved_subnet(resource_id, current.get("subnetId"), approved.get("subnetId"))
 
     deleted = 0
-    for resource_id, exists in zip(resources, states):
-        if exists:
-            deleted += delete_resource(resource_id, subscription)
+    for current in states:
+        if current["exists"]:
+            deleted += delete_resource(current["id"], subscription, current.get("subnetId"))
     print(f"Summary: {len(resources)} listed, {deleted} deleted, "
           f"{len(resources) - deleted} already deleted", flush=True)
 

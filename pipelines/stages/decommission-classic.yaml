@@ -54,14 +54,16 @@ stages:
                 allowApproversToApproveTheirOwnRuns: false
                 instructions: >-
                   Review the Plan ${{ parameters.environmentName }} stage in this run.
-                  Check the listed resource IDs and deletion order against the reviewed
-                  Classic inventory. Approve to delete the listed resources in
+                  Check the listed resource IDs, app VNet disconnects and plan
+                  membership against the reviewed Classic inventory. Approval allows the
+                  listed per-app disconnects and resource deletions in
                   ${{ parameters.environmentName }}. Reject to stop the run here.
                 onTimeout: reject
 
         - deployment: DeleteResources
-          displayName: Delete listed resources
+          displayName: Disconnect and delete listed resources
           dependsOn: Approve
+          timeoutInMinutes: 360
           environment:
             name: ${{ parameters.environmentName }}-Classic-Decommission
           strategy:

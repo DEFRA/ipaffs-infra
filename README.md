@@ -267,9 +267,16 @@ target again before any deletion.
 When moving an approved app to the deletion list, check its live state, slots,
 network integration, routing and deployment references. Remove the exact app
 from the stop and recover list in the same change. Run that pipeline from the
-updated `main` branch after retirement so it uses the updated list. The runner
-checks that App Services are stopped and disconnected from their virtual
-networks, and checks slot membership again before deleting a parent app.
+updated `main` branch after retirement so it uses the updated list. Use
+`# No apps to stop or recover` for an intentionally empty stop and recover list.
+
+The plan records each listed app's subnet where regional VNet integration is
+configured. Approval covers disconnecting that app from the recorded subnet.
+The runner checks the app is stopped and has no remaining integration before
+deleting it. Shared subnets are outside this action. List hosting plans after
+their member apps. The runner checks membership during planning and requires the
+plan to be empty immediately before deleting it. Enabled autoscale rules for those plans
+need a separate cleanup after the plan is removed.
 
 ### Human access ownership
 
