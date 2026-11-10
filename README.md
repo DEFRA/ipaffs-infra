@@ -260,11 +260,25 @@ totals. The deployment compares the list with the plan artifact from the same
 run and checks Azure again before deleting. If an ID marked absent in the plan
 reappears, queue a fresh plan for review. A rerun skips resources already gone.
 After a failed delete, check the logged resource ID and Azure error before
-retrying. The lists include Classic portal dashboards and disabled autoscale
-settings whose App Service plans are gone. The runner checks the rule and its
-target again before any deletion. Stop and recover, rollback, configuration
-validation and Classic deployment tooling still reference apps. Their plans
-still host apps, so both need separate review.
+retrying. An autoscale setting whose target plan is outside the list must
+already be disabled and its target absent. To retire an enabled setting with
+its plan, list the setting after its target. The plan records the exact target
+and the proposed disable. After approval, the runner confirms the target is
+gone, disables the setting if needed, and verifies both conditions before
+deleting it.
+
+When moving an approved app to the deletion list, check its live state, slots,
+network integration, routing and deployment references. Remove the exact app
+from the stop and recover list in the same change. Run that pipeline from the
+updated `main` branch after retirement so it uses the updated list. Use
+`# No apps to stop or recover` for an intentionally empty stop and recover list.
+
+The plan records each listed app's subnet where regional VNet integration is
+configured. Approval covers disconnecting that app from the recorded subnet.
+The runner checks the app is stopped and has no remaining integration before
+deleting it. Shared subnets are outside this action. List hosting plans after
+their member apps. The runner checks membership during planning and requires the
+plan to be empty immediately before deleting it.
 
 ### Human access ownership
 

@@ -202,6 +202,12 @@ for bad in "empty" "bad-line" "duplicate"; do
   check "${case_name}: no changes" "" "$(calls "${case_name}")"
 done
 
+case_name="list-retired"
+write_state "${work_dir}/${case_name}"
+write_apps "${work_dir}/${case_name}" "# No apps to stop or recover"
+check "retired list: recover succeeds" "0" "$(run_case "${case_name}" recover ENVIRONMENT=tst)"
+check "retired list: no changes" "" "$(calls "${case_name}")"
+
 # Bad action and environment fail.
 case_name="bad-action"
 write_state "${work_dir}/${case_name}"
