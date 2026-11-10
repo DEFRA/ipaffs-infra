@@ -1,0 +1,4 @@
+# AZR-SND. Initial IMTA-21888 batch from the 9 November 2026 Classic inventory.
+# Portal dashboards from the retired static test and integration environments.
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-IMPORTS-STATIC-TEST/providers/Microsoft.Portal/dashboards/c96a86c7-84f7-4bbc-8bd7-1018519d56d9-dashboard
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-IMPORTS-STATIC-INTEGRATION/providers/Microsoft.Portal/dashboards/d3f240c2-7c5e-43ef-a757-0feb60c4d971-dashboard

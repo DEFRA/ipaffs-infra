@@ -1,0 +1,4 @@
+# AZR-TST. Initial IMTA-21888 batch from the 9 November 2026 Classic inventory.
+# Portal dashboards for Classic Application Insights.
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Portal/dashboards/06211f32-c26f-4f5b-b148-7afdf8fd3f08-dashboard
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Portal/dashboards/179d0ce6-0bcc-4423-a76f-510ab48ac038-dashboard

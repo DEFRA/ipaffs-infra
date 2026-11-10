@@ -1,0 +1,79 @@
+parameters:
+  - name: environmentName
+    type: string
+    values: [SND, TST]
+
+  - name: subscriptionId
+    type: string
+
+  - name: action
+    type: string
+    values: [plan, delete]
+
+  - name: dependsOn
+    type: string
+
+stages:
+  - stage: Plan${{ parameters.environmentName }}
+    displayName: Plan ${{ parameters.environmentName }} Classic decommissioning
+    dependsOn: ${{ parameters.dependsOn }}
+    isSkippable: false
+    variables:
+      - template: /pipelines/vars/${{ lower(parameters.environmentName) }}.yaml
+    jobs:
+      - job: Plan
+        displayName: Check listed resources in Azure
+        steps:
+          - template: /pipelines/steps/decommission-classic.yaml
+            parameters:
+              environmentName: ${{ parameters.environmentName }}
+              subscriptionId: ${{ parameters.subscriptionId }}
+              serviceConnection: ${{ variables.classicServiceConnection }}
+              action: plan
+
+  - ${{ if eq(parameters.action, 'delete') }}:
+    - stage: Delete${{ parameters.environmentName }}
+      displayName: Delete ${{ parameters.environmentName }} Classic resources
+      dependsOn: Plan${{ parameters.environmentName }}
+      condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+      isSkippable: false
+      lockBehavior: sequential
+      variables:
+        - template: /pipelines/vars/${{ lower(parameters.environmentName) }}.yaml
+      jobs:
+        - job: Approve
+          displayName: Approve deletion in ${{ parameters.environmentName }}
+          pool: server
+          timeoutInMinutes: 43200
+          steps:
+            - task: ManualValidation@1
+              displayName: Review the ${{ parameters.environmentName }} plan
+              timeoutInMinutes: 43199
+              inputs:
+                notifyUsers: $(Build.RequestedForEmail)
+                allowApproversToApproveTheirOwnRuns: false
+                instructions: >-
+                  Review the Plan ${{ parameters.environmentName }} stage in this run.
+                  Check the listed resource IDs and deletion order against the reviewed
+                  Classic inventory. Approve to delete the listed resources in
+                  ${{ parameters.environmentName }}. Reject to stop the run here.
+                onTimeout: reject
+
+        - deployment: DeleteResources
+          displayName: Delete listed resources
+          dependsOn: Approve
+          environment:
+            name: ${{ parameters.environmentName }}-Classic-Decommission
+          strategy:
+            runOnce:
+              deploy:
+                steps:
+                  - download: none
+                  - download: current
+                    artifact: classic-decommission-plan-${{ parameters.environmentName }}
+                  - template: /pipelines/steps/decommission-classic.yaml
+                    parameters:
+                      environmentName: ${{ parameters.environmentName }}
+                      subscriptionId: ${{ parameters.subscriptionId }}
+                      serviceConnection: ${{ variables.classicServiceConnection }}
+                      action: delete

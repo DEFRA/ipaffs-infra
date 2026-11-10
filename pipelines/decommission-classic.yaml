@@ -1,0 +1,41 @@
+---
+name: decommission-classic-$(Date:yyyyMMdd)$(Rev:.r)
+
+trigger: none
+pr: none
+
+pool:
+  name: DEFRA-COMMON-ubuntu2204-SSV5
+
+parameters:
+  - name: action
+    displayName: Action
+    type: string
+    default: plan
+    values:
+      - plan
+      - delete
+
+stages:
+  - template: stages/tag-build.yaml
+    parameters:
+      tags:
+        - ServiceGroup-decommission-classic
+        - Action-${{ parameters.action }}
+
+  - template: stages/decommission-classic.yaml
+    parameters:
+      environmentName: SND
+      subscriptionId: e716414f-1f8e-48f1-8f56-65f35cfdafb6 # AZR-SND
+      action: ${{ parameters.action }}
+      dependsOn: TagBuild
+
+  - template: stages/decommission-classic.yaml
+    parameters:
+      environmentName: TST
+      subscriptionId: 00f1225e-37c2-4c7b-bc71-634164b667c6 # AZR-TST
+      action: ${{ parameters.action }}
+      ${{ if eq(parameters.action, 'delete') }}:
+        dependsOn: DeleteSND
+      ${{ else }}:
+        dependsOn: PlanSND

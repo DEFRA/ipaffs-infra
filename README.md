@@ -223,6 +223,46 @@ them consistent with higher ones.
 person who queued it. Set `approvers` on the `ManualValidation` task to restrict
 this.
 
+### Classic Azure resource decommissioning
+
+[`pipelines/decommission-classic.yaml`](pipelines/decommission-classic.yaml)
+implements [IMTA-21888](https://eaflood.atlassian.net/browse/IMTA-21888) using
+the agent pool, Classic service connections and manual validation pattern from
+[`disable-app-services`](https://dev.azure.com/defragovuk/DEFRA-EUTD-IPAFFS/_build?definitionId=12566).
+The default `plan` action checks SND and then TST. The `delete` action requires
+`main` and runs **Plan SND → Delete SND → Plan TST → Delete TST**. Each delete
+stage checks its Azure DevOps environment and pauses for manual validation before
+the deployment job starts. Someone other than the requester with permission to
+queue the pipeline must approve the manual validation. Rejection, timeout or
+failure stops progression.
+
+Register the YAML in the `Operations` folder in Azure DevOps. Authorize the
+pipeline to use the Classic service connections and create the
+`SND-Classic-Decommission` and `TST-Classic-Decommission` environments. Add
+an Approval check with the designated approvers and an Exclusive lock check to
+each environment, and grant the pipeline access to them. Configure the approval
+instructions to point reviewers to the matching Plan stage. Environment checks
+are [configured in Azure DevOps](https://learn.microsoft.com/en-us/azure/devops/pipelines/process/approvals?view=azure-devops).
+
+Use the reviewed Classic inventory to populate
+[`snd.txt`](scripts/pipeline/decommission-classic/lists/snd.txt) and
+[`tst.txt`](scripts/pipeline/decommission-classic/lists/tst.txt). Enter one full
+resource-group-scoped ARM resource ID per line, in deletion order. Blank lines
+and lines starting with `#` are ignored. Put private endpoints before targets,
+apps before their plans, and databases before servers. Review the children and
+side effects of any parent resource deletion. Exclude retained resources and
+unresolved owner questions. For resources managed by `30-classic.bicep`, first
+retire the declarations and references that would recreate them or break later
+deployments.
+
+Review the plan log for each resource's ID, type and current existence, plus the
+totals. The deployment compares the list with the plan artifact from the same
+run and checks Azure again before deleting. If an ID marked absent in the plan
+reappears, queue a fresh plan for review. A rerun skips resources already gone.
+After a failed delete, check the logged resource ID and Azure error before
+retrying. The starter batch contains two Classic portal dashboards in each
+environment.
+
 ### Human access ownership
 
 Human/team membership, access-group creation, human Azure RBAC and PIM eligibility
