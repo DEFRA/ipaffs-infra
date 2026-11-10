@@ -1,12 +1,6 @@
 ---
-trigger:
-  branches:
-    include:
-      - main
-  paths:
-    include:
-      - pipelines/private-endpoint-dns-records.yaml
-      - pipelines/stages/private-endpoint-dns-records.yaml
+# Infrastructure owns automatic DEV deployments; retain this entry point for previews/manual runs.
+trigger: none
 
 pr:
   branches:

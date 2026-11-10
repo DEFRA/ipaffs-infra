@@ -1,6 +1,5 @@
 targetScope = 'resourceGroup'
 
-param deploymentId string
 param entraGroups object
 param location string
 param sqlParams object
@@ -42,7 +41,6 @@ resource elasticPool 'Microsoft.Sql/servers/elasticPools@2023-08-01' = {
     licenseType: 'BasePrice'
     maxSizeBytes: sqlParams.maxSizeGiB * 1024 * 1024 * 1024
     perDatabaseSettings: {
-      autoPauseDelay: -1
       minCapacity: 0
       maxCapacity: sqlParams.?maxVCorePerDatabase ?? sqlParams.vCores
     }
@@ -56,12 +54,13 @@ resource elasticPool 'Microsoft.Sql/servers/elasticPools@2023-08-01' = {
   }
 }
 
-resource sqlPrivateEndpoint 'Microsoft.Network/privateEndpoints@2024-10-01' = {
+resource sqlPrivateEndpoint 'Microsoft.Network/privateEndpoints@2025-03-01' = {
   name: '${sqlParams.serverName}-${subnets.privateEndpoints.name}'
   location: location
   tags: tags
 
   properties: {
+    ipVersionType: 'IPv4'
     subnet: {
       id: subnets.privateEndpoints.id
     }

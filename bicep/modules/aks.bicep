@@ -2,13 +2,15 @@ targetScope = 'resourceGroup'
 
 param aksParams object
 param deploymentId string
-param entraGroups object
 param location string
 param logAnalyticsId string
-param roleAssignmentsType string
 param subnets object
 param tags object
+param tenantId string
 param vnetName string
+
+// Shared pin for the control plane and both node pools in every environment.
+var kubernetesVersion = '1.34.7'
 
 var fortinetCA = loadFileAsBase64('../files/PAsubca.crt')
 
@@ -37,6 +39,7 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2025-10-01' = {
   name: aksParams.name
   location: location
   tags: tags
+  kind: 'Base'
 
   identity: {
     type: 'UserAssigned'
@@ -47,14 +50,25 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2025-10-01' = {
 
   properties: {
     dnsPrefix: aksParams.dnsPrefix
-    kubernetesVersion: aksParams.version
+    kubernetesVersion: kubernetesVersion
     nodeResourceGroup: aksParams.nodeResourceGroup
     publicNetworkAccess: 'Disabled'
+    enableRBAC: true
+    supportPlan: 'KubernetesOfficial'
+
+    serviceMeshProfile: {
+      mode: 'Disabled'
+    }
+
+    servicePrincipalProfile: {
+      clientId: 'msi'
+    }
 
     aadProfile: {
       managed: true
       enableAzureRBAC: true
       adminGroupObjectIDs: aksParams.adminGroupObjectIDs
+      tenantID: tenantId
     }
 
     addonProfiles: {
@@ -70,8 +84,15 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2025-10-01' = {
     agentPoolProfiles: [
       {
         name: 'system'
+        orchestratorVersion: kubernetesVersion
         enableAutoScaling: true
         enableNodePublicIP: false
+        enableFIPS: false
+        kubeletDiskType: 'OS'
+        osDiskSizeGB: aksParams.nodePools.system.osDiskSizeGB
+        osDiskType: 'Managed'
+        osSKU: 'Ubuntu'
+        scaleDownMode: 'Delete'
         minCount: aksParams.nodePools.system.minCount
         maxCount: aksParams.nodePools.system.maxCount
         maxPods: aksParams.nodePools.system.maxPods
@@ -84,12 +105,25 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2025-10-01' = {
         securityProfile: {
           enableSecureBoot: true
           enableVTPM: true
+          sshAccess: 'LocalUser'
+        }
+
+        upgradeSettings: {
+          maxSurge: '10%'
+          maxUnavailable: '0'
         }
       }
       {
         name: 'user'
+        orchestratorVersion: kubernetesVersion
         enableAutoScaling: true
         enableNodePublicIP: false
+        enableFIPS: false
+        kubeletDiskType: 'OS'
+        osDiskSizeGB: aksParams.nodePools.user.osDiskSizeGB
+        osDiskType: 'Managed'
+        osSKU: 'Ubuntu'
+        scaleDownMode: 'Delete'
         minCount: aksParams.nodePools.user.minCount
         maxCount: aksParams.nodePools.user.maxCount
         maxPods: aksParams.nodePools.user.maxPods
@@ -102,12 +136,19 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2025-10-01' = {
         securityProfile: {
           enableSecureBoot: true
           enableVTPM: true
+          sshAccess: 'LocalUser'
+        }
+
+        upgradeSettings: {
+          maxSurge: '10%'
+          maxUnavailable: '0'
         }
       }
     ]
 
     apiServerAccessProfile: {
       enablePrivateCluster: true
+      enablePrivateClusterPublicFQDN: true
       enableVnetIntegration: true
       privateDNSZone: 'none'
       subnetId: subnets.aksApiServer.id
@@ -116,6 +157,16 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2025-10-01' = {
     autoUpgradeProfile: {
       nodeOSUpgradeChannel: 'SecurityPatch'
       upgradeChannel: 'none'
+    }
+
+    autoScalerProfile: {
+      'balance-similar-node-groups': 'false'
+      'daemonset-eviction-for-empty-nodes': false
+      'daemonset-eviction-for-occupied-nodes': true
+      'ignore-daemonsets-utilization': false
+      'max-node-provision-time': '15m'
+      'scale-down-delay-after-add': '10m'
+      'skip-nodes-with-local-storage': 'false'
     }
 
     azureMonitorProfile: {
@@ -144,14 +195,42 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2025-10-01' = {
       loadBalancerSku: 'standard'
       networkPlugin: 'azure'
       networkPluginMode: 'overlay'
+      networkDataplane: 'azure'
       networkPolicy: 'calico'
       outboundType: 'userDefinedRouting'
+      // Keep the single-stack aliases aligned with the arrays so what-if does not inject defaults.
+      podCidr: aksParams.podCidrs[0]
       podCidrs: aksParams.podCidrs
+      serviceCidr: aksParams.serviceCidrs[0]
       serviceCidrs: aksParams.serviceCidrs
     }
 
     oidcIssuerProfile: {
       enabled: true
+    }
+
+    nodeProvisioningProfile: {
+      mode: 'Manual'
+      // Preserve the provider default; it is inactive while mode is Manual.
+      defaultNodePools: 'Auto'
+    }
+
+    metricsProfile: {
+      costAnalysis: {
+        enabled: false
+      }
+    }
+
+    storageProfile: {
+      diskCSIDriver: {
+        enabled: true
+      }
+      fileCSIDriver: {
+        enabled: true
+      }
+      snapshotController: {
+        enabled: true
+      }
     }
 
     securityProfile: {
@@ -168,46 +247,55 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2025-10-01' = {
   }
 }
 
-var aksRbacClusterAdminRoleId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b1ff04bb-8a4e-4dc4-8eb5-8693973ce19b')
-var aksRbacWriterRoleId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'a7ffa36f-339b-4b5c-8bdf-e2c188b2c0eb')
-var aksRbacReaderRoleId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '7f6c6a51-bcf8-42ba-9220-52d62157d7db')
-
-module aksAdmin './aks-role-assignment.bicep' = {
-  name: 'aksAdmin-${deploymentId}'
-  scope: resourceGroup()
-  params: {
-    aksName: aksParams.name
-    deploymentId: deploymentId
-    principalObjectId: entraGroups.aksAdmins.id
-    principalType: 'Group'
-    roleAssignmentType: roleAssignmentsType
-    roleDefinitionId: aksRbacClusterAdminRoleId
+// Container Insights data (container logs, pod and node inventory, perf) goes wherever the cluster's
+// data collection rule sends it; the omsAgent workspace above is not used for that with useAADAuth.
+// The name and association match what the portal creates, so an existing hand-made rule is taken over
+// in place rather than duplicated.
+resource containerInsightsRule 'Microsoft.Insights/dataCollectionRules@2023-03-11' = if (aksParams.containerInsights) {
+  name: 'MSCI-${location}-${toLower(aksParams.name)}'
+  location: location
+  tags: tags
+  kind: 'Linux'
+  properties: {
+    dataSources: {
+      extensions: [
+        {
+          name: 'ContainerInsightsExtension'
+          extensionName: 'ContainerInsights'
+          streams: ['Microsoft-ContainerInsights-Group-Default']
+          extensionSettings: {
+            dataCollectionSettings: {
+              enableContainerLogV2: true
+              interval: '1m'
+              namespaceFilteringMode: 'Off'
+            }
+          }
+        }
+      ]
+    }
+    destinations: {
+      logAnalytics: [
+        {
+          name: 'ciworkspace'
+          workspaceResourceId: logAnalyticsId
+        }
+      ]
+    }
+    dataFlows: [
+      {
+        streams: ['Microsoft-ContainerInsights-Group-Default']
+        destinations: ['ciworkspace']
+      }
+    ]
   }
 }
 
-module aksWriter './aks-role-assignment.bicep' = {
-  name: 'aksWriter-${deploymentId}'
-  scope: resourceGroup()
-  params: {
-    aksName: aksParams.name
-    deploymentId: deploymentId
-    principalObjectId: entraGroups.aksContributors.id
-    principalType: 'Group'
-    roleAssignmentType: roleAssignmentsType
-    roleDefinitionId: aksRbacWriterRoleId
-  }
-}
-
-module aksReader './aks-role-assignment.bicep' = {
-  name: 'aksReader-${deploymentId}'
-  scope: resourceGroup()
-  params: {
-    aksName: aksParams.name
-    deploymentId: deploymentId
-    principalObjectId: entraGroups.aksReaders.id
-    principalType: 'Group'
-    roleAssignmentType: roleAssignmentsType
-    roleDefinitionId: aksRbacReaderRoleId
+resource containerInsightsRuleAssociation 'Microsoft.Insights/dataCollectionRuleAssociations@2023-03-11' = if (aksParams.containerInsights) {
+  name: 'ContainerInsightsExtension'
+  scope: aksCluster
+  properties: {
+    dataCollectionRuleId: containerInsightsRule.id
+    description: 'Association of data collection rule. Deleting this association will break the data collection for this AKS Cluster.'
   }
 }
 

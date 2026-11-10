@@ -3,68 +3,31 @@
 # for this stage template overridden to SND. This will achieve the necessary variable precedence.
 # See https://learn.microsoft.com/en-us/azure/devops/pipelines/process/variables?view=azure-devops&tabs=yaml%2Cbatch#expansion-of-variables
 parameters:
+  - name: stagePrefix
+    type: string
+    default: ''
+
+  - name: allowTaggedDeployments
+    type: boolean
+    default: false
+
   - name: environmentName
     type: string
   - name: classicEnvironmentName
     type: string
 
+  - name: dependsOn
+    type: object
+    default: []
+  - name: deploymentVariables
+    type: object
+    default: {}
+
 stages:
-  - stage: ConfigureClassicDeployment
-    displayName: Configure Classic deployment
-    variables:
-      - group: Common
-      - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
-        - group: HigherEnvs
-      - ${{ else }}:
-        - group: LowerEnvs
-      - group: "${{ parameters.classicEnvironmentName }}"
-      - group: "${{ parameters.environmentName }}"
-      - template: "/pipelines/vars/common.yaml"
-      - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
-      - template: "/pipelines/vars/${{ lower(parameters.classicEnvironmentName) }}.yaml"
-    jobs:
-      - job: ConfigureBicep
-        displayName: Configure Bicep
-        steps:
-          - checkout: self
-
-          - task: Bash@3
-            name: GenerateBicepParams
-            displayName: Generate Bicep Params
-            inputs:
-              targetType: inline
-              script: |
-                set -ex
-                cat <<- 'EOF' >'$(Build.SourcesDirectory)/30-classic-runtime.bicepparam'
-                using '30-classic.bicep'
-                extends 'envs/${{ lower(parameters.classicEnvironmentName) }}/30-classic.bicepparam'
-                param entraGroups = {
-                  searchContributors: {
-                    id: '$(searchContributorsGroupId)'
-                    name: '$(searchContributorsGroupName)'
-                  }
-                  searchReaders: {
-                    id: '$(searchReadersGroupId)'
-                    name: '$(searchReadersGroupName)'
-                  }
-                  sqlAdmins: {
-                    id: '$(sqlAdminGroupId)'
-                    name: '$(sqlAdminGroupName)'
-                  }
-                }
-                EOF
-                cat '$(Build.SourcesDirectory)/30-classic-runtime.bicepparam'
-
-          - task: PublishPipelineArtifact@1
-            displayName: Publish artifact
-            inputs:
-              artifactName: bicepparam-classic
-              targetPath: $(Build.SourcesDirectory)/30-classic-runtime.bicepparam
-
-
-  - stage: DeployClassic
+  - stage: ${{ parameters.stagePrefix }}DeployClassic
     displayName: Deploy Classic
-    dependsOn: ConfigureClassicDeployment
+    ${{ if gt(length(parameters.dependsOn), 0) }}:
+      dependsOn: ${{ parameters.dependsOn }}
     variables:
       - group: "${{ parameters.classicEnvironmentName }}"
       - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
@@ -73,6 +36,15 @@ stages:
         - group: LowerEnvs
       - template: "/pipelines/vars/common.yaml"
       - template: "/pipelines/vars/${{ lower(parameters.classicEnvironmentName) }}.yaml"
+      # Main pipelines supply the modern SQL admin group from access validation.
+      # The fallback keeps this stage usable without an explicit output dependency.
+      - name: parameterSqlAdminGroupId
+        value: $(sqlAdminGroupId)
+      - name: parameterSqlAdminGroupName
+        value: $(sqlAdminGroupName)
+      - ${{ each variable in parameters.deploymentVariables }}:
+        - name: ${{ variable.key }}
+          value: ${{ variable.value }}
     jobs:
       - deployment: RunBicep
         displayName: Run Bicep
@@ -82,52 +54,76 @@ stages:
           runOnce:
             deploy:
               steps:
+                - download: none
                 - checkout: self
 
-                - task: DownloadPipelineArtifact@2
-                  displayName: Download artifact
+                - task: Bash@3
+                  name: GenerateBicepParams
+                  displayName: Generate Bicep Params
+                  env:
+                    BICEP_PARAMETER_SQL_ADMIN_GROUP_ID: $(parameterSqlAdminGroupId)
+                    BICEP_PARAMETER_SQL_ADMIN_GROUP_NAME: $(parameterSqlAdminGroupName)
+                    BICEP_TENANT_ID: $(tenantId)
                   inputs:
-                    artifactName: bicepparam-classic
-                    targetPath: $(Build.SourcesDirectory)/bicep
+                    targetType: inline
+                    script: |
+                      set -euo pipefail
+                      python3 scripts/pipeline/infrastructure_parameters.py \
+                        --component classic \
+                        --environment ${{ parameters.environmentName }} \
+                        --classic-environment ${{ parameters.classicEnvironmentName }} \
+                        --output "$(Build.SourcesDirectory)/bicep/30-classic-runtime.bicepparam"
+
+                - task: PublishPipelineArtifact@1
+                  displayName: Publish artifact
+                  inputs:
+                    artifactName: ${{ parameters.stagePrefix }}bicepparam-classic
+                    targetPath: $(Build.SourcesDirectory)/bicep/30-classic-runtime.bicepparam
 
                 - task: AzureCLI@2
                   displayName: WhatIf - Classic
+                  env:
+                    AZURE_BICEP_USE_BINARY_FROM_PATH: 'false'
                   inputs:
-                    azureSubscription: $(classicServiceConnection)
+                    azureSubscription: ${{ variables.classicServiceConnection }}
                     scriptType: bash
                     scriptLocation: inlineScript
                     inlineScript: |
+                      set -euo pipefail
+                      bash scripts/pipeline/ensure-bicep-version.sh
                       set -x
                       az deployment group what-if \
                         --name "Classic-$(Build.BuildId)" \
                         --subscription $(classicSubscriptionId) \
                         --resource-group $(classicResourceGroupName) \
                         --template-file bicep/30-classic.bicep \
-                        --parameters bicep/30-classic-runtime.bicepparam \
-                        --parameters tenantId="$(tenantId)"
+                        --parameters bicep/30-classic-runtime.bicepparam
 
                 - task: AzureCLI@2
                   displayName: Deploy - Classic
-                  condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+                  condition: and(not(failed()), not(canceled()), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), and(${{ parameters.allowTaggedDeployments }}, startsWith(variables['Build.SourceBranch'], 'refs/tags/'))))
+                  env:
+                    AZURE_BICEP_USE_BINARY_FROM_PATH: 'false'
                   inputs:
-                    azureSubscription: $(classicServiceConnection)
+                    azureSubscription: ${{ variables.classicServiceConnection }}
                     scriptType: bash
                     scriptLocation: inlineScript
                     inlineScript: |
+                      set -euo pipefail
+                      bash scripts/pipeline/ensure-bicep-version.sh
                       set -x
                       az deployment group create \
                         --name "Classic-$(Build.BuildId)" \
                         --subscription $(classicSubscriptionId) \
                         --resource-group $(classicResourceGroupName) \
                         --template-file bicep/30-classic.bicep \
-                        --parameters bicep/30-classic-runtime.bicepparam \
-                        --parameters tenantId="$(tenantId)"
+                        --parameters bicep/30-classic-runtime.bicepparam
 
                 - task: AzureCLI@2
                   displayName: Wait for Deployment - Classic
-                  condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+                  condition: and(not(failed()), not(canceled()), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), and(${{ parameters.allowTaggedDeployments }}, startsWith(variables['Build.SourceBranch'], 'refs/tags/'))))
                   inputs:
-                    azureSubscription: $(classicServiceConnection)
+                    azureSubscription: ${{ variables.classicServiceConnection }}
                     scriptType: bash
                     scriptLocation: inlineScript
                     inlineScript: |
@@ -138,56 +134,38 @@ stages:
                         --resource-group $(classicResourceGroupName) \
                         --created
 
-
-  - stage: SaveClassicDeploymentDetails
-    displayName: Save Classic deployment details
-    dependsOn: DeployClassic
-    variables:
-      - group: Common
-      - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
-        - group: HigherEnvs
-      - ${{ else }}:
-        - group: LowerEnvs
-      - group: "${{ parameters.classicEnvironmentName }}"
-      - group: "${{ parameters.environmentName }}"
-      - template: "/pipelines/vars/common.yaml"
-      - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
-      - template: "/pipelines/vars/${{ lower(parameters.classicEnvironmentName) }}.yaml"
-    jobs:
-      - job: StoreLibraryVariables
-        displayName: Store library variables
-        steps:
-          - checkout: self
-
-          - task: AzureCLI@2
-            name: ClassicOutputs
-            displayName: Classic outputs
-            condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
-            env:
-              ADO_ORG_URL: $(System.CollectionUri)
-              ADO_PROJECT: $(System.TeamProject)
-              ADO_GROUP_NAME: ${{ parameters.environmentName }}
-              AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
-              DEPLOYMENT_NAME: Classic-$(Build.BuildId)
-              RESOURCE_GROUP: $(classicResourceGroupName)
-              SUBSCRIPTION_ID: $(classicSubscriptionId)
-            inputs:
-              azureSubscription: $(classicServiceConnection)
-              scriptType: bash
-              scriptLocation: inlineScript
-              inlineScript: |
-                set -x
-                scripts/pipeline/update-group-variable-from-deployment.sh classicRedisName redisName
-                scripts/pipeline/update-group-variable-from-deployment.sh classicRedisResourceId redisResourceId
-                scripts/pipeline/update-group-variable-from-deployment.sh classicSearchServiceSubscriptionId searchServiceSubscriptionId
-                scripts/pipeline/update-group-variable-from-deployment.sh classicSearchServiceResourceGroupName searchServiceResourceGroupName
-                scripts/pipeline/update-group-variable-from-deployment.sh classicSearchServiceName searchServiceName
-                scripts/pipeline/update-group-variable-from-deployment.sh classicSearchServiceManagedIdentityPrincipalId searchServiceManagedIdentityPrincipalId
-                scripts/pipeline/update-group-variable-from-deployment.sh classicSearchServiceManagedIdentityPrincipalName searchServiceManagedIdentityPrincipalName
-                scripts/pipeline/update-group-variable-from-deployment.sh classicSearchServiceResourceId searchServiceResourceId
-                scripts/pipeline/update-group-variable-from-deployment.sh classicServiceBusNamespaceName serviceBusNamespaceName
-                scripts/pipeline/update-group-variable-from-deployment.sh classicServiceBusNamespaceResourceId serviceBusNamespaceResourceId
-                scripts/pipeline/update-group-variable-from-deployment.sh classicSqlServerName sqlServerName
-                scripts/pipeline/update-group-variable-from-deployment.sh classicSqlServerResourceId sqlServerResourceId
-
-
+                - task: AzureCLI@2
+                  name: ClassicOutputs
+                  displayName: Classic outputs
+                  condition: and(not(failed()), not(canceled()), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), and(${{ parameters.allowTaggedDeployments }}, startsWith(variables['Build.SourceBranch'], 'refs/tags/'))))
+                  env:
+                    ADO_ORG_URL: $(System.CollectionUri)
+                    ADO_PROJECT: $(System.TeamProject)
+                    ADO_GROUP_NAME: ${{ parameters.environmentName }}
+                    AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
+                    DEPLOYMENT_NAME: Classic-$(Build.BuildId)
+                    RESOURCE_GROUP: $(classicResourceGroupName)
+                    SUBSCRIPTION_ID: $(classicSubscriptionId)
+                  inputs:
+                    azureSubscription: ${{ variables.classicServiceConnection }}
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      set -euo pipefail
+                      python3 scripts/pipeline/sync-deployment-outputs.py \
+                        --emit-output=classicRedisResourceId \
+                        --emit-output=classicSearchServiceResourceId \
+                        --emit-output=classicServiceBusNamespaceResourceId \
+                        --emit-output=classicSqlServerResourceId \
+                        classicRedisName=redisName \
+                        classicRedisResourceId=redisResourceId \
+                        classicSearchServiceSubscriptionId=searchServiceSubscriptionId \
+                        classicSearchServiceResourceGroupName=searchServiceResourceGroupName \
+                        classicSearchServiceName=searchServiceName \
+                        classicSearchServiceManagedIdentityPrincipalId=searchServiceManagedIdentityPrincipalId \
+                        classicSearchServiceManagedIdentityPrincipalName=searchServiceManagedIdentityPrincipalName \
+                        classicSearchServiceResourceId=searchServiceResourceId \
+                        classicServiceBusNamespaceName=serviceBusNamespaceName \
+                        classicServiceBusNamespaceResourceId=serviceBusNamespaceResourceId \
+                        classicSqlServerName=sqlServerName \
+                        classicSqlServerResourceId=sqlServerResourceId

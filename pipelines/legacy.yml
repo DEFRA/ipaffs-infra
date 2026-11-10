@@ -55,11 +55,15 @@ stages:
 
                 - task: AzureCLI@2
                   displayName: WhatIf - Classic
+                  env:
+                    AZURE_BICEP_USE_BINARY_FROM_PATH: 'false'
                   inputs:
                     azureSubscription: $(classicServiceConnection)
                     scriptType: bash
                     scriptLocation: inlineScript
                     inlineScript: |
+                      set -euo pipefail
+                      bash scripts/pipeline/ensure-bicep-version.sh
                       az deployment group what-if \
                         --name "Classic-$(Build.BuildId)" \
                         --subscription $(classicSubscriptionId) \
@@ -70,11 +74,15 @@ stages:
                 - task: AzureCLI@2
                   displayName: Deploy - Classic
                   condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+                  env:
+                    AZURE_BICEP_USE_BINARY_FROM_PATH: 'false'
                   inputs:
                     azureSubscription: $(classicServiceConnection)
                     scriptType: bash
                     scriptLocation: inlineScript
                     inlineScript: |
+                      set -euo pipefail
+                      bash scripts/pipeline/ensure-bicep-version.sh
                       az deployment group create \
                         --name "Classic-$(Build.BuildId)" \
                         --subscription $(classicSubscriptionId) \

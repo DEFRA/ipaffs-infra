@@ -2,7 +2,6 @@ targetScope = 'resourceGroup'
 
 param databaseNames array
 param dbwParams object
-param deploymentId string
 param location string
 param tags object
 
@@ -58,17 +57,6 @@ resource kustoDataStore 'Microsoft.Kusto/Clusters/Databases@2024-04-13' = {
   properties: {
     hotCachePeriod: 'P31D'
     softDeletePeriod: 'P365D'
-  }
-}
-
-resource kustoDataStoreGroupAdmin 'Microsoft.Kusto/Clusters/Databases/PrincipalAssignments@2024-04-13' = {
-  parent: kustoDataStore
-  name: dbwParams.adminEntraGroup
-  properties: {
-    principalId: dbwParams.adminEntraGroup
-    role: 'Admin'
-    principalType: 'Group'
-    tenantId: '770a2450-0227-4c62-90c7-4e38537f1102'
   }
 }
 

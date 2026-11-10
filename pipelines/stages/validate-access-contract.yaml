@@ -1,0 +1,58 @@
+parameters:
+  - name: stagePrefix
+    type: string
+    default: ''
+
+  - name: allowTaggedDeployments
+    type: boolean
+    default: false
+
+  - name: environmentName
+    type: string
+
+  - name: dependsOn
+    type: object
+    default: []
+  - name: deploymentVariables
+    type: object
+    default: {}
+
+stages:
+  - stage: ${{ parameters.stagePrefix }}ValidateAccessContract
+    displayName: Validate operations access-group contract
+    ${{ if gt(length(parameters.dependsOn), 0) }}:
+      dependsOn: ${{ parameters.dependsOn }}
+    variables:
+      - group: Common
+      - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
+        - group: HigherEnvs
+      - ${{ else }}:
+        - group: LowerEnvs
+      - group: "${{ parameters.environmentName }}"
+      - ${{ each variable in parameters.deploymentVariables }}:
+        - name: ${{ variable.key }}
+          value: ${{ variable.value }}
+    jobs:
+      - job: ValidateGroups
+        displayName: Check existing group identifiers
+        steps:
+          - checkout: self
+          - script: |
+              set -euo pipefail
+              python3 scripts/pipeline/validate-access-contract.py
+              escape_data() {
+                local value="$1"
+                value="${value//%/%AZP25}"
+                value="${value//$'\r'/%0D}"
+                value="${value//$'\n'/%0A}"
+                printf '%s' "$value"
+              }
+              printf '##vso[task.setvariable variable=sqlAdminGroupId;isOutput=true]%s\n' "$(escape_data "$ACCESS_SQL_ADMINS_GROUP_ID")"
+              printf '##vso[task.setvariable variable=sqlAdminGroupName;isOutput=true]%s\n' "$(escape_data "$ACCESS_SQL_ADMINS_GROUP_NAME")"
+            name: AccessContract
+            displayName: Validate the shared group-ID contract
+            env:
+              ACCESS_SQL_ADMINS_GROUP_ID: $(sqlAdminGroupId)
+              ACCESS_SQL_ADMINS_GROUP_NAME: $(sqlAdminGroupName)
+              ACCESS_ACR_PULL_GROUP_ID: $(acrPullGroupId)
+              ACCESS_CERTIFICATE_READERS_GROUP_ID: $(defraCertificateReadersGroupId)

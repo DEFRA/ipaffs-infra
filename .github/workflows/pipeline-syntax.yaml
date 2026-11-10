@@ -4,29 +4,47 @@ on:
   pull_request:
     paths:
       - ".github/workflows/pipeline-syntax.yaml"
+      - "release-pipeline.yaml"
+      - "release-refs-pipeline.yaml"
       - "pipelines/*.yaml"
       - "pipelines/*.yml"
       - "pipelines/**/*.yaml"
       - "pipelines/**/*.yml"
       - "scripts/**/*.sh"
+      - "scripts/**/*.test.py"
+      - "scripts/pipeline/validate-access-contract.py"
+      - "scripts/pipeline/create-release-refs.py"
+      - "scripts/pipeline/sync-deployment-outputs.py"
+      - "scripts/pipeline/infrastructure_*.py"
+      - "scripts/pipeline/plan-infrastructure.py"
       - "bicep/*.bicep"
       - "bicep/*.bicepparam"
       - "bicep/**/*.bicep"
       - "bicep/**/*.bicepparam"
+      - "bicep/bicepconfig.json"
   push:
     branches:
       - main
     paths:
       - ".github/workflows/pipeline-syntax.yaml"
+      - "release-pipeline.yaml"
+      - "release-refs-pipeline.yaml"
       - "pipelines/*.yaml"
       - "pipelines/*.yml"
       - "pipelines/**/*.yaml"
       - "pipelines/**/*.yml"
       - "scripts/**/*.sh"
+      - "scripts/**/*.test.py"
+      - "scripts/pipeline/validate-access-contract.py"
+      - "scripts/pipeline/create-release-refs.py"
+      - "scripts/pipeline/sync-deployment-outputs.py"
+      - "scripts/pipeline/infrastructure_*.py"
+      - "scripts/pipeline/plan-infrastructure.py"
       - "bicep/*.bicep"
       - "bicep/*.bicepparam"
       - "bicep/**/*.bicep"
       - "bicep/**/*.bicepparam"
+      - "bicep/bicepconfig.json"
 
 jobs:
   ado-pipeline-yaml:
@@ -44,7 +62,7 @@ jobs:
           files=()
           while IFS= read -r file; do
             files+=("${file}")
-          done < <(git ls-files "pipelines/*.yaml" "pipelines/*.yml" "pipelines/**/*.yaml" "pipelines/**/*.yml" | sort)
+          done < <(git ls-files "release-pipeline.yaml" "release-refs-pipeline.yaml" "pipelines/*.yaml" "pipelines/*.yml" "pipelines/**/*.yaml" "pipelines/**/*.yml" | sort)
 
           if [[ ${#files[@]} -eq 0 ]]; then
             echo "No Azure DevOps pipeline YAML files found."
@@ -59,10 +77,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Test Entra group membership reconciliation
-        shell: bash
-        run: bash scripts/pipeline/add-entra-group-members.test.sh
 
       - name: Check Bash syntax
         shell: bash
@@ -91,19 +105,57 @@ jobs:
       - name: Test generated manifest service values
         shell: bash
         run: bash scripts/pipeline/update-manifest-service-values.test.sh
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Python test dependencies
+        run: python -m pip install PyYAML==6.0.3
+
+      - name: Test operations access-group contract
+        run: python scripts/pipeline/validate-access-contract.test.py
+
+      - name: Test deployment output synchronisation
+        run: python scripts/pipeline/sync-deployment-outputs.test.py
+
+      - name: Test consolidated Bicep jobs
+        run: python scripts/pipeline/consolidated-bicep-jobs.test.py
+
+      - name: Test infrastructure release promotion
+        run: python scripts/pipeline/release-pipeline.test.py
+
+      - name: Test infrastructure release refs
+        run: python scripts/pipeline/release-refs.test.py
+
+      - name: Test infrastructure previews
+        run: |
+          python scripts/pipeline/infrastructure-plan-report.test.py
+          python scripts/pipeline/infrastructure-plan-readability.test.py
+          python scripts/pipeline/infrastructure-preview-pipeline.test.py
+          python scripts/pipeline/plan-infrastructure.test.py
   bicep:
     name: Bicep
     runs-on: ubuntu-latest
+    env:
+      AZURE_BICEP_USE_BINARY_FROM_PATH: 'false'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Install and verify pinned Bicep compiler
+        shell: bash
+        run: |
+          set -euo pipefail
+          export AZURE_CONFIG_DIR="${RUNNER_TEMP}/azure"
+          bash scripts/pipeline/ensure-bicep-version.sh
+          printf 'AZURE_CONFIG_DIR=%s\n' "$AZURE_CONFIG_DIR" >> "$GITHUB_ENV"
 
       - name: Build Bicep files
         shell: bash
         run: |
           set -euo pipefail
-
-          export AZURE_CONFIG_DIR="${RUNNER_TEMP}/azure"
 
           files=()
           while IFS= read -r file; do
@@ -117,15 +169,13 @@ jobs:
 
           for file in "${files[@]}"; do
             echo "Building ${file}"
-            az bicep build --file "${file}" --stdout --only-show-errors > /dev/null
+            az bicep build --file "${file}" --stdout > /dev/null
           done
 
       - name: Build Bicep parameter files
         shell: bash
         run: |
           set -euo pipefail
-
-          export AZURE_CONFIG_DIR="${RUNNER_TEMP}/azure"
 
           files=()
           while IFS= read -r file; do
@@ -139,5 +189,5 @@ jobs:
 
           for file in "${files[@]}"; do
             echo "Building ${file}"
-            az bicep build-params --file "${file}" --stdout --only-show-errors > /dev/null
+            az bicep build-params --file "${file}" --stdout > /dev/null
           done

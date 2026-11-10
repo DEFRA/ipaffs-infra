@@ -3,12 +3,6 @@ targetScope = 'resourceGroup'
 @allowed(['DEV', 'TST', 'PRE', 'PRD'])
 param environment string
 
-@allowed(['permanent', 'eligible'])
-param roleAssignmentsType string
-
-param builtInGroups object
-param classicLocation string
-param classicResourceIds object
 param entraGroups object
 param subnets object
 param tenantId string
@@ -29,7 +23,7 @@ param agcParams object
 param aksParams object
 param alertsParams object
 param asoParams object
-param externalSecretsParams object
+param externalIdentityName string
 param keyVaultParams object
 param monitoringParams object
 param qaKeyVaultParams object = {}
@@ -40,9 +34,8 @@ param sqlParams object
 param insightsParams object
 param storageParams object
 
-resource vnet 'Microsoft.Network/virtualNetworks@2025-05-01' existing = {
-  name: vnetName
-}
+// Calculate the ID without a deployment output so what-if can resolve it.
+var logAnalyticsId = resourceId('Microsoft.OperationalInsights/workspaces', monitoringParams.logAnalyticsName)
 
 module aks './modules/aks.bicep' = {
   name: 'aks-${deploymentId}'
@@ -50,14 +43,14 @@ module aks './modules/aks.bicep' = {
   params: {
     aksParams: aksParams
     deploymentId: deploymentId
-    entraGroups: entraGroups
     location: location
-    logAnalyticsId: monitoring.outputs.logAnalyticsId
-    roleAssignmentsType: roleAssignmentsType
+    logAnalyticsId: logAnalyticsId
     subnets: subnets
     tags: tags
+    tenantId: tenantId
     vnetName: vnetName
   }
+  dependsOn: [monitoring]
 }
 
 module agc './modules/application-gateway-for-containers.bicep' = {
@@ -80,8 +73,6 @@ module alerts './modules/alerts.bicep' = {
   scope: resourceGroup()
   params: {
     alertsParams: alertsParams
-    deploymentId: deploymentId
-    location: location
     tags: tags
   }
 }
@@ -91,7 +82,6 @@ module aso './modules/azure-service-operator.bicep' = {
   scope: resourceGroup()
   params: {
     asoParams: asoParams
-    deploymentId: deploymentId
     oidcIssuerUrl: aks.outputs.oidcIssuerUrl
     location: location
     tags: tags
@@ -103,7 +93,7 @@ module externalSecrets './modules/external-secrets-identity.bicep' = {
   scope: resourceGroup()
   params: {
     deploymentId: deploymentId
-    externalSecretsParams: externalSecretsParams
+    managedIdentityName: externalIdentityName
     keyVaultName: keyVault.outputs.keyVaultName
     location: location
     oidcIssuerUrl: aks.outputs.oidcIssuerUrl
@@ -111,8 +101,6 @@ module externalSecrets './modules/external-secrets-identity.bicep' = {
   }
 }
 
-var keyVaultAdministratorRoleId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '00482a5a-887f-4fb3-b363-3b7fe8e74483')
-var keyVaultSecretsOfficerRoleId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b86a8fe4-44ce-4948-aee5-eccb2c155cd7')
 var keyVaultSecretsUserRoleId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '4633458b-17de-408a-b874-0445c86b69e6')
 
 module keyVault './modules/keyvault.bicep' = {
@@ -125,52 +113,22 @@ module keyVault './modules/keyvault.bicep' = {
     subnets: subnets
     tags: tags
     tenantId: tenantId
-    roleAssignments: [
-      {
-        principalObjectId: entraGroups.keyVaultAdmins.id
-        principalType: 'Group'
-        roleAssignmentType: 'permanent'
-        roleDefinitionId: keyVaultAdministratorRoleId
-      }
-      {
-        principalObjectId: entraGroups.keyVaultSecretsReaders.id
-        principalType: 'Group'
-        roleAssignmentType: 'permanent'
-        roleDefinitionId: keyVaultSecretsUserRoleId
-      }
-    ]
+    // Human grants are managed by ipaffs-operations.
+    roleAssignments: []
   }
 }
 
 // Only deployed when an environment supplies qaKeyVaultParams (currently just envs/tst/40-infra.bicepparam).
 var deployQaKeyVault = !empty(qaKeyVaultParams)
-var qaSecretsOfficerObjectId = contains(entraGroups, 'qaKeyVaultSecretsOfficers') ? entraGroups.qaKeyVaultSecretsOfficers.id : ''
-var qaKeyVaultRoleAssignments = concat(
-  [
-    {
-      principalObjectId: entraGroups.keyVaultAdmins.id
-      principalType: 'Group'
-      roleAssignmentType: 'permanent'
-      roleDefinitionId: keyVaultAdministratorRoleId
-    }
-  ],
-  empty(qaSecretsOfficerObjectId) ? [] : [
-    {
-      principalObjectId: qaSecretsOfficerObjectId
-      principalType: 'Group'
-      roleAssignmentType: 'permanent'
-      roleDefinitionId: keyVaultSecretsOfficerRoleId
-    }
-  ],
-  empty(qaAutomationPrincipalObjectId) ? [] : [
-    {
-      principalObjectId: qaAutomationPrincipalObjectId
-      principalType: 'ServicePrincipal'
-      roleAssignmentType: 'permanent'
-      roleDefinitionId: keyVaultSecretsUserRoleId
-    }
-  ]
-)
+// Keep the QA automation principal's runtime access with the vault infrastructure.
+var qaKeyVaultRoleAssignments = empty(qaAutomationPrincipalObjectId) ? [] : [
+  {
+    principalObjectId: qaAutomationPrincipalObjectId
+    principalType: 'ServicePrincipal'
+    roleAssignmentType: 'permanent'
+    roleDefinitionId: keyVaultSecretsUserRoleId
+  }
+]
 
 module qaKeyVault './modules/keyvault.bicep' = if (deployQaKeyVault) {
   name: 'qaKeyVault-${deploymentId}'
@@ -190,12 +148,10 @@ module redis './modules/redis.bicep' = {
   name: 'redis-${deploymentId}'
   scope: resourceGroup()
   params: {
-    deploymentId: deploymentId
     redisParams: redisParams
     location: location
     subnets: subnets
     tags: tags
-    tenantId: tenantId
   }
 }
 
@@ -204,14 +160,11 @@ module search './modules/search.bicep' = {
   scope: resourceGroup()
   params: {
     deploymentId: deploymentId
-    entraGroups: entraGroups
     searchParams: searchParams
     location: location
-    roleAssignmentsType: roleAssignmentsType
     sqlServerName: sql.outputs.sqlServerName
     subnets: subnets
     tags: tags
-    tenantId: tenantId
   }
 }
 
@@ -219,7 +172,6 @@ module sql './modules/sql.bicep' = {
   name: 'sql-${deploymentId}'
   scope: resourceGroup()
   params: {
-    deploymentId: deploymentId
     entraGroups: entraGroups
     location: location
     sqlParams: sqlParams
@@ -237,7 +189,6 @@ module monitoring './modules/monitoring.bicep' = {
     location: location
     tags: tags
     monitoringParams: monitoringParams
-    entraGroups: entraGroups
     deployServicePrincipalObjectId: deployServicePrincipalObjectId
   }
 }
@@ -247,21 +198,18 @@ module insights './modules/insights.bicep' = {
   scope: resourceGroup()
   params: {
     insightsParams: insightsParams
-    deploymentId: deploymentId
-    logAnalyticsId: monitoring.outputs.logAnalyticsId
+    logAnalyticsId: logAnalyticsId
     location: location
     tags: tags
   }
+  dependsOn: [monitoring]
 }
 
 module storage './modules/storage.bicep' = {
   name: 'storage-${deploymentId}'
   scope: resourceGroup()
   params: {
-    deploymentId: deploymentId
-    entraGroups: entraGroups
     location: location
-    roleAssignmentsType: roleAssignmentsType
     storageParams: storageParams
     subnets: subnets
     tags: tags

@@ -1,7 +1,5 @@
 using '../../60-dns.bicep'
 
-param environment = 'TST'
-
 param loadBalancer = {
   name: 'kubernetes-internal'
   resourceGroup: 'TSTIMPINFRG1402'

@@ -1,12 +1,6 @@
 ---
-trigger:
-  branches:
-    include:
-      - main
-  paths:
-    include:
-      - pipelines/infra-permissions.yaml
-      - pipelines/stages/infra-permissions.yaml
+# Infrastructure owns automatic DEV deployments; retain this entry point for previews/manual runs.
+trigger: none
 
 pr:
   branches:
@@ -42,6 +36,10 @@ stages:
     parameters:
       tags:
         - Environment-${{ parameters.environmentName }}
+
+  - template: stages/validate-access-contract.yaml
+    parameters:
+      environmentName: ${{ parameters.environmentName }}
 
   - template: stages/infra-permissions.yaml
     parameters:

@@ -1,58 +1,27 @@
 parameters:
+  - name: stagePrefix
+    type: string
+    default: ''
+
+  - name: allowTaggedDeployments
+    type: boolean
+    default: false
+
   - name: environmentName
     type: string
 
+  - name: dependsOn
+    type: object
+    default: []
+  - name: deploymentVariables
+    type: object
+    default: {}
+
 stages:
-  - stage: ConfigureResourceGroupDeployment
-    displayName: Configure Resource Group deployment
-    variables:
-      - group: Common
-      - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
-        - group: HigherEnvs
-      - ${{ else }}:
-        - group: LowerEnvs
-      - group: "${{ parameters.environmentName }}"
-      - template: "/pipelines/vars/common.yaml"
-      - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
-    jobs:
-      - job: ConfigureBicep
-        displayName: Configure Bicep
-        steps:
-          - checkout: self
-
-          - task: Bash@3
-            name: GenerateBicepParams
-            displayName: Generate Bicep Params
-            inputs:
-              targetType: inline
-              script: |
-                set -ex
-                cat <<- 'EOF' >'$(Build.SourcesDirectory)/10-resource-group-runtime.bicepparam'
-                using '10-resource-group.bicep'
-                extends 'envs/${{ lower(parameters.environmentName) }}/10-resource-group.bicepparam'
-                param entraGroups = {
-                  pimOwners: {
-                    id: '$(pimOwnersGroupId)'
-                    name: '$(pimOwnersGroupName)'
-                  }
-                  pimContributors: {
-                    id: '$(pimContributorsGroupId)'
-                    name: '$(pimContributorsGroupName)'
-                  }
-                }
-                EOF
-                cat '$(Build.SourcesDirectory)/10-resource-group-runtime.bicepparam'
-
-          - task: PublishPipelineArtifact@1
-            displayName: Publish artifact
-            inputs:
-              artifactName: bicepparam-resource-group
-              targetPath: $(Build.SourcesDirectory)/10-resource-group-runtime.bicepparam
-
-
-  - stage: DeployResourceGroup
+  - stage: ${{ parameters.stagePrefix }}DeployResourceGroup
     displayName: Deploy Resource Group
-    dependsOn: ConfigureResourceGroupDeployment
+    ${{ if gt(length(parameters.dependsOn), 0) }}:
+      dependsOn: ${{ parameters.dependsOn }}
     variables:
       - group: Common
       - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
@@ -62,6 +31,9 @@ stages:
       - group: "${{ parameters.environmentName }}"
       - template: "/pipelines/vars/common.yaml"
       - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
+      - ${{ each variable in parameters.deploymentVariables }}:
+        - name: ${{ variable.key }}
+          value: ${{ variable.value }}
     jobs:
       - deployment: RunBicep
         displayName: Run Bicep
@@ -71,21 +43,38 @@ stages:
           runOnce:
             deploy:
               steps:
+                - download: none
                 - checkout: self
 
-                - task: DownloadPipelineArtifact@2
-                  displayName: Download artifact
+                - task: Bash@3
+                  name: GenerateBicepParams
+                  displayName: Generate Bicep Params
                   inputs:
-                    artifactName: bicepparam-resource-group
-                    targetPath: $(Build.SourcesDirectory)/bicep
+                    targetType: inline
+                    script: |
+                      set -euo pipefail
+                      python3 scripts/pipeline/infrastructure_parameters.py \
+                        --component resource-group \
+                        --environment ${{ parameters.environmentName }} \
+                        --output "$(Build.SourcesDirectory)/bicep/10-resource-group-runtime.bicepparam"
+
+                - task: PublishPipelineArtifact@1
+                  displayName: Publish artifact
+                  inputs:
+                    artifactName: ${{ parameters.stagePrefix }}bicepparam-resource-group
+                    targetPath: $(Build.SourcesDirectory)/bicep/10-resource-group-runtime.bicepparam
 
                 - task: AzureCLI@2
                   displayName: WhatIf - Resource Group
+                  env:
+                    AZURE_BICEP_USE_BINARY_FROM_PATH: 'false'
                   inputs:
-                    azureSubscription: $(serviceConnection)
+                    azureSubscription: ${{ variables.serviceConnection }}
                     scriptType: bash
                     scriptLocation: inlineScript
                     inlineScript: |
+                      set -euo pipefail
+                      bash scripts/pipeline/ensure-bicep-version.sh
                       set -x
                       az deployment sub what-if \
                         --name "ResourceGroup-$(Build.BuildId)" \
@@ -96,12 +85,16 @@ stages:
 
                 - task: AzureCLI@2
                   displayName: Deploy - ResourceGroup
-                  condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+                  condition: and(not(failed()), not(canceled()), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), and(${{ parameters.allowTaggedDeployments }}, startsWith(variables['Build.SourceBranch'], 'refs/tags/'))))
+                  env:
+                    AZURE_BICEP_USE_BINARY_FROM_PATH: 'false'
                   inputs:
-                    azureSubscription: $(serviceConnection)
+                    azureSubscription: ${{ variables.serviceConnection }}
                     scriptType: bash
                     scriptLocation: inlineScript
                     inlineScript: |
+                      set -euo pipefail
+                      bash scripts/pipeline/ensure-bicep-version.sh
                       set -x
                       az deployment sub create \
                         --name "ResourceGroup-$(Build.BuildId)" \

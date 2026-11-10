@@ -34,12 +34,13 @@ resource keyVault 'Microsoft.KeyVault/vaults@2026-02-01' = {
   }
 }
 
-resource keyVaultPrivateEndpoints 'Microsoft.Network/privateEndpoints@2024-10-01' = {
+resource keyVaultPrivateEndpoints 'Microsoft.Network/privateEndpoints@2025-03-01' = {
   name: '${keyVaultParams.name}-${subnets.privateEndpoints.name}'
   location: location
   tags: tags
 
   properties: {
+    ipVersionType: 'IPv4'
     subnet: {
       id: subnets.privateEndpoints.id
     }
@@ -62,7 +63,6 @@ module keyVaultRoleAssignment './keyvault-role-assignment.bicep' = [for assignme
   params: {
     keyVaultName: keyVaultParams.name
     deploymentId: deploymentId
-    location: location
     principalObjectId: assignment.principalObjectId
     principalType: assignment.principalType
     roleAssignmentType: assignment.roleAssignmentType

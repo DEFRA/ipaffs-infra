@@ -1,15 +1,12 @@
 using '../../40-infra.bicep'
 
-param builtInGroups = {
+var builtInGroups = {
   contributors: '04b12060-3b12-49aa-a92a-d62873d8d29e' // AG-Azure-IMP_DEV1-Contributors
   owners: 'dbaf1ee8-c128-4f27-b159-791866210c2e' // AG-Azure-IMP_DEV1-Owners
 }
 
-param classicLocation = 'northeurope'
-param classicResourceIds = {}
 param entraGroups = {}
 param environment = 'DEV'
-param roleAssignmentsType = 'permanent'
 param subnets = {}
 param tenantId = ''
 param deployServicePrincipalObjectId = ''
@@ -28,8 +25,10 @@ param aksParams = {
   dnsPrefix: 'devimpinfak1401'
   nodeResourceGroup: 'DEVIMPINFRG1402'
   sku: 'Standard'
+
+  // Container Insights collection (logs and inventory) into this environment's Log Analytics workspace
+  containerInsights: true
   userAssignedIdentityName: 'DEVIMPINFAK1401'
-  version: '1.34'
 
   dnsServiceIp: '172.18.255.250'
   podCidrs: ['172.16.0.0/16']
@@ -41,12 +40,14 @@ param aksParams = {
       maxCount: 5
       maxPods: 250
       vmSize: 'Standard_E2as_v6'
+      osDiskSizeGB: 128
     }
     user: {
       minCount: 3
       maxCount: 12
       maxPods: 250
       vmSize: 'Standard_E16as_v6'
+      osDiskSizeGB: 512
     }
   }
   adminGroupObjectIDs: [
@@ -73,9 +74,7 @@ param asoParams = {
   managedIdentityName: 'DEVIMPINFMI1401-AzureServiceOperator'
 }
 
-param externalSecretsParams = {
-  managedIdentityName: 'DEVIMPINFMI1401-ExternalSecrets'
-}
+param externalIdentityName = 'DEVIMPINFMI1401-ExternalSecrets'
 
 param insightsParams = {
   name: 'DEVIMPINFIN1401'

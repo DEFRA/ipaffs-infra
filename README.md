@@ -90,12 +90,69 @@ Things are moving along quickly. At the time of writing, migration of ipaffs-imp
 * Run `scripts/build.sh` to build the service, package a container and push to the local registry.
 * Run `scripts/deploy.sh` to deploy the latest built container image and run with remote debugger enabled.
 
+### Infrastructure releases
+
+[`release-pipeline.yaml`](release-pipeline.yaml) promotes the same tagged commit
+through **TST → approval → PRE → approval → PRD**, following the manifest release
+pipeline. Use a positive release number such as `1`, with an optional patch
+number such as `1.1`. The patch can be zero, as in `1.0`. Write both components
+with ASCII digits and without leading zeroes. Tag pushes trigger source validation.
+Manually queued deployments also require a valid release tag.
+
+Use **Create Infrastructure Release** in Azure DevOps's `Infrastructure/Releasing`
+folder ([`release-refs-pipeline.yaml`](release-refs-pipeline.yaml)) to create those
+tags. Queue it manually from `main` with an explicit `version` such as `1` or
+`1.1`. The job reads the latest remote `main`, which can be newer than the commit
+checked out when the run was queued, and creates the annotated tag. Choose an
+unused tag for each release, even when tagging the same commit again.
+
+Each successful run publishes `release-metadata/release.json` with the exact chosen
+tag, tagged infrastructure commit and pipeline run identifiers. Its
+`releaseBranch` field identifies `main`. Check that commit against the preview you
+reviewed. The tag starts **Infrastructure Release Pipeline** for TST, PRE and PRD
+and an independent read-only infrastructure preview. Merge the YAML and its script
+into `main` before using the new definition. The release and preview pipelines
+load their configuration from the tagged commit.
+
+Each environment runs the full infrastructure sequence: access-contract validation,
+hooks, resource group, network, optional hub peering, ACR (PRE/PRD), classic resources,
+infrastructure, runtime permissions, Private Endpoint DNS and optional Private Link.
+Each Bicep component runs what-if before applying. Stage names, parameter artifacts
+and output dependencies are scoped to the environment. Existing pipeline entry
+points retain their main-only apply behavior; this release flow explicitly enables
+tagged deployments.
+
+Manual approvals notify the requester and reject on timeout (just under 30 days by
+default). `releaseApprovalTimeoutInMinutes` accepts 1–43199 minutes, leaving time
+for rejection before the agentless job's 30-day limit.
+`establishPeering` defaults to `false`; `includePlatform` controls Azure Private Link
+and defaults to `true`. Shared platform Helm releases remain manifest-owned.
+
+To enable the flow, create an Azure DevOps YAML pipeline pointing to
+`/release-pipeline.yaml`. Authorize the existing Common, LowerEnvs, HigherEnvs and
+TST/PRE/PRD variable groups, environments, service connections and PipelineCommon
+repository used by the infrastructure pipeline. The pipeline identity also needs
+the existing Library permissions for deployment-output synchronization. Publish a
+release tag containing this pipeline after those resources are authorized.
+
+Local regression checks:
+
+```shell
+python3 scripts/pipeline/release-pipeline.test.py
+python3 scripts/pipeline/release-refs.test.py
+python3 scripts/pipeline/consolidated-bicep-jobs.test.py
+```
+
 ### Platform deployment ownership
 
 - **Manifest:** configuration, image mirrors and deployment of shared platform Helm
   releases. See the [platform guide](https://github.com/DEFRA/ipaffs-manifest/blob/master/platform/README.md)
   for configuration and apply rules.
-- **Infrastructure:** Azure resources, identities, permissions and Private Link.
+- **Infrastructure:** Azure resources, workload identities, runtime permissions and Private Link.
+- **Operations:** human/team groups, membership, human RBAC and PIM eligibility,
+  operational tooling and Grafana's classic monitoring read permission. See
+  [`ipaffs-operations`](https://github.com/DEFRA/ipaffs-operations) and the
+  [classic monitoring handover](docs/classic-grafana-monitoring-handover.md).
 - **Helm charts:** chart sources and publishing live in
   [`ipaffs-helm-charts`](https://github.com/DEFRA/ipaffs-helm-charts).
 
@@ -108,6 +165,101 @@ installers. Retire ADO definitions `import-acr-artifacts` (10054) and
 
 **Fresh environment:** core infrastructure (`includePlatform: false`) → manifest
 platform stage → Private Link → applications.
+
+### Operational tooling ownership
+
+Grafana dashboards, their deployment pipeline and datasource helpers, and the
+standalone routing and uptime checkers live in
+[`ipaffs-operations`](https://github.com/DEFRA/ipaffs-operations).
+Grafana, Prometheus and Log Analytics Azure instances remain defined here,
+alongside their managed identities and runtime permissions.
+
+The Grafana definition **11662** now reads `ipaffs-operations/main` in the
+Azure DevOps `\Operations` folder.
+
+### App Services disable and recover
+
+`pipelines/disable-app-services.yaml` stops (`disable`) or starts (`recover`) the
+classic App Services and Function Apps listed for each environment. It changes
+nothing else: no plan scaling, no autoscale, no deletes.
+
+**Lists:** `scripts/pipeline/decommission-legacy-apps/lists/<env>-decommission-apps.txt`, one file
+per environment (subscription `AZR-SND`, `AZR-TST`, `AZR-PRE`, `AZR-PRD`). Each
+line is `resourceGroup/appName`; `#` starts a comment. Lists are explicit
+because some apps are deliberately stopped for regression testing and must
+never be started, so only the apps that were running are listed. To create or
+refresh a list (read only), sign in to the subscription and run:
+
+```bash
+SUB=AZR-TST
+{ az webapp list --subscription "$SUB" --query "[?state=='Running'].join('/', [resourceGroup, name])" -o tsv
+  az functionapp list --subscription "$SUB" --query "[?state=='Running'].join('/', [resourceGroup, name])" -o tsv
+} | grep -i 'imp[^/]*/' | sort -fu
+```
+
+The `grep` keeps resource groups containing `IMP` in any case. Review the
+output, remove anything that is not IPAFFS, then save it with a header comment
+saying when it was generated.
+
+**Script:** `scripts/pipeline/decommission-legacy-apps/disable.sh <disable|recover>` checks that every
+listed app exists before changing anything, skips apps already in the target
+state, retries throttled calls and fails unless every listed app ends in the
+target state. Unlisted apps are never touched. Tests:
+`bash scripts/pipeline/decommission-legacy-apps/disable.test.sh`.
+
+**Stages and gates:** one run goes SND → TST → PRE → PRD. SND starts straight
+away. TST, PRE and PRD each start with a `ManualValidation` approval in the
+pipeline itself, which rejects after 43,199 minutes (one minute short of 30
+days), matching the [infrastructure release pipeline](release-pipeline.yaml).
+Their deployment jobs still target the ADO Environment of the same name, so
+any checks configured there apply as well. A rejected approval or a failure
+stops the run there. A stage whose list is empty fails.
+
+**Rollback:** queue a new run with `action=recover` and approve up to the
+environment that needs it. Lower environments run again first, which keeps
+them consistent with higher ones.
+
+**Approvers:** anyone who can queue the pipeline can approve, including the
+person who queued it. Set `approvers` on the `ManualValidation` task to restrict
+this.
+
+### Human access ownership
+
+Human/team membership, access-group creation, human Azure RBAC and PIM eligibility
+move to [`pipelines/access-management.yaml`](https://github.com/DEFRA/ipaffs-operations/blob/main/pipelines/access-management.yaml)
+in `ipaffs-operations`. Infrastructure no longer writes those grants or reconciles
+human membership. Existing group names, object IDs and assignment names are retained.
+
+Infrastructure still owns SQL's Entra administrator configuration, SQL Directory
+Readers, kubelet/ACR and External Secrets memberships, automation grants, workload
+identities and all Azure parent resources. The SQLAdmins and ACR pull groups have
+machine members: operations adds its nested human groups without removing those
+machine identities. The exceptional `remove-entra-group-members` pipeline remains
+here for its existing targeted service-principal cleanup.
+
+Before deployment, `ValidateAccessContract` checks the existing `sqlAdminGroupId`,
+`sqlAdminGroupName`, `acrPullGroupId` and `defraCertificateReadersGroupId` Library
+variables. The check is local and fails before provisioning if the contract is
+missing. For a fresh environment, run operations with `groupsOnly: true`, provision
+infrastructure, then run the full operations access pipeline. Bootstrap DEV before
+TST and PRD before PRE because their team groups are shared.
+
+Merge the operations PR first, repoint the existing **entra-groups** definition
+**10313** to operations and its new YAML path, then validate the handover before
+merging this cleanup. Reuse its existing definition/history and keep one active
+human-access writer. See the
+[access handover](https://github.com/DEFRA/ipaffs-operations/blob/main/access/README.md)
+for the exact order. These incremental source removals do not delete deployed
+role assignments, groups or Azure resources.
+
+QA test execution pipelines, their configuration and supporting scripts live in
+[`ipaffs-qa-automation`](https://github.com/DEFRA/ipaffs-qa-automation).
+Infrastructure retains Azure provisioning, QA runtime permissions, shared image
+build helpers and service-local Playwright build tests. Configuration validation
+and classic maintenance/switch tooling remain here.
+
+See the [QA pipeline handover](https://github.com/DEFRA/ipaffs-qa-automation/blob/main/docs/qa-pipeline-handover.md)
+for the existing DEV/TST pipeline repository switch and manual FTR entry point.
 
 ### DEV SQL elastic pool
 

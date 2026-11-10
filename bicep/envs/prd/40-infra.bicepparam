@@ -1,15 +1,12 @@
 using '../../40-infra.bicep'
 
-param builtInGroups = {
+var builtInGroups = {
   contributors: 'b64aa742-daaf-4b7a-ab71-e7fd9e93905e' // AG-Azure-IMP_PRD1-Contributors
   owners: '3b6d27b3-b49b-44ad-8fc1-75bbf4d5c3fd' // AG-Azure-IMP_PRD1-Owners
 }
 
-param classicLocation = 'northeurope'
-param classicResourceIds = {}
 param entraGroups = {}
 param environment = 'PRD'
-param roleAssignmentsType = 'permanent'
 param subnets = {}
 param tenantId = ''
 param deployServicePrincipalObjectId = ''
@@ -28,8 +25,10 @@ param aksParams = {
   dnsPrefix: 'prdimpinfak1401'
   nodeResourceGroup: 'PRDIMPINFRG1402'
   sku: 'Standard'
+
+  // Container Insights collection (logs and inventory); not collected here yet
+  containerInsights: false
   userAssignedIdentityName: 'PRDIMPINFAK1401'
-  version: '1.34'
 
   dnsServiceIp: '172.18.255.250'
   podCidrs: ['172.16.0.0/16']
@@ -41,12 +40,14 @@ param aksParams = {
       maxCount: 5
       maxPods: 250
       vmSize: 'Standard_E2as_v7'
+      osDiskSizeGB: 128
     }
     user: {
       minCount: 3
       maxCount: 12
       maxPods: 250
       vmSize: 'Standard_E16as_v7'
+      osDiskSizeGB: 512
     }
   }
   adminGroupObjectIDs: [
@@ -73,9 +74,7 @@ param asoParams = {
   managedIdentityName: 'PRDIMPINFMI1401-AzureServiceOperator'
 }
 
-param externalSecretsParams = {
-  managedIdentityName: 'PRDIMPINFMI1401-ExternalSecrets'
-}
+param externalIdentityName = 'PRDIMPINFMI1401-ExternalSecrets'
 
 param insightsParams = {
   name: 'PRDIMPINFIN1401'

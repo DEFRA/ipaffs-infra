@@ -2,7 +2,6 @@ using '../../30-classic.bicep'
 
 param entraGroups = {}
 param environment = 'PRE'
-param roleAssignmentsType = 'permanent'
 param tenantId = ''
 
 param principalsNeedingContributor = [
@@ -52,6 +51,8 @@ param searchParams = {
 }
 
 param sejParams = {
+  // Keep the existing maintenance targets, SQL commands and schedules.
+  manageMaintenanceDefinitions: false
   databaseName: 'elasticjobs'
   databaseNames: ['notification-microservice']
   databaseMaxSizeGiB: 10

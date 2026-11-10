@@ -1,15 +1,12 @@
 using '../../40-infra.bicep'
 
-param builtInGroups = {
+var builtInGroups = {
   contributors: '89d5f0bd-ba3d-4779-95b6-66bf7f0ef487' // AG-Azure-IMP_TST1-Contributors
   owners: '8c073ada-277c-4716-a666-fb7470806d58' // AG-Azure-IMP_TST1-Owners
 }
 
-param classicLocation = 'northeurope'
-param classicResourceIds = {}
 param entraGroups = {}
 param environment = 'TST'
-param roleAssignmentsType = 'permanent'
 param subnets = {}
 param tenantId = ''
 param deployServicePrincipalObjectId = ''
@@ -28,8 +25,10 @@ param aksParams = {
   dnsPrefix: 'tstimpinfak1401'
   nodeResourceGroup: 'TSTIMPINFRG1402'
   sku: 'Standard'
+
+  // Container Insights collection (logs and inventory) into this environment's Log Analytics workspace
+  containerInsights: true
   userAssignedIdentityName: 'TSTIMPINFAK1401'
-  version: '1.34'
 
   dnsServiceIp: '172.18.255.250'
   podCidrs: ['172.16.0.0/16']
@@ -41,12 +40,14 @@ param aksParams = {
       maxCount: 5
       maxPods: 250
       vmSize: 'Standard_E2as_v7'
+      osDiskSizeGB: 128
     }
     user: {
       minCount: 3
       maxCount: 12
       maxPods: 250
       vmSize: 'Standard_E16as_v7'
+      osDiskSizeGB: 512
     }
   }
   adminGroupObjectIDs: [
@@ -73,9 +74,7 @@ param asoParams = {
   managedIdentityName: 'TSTIMPINFMI1401-AzureServiceOperator'
 }
 
-param externalSecretsParams = {
-  managedIdentityName: 'TSTIMPINFMI1401-ExternalSecrets'
-}
+param externalIdentityName = 'TSTIMPINFMI1401-ExternalSecrets'
 
 param insightsParams = {
   name: 'TSTIMPINFIN1401'

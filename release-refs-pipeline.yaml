@@ -1,0 +1,44 @@
+# Manually tag the latest main commit with an infrastructure release version.
+trigger: none
+
+pr: none
+
+pool:
+  name: DEFRA-COMMON-ubuntu2204-SSV5
+
+parameters:
+  - name: version
+    displayName: Infrastructure release version (e.g. 1 or 1.1)
+    type: string
+    default: '1'
+
+stages:
+  - stage: CreateInfrastructureRefs
+    displayName: Create ipaffs-infra release tag
+    jobs:
+      - job: CreateReleaseTag
+        displayName: Create release tag
+        steps:
+          - checkout: self
+            persistCredentials: true
+            fetchDepth: 0
+
+          - task: Bash@3
+            displayName: Create infrastructure release tag from main
+            env:
+              VERSION: ${{ parameters.version }}
+              SOURCE_REF: $(Build.SourceBranch)
+              REQUESTED_FOR_EMAIL: $(Build.RequestedForEmail)
+              REQUESTED_FOR_NAME: $(Build.RequestedFor)
+              RELEASE_METADATA_FILE: $(Build.ArtifactStagingDirectory)/release-metadata/release.json
+              RELEASE_RUN_ID: $(Build.BuildId)
+              RELEASE_PIPELINE_ID: $(System.DefinitionId)
+            inputs:
+              targetType: inline
+              script: |
+                set -euo pipefail
+                python3 scripts/pipeline/create-release-refs.py
+
+          - publish: $(Build.ArtifactStagingDirectory)/release-metadata
+            artifact: release-metadata
+            displayName: Publish the exact infrastructure release version

@@ -1,0 +1,148 @@
+# Promote the same tagged infrastructure commit through TST, PRE and PRD.
+# Branch pushes (including RELEASE/*) must not start a second deployment.
+trigger:
+  branches:
+    exclude:
+      - "*"
+  tags:
+    include:
+      - "*" # Source validation checks the release tag format.
+    exclude:
+      - "ipaffs-infra-pin-*"
+
+pr: none
+
+name: $(Build.SourceBranchName)
+appendCommitMessageToRunName: false
+
+pool:
+  name: DEFRA-COMMON-ubuntu2204-SSV5
+
+parameters:
+  - name: releaseApprovalTimeoutInMinutes
+    displayName: Release approval timeout in minutes
+    type: number
+    default: 43199 # 30 days, leaving one minute before the agentless job timeout
+  - name: establishPeering
+    displayName: Establish Peering To Hub
+    type: boolean
+    default: false
+  - name: includePlatform
+    displayName: Include Azure Private Link
+    type: boolean
+    default: true
+
+variables:
+  - group: Common
+
+resources:
+  repositories:
+    - repository: PipelineCommon
+      name: DEFRA-DEVOPS-COMMON/Defra.Pipeline.Common
+      type: git
+      ref: feature/v6-optional-subscription-for-private-endpoint-records
+
+stages:
+  - stage: ValidateTaggedSource
+    displayName: Validate tagged source
+    isSkippable: false
+    jobs:
+      - job: ValidateTaggedSource
+        steps:
+          - checkout: none
+          - task: Bash@3
+            displayName: Ensure pipeline is running from a release tag
+            env:
+              SOURCE_REF: $(Build.SourceBranch)
+              APPROVAL_TIMEOUT: ${{ parameters.releaseApprovalTimeoutInMinutes }}
+            inputs:
+              targetType: inline
+              script: |
+                set -euo pipefail
+
+                if [[ "${SOURCE_REF}" != refs/tags/* ]]; then
+                  echo "This release pipeline must be run from a git tag. Current source ref: ${SOURCE_REF}" >&2
+                  exit 1
+                fi
+
+                release_version="${SOURCE_REF#refs/tags/}"
+                release_version_regex='^[1-9][0-9]*(\.(0|[1-9][0-9]*))?$'
+                if [[ ! "${release_version}" =~ ${release_version_regex} ]]; then
+                  echo "Release tag '${release_version}' must use x or x.x format without leading zeroes, such as 1 or 1.1." >&2
+                  exit 1
+                fi
+
+                approval_timeout_regex='^[1-9][0-9]{0,4}$'
+                if [[ ! "${APPROVAL_TIMEOUT}" =~ ${approval_timeout_regex} ]] || (( APPROVAL_TIMEOUT >= 43200 )); then
+                  echo "Release approval timeout must be a whole number between 1 and 43199 minutes." >&2
+                  exit 1
+                fi
+
+                echo "Running infrastructure release deployment for tag: ${release_version}"
+
+  - template: pipelines/stages/deploy-infrastructure-environment.yaml
+    parameters:
+      stagePrefix: TST_
+      environmentName: TST
+      establishPeering: ${{ parameters.establishPeering }}
+      includePlatform: ${{ parameters.includePlatform }}
+      dependsOn:
+        - ValidateTaggedSource
+
+  - stage: GateToPRE
+    displayName: Manual approval before PRE
+    isSkippable: false
+    dependsOn: TST_Complete
+    condition: succeeded()
+    jobs:
+      - job: AwaitApproval
+        displayName: Await PRE approval
+        pool: server
+        timeoutInMinutes: 43200
+        steps:
+          - task: ManualValidation@0
+            timeoutInMinutes: ${{ parameters.releaseApprovalTimeoutInMinutes }}
+            inputs:
+              notifyUsers: $(Build.RequestedForEmail)
+              instructions: |
+                Approve this stage to continue deployment of infrastructure tag '$(Build.SourceBranchName)' from TST to PRE.
+                Review the TST deployment results and infrastructure changes before approving.
+              onTimeout: reject
+
+  - template: pipelines/stages/deploy-infrastructure-environment.yaml
+    parameters:
+      stagePrefix: PRE_
+      environmentName: PRE
+      establishPeering: ${{ parameters.establishPeering }}
+      includePlatform: ${{ parameters.includePlatform }}
+      dependsOn:
+        - GateToPRE
+
+  - stage: GateToPRD
+    displayName: Manual approval before PRD
+    isSkippable: false
+    dependsOn: PRE_Complete
+    condition: succeeded()
+    jobs:
+      - job: AwaitApproval
+        displayName: Await PRD approval
+        pool: server
+        timeoutInMinutes: 43200
+        steps:
+          - task: ManualValidation@0
+            timeoutInMinutes: ${{ parameters.releaseApprovalTimeoutInMinutes }}
+            inputs:
+              notifyUsers: $(Build.RequestedForEmail)
+              instructions: |
+                Approve this stage to continue deployment of infrastructure tag '$(Build.SourceBranchName)' from PRE to PRD.
+                Review the PRE deployment results and infrastructure changes before approving.
+              onTimeout: reject
+
+  - template: pipelines/stages/deploy-infrastructure-environment.yaml
+    parameters:
+      stagePrefix: PRD_
+      environmentName: PRD
+      establishPeering: ${{ parameters.establishPeering }}
+      includePlatform: ${{ parameters.includePlatform }}
+      dependsOn:
+        - GateToPRD

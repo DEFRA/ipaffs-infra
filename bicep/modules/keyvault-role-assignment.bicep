@@ -2,7 +2,6 @@ targetScope = 'resourceGroup'
 
 param keyVaultName string
 param deploymentId string
-param location string
 param principalObjectId string
 param principalType string
 param roleAssignmentType string

@@ -1,15 +1,12 @@
 using '../../40-infra.bicep'
 
-param builtInGroups = {
+var builtInGroups = {
   contributors: '80a5fda0-7d36-4c3a-a5de-44a6a525fd2d' // AG-Azure-IMP_PRE1-Contributors
   owners: '400ebb88-9bab-427b-b282-86e9bcc010ab' // AG-Azure-IMP_PRE1-Owners
 }
 
-param classicLocation = 'northeurope'
-param classicResourceIds = {}
 param entraGroups = {}
 param environment = 'PRE'
-param roleAssignmentsType = 'permanent'
 param subnets = {}
 param tenantId = ''
 param deployServicePrincipalObjectId = ''
@@ -28,8 +25,10 @@ param aksParams = {
   dnsPrefix: 'preimpinfak1401'
   nodeResourceGroup: 'PREIMPINFRG1402'
   sku: 'Standard'
+
+  // Container Insights collection (logs and inventory); not collected here yet
+  containerInsights: false
   userAssignedIdentityName: 'PREIMPINFAK1401'
-  version: '1.34'
 
   dnsServiceIp: '172.18.255.250'
   podCidrs: ['172.16.0.0/16']
@@ -41,12 +40,14 @@ param aksParams = {
       maxCount: 5
       maxPods: 250
       vmSize: 'Standard_E2as_v7'
+      osDiskSizeGB: 128
     }
     user: {
       minCount: 3
       maxCount: 12
       maxPods: 250
       vmSize: 'Standard_E16as_v7'
+      osDiskSizeGB: 512
     }
   }
   adminGroupObjectIDs: [
@@ -73,9 +74,7 @@ param asoParams = {
   managedIdentityName: 'PREIMPINFMI1401-AzureServiceOperator'
 }
 
-param externalSecretsParams = {
-  managedIdentityName: 'PREIMPINFMI1401-ExternalSecrets'
-}
+param externalIdentityName = 'PREIMPINFMI1401-ExternalSecrets'
 
 param insightsParams = {
   name: 'PREIMPINFIN1401'

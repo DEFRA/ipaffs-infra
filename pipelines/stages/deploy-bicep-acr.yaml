@@ -1,135 +1,27 @@
 parameters:
+  - name: stagePrefix
+    type: string
+    default: ''
+
+  - name: allowTaggedDeployments
+    type: boolean
+    default: false
+
   - name: environmentName
     type: string
 
+  - name: dependsOn
+    type: object
+    default: []
+  - name: deploymentVariables
+    type: object
+    default: {}
+
 stages:
-  - stage: ConfigureACRDeployment
-    displayName: Configure ACR deployment
-    variables:
-      - group: Common
-      - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
-        - group: HigherEnvs
-      - ${{ else }}:
-        - group: LowerEnvs
-      - group: "${{ parameters.environmentName }}"
-      - template: "/pipelines/vars/common.yaml"
-      - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
-    jobs:
-      - job: ConfigureBicep
-        displayName: Configure Bicep
-        steps:
-          - checkout: self
-
-          - task: Bash@3
-            name: GenerateBicepParams
-            displayName: Generate Bicep Params
-            inputs:
-              targetType: inline
-              script: |
-                set -ex
-                cat <<- 'EOF' >'$(Build.SourcesDirectory)/25-acr-runtime.bicepparam'
-                using '25-acr.bicep'
-                extends 'envs/${{ lower(parameters.environmentName) }}/25-acr.bicepparam'
-                param entraGroups = {
-                  acrPull: {
-                    id: '$(acrPullGroupId)'
-                    name: '$(acrPullGroupName)'
-                  }
-                }
-                param subnets = {
-                  privateEndpoints: {
-                    id: '$(privateEndpointsSubnetId)'
-                    name: '$(privateEndpointsSubnetName)'
-                  }
-                }
-                EOF
-                cat '$(Build.SourcesDirectory)/25-acr-runtime.bicepparam'
-
-          - task: PublishPipelineArtifact@1
-            displayName: Publish artifact
-            inputs:
-              artifactName: bicepparam-acr
-              targetPath: $(Build.SourcesDirectory)/25-acr-runtime.bicepparam
-
-
-  - stage: DeployACR
+  - stage: ${{ parameters.stagePrefix }}DeployACR
     displayName: Deploy ACR
-    variables:
-      - group: Common
-      - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
-        - group: HigherEnvs
-      - ${{ else }}:
-        - group: LowerEnvs
-      - group: "${{ parameters.environmentName }}"
-      - template: "/pipelines/vars/common.yaml"
-      - template: "/pipelines/vars/${{ lower(parameters.environmentName) }}.yaml"
-    jobs:
-      - deployment: RunBicep
-        displayName: Run Bicep
-        environment:
-          name: "${{ parameters.environmentName }}"
-        strategy:
-          runOnce:
-            deploy:
-              steps:
-                - checkout: self
-
-                - task: DownloadPipelineArtifact@2
-                  displayName: Download artifact
-                  inputs:
-                    artifactName: bicepparam-acr
-                    targetPath: $(Build.SourcesDirectory)/bicep
-
-                - task: AzureCLI@2
-                  displayName: WhatIf - ACR
-                  inputs:
-                    azureSubscription: $(serviceConnection)
-                    scriptType: bash
-                    scriptLocation: inlineScript
-                    inlineScript: |
-                      set -x
-                      az deployment group what-if \
-                        --name "ACR-$(Build.BuildId)" \
-                        --subscription $(subscriptionId) \
-                        --resource-group $(resourceGroupName) \
-                        --template-file bicep/25-acr.bicep \
-                        --parameters bicep/25-acr-runtime.bicepparam
-
-                - task: AzureCLI@2
-                  displayName: Deploy - ACR
-                  condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
-                  inputs:
-                    azureSubscription: $(serviceConnection)
-                    scriptType: bash
-                    scriptLocation: inlineScript
-                    inlineScript: |
-                      set -x
-                      az deployment group create \
-                        --name "ACR-$(Build.BuildId)" \
-                        --subscription $(subscriptionId) \
-                        --resource-group $(resourceGroupName) \
-                        --template-file bicep/25-acr.bicep \
-                        --parameters bicep/25-acr-runtime.bicepparam
-
-                - task: AzureCLI@2
-                  displayName: Wait for Deployment - ACR
-                  condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
-                  inputs:
-                    azureSubscription: $(serviceConnection)
-                    scriptType: bash
-                    scriptLocation: inlineScript
-                    inlineScript: |
-                      set -x
-                      az deployment group wait \
-                        --name "ACR-$(Build.BuildId)" \
-                        --subscription $(subscriptionId) \
-                        --resource-group $(resourceGroupName) \
-                        --created
-
-
-  - stage: SaveACRDeploymentDetails
-    displayName: Save ACR deployment details
-    dependsOn: DeployACR
+    ${{ if gt(length(parameters.dependsOn), 0) }}:
+      dependsOn: ${{ parameters.dependsOn }}
     variables:
       - group: Common
       - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
@@ -146,31 +38,118 @@ stages:
           value: ${{ parameters.environmentName }}
         ${{ else }}:
           value: LowerEnvs
+      - ${{ each variable in parameters.deploymentVariables }}:
+        - name: ${{ variable.key }}
+          value: ${{ variable.value }}
     jobs:
-      - job: StoreLibraryVariables
-        displayName: Store library variables
-        steps:
-          - checkout: self
+      - deployment: RunBicep
+        displayName: Run Bicep
+        environment:
+          name: "${{ parameters.environmentName }}"
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - download: none
+                - checkout: self
 
-          - task: AzureCLI@2
-            name: ACROutputs
-            displayName: ACR outputs
-            condition: and(not(failed()), not(canceled()), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
-            env:
-              ADO_ORG_URL: $(System.CollectionUri)
-              ADO_PROJECT: $(System.TeamProject)
-              ADO_GROUP_NAME: $(adoGroupName)
-              AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
-              DEPLOYMENT_NAME: ACR-$(Build.BuildId)
-              RESOURCE_GROUP: $(resourceGroupName)
-              SUBSCRIPTION_ID: $(subscriptionId)
-            inputs:
-              azureSubscription: $(serviceConnection)
-              scriptType: bash
-              scriptLocation: inlineScript
-              inlineScript: |
-                set -x
-                scripts/pipeline/update-group-variable-from-deployment.sh acrLoginServer acrLoginServer
-                scripts/pipeline/update-group-variable-from-deployment.sh acrName acrName
-                scripts/pipeline/update-group-variable-from-deployment.sh acrResourceId acrResourceId
+                - task: Bash@3
+                  name: GenerateBicepParams
+                  displayName: Generate Bicep Params
+                  env:
+                    BICEP_ACR_PULL_GROUP_ID: $(acrPullGroupId)
+                    BICEP_ACR_PULL_GROUP_NAME: $(acrPullGroupName)
+                    BICEP_PRIVATE_ENDPOINTS_SUBNET_ID: $(privateEndpointsSubnetId)
+                    BICEP_PRIVATE_ENDPOINTS_SUBNET_NAME: $(privateEndpointsSubnetName)
+                  inputs:
+                    targetType: inline
+                    script: |
+                      set -euo pipefail
+                      python3 scripts/pipeline/infrastructure_parameters.py \
+                        --component acr \
+                        --environment ${{ parameters.environmentName }} \
+                        --output "$(Build.SourcesDirectory)/bicep/25-acr-runtime.bicepparam"
 
+                - task: PublishPipelineArtifact@1
+                  displayName: Publish artifact
+                  inputs:
+                    artifactName: ${{ parameters.stagePrefix }}bicepparam-acr
+                    targetPath: $(Build.SourcesDirectory)/bicep/25-acr-runtime.bicepparam
+
+                - task: AzureCLI@2
+                  displayName: WhatIf - ACR
+                  env:
+                    AZURE_BICEP_USE_BINARY_FROM_PATH: 'false'
+                  inputs:
+                    azureSubscription: ${{ variables.serviceConnection }}
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      set -euo pipefail
+                      bash scripts/pipeline/ensure-bicep-version.sh
+                      set -x
+                      az deployment group what-if \
+                        --name "ACR-$(Build.BuildId)" \
+                        --subscription $(subscriptionId) \
+                        --resource-group $(resourceGroupName) \
+                        --template-file bicep/25-acr.bicep \
+                        --parameters bicep/25-acr-runtime.bicepparam
+
+                - task: AzureCLI@2
+                  displayName: Deploy - ACR
+                  condition: and(not(failed()), not(canceled()), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), and(${{ parameters.allowTaggedDeployments }}, startsWith(variables['Build.SourceBranch'], 'refs/tags/'))))
+                  env:
+                    AZURE_BICEP_USE_BINARY_FROM_PATH: 'false'
+                  inputs:
+                    azureSubscription: ${{ variables.serviceConnection }}
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      set -euo pipefail
+                      bash scripts/pipeline/ensure-bicep-version.sh
+                      set -x
+                      az deployment group create \
+                        --name "ACR-$(Build.BuildId)" \
+                        --subscription $(subscriptionId) \
+                        --resource-group $(resourceGroupName) \
+                        --template-file bicep/25-acr.bicep \
+                        --parameters bicep/25-acr-runtime.bicepparam
+
+                - task: AzureCLI@2
+                  displayName: Wait for Deployment - ACR
+                  condition: and(not(failed()), not(canceled()), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), and(${{ parameters.allowTaggedDeployments }}, startsWith(variables['Build.SourceBranch'], 'refs/tags/'))))
+                  inputs:
+                    azureSubscription: ${{ variables.serviceConnection }}
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      set -x
+                      az deployment group wait \
+                        --name "ACR-$(Build.BuildId)" \
+                        --subscription $(subscriptionId) \
+                        --resource-group $(resourceGroupName) \
+                        --created
+
+                - task: AzureCLI@2
+                  name: ACROutputs
+                  displayName: ACR outputs
+                  condition: and(not(failed()), not(canceled()), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), and(${{ parameters.allowTaggedDeployments }}, startsWith(variables['Build.SourceBranch'], 'refs/tags/'))))
+                  env:
+                    ADO_ORG_URL: $(System.CollectionUri)
+                    ADO_PROJECT: $(System.TeamProject)
+                    ADO_GROUP_NAME: $(adoGroupName)
+                    AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
+                    DEPLOYMENT_NAME: ACR-$(Build.BuildId)
+                    RESOURCE_GROUP: $(resourceGroupName)
+                    SUBSCRIPTION_ID: $(subscriptionId)
+                  inputs:
+                    azureSubscription: ${{ variables.serviceConnection }}
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      set -euo pipefail
+                      python3 scripts/pipeline/sync-deployment-outputs.py \
+                        --emit-output=acrName \
+                        acrLoginServer=acrLoginServer \
+                        acrName=acrName \
+                        acrResourceId=acrResourceId
