@@ -12,9 +12,12 @@ jobs:
           versionSpec: ${{ parameters.nodeVersion }}
           addToPath: true
 
+      # NPM_TOKEN lets .npmrc read @defra packages from GitHub Packages
       - script: npm ci
         displayName: Install dependencies
         workingDirectory: service
+        env:
+          NPM_TOKEN: $(gitHubToken)
 
       - script: npx playwright install --with-deps chromium
         displayName: Install Playwright browsers

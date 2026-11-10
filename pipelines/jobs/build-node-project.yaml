@@ -12,10 +12,13 @@ jobs:
           addToPath: true
         displayName: Install Node and NPM and add to path
 
+      # NPM_TOKEN lets .npmrc read @defra packages from GitHub Packages
       - script: |
           npm --prefix ./service ci
           npm --prefix ./service run build
         displayName: 'Install dependencies and build'
+        env:
+          NPM_TOKEN: $(gitHubToken)
 
       - script: |
           npm --prefix ./service run test-jenkins

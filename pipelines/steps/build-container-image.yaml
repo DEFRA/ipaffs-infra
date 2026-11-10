@@ -20,6 +20,11 @@ parameters:
     type: string
     default: ' '
 
+  # passes gitHubToken to the build as the secret npm_token, for Dockerfiles that install @defra packages
+  - name: npmTokenSecret
+    type: boolean
+    default: false
+
 steps:
   - task: AzureCLI@2
     displayName: Build and Push Container Image
@@ -27,6 +32,9 @@ steps:
       ACR_NAME_PARAMETER: ${{ parameters.acrName }}
       ACR_SUBSCRIPTION_NAME_PARAMETER: ${{ parameters.acrSubscriptionName }}
       TAG_NAME_PARAMETER: ${{ parameters.tagName }}
+      ${{ if eq(parameters.npmTokenSecret, true) }}:
+        DOCKER_BUILDKIT: 1
+        NPM_TOKEN: $(gitHubToken)
     inputs:
       azureSubscription: $(serviceConnection)
       scriptType: bash
@@ -52,6 +60,10 @@ steps:
         fi
 
         az acr login --name "${ACR_NAME}" --subscription "${SUBSCRIPTION_NAME}"
-        docker build --platform=linux/amd64 --tag "${{ parameters.imageName }}:${TAG_NAME}" --file "${{ parameters.dockerFile }}" "${{ parameters.directory }}"
+        SECRET_ARGS=()
+        if [[ "${{ parameters.npmTokenSecret }}" == "True" ]]; then
+          SECRET_ARGS=(--secret id=npm_token,env=NPM_TOKEN)
+        fi
+        docker build --platform=linux/amd64 "${SECRET_ARGS[@]}" --tag "${{ parameters.imageName }}:${TAG_NAME}" --file "${{ parameters.dockerFile }}" "${{ parameters.directory }}"
         docker tag "${{ parameters.imageName }}:${TAG_NAME}" "${ACR_NAME}.azurecr.io/ipaffs/${{ parameters.imageName }}:${TAG_NAME}"
         docker push "${ACR_NAME}.azurecr.io/ipaffs/${{ parameters.imageName }}:${TAG_NAME}"

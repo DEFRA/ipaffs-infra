@@ -1,0 +1,69 @@
+---
+# Builds, tests and publishes an npm package that lives in a folder of a repository.
+# Every branch builds and tests. Only main or master publishes, and only a version
+# that is not already in the registry, so the version in package.json is the release.
+parameters:
+  - name: environmentName
+    type: string
+    default: DEV
+
+  - name: nodeVersion
+    type: string
+
+  # folder of the package, relative to the repository root
+  - name: packagePath
+    type: string
+
+  # other folders that need npm ci before the tests run, such as a service a contract test starts
+  - name: installPaths
+    type: object
+    default: []
+
+  - name: runLint
+    type: boolean
+    default: true
+
+  - name: runContractTests
+    type: boolean
+    default: false
+
+  - name: registryUrl
+    type: string
+    default: https://npm.pkg.github.com/
+
+stages:
+  - stage: BuildPackage
+    displayName: Build Package
+    variables:
+      - group: Common
+      - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
+          - group: HigherEnvs
+      - ${{ else }}:
+          - group: LowerEnvs
+      - group: "${{ parameters.environmentName }}"
+    jobs:
+      - template: /pipelines/jobs/build-node-package.yaml
+        parameters:
+          nodeVersion: "${{ parameters.nodeVersion }}"
+          packagePath: "${{ parameters.packagePath }}"
+          installPaths: ${{ parameters.installPaths }}
+          runLint: ${{ parameters.runLint }}
+          runContractTests: ${{ parameters.runContractTests }}
+
+  - stage: PublishPackage
+    displayName: Publish Package
+    dependsOn: BuildPackage
+    condition: and(succeeded(), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), eq(variables['Build.SourceBranch'], 'refs/heads/master')))
+    variables:
+      - group: Common
+      - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
+          - group: HigherEnvs
+      - ${{ else }}:
+          - group: LowerEnvs
+      - group: "${{ parameters.environmentName }}"
+    jobs:
+      - template: /pipelines/jobs/publish-node-package.yaml
+        parameters:
+          nodeVersion: "${{ parameters.nodeVersion }}"
+          packagePath: "${{ parameters.packagePath }}"
+          registryUrl: "${{ parameters.registryUrl }}"

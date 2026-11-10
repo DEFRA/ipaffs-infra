@@ -1,0 +1,61 @@
+parameters:
+  - name: nodeVersion
+    type: string
+
+  - name: packagePath
+    type: string
+
+  - name: registryUrl
+    type: string
+
+jobs:
+  - job: PublishNodePackage
+    displayName: Publish Node Package
+    steps:
+      - checkout: self
+
+      - task: NodeTool@0
+        inputs:
+          versionSpec: ${{ parameters.nodeVersion }}
+          addToPath: true
+        displayName: Install Node and NPM and add to path
+
+      - task: DownloadPipelineArtifact@2
+        displayName: Download package tarball
+        inputs:
+          artifact: node-package
+          path: $(Pipeline.Workspace)/node-package
+
+      # publishes with gitHubToken, the token the Java libraries release with
+      - script: |
+          set -euo pipefail
+
+          # an undefined variable reaches the script as its own macro text
+          if [[ -z "${NPM_PUBLISH_TOKEN:-}" || "${NPM_PUBLISH_TOKEN}" == '$(gitHubToken)' ]]; then
+            echo "##vso[task.logissue type=error]gitHubToken is not available to this pipeline"
+            exit 1
+          fi
+
+          name="$(node -p "require('./${PACKAGE_PATH}/package.json').name")"
+          version="$(node -p "require('./${PACKAGE_PATH}/package.json').version")"
+
+          # the token only lives in this file for the length of the step
+          userconfig="$(Agent.TempDirectory)/publish.npmrc"
+          trap 'rm -f "${userconfig}"' EXIT
+          registry_host="${REGISTRY_URL#https:}"
+          registry_host="${registry_host%/}/"
+          printf '%s:_authToken=%s\n' "${registry_host}" "${NPM_PUBLISH_TOKEN}" > "${userconfig}"
+
+          if npm view "${name}@${version}" version --registry "${REGISTRY_URL}" --userconfig "${userconfig}" >/dev/null 2>&1; then
+            echo "##vso[task.logissue type=warning]${name}@${version} is already published, bump the version in package.json to release a change"
+            exit 0
+          fi
+
+          tarball="$(ls "$(Pipeline.Workspace)/node-package/"*.tgz)"
+          npm publish "${tarball}" --registry "${REGISTRY_URL}" --userconfig "${userconfig}"
+          echo "Published ${name}@${version}"
+        displayName: Publish package if the version is new
+        env:
+          NPM_PUBLISH_TOKEN: $(gitHubToken)
+          PACKAGE_PATH: ${{ parameters.packagePath }}
+          REGISTRY_URL: ${{ parameters.registryUrl }}

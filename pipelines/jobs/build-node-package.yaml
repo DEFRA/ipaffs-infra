@@ -1,0 +1,74 @@
+parameters:
+  - name: nodeVersion
+    type: string
+
+  - name: packagePath
+    type: string
+
+  - name: installPaths
+    type: object
+    default: []
+
+  - name: runLint
+    type: boolean
+    default: true
+
+  - name: runContractTests
+    type: boolean
+    default: false
+
+jobs:
+  - job: BuildNodePackage
+    displayName: Build Node Package
+    steps:
+      - task: NodeTool@0
+        inputs:
+          versionSpec: ${{ parameters.nodeVersion }}
+          addToPath: true
+        displayName: Install Node and NPM and add to path
+
+      # NPM_TOKEN lets .npmrc read @defra packages from GitHub Packages
+      - script: npm --prefix ./${{ parameters.packagePath }} ci
+        displayName: Install package dependencies
+        env:
+          NPM_TOKEN: $(gitHubToken)
+
+      - ${{ each installPath in parameters.installPaths }}:
+          - script: npm --prefix ./${{ installPath }} ci
+            displayName: Install dependencies in ${{ installPath }}
+            env:
+              NPM_TOKEN: $(gitHubToken)
+
+      - ${{ if eq(parameters.runLint, true) }}:
+          - script: npm --prefix ./${{ parameters.packagePath }} run lint
+            displayName: Lint
+
+      - script: npm --prefix ./${{ parameters.packagePath }} run test-jenkins
+        displayName: Run Mocha test suite
+
+      - ${{ if eq(parameters.runContractTests, true) }}:
+          - script: npm --prefix ./${{ parameters.packagePath }} run test:contract
+            displayName: Run contract tests
+
+      - task: PublishTestResults@2
+        displayName: Publish Mocha test results
+        condition: succeededOrFailed()
+        inputs:
+          testResultsFormat: JUnit
+          testResultsFiles: ${{ parameters.packagePath }}/report.xml
+          testRunTitle: Mocha Tests $(Build.BuildNumber)
+          failTaskOnFailedTests: true
+
+      # the tarball tested here is the one the publish stage releases
+      - script: |
+          set -euo pipefail
+          mkdir -p "$(Build.ArtifactStagingDirectory)/package"
+          cd "${{ parameters.packagePath }}"
+          npm pack --pack-destination "$(Build.ArtifactStagingDirectory)/package"
+        displayName: Pack package
+
+      - task: PublishPipelineArtifact@1
+        displayName: Publish package tarball
+        inputs:
+          artifact: node-package
+          targetPath: $(Build.ArtifactStagingDirectory)/package
