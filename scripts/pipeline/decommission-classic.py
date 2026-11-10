@@ -25,6 +25,9 @@ ABSENT_ERROR = re.compile(rf"^ERROR: \(({ABSENT_CODES})\)(?: |$)", re.MULTILINE)
 ABSENT_DELETE_DETAIL = re.compile(rf"^INFO: \(({ABSENT_CODES})\)(?: |$)", re.MULTILINE)
 VERIFY_ATTEMPTS = 6
 VERIFY_INTERVAL = 10
+APP_SITE = "microsoft.web/sites"
+APP_SLOT = "microsoft.web/sites/slots"
+APP_SERVICE_TYPES = {APP_SITE, APP_SLOT}
 
 
 class DecommissionError(Exception):
@@ -74,6 +77,14 @@ def require_success(result, operation):
         raise DecommissionError(f"{operation}: {detail}")
 
 
+def read_azure_json(result, operation):
+    require_success(result, operation)
+    try:
+        return json.loads(result.stdout)
+    except ValueError as exc:
+        raise DecommissionError(f"{operation}: Azure CLI returned invalid JSON") from exc
+
+
 def verify_subscription(subscription):
     operation = f"Verify subscription {subscription}"
     result = run_az([
@@ -85,19 +96,85 @@ def verify_subscription(subscription):
         raise DecommissionError(f"{operation}: Azure CLI returned a different subscription")
 
 
-def resource_exists(resource_id, subscription):
+def resource_exists(resource_id, subscription, *, require_stopped=False):
     operation = f"Check {resource_id}"
+    query = "{id:id,state:properties.state}" if require_stopped else "id"
+    output = "json" if require_stopped else "tsv"
     result = run_az([
         "resource", "show", "--ids", resource_id, "--subscription", subscription,
-        "--query", "id", "--output", "tsv", "--only-show-errors",
+        "--query", query, "--output", output, "--only-show-errors",
     ], operation)
     # The CLI exits with status 3 on an HTTP 404. Require a resource
     # absence code too, since provider discovery can itself return 404.
     if result.returncode == 3 and ABSENT_ERROR.search(result.stderr):
         return False
-    require_success(result, operation)
-    if result.stdout.strip().lower() != resource_id.lower():
+    if require_stopped:
+        app = read_azure_json(result, operation)
+        returned_id = app.get("id") if isinstance(app, dict) else None
+    else:
+        require_success(result, operation)
+        returned_id = result.stdout.strip()
+    if not isinstance(returned_id, str) or returned_id.lower() != resource_id.lower():
         raise DecommissionError(f"{operation}: Azure CLI did not return the requested resource ID")
+    if require_stopped and app.get("state") != "Stopped":
+        raise DecommissionError(f"{operation}: App Service or slot must be Stopped (state: {app.get('state')!r})")
+    return True
+
+
+def app_service_target(resource_id, kind):
+    parts = resource_id.split("/")
+    if len(parts) != (11 if kind == APP_SLOT else 9):
+        raise DecommissionError(f"Expected a direct App Service resource ID: {resource_id}")
+    target = [f"--resource-group={parts[4]}", f"--name={parts[8]}"]
+    if kind == APP_SLOT:
+        target.append(f"--slot={parts[10]}")
+    return target
+
+
+def verify_app_slots(resource_id, subscription, target, earlier_present):
+    operation = f"Check App Service slots for {resource_id}"
+    # Azure CLI materializes the SDK's paged collection before applying the query.
+    result = run_az([
+        "webapp", "deployment", "slot", "list", *target, "--subscription", subscription,
+        "--query", "[].{id:id,state:state}", "--output", "json", "--only-show-errors",
+    ], operation)
+    slots = read_azure_json(result, operation)
+    if not isinstance(slots, list):
+        raise DecommissionError(f"{operation}: Azure did not return a slot list")
+
+    expected_parent = [resource_id.lower(), "slots"]
+    for slot in slots:
+        slot_id = slot.get("id") if isinstance(slot, dict) else None
+        if (not isinstance(slot_id, str) or not RESOURCE_ID.fullmatch(slot_id)
+                or slot_id.lower().rsplit("/", 2)[:2] != expected_parent):
+            raise DecommissionError(f"{operation}: Azure returned an invalid slot ID")
+        if earlier_present is None:
+            raise DecommissionError(f"{operation}: must be empty before deletion; found {slot_id}")
+        if slot_id.lower() not in earlier_present:
+            raise DecommissionError(f"{operation}: slot must be present and listed earlier: {slot_id}")
+        if slot.get("state") != "Stopped":
+            raise DecommissionError(f"{operation}: slot must be Stopped: {slot_id}")
+        print(f"{resource_id} has a stopped slot listed earlier: {slot_id}", flush=True)
+
+
+def app_service_exists(resource_id, subscription, kind, earlier_present=None):
+    target = app_service_target(resource_id, kind)
+    if not resource_exists(resource_id, subscription, require_stopped=True):
+        return False
+
+    operation = f"Check App Service VNet integrations for {resource_id}"
+    result = run_az([
+        "webapp", "vnet-integration", "list", *target, "--subscription", subscription,
+        "--output", "json", "--only-show-errors",
+    ], operation)
+    integrations = read_azure_json(result, operation)
+    if not isinstance(integrations, list):
+        raise DecommissionError(f"{operation}: Azure did not return a VNet integration list")
+    if integrations:
+        raise DecommissionError(f"{operation}: disconnect VNet integration before deletion")
+
+    if kind == APP_SITE:
+        verify_app_slots(resource_id, subscription, target, earlier_present)
     return True
 
 
@@ -108,11 +185,7 @@ def verify_orphaned_autoscale(resource_id, subscription):
         "--query", "{enabled:properties.enabled,target:properties.targetResourceUri}",
         "--output", "json", "--only-show-errors",
     ], operation)
-    require_success(result, operation)
-    try:
-        setting = json.loads(result.stdout)
-    except ValueError as exc:
-        raise DecommissionError(f"{operation}: Azure CLI returned invalid JSON") from exc
+    setting = read_azure_json(result, operation)
     if not isinstance(setting, dict) or setting.get("enabled") is not False:
         raise DecommissionError(f"{operation}: only disabled autoscale settings can be deleted")
     target = setting.get("target")
@@ -127,18 +200,25 @@ def verify_orphaned_autoscale(resource_id, subscription):
 
 def resource_states(resources, subscription, plan):
     states = []
+    earlier_present = set()
     failures = 0
     for resource_id in resources:
         kind = resource_type(resource_id)
+        kind_key = kind.lower()
         try:
-            exists = resource_exists(resource_id, subscription)
-            if exists and kind.lower() == "microsoft.insights/autoscalesettings":
+            if kind_key in APP_SERVICE_TYPES:
+                exists = app_service_exists(resource_id, subscription, kind_key, earlier_present)
+            else:
+                exists = resource_exists(resource_id, subscription)
+            if exists and kind_key == "microsoft.insights/autoscalesettings":
                 verify_orphaned_autoscale(resource_id, subscription)
         except DecommissionError as exc:
             print(f"ERROR: {exc}", file=sys.stderr)
             failures += 1
             continue
         states.append(exists)
+        if exists:
+            earlier_present.add(resource_id.lower())
         state = "exists" if exists else ("already gone" if plan else "already deleted")
         print(f"{state}\t{kind}\t{resource_id}", flush=True)
     if plan or failures:
@@ -168,17 +248,14 @@ def read_plan(path, resources, subscription):
 def delete_resource(resource_id, subscription):
     operation = f"Delete {resource_id}"
     kind = resource_type(resource_id).lower()
-    if kind in {"microsoft.web/sites", "microsoft.web/sites/slots"}:
+    if kind in APP_SERVICE_TYPES:
+        if not app_service_exists(resource_id, subscription, kind):
+            print(f"Already deleted {resource_id}", flush=True)
+            return False
         # Generic ARM deletion can delete the hosting plan when it becomes
         # empty. Pass the slot explicitly so the CLI targets the slot endpoint.
-        parts = resource_id.split("/")
-        is_slot = kind.endswith("/slots")
-        if len(parts) != (11 if is_slot else 9):
-            raise DecommissionError(f"{operation}: expected a direct App Service resource ID")
-        command = ["webapp", "delete", f"--resource-group={parts[4]}", f"--name={parts[8]}",
+        command = ["webapp", "delete", *app_service_target(resource_id, kind),
                    "--keep-empty-plan", "--keep-metrics"]
-        if is_slot:
-            command.append(f"--slot={parts[10]}")
     else:
         command = ["resource", "delete", "--ids", resource_id]
 

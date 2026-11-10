@@ -49,6 +49,11 @@ class DecommissionTests(unittest.TestCase):
         self.current = {DATABASE, SERVER}
         self.account_id = SUBSCRIPTION
         self.autoscale_setting = {"enabled": False, "target": APP_PLAN}
+        self.app_states = {APP: "Stopped", SLOT: "Stopped"}
+        self.slot_response = None
+        self.slot_reads = 0
+        self.vnet_responses = {}
+        self.vnet_reads = []
         self.check_failures = {}
         self.delete_failures = {}
         self.stuck = set()
@@ -64,9 +69,26 @@ class DecommissionTests(unittest.TestCase):
         command = arguments[1:3]
         if command == ["account", "show"]:
             return subprocess.CompletedProcess(arguments, 0, self.account_id, "")
-        if command == ["webapp", "delete"]:
+        if command[0] == "webapp":
             self.assertIn("--resource-group=example", arguments)
             self.assertIn("--name=legacy-app", arguments)
+        if arguments[1:5] == ["webapp", "deployment", "slot", "list"]:
+            self.assertIn("[].{id:id,state:state}", arguments)
+            self.assertNotIn("--slot=staging", arguments)
+            self.slot_reads += 1
+            slots = [{"id": SLOT, "state": self.app_states[SLOT]}] if SLOT in self.current else []
+            response = self.slot_response() if self.slot_response else slots
+            if isinstance(response, str):
+                return subprocess.CompletedProcess(arguments, 1, "", response)
+            return subprocess.CompletedProcess(arguments, 0, json.dumps(response), "")
+        if arguments[1:4] == ["webapp", "vnet-integration", "list"]:
+            resource_id = SLOT if "--slot=staging" in arguments else APP
+            self.vnet_reads.append(resource_id)
+            response = self.vnet_responses.get(resource_id, [])
+            if isinstance(response, str):
+                return subprocess.CompletedProcess(arguments, 1, "", response)
+            return subprocess.CompletedProcess(arguments, 0, json.dumps(response), "")
+        if command == ["webapp", "delete"]:
             self.assertIn("--keep-empty-plan", arguments)
             self.assertIn("--keep-metrics", arguments)
             resource_id = SLOT if "--slot=staging" in arguments else APP
@@ -82,6 +104,9 @@ class DecommissionTests(unittest.TestCase):
                 if query == "{enabled:properties.enabled,target:properties.targetResourceUri}":
                     self.assertEqual(AUTOSCALE, resource_id)
                     return subprocess.CompletedProcess(arguments, 0, json.dumps(self.autoscale_setting), "")
+                if query == "{id:id,state:properties.state}":
+                    app = {"id": resource_id, "state": self.app_states.get(resource_id)}
+                    return subprocess.CompletedProcess(arguments, 0, json.dumps(app), "")
                 self.assertEqual("id", query)
                 return subprocess.CompletedProcess(arguments, 0, resource_id, "")
             return subprocess.CompletedProcess(arguments, 3, "", ABSENT)
@@ -153,6 +178,95 @@ class DecommissionTests(unittest.TestCase):
         self.assertEqual([SLOT, APP], self.deletes)
         self.assertEqual({APP_PLAN}, self.current)
         self.assertIn("2 listed, 2 deleted, 0 already deleted", output)
+        self.assertEqual(3, self.slot_reads)
+        self.assertEqual([SLOT, APP] * 3, self.vnet_reads)
+
+    def test_app_or_slot_must_still_be_stopped_when_delete_starts(self):
+        self.current = {DATABASE, SLOT, APP}
+        self.resources.write_text(f"{DATABASE}\n{SLOT}\n{APP}\n", encoding="utf-8")
+        self.plan_successfully()
+        for resource, state in ((APP, "Running"), (SLOT, None)):
+            with self.subTest(resource=resource):
+                self.app_states[resource] = state
+                status, _, errors = self.execute("delete")
+                self.assertEqual(1, status)
+                self.assertIn(f"Check {resource}: App Service or slot must be Stopped", errors)
+                self.assertEqual([], self.deletes)
+                self.app_states[resource] = "Stopped"
+
+    def test_vnet_integration_or_unknown_state_blocks_deletion(self):
+        self.current = {DATABASE, APP}
+        self.resources.write_text(f"{DATABASE}\n{APP}\n", encoding="utf-8")
+        self.plan_successfully()
+        cases = (
+            ([{"id": "vnet-connection"}], "disconnect VNet integration before deletion"),
+            (None, "Azure did not return a VNet integration list"),
+            ("ERROR: (AuthorizationFailed) Access denied", "AuthorizationFailed"),
+        )
+        for response, message in cases:
+            with self.subTest(message=message):
+                self.vnet_responses[APP] = response
+                status, _, errors = self.execute("delete")
+                self.assertEqual(1, status)
+                self.assertIn(f"Check App Service VNet integrations for {APP}", errors)
+                self.assertIn(message, errors)
+                self.assertEqual([], self.deletes)
+
+    def test_app_state_lookup_error_blocks_deletion(self):
+        self.current = {DATABASE, APP}
+        self.resources.write_text(f"{DATABASE}\n{APP}\n", encoding="utf-8")
+        self.plan_successfully()
+        self.check_failures[APP] = (1, "ERROR: (AuthorizationFailed) Access denied")
+        status, _, errors = self.execute("delete")
+        self.assertEqual(1, status)
+        self.assertIn(f"Check {APP}: ERROR: (AuthorizationFailed)", errors)
+        self.assertEqual([], self.deletes)
+
+    def test_live_slot_must_be_listed_earlier(self):
+        self.current = {SLOT, APP}
+        for resources in ([APP], [APP, SLOT]):
+            with self.subTest(resources=resources):
+                self.resources.write_text("\n".join(resources), encoding="utf-8")
+                status, _, errors = self.execute("plan")
+                self.assertEqual(1, status)
+                self.assertIn(f"slot must be present and listed earlier: {SLOT}", errors)
+                self.assertFalse(self.plan.exists())
+
+    def test_site_must_have_no_slots_immediately_before_its_delete(self):
+        self.current = {SLOT, APP}
+        self.resources.write_text(f"{SLOT}\n{APP}\n", encoding="utf-8")
+        self.plan_successfully()
+        new_slot = f"{APP}/slots/new-slot"
+        self.slot_response = lambda: [{"id": new_slot if self.deletes else SLOT, "state": "Stopped"}]
+        status, _, errors = self.execute("delete")
+        self.assertEqual(1, status)
+        self.assertIn(f"must be empty before deletion; found {new_slot}", errors)
+        self.assertEqual([SLOT], self.deletes)
+
+    def test_parent_slot_list_must_confirm_the_earlier_slot_is_stopped(self):
+        self.current = {APP, SLOT}
+        self.resources.write_text(f"{SLOT}\n{APP}\n", encoding="utf-8")
+        self.slot_response = lambda: [{"id": SLOT, "state": "Running"}]
+        status, _, errors = self.execute("plan")
+        self.assertEqual(1, status)
+        self.assertIn(f"slot must be Stopped: {SLOT}", errors)
+        self.assertFalse(self.plan.exists())
+
+    def test_plan_refuses_unknown_slot_inventory(self):
+        self.current = {APP}
+        self.resources.write_text(f"{APP}\n", encoding="utf-8")
+        cases = (
+            (None, "did not return a slot list"),
+            ([{"id": None}], "invalid slot ID"),
+            ("ERROR: (AuthorizationFailed) Access denied", "AuthorizationFailed"),
+        )
+        for response, message in cases:
+            with self.subTest(message=message):
+                self.slot_response = lambda: response
+                status, _, errors = self.execute("plan")
+                self.assertEqual(1, status)
+                self.assertIn(message, errors)
+                self.assertFalse(self.plan.exists())
 
     def test_plan_requires_a_disabled_autoscale_with_a_confirmed_absent_target(self):
         self.current = {AUTOSCALE}

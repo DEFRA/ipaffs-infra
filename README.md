@@ -262,9 +262,14 @@ reappears, queue a fresh plan for review. A rerun skips resources already gone.
 After a failed delete, check the logged resource ID and Azure error before
 retrying. The lists include Classic portal dashboards and disabled autoscale
 settings whose App Service plans are gone. The runner checks the rule and its
-target again before any deletion. Stop and recover, rollback, configuration
-validation and Classic deployment tooling still reference apps. Their plans
-still host apps, so both need separate review.
+target again before any deletion.
+
+When moving an approved app to the deletion list, check its live state, slots,
+network integration, routing and deployment references. Remove the exact app
+from the stop and recover list in the same change. Run that pipeline from the
+updated `main` branch after retirement so it uses the updated list. The runner
+checks that App Services are stopped and disconnected from their virtual
+networks, and checks slot membership again before deleting a parent app.
 
 ### Human access ownership
 

@@ -115,8 +115,6 @@ SNDIMPINFRGP001-imports-static-vnet/risk-assessment-microservice-vnet
 SNDIMPINFRGP001-imports-static-vnet/soaprequest-microservice-vnet
 SNDIMPINFRGP001-imports-static-vnet/soapsearch-microservice-vnet
 SNDIMPINFRGP001-openid-token-microservice/openid-token-microservice
-SNDIMPINFRGP001-openid-token-microservice/openid-token-microservice-green-tst
-SNDIMPINFRGP001-openid-token-microservice/openid-token-microservice-pre
 SNDIMPINFRGP001-openid-token-microservice/openid-token-microservice-tst
 SNDIMPINFRGP001-Pool-7/approvedestablishment-microservice-7
 SNDIMPINFRGP001-Pool-7/bip-microservice-7
