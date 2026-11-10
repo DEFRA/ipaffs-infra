@@ -1,7 +1,6 @@
 # AZR-SND Classic resources marked Delete in the 9 November 2026 inventory.
 # Keep the groups in deletion order and use one full ARM resource ID per line.
 # Includes stopped App Services approved for retirement and verified in Azure.
-# The app hosting the running commodity-code restore slot is held.
 
 # Microsoft.Insights/autoscaleSettings
 # Disabled rules for App Service plans verified absent in Azure.
@@ -205,6 +204,9 @@
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp010/providers/Microsoft.Web/sites/cloning-microservice-blue-snd
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp010/providers/Microsoft.Web/sites/cloning-microservice-green-snd
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp010/providers/Microsoft.Web/sites/commoditycode-microservice-blue-snd
+# Delete the stopped restore slot before its parent.
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp010/providers/Microsoft.Web/sites/commoditycode-microservice-green-snd/slots/restore-88b6
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp010/providers/Microsoft.Web/sites/commoditycode-microservice-green-snd
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp010/providers/Microsoft.Web/sites/countries-microservice-blue-snd
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp010/providers/Microsoft.Web/sites/countries-microservice-green-snd
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp010/providers/Microsoft.Web/sites/customer-microservice-blue-snd
@@ -262,3 +264,4 @@
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-vnet/providers/Microsoft.Web/serverfarms/frontend-plan-1-vnet
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-vnet/providers/Microsoft.Web/serverfarms/reference-data-plan-2-vnet
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-openid-token-microservice/providers/Microsoft.Web/serverfarms/services-general-microservice
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp010/providers/Microsoft.Web/serverfarms/reference-data-planv3-2

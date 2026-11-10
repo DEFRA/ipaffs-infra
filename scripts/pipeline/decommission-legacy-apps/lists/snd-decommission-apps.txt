@@ -1,4 +1,2 @@
-# App Services retained for stop and recover in AZR-SND
-# One resourceGroup/appName per line
-# The parent of the running commodity-code restore slot is held for review.
-SNDIMPINFRGP010/commoditycode-microservice-green-snd
+# No apps to stop or recover
+# The AZR-SND Classic apps are listed in the Classic decommissioning pipeline.
