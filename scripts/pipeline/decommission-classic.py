@@ -101,19 +101,46 @@ def resource_exists(resource_id, subscription):
     return True
 
 
+def verify_orphaned_autoscale(resource_id, subscription):
+    operation = f"Check autoscale setting {resource_id}"
+    result = run_az([
+        "resource", "show", "--ids", resource_id, "--subscription", subscription,
+        "--query", "{enabled:properties.enabled,target:properties.targetResourceUri}",
+        "--output", "json", "--only-show-errors",
+    ], operation)
+    require_success(result, operation)
+    try:
+        setting = json.loads(result.stdout)
+    except ValueError as exc:
+        raise DecommissionError(f"{operation}: Azure CLI returned invalid JSON") from exc
+    if not isinstance(setting, dict) or setting.get("enabled") is not False:
+        raise DecommissionError(f"{operation}: only disabled autoscale settings can be deleted")
+    target = setting.get("target")
+    match = RESOURCE_ID.fullmatch(target) if isinstance(target, str) else None
+    if (not match or match["subscription"].lower() != subscription
+            or len(target.split("/")) != 9 or resource_type(target).lower() != "microsoft.web/serverfarms"):
+        raise DecommissionError(f"{operation}: target must be an App Service plan in the same subscription")
+    if resource_exists(target, subscription):
+        raise DecommissionError(f"{operation}: target plan still exists: {target}")
+    print(f"{resource_id} is disabled and its target plan is absent: {target}", flush=True)
+
+
 def resource_states(resources, subscription, plan):
     states = []
     failures = 0
     for resource_id in resources:
+        kind = resource_type(resource_id)
         try:
             exists = resource_exists(resource_id, subscription)
+            if exists and kind.lower() == "microsoft.insights/autoscalesettings":
+                verify_orphaned_autoscale(resource_id, subscription)
         except DecommissionError as exc:
             print(f"ERROR: {exc}", file=sys.stderr)
             failures += 1
             continue
         states.append(exists)
         state = "exists" if exists else ("already gone" if plan else "already deleted")
-        print(f"{state}\t{resource_type(resource_id)}\t{resource_id}", flush=True)
+        print(f"{state}\t{kind}\t{resource_id}", flush=True)
     if plan or failures:
         print(f"Summary: {len(resources)} listed, {sum(states)} exist, "
               f"{states.count(False)} already gone, {failures} checks failed", flush=True)
@@ -140,12 +167,26 @@ def read_plan(path, resources, subscription):
 
 def delete_resource(resource_id, subscription):
     operation = f"Delete {resource_id}"
+    kind = resource_type(resource_id).lower()
+    if kind in {"microsoft.web/sites", "microsoft.web/sites/slots"}:
+        # Generic ARM deletion can delete the hosting plan when it becomes
+        # empty. Pass the slot explicitly so the CLI targets the slot endpoint.
+        parts = resource_id.split("/")
+        is_slot = kind.endswith("/slots")
+        if len(parts) != (11 if is_slot else 9):
+            raise DecommissionError(f"{operation}: expected a direct App Service resource ID")
+        command = ["webapp", "delete", f"--resource-group={parts[4]}", f"--name={parts[8]}",
+                   "--keep-empty-plan", "--keep-metrics"]
+        if is_slot:
+            command.append(f"--slot={parts[10]}")
+    else:
+        command = ["resource", "delete", "--ids", resource_id]
+
     print(f"Deleting {resource_id}", flush=True)
     # Azure CLI waits for the operation by default. Verbose output preserves
     # the provider's error when the CLI wraps a rejected delete.
     result = run_az([
-        "resource", "delete", "--ids", resource_id, "--subscription", subscription,
-        "--output", "none", "--verbose",
+        *command, "--subscription", subscription, "--output", "none", "--verbose",
     ], operation, timeout=1800)
     if result.returncode:
         missing = (result.returncode == 3 and ABSENT_ERROR.search(result.stderr)) or (

@@ -22,6 +22,10 @@ GROUP = f"/subscriptions/{SUBSCRIPTION}/resourceGroups/example"
 SERVER = f"{GROUP}/providers/Microsoft.Sql/servers/legacy"
 DATABASE = f"{SERVER}/databases/example-green"
 EXTENSION = f"{SERVER}/providers/Microsoft.Insights/diagnosticSettings/settings"
+APP = f"{GROUP}/providers/Microsoft.Web/sites/legacy-app"
+SLOT = f"{APP}/slots/staging"
+APP_PLAN = f"{GROUP}/providers/Microsoft.Web/serverfarms/legacy-plan"
+AUTOSCALE = f"{GROUP}/providers/Microsoft.Insights/autoscalesettings/legacy-plan"
 ABSENT = "ERROR: (ResourceNotFound) The resource could not be found\n"
 
 
@@ -44,6 +48,7 @@ class DecommissionTests(unittest.TestCase):
         self.plan = Path(directory) / "plan.json"
         self.current = {DATABASE, SERVER}
         self.account_id = SUBSCRIPTION
+        self.autoscale_setting = {"enabled": False, "target": APP_PLAN}
         self.check_failures = {}
         self.delete_failures = {}
         self.stuck = set()
@@ -59,16 +64,30 @@ class DecommissionTests(unittest.TestCase):
         command = arguments[1:3]
         if command == ["account", "show"]:
             return subprocess.CompletedProcess(arguments, 0, self.account_id, "")
-        resource_id = arguments[arguments.index("--ids") + 1]
+        if command == ["webapp", "delete"]:
+            self.assertIn("--resource-group=example", arguments)
+            self.assertIn("--name=legacy-app", arguments)
+            self.assertIn("--keep-empty-plan", arguments)
+            self.assertIn("--keep-metrics", arguments)
+            resource_id = SLOT if "--slot=staging" in arguments else APP
+        else:
+            resource_id = arguments[arguments.index("--ids") + 1]
         if command == ["resource", "show"]:
             self.reads.append(resource_id)
             if resource_id in self.check_failures:
                 code, error = self.check_failures[resource_id]
                 return subprocess.CompletedProcess(arguments, code, "", error)
             if resource_id in self.current:
+                query = arguments[arguments.index("--query") + 1]
+                if query == "{enabled:properties.enabled,target:properties.targetResourceUri}":
+                    self.assertEqual(AUTOSCALE, resource_id)
+                    return subprocess.CompletedProcess(arguments, 0, json.dumps(self.autoscale_setting), "")
+                self.assertEqual("id", query)
                 return subprocess.CompletedProcess(arguments, 0, resource_id, "")
             return subprocess.CompletedProcess(arguments, 3, "", ABSENT)
-        if command == ["resource", "delete"]:
+        if command in (["resource", "delete"], ["webapp", "delete"]):
+            if resource_id in (APP, SLOT):
+                self.assertEqual(["webapp", "delete"], command)
             self.deletes.append(resource_id)
             if resource_id not in self.stuck:
                 self.current.remove(resource_id)
@@ -124,6 +143,55 @@ class DecommissionTests(unittest.TestCase):
         self.assertIn("0 listed, 0 deleted", output)
         self.assertEqual([], self.reads)
         self.assertEqual([], self.deletes)
+
+    def test_delete_app_and_slot_preserves_the_unlisted_hosting_plan(self):
+        self.current = {APP, SLOT, APP_PLAN}
+        self.resources.write_text(f"{SLOT}\n{APP}\n", encoding="utf-8")
+        self.plan_successfully()
+        status, output, errors = self.execute("delete")
+        self.assertEqual(0, status, errors)
+        self.assertEqual([SLOT, APP], self.deletes)
+        self.assertEqual({APP_PLAN}, self.current)
+        self.assertIn("2 listed, 2 deleted, 0 already deleted", output)
+
+    def test_plan_requires_a_disabled_autoscale_with_a_confirmed_absent_target(self):
+        self.current = {AUTOSCALE}
+        self.resources.write_text(f"{AUTOSCALE}\n", encoding="utf-8")
+        for enabled in (True, "false", None):
+            with self.subTest(enabled=enabled):
+                self.autoscale_setting["enabled"] = enabled
+                status, _, errors = self.execute("plan")
+                self.assertEqual(1, status)
+                self.assertIn("only disabled autoscale settings can be deleted", errors)
+
+        self.autoscale_setting["enabled"] = False
+        self.autoscale_setting["target"] = APP_PLAN.replace(SUBSCRIPTION, OTHER_SUBSCRIPTION)
+        status, _, errors = self.execute("plan")
+        self.assertEqual(1, status)
+        self.assertIn("target must be an App Service plan in the same subscription", errors)
+
+        self.autoscale_setting["target"] = APP_PLAN
+        self.check_failures[APP_PLAN] = (1, "ERROR: (AuthorizationFailed) Access denied")
+        status, _, errors = self.execute("plan")
+        self.assertEqual(1, status)
+        self.assertIn(f"Check {APP_PLAN}: ERROR: (AuthorizationFailed)", errors)
+        self.assertFalse(self.plan.exists())
+        self.assertEqual([], self.deletes)
+
+    def test_delete_rechecks_that_the_autoscale_target_has_not_reappeared(self):
+        self.current = {DATABASE, AUTOSCALE}
+        self.resources.write_text(f"{DATABASE}\n{AUTOSCALE}\n", encoding="utf-8")
+        self.assertIn(f"{AUTOSCALE} is disabled and its target plan is absent: {APP_PLAN}", self.plan_successfully())
+        self.current.add(APP_PLAN)
+        status, _, errors = self.execute("delete")
+        self.assertEqual(1, status)
+        self.assertIn(f"target plan still exists: {APP_PLAN}", errors)
+        self.assertEqual([], self.deletes)
+
+        self.current.remove(APP_PLAN)
+        status, _, errors = self.execute("delete")
+        self.assertEqual(0, status, errors)
+        self.assertEqual([DATABASE, AUTOSCALE], self.deletes)
 
     def test_invalid_allowlists_are_rejected_before_any_azure_call(self):
         for invalid in (GROUP, f"{SERVER}/databases/*", f"{SERVER}/databases/..",
