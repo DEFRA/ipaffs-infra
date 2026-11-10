@@ -13,6 +13,8 @@ on:
       - "scripts/**/*.sh"
       - "scripts/**/*.test.py"
       - "scripts/pipeline/validate-access-contract.py"
+      - "scripts/pipeline/decommission-classic.py"
+      - "scripts/pipeline/decommission-classic/lists/*.txt"
       - "scripts/pipeline/create-release-refs.py"
       - "scripts/pipeline/sync-deployment-outputs.py"
       - "scripts/pipeline/infrastructure_*.py"
@@ -36,6 +38,8 @@ on:
       - "scripts/**/*.sh"
       - "scripts/**/*.test.py"
       - "scripts/pipeline/validate-access-contract.py"
+      - "scripts/pipeline/decommission-classic.py"
+      - "scripts/pipeline/decommission-classic/lists/*.txt"
       - "scripts/pipeline/create-release-refs.py"
       - "scripts/pipeline/sync-deployment-outputs.py"
       - "scripts/pipeline/infrastructure_*.py"
@@ -113,6 +117,9 @@ jobs:
 
       - name: Test operations access-group contract
         run: python scripts/pipeline/validate-access-contract.test.py
+
+      - name: Test Classic resource decommissioning
+        run: python scripts/pipeline/decommission-classic.test.py
 
       - name: Test manifest infra pin retirement
         shell: bash

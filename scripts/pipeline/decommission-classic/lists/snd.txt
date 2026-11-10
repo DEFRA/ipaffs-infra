@@ -1,0 +1,30 @@
+# AZR-SND Classic resources marked Delete in the 9 November 2026 inventory.
+# Keep the groups in deletion order and use one full ARM resource ID per line.
+# App Services still appear in recovery or Classic deployment tooling. Their
+# hosting plans and the running restore slot are deferred.
+
+# Microsoft.Insights/autoscaleSettings
+# Disabled rules for App Service plans verified absent in Azure.
+# Rules for existing plans are deferred with those plans.
+
+# SNDIMPINFRGP009
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp009/providers/Microsoft.Insights/autoscalesettings/frontend-planv3-2-AutoScaleSetting
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp009/providers/Microsoft.Insights/autoscalesettings/frontend-planv3-2-envSuffix-AutoScaleSetting
+
+# SNDIMPINFRGP010
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/autoscalesettings/enotification-plan-1-AutoScaleSetting
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/autoscalesettings/enotification-planv3-1-0-AutoScaleSetting
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/autoscalesettings/frontend-plan-1-AutoScaleSetting
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp010/providers/Microsoft.Insights/autoscalesettings/frontend-planv3-2-0-AutoScaleSetting
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp010/providers/Microsoft.Insights/autoscalesettings/frontend-planv3-2-2-AutoScaleSetting
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp010/providers/Microsoft.Insights/autoscalesettings/frontend-planv3-2-AutoScaleSetting
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/autoscalesettings/high-traffic-plan-1-AutoScaleSetting
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/autoscalesettings/low-traffic-plan-1-AutoScaleSetting
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/autoscalesettings/reference-data-plan-1-AutoScaleSetting
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/autoscalesettings/reference-data-plan-2-AutoScaleSetting
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/autoscalesettings/soap-services-plan-1-AutoScaleSetting
+
+# Microsoft.Portal/dashboards
+# Shared views for Classic Application Insights.
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-IMPORTS-STATIC-TEST/providers/Microsoft.Portal/dashboards/c96a86c7-84f7-4bbc-8bd7-1018519d56d9-dashboard
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-IMPORTS-STATIC-INTEGRATION/providers/Microsoft.Portal/dashboards/d3f240c2-7c5e-43ef-a757-0feb60c4d971-dashboard
