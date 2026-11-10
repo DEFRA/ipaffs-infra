@@ -95,7 +95,9 @@ jobs:
                 base=$(api "https://api.github.com/repos/$(targetRepo)" | python3 -c 'import sys,json; print(json.load(sys.stdin)["default_branch"])')
                 git config user.name "IPAFFS CI Bot"
                 git config user.email "ipaffs-ci-bot@defra.gov.uk"
-                git checkout -b "$branch" "origin/$base"
+                # ADO checks out a detached, shallow commit with no origin/* refs — fetch the base explicitly
+                git fetch --depth=1 origin "$base"
+                git checkout -b "$branch" FETCH_HEAD
                 git commit --allow-empty -m "Renovate probe (safe to ignore)"
                 git push origin "$branch"
                 echo "== Branch push: OK"
@@ -113,6 +115,7 @@ jobs:
 
       - task: Bash@3
         displayName: Feed — System.AccessToken access
+        condition: succeededOrFailed()
         env:
           ADO_TOKEN: $(System.AccessToken)
         inputs:
