@@ -27,9 +27,12 @@ APP = f"{GROUP}/providers/Microsoft.Web/sites/legacy-app"
 OTHER_APP = f"{GROUP}/providers/Microsoft.Web/sites/other-app"
 SLOT = f"{APP}/slots/staging"
 APP_PLAN = f"{GROUP}/providers/Microsoft.Web/serverfarms/legacy-plan"
+OTHER_APP_PLAN = f"{GROUP}/providers/Microsoft.Web/serverfarms/other-plan"
 SUBNET = f"{GROUP}/providers/Microsoft.Network/virtualNetworks/vnet/subnets/subnet"
 OTHER_SUBNET = f"{GROUP}/providers/Microsoft.Network/virtualNetworks/vnet/subnets/other"
 AUTOSCALE = f"{GROUP}/providers/Microsoft.Insights/autoscalesettings/legacy-plan"
+AUTOSCALE_QUERY = ("{id:id,enabled:properties.enabled,target:properties.targetResourceUri,"
+                   "profiles:properties.profiles}")
 ABSENT = "ERROR: (ResourceNotFound) The resource could not be found\n"
 
 
@@ -52,7 +55,25 @@ class DecommissionTests(unittest.TestCase):
         self.plan = Path(directory) / "plan.json"
         self.current = {DATABASE, SERVER}
         self.account_id = SUBSCRIPTION
-        self.autoscale_setting = {"enabled": False, "target": APP_PLAN}
+        self.autoscale_setting = {
+            "id": AUTOSCALE,
+            "enabled": False,
+            "target": APP_PLAN,
+            "profiles": [{
+                "name": "default",
+                "capacity": {"minimum": "1", "maximum": "2", "default": "1"},
+                "rules": [{
+                    "metricTrigger": {
+                        "metricName": "CpuPercentage", "metricResourceUri": APP_PLAN,
+                        "timeGrain": "PT1M", "statistic": "Average", "timeWindow": "PT5M",
+                        "timeAggregation": "Average", "operator": "GreaterThan", "threshold": 70,
+                    },
+                    "scaleAction": {"direction": "Increase", "type": "ChangeCount", "value": "1", "cooldown": "PT5M"},
+                }],
+            }],
+        }
+        self.before_autoscale_read = lambda: None
+        self.apply_autoscale_patch = True
         self.app_states = {APP: "Stopped", SLOT: "Stopped"}
         self.app_subnets = {}
         self.slot_response = None
@@ -69,6 +90,7 @@ class DecommissionTests(unittest.TestCase):
         self.stuck = set()
         self.reads = []
         self.deletes = []
+        self.mutations = []
         self.az = self.enterContext(patch.object(decommission.subprocess, "run", side_effect=self.fake_az))
         self.enterContext(patch.object(decommission.time, "sleep"))
         self.resources.write_text(f"# Database before server\n{DATABASE}\n\n{SERVER}\n", encoding="utf-8")
@@ -80,9 +102,19 @@ class DecommissionTests(unittest.TestCase):
         if command == ["account", "show"]:
             return subprocess.CompletedProcess(arguments, 0, self.account_id, "")
         if command == ["rest", "--method"]:
-            self.assertEqual("get", arguments[3])
             url = urlsplit(arguments[arguments.index("--url") + 1])
             self.assertFalse(url.netloc)
+            if arguments[3] == "patch":
+                self.assertEqual(AUTOSCALE, url.path)
+                self.assertEqual({"api-version": ["2022-10-01"]}, parse_qs(url.query))
+                self.assertEqual({"properties": {"enabled": False, "profiles": self.autoscale_setting["profiles"]}},
+                                 json.loads(arguments[arguments.index("--body") + 1]))
+                self.assertNotIn(self.autoscale_setting["target"], self.current)
+                self.mutations.append(("patch", AUTOSCALE))
+                if self.apply_autoscale_patch:
+                    self.autoscale_setting["enabled"] = False
+                return subprocess.CompletedProcess(arguments, 0, "", "")
+            self.assertEqual("get", arguments[3])
             self.assertEqual(f"{APP_PLAN}/sites", url.path)
             token = parse_qs(url.query).get("$skipToken", [None])[0]
             self.plan_reads.append(token)
@@ -131,8 +163,9 @@ class DecommissionTests(unittest.TestCase):
                 return subprocess.CompletedProcess(arguments, code, "", error)
             if resource_id in self.current:
                 query = arguments[arguments.index("--query") + 1]
-                if query == "{enabled:properties.enabled,target:properties.targetResourceUri}":
+                if query == AUTOSCALE_QUERY:
                     self.assertEqual(AUTOSCALE, resource_id)
+                    self.before_autoscale_read()
                     return subprocess.CompletedProcess(arguments, 0, json.dumps(self.autoscale_setting), "")
                 if query == "{id:id,state:properties.state,subnetId:properties.virtualNetworkSubnetId}":
                     app = {"id": resource_id, "state": self.app_states.get(resource_id),
@@ -145,6 +178,7 @@ class DecommissionTests(unittest.TestCase):
             if resource_id in (APP, SLOT):
                 self.assertEqual(["webapp", "delete"], command)
             self.deletes.append(resource_id)
+            self.mutations.append(("delete", resource_id))
             if resource_id not in self.stuck:
                 self.current.remove(resource_id)
             self.after_delete(resource_id)
@@ -162,7 +196,7 @@ class DecommissionTests(unittest.TestCase):
         status, output, errors = self.execute("plan")
         self.assertEqual(0, status, errors)
         self.assertEqual([], self.detaches)
-        self.assertEqual([], self.deletes)
+        self.assertEqual([], self.mutations)
         return output
 
     def test_plan_is_read_only_and_records_state_in_list_order(self):
@@ -459,12 +493,15 @@ class DecommissionTests(unittest.TestCase):
     def test_plan_requires_a_disabled_autoscale_with_a_confirmed_absent_target(self):
         self.current = {AUTOSCALE}
         self.resources.write_text(f"{AUTOSCALE}\n", encoding="utf-8")
-        for enabled in (True, "false", None):
+        for enabled, message in (
+                (True, "only disabled autoscale settings can be deleted"),
+                ("false", "Azure did not return a boolean enabled state"),
+                (None, "Azure did not return a boolean enabled state")):
             with self.subTest(enabled=enabled):
                 self.autoscale_setting["enabled"] = enabled
                 status, _, errors = self.execute("plan")
                 self.assertEqual(1, status)
-                self.assertIn("only disabled autoscale settings can be deleted", errors)
+                self.assertIn(message, errors)
 
         self.autoscale_setting["enabled"] = False
         self.autoscale_setting["target"] = APP_PLAN.replace(SUBSCRIPTION, OTHER_SUBSCRIPTION)
@@ -494,6 +531,112 @@ class DecommissionTests(unittest.TestCase):
         status, _, errors = self.execute("delete")
         self.assertEqual(0, status, errors)
         self.assertEqual([DATABASE, AUTOSCALE], self.deletes)
+        self.assertEqual([("delete", DATABASE), ("delete", AUTOSCALE)], self.mutations)
+
+    def test_enabled_autoscale_is_disabled_and_deleted_after_its_approved_plan(self):
+        self.current = {APP_PLAN, AUTOSCALE}
+        self.autoscale_setting["enabled"] = True
+        self.resources.write_text(f"{APP_PLAN}\n{AUTOSCALE}\n", encoding="utf-8")
+        output = self.plan_successfully()
+        self.assertIn("disabl", output.lower())
+        entries = json.loads(self.plan.read_text(encoding="utf-8"))["resources"]
+        self.assertEqual(APP_PLAN, entries[1]["targetPlanId"])
+        self.assertIs(True, entries[1]["disableAfterPlan"])
+        self.assertTrue(self.autoscale_setting["enabled"])
+
+        status, _, errors = self.execute("delete")
+        self.assertEqual(0, status, errors)
+        self.assertEqual([("delete", APP_PLAN), ("patch", AUTOSCALE), ("delete", AUTOSCALE)], self.mutations)
+        self.assertEqual(set(), self.current)
+
+    def test_enabled_autoscale_requires_an_earlier_target_and_scaling_profiles(self):
+        self.current = {APP_PLAN, AUTOSCALE}
+        self.autoscale_setting["enabled"] = True
+        self.resources.write_text(f"{AUTOSCALE}\n{APP_PLAN}\n", encoding="utf-8")
+        status, _, errors = self.execute("plan")
+        self.assertEqual(1, status)
+        self.assertIn(AUTOSCALE, errors)
+        self.assertFalse(self.plan.exists())
+        self.assertEqual([], self.mutations)
+
+        self.resources.write_text(f"{APP_PLAN}\n{AUTOSCALE}\n", encoding="utf-8")
+        self.autoscale_setting["profiles"] = []
+        status, _, errors = self.execute("plan")
+        self.assertEqual(1, status)
+        self.assertIn("Azure did not return its scaling profiles", errors)
+        self.assertFalse(self.plan.exists())
+        self.assertEqual([], self.mutations)
+
+    def test_autoscale_rule_read_must_return_the_exact_id(self):
+        self.current = {AUTOSCALE}
+        self.autoscale_setting["id"] = f"{AUTOSCALE}-other"
+        self.resources.write_text(f"{AUTOSCALE}\n", encoding="utf-8")
+        status, _, errors = self.execute("plan")
+        self.assertEqual(1, status)
+        self.assertIn(AUTOSCALE, errors)
+        self.assertFalse(self.plan.exists())
+        self.assertEqual([], self.mutations)
+
+    def test_autoscale_stays_untouched_if_target_reappears_or_changes_after_plan_delete(self):
+        self.resources.write_text(f"{APP_PLAN}\n{AUTOSCALE}\n", encoding="utf-8")
+        for change in ("recreated", "retargeted"):
+            with self.subTest(change=change):
+                self.current = {APP_PLAN, AUTOSCALE}
+                self.autoscale_setting.update(enabled=True, target=APP_PLAN)
+                self.mutations.clear()
+                self.deletes.clear()
+                self.before_autoscale_read = lambda: None
+                self.plan_successfully()
+
+                def change_target_after_plan_delete():
+                    if APP_PLAN not in self.deletes:
+                        return
+                    if change == "recreated":
+                        self.current.add(APP_PLAN)
+                    else:
+                        self.autoscale_setting["target"] = OTHER_APP_PLAN
+
+                self.before_autoscale_read = change_target_after_plan_delete
+                status, _, errors = self.execute("delete")
+                self.assertEqual(1, status)
+                self.assertIn(AUTOSCALE, errors)
+                self.assertEqual([("delete", APP_PLAN)], self.mutations)
+                self.assertIn(AUTOSCALE, self.current)
+                self.assertTrue(self.autoscale_setting["enabled"])
+
+    def test_autoscale_delete_rechecks_target_after_disabling_the_rule(self):
+        self.current = {APP_PLAN, AUTOSCALE}
+        self.autoscale_setting["enabled"] = True
+        self.resources.write_text(f"{APP_PLAN}\n{AUTOSCALE}\n", encoding="utf-8")
+        self.plan_successfully()
+
+        def recreate_target_after_patch():
+            if ("patch", AUTOSCALE) in self.mutations:
+                self.current.add(APP_PLAN)
+
+        self.before_autoscale_read = recreate_target_after_patch
+        status, _, errors = self.execute("delete")
+        self.assertEqual(1, status)
+        self.assertIn(f"target plan still exists: {APP_PLAN}", errors)
+        self.assertEqual([("delete", APP_PLAN), ("patch", AUTOSCALE)], self.mutations)
+
+    def test_autoscale_patch_requires_disabled_readback_and_can_retry_after_plan_delete(self):
+        self.current = {APP_PLAN, AUTOSCALE}
+        self.autoscale_setting["enabled"] = True
+        self.resources.write_text(f"{APP_PLAN}\n{AUTOSCALE}\n", encoding="utf-8")
+        self.plan_successfully()
+        self.apply_autoscale_patch = False
+        status, _, errors = self.execute("delete")
+        self.assertEqual(1, status)
+        self.assertIn(AUTOSCALE, errors)
+        self.assertEqual([("delete", APP_PLAN), ("patch", AUTOSCALE)], self.mutations)
+        self.assertEqual({AUTOSCALE}, self.current)
+
+        self.apply_autoscale_patch = True
+        self.mutations.clear()
+        status, _, errors = self.execute("delete")
+        self.assertEqual(0, status, errors)
+        self.assertEqual([("patch", AUTOSCALE), ("delete", AUTOSCALE)], self.mutations)
 
     def test_invalid_allowlists_are_rejected_before_any_azure_call(self):
         for invalid in (GROUP, f"{SERVER}/databases/*", f"{SERVER}/databases/..",

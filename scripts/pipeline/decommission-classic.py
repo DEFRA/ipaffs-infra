@@ -29,6 +29,8 @@ VERIFY_INTERVAL = 10
 APP_SITE = "microsoft.web/sites"
 APP_SLOT = "microsoft.web/sites/slots"
 APP_PLAN = "microsoft.web/serverfarms"
+AUTOSCALE_SETTING = "microsoft.insights/autoscalesettings"
+AUTOSCALE_API = "2022-10-01"
 APP_SERVICE_TYPES = {APP_SITE, APP_SLOT}
 APP_SERVICE_API = "2025-05-01"
 SUBNET_TYPE = "microsoft.network/virtualnetworks/subnets"
@@ -258,27 +260,76 @@ def verify_plan_members(resource_id, subscription, earlier_present=None):
         url = next_plan_page(link, collection, operation) if link is not None else None
 
 
-def verify_orphaned_autoscale(resource_id, subscription):
+def read_autoscale_setting(resource_id, subscription):
     operation = f"Check autoscale setting {resource_id}"
     result = run_az([
         "resource", "show", "--ids", resource_id, "--subscription", subscription,
-        "--query", "{enabled:properties.enabled,target:properties.targetResourceUri}",
+        "--query", "{id:id,enabled:properties.enabled,target:properties.targetResourceUri,profiles:properties.profiles}",
         "--output", "json", "--only-show-errors",
     ], operation)
+    if result.returncode == 3 and ABSENT_ERROR.search(result.stderr):
+        return None
     setting = read_azure_json(result, operation)
-    if not isinstance(setting, dict) or setting.get("enabled") is not False:
-        raise DecommissionError(f"{operation}: only disabled autoscale settings can be deleted")
+    returned_id = setting.get("id") if isinstance(setting, dict) else None
+    if not isinstance(returned_id, str) or returned_id.lower() != resource_id.lower():
+        raise DecommissionError(f"{operation}: Azure CLI did not return the requested resource ID")
+    if type(setting.get("enabled")) is not bool:
+        raise DecommissionError(f"{operation}: Azure did not return a boolean enabled state")
     target = setting.get("target")
     if not is_scoped_id(target, subscription, APP_PLAN, 9):
         raise DecommissionError(f"{operation}: target must be an App Service plan in the same subscription")
+    return setting
+
+
+def autoscale_disable_body(resource_id, setting):
+    profiles = setting.get("profiles")
+    if not isinstance(profiles, list) or not profiles:
+        raise DecommissionError(f"Check autoscale setting {resource_id}: Azure did not return its scaling profiles")
+    # The Monitor PATCH requires profiles even when only enabled changes.
+    return json.dumps({"properties": {"enabled": False, "profiles": profiles}})
+
+
+def require_absent_autoscale_target(resource_id, target, subscription):
     if resource_exists(target, subscription):
-        raise DecommissionError(f"{operation}: target plan still exists: {target}")
-    print(f"{resource_id} is disabled and its target plan is absent: {target}", flush=True)
+        raise DecommissionError(f"Check autoscale setting {resource_id}: target plan still exists: {target}")
+
+
+def read_autoscale_for_delete(resource_id, target, subscription):
+    setting = read_autoscale_setting(resource_id, subscription)
+    if setting is not None:
+        if setting["target"].lower() != target.lower():
+            raise DecommissionError(f"Autoscale target changed after the plan: {resource_id}. Run a new plan.")
+        require_absent_autoscale_target(resource_id, target, subscription)
+    return setting
+
+
+def prepare_autoscale_delete(resource_id, target, disable_after_plan, subscription):
+    setting = read_autoscale_for_delete(resource_id, target, subscription)
+    if setting is None:
+        return False
+    if setting["enabled"]:
+        if not disable_after_plan:
+            raise DecommissionError(f"{resource_id}: only disabled autoscale settings can be deleted")
+        operation = f"Disable autoscale setting {resource_id}"
+        print(operation, flush=True)
+        result = run_az([
+            "rest", "--method", "patch", "--url", f"{resource_id}?api-version={AUTOSCALE_API}",
+            "--body", autoscale_disable_body(resource_id, setting), "--subscription", subscription,
+            "--output", "none", "--only-show-errors",
+        ], operation)
+        require_success(result, operation)
+        setting = read_autoscale_for_delete(resource_id, target, subscription)
+        if setting is None:
+            return False
+        if setting["enabled"]:
+            raise DecommissionError(f"{operation}: autoscale setting is still enabled")
+    return True
 
 
 def resource_states(resources, subscription, plan):
     states = []
     earlier_present = set()
+    earlier_plans = set()
     failures = 0
     for resource_id in resources:
         kind = resource_type(resource_id)
@@ -290,12 +341,32 @@ def resource_states(resources, subscription, plan):
                 entry["subnetId"] = subnet_id
                 if plan and subnet_id:
                     print(f"{resource_id} will disconnect from {subnet_id} before deletion", flush=True)
+            elif kind_key == AUTOSCALE_SETTING:
+                setting = read_autoscale_setting(resource_id, subscription)
+                exists = setting is not None
+                if exists:
+                    target = setting["target"]
+                    disable_after_plan = target.lower() in earlier_plans
+                    if disable_after_plan:
+                        if setting["enabled"]:
+                            autoscale_disable_body(resource_id, setting)
+                        if plan:
+                            print(f"{resource_id} will be disabled if enabled and deleted after "
+                                  f"its target plan is confirmed absent: {target}", flush=True)
+                    else:
+                        if setting["enabled"]:
+                            raise DecommissionError(
+                                f"{resource_id}: only disabled autoscale settings can be deleted "
+                                "unless their target plan is listed earlier")
+                        require_absent_autoscale_target(resource_id, target, subscription)
+                        print(f"{resource_id} is disabled and its target plan is absent: {target}", flush=True)
+                    entry.update(targetPlanId=target, disableAfterPlan=disable_after_plan)
             else:
                 exists = resource_exists(resource_id, subscription)
-            if exists and kind_key == APP_PLAN:
-                verify_plan_members(resource_id, subscription, earlier_present)
-            if exists and kind_key == "microsoft.insights/autoscalesettings":
-                verify_orphaned_autoscale(resource_id, subscription)
+            if kind_key == APP_PLAN:
+                if exists:
+                    verify_plan_members(resource_id, subscription, earlier_present)
+                earlier_plans.add(resource_id.lower())
         except DecommissionError as exc:
             print(f"ERROR: {exc}", file=sys.stderr)
             failures += 1
@@ -330,11 +401,16 @@ def read_plan(path, resources, subscription):
         raise DecommissionError("Plan does not match the ordered resource list")
     for entry in entries:
         resource_id = entry["id"]
-        if resource_type(resource_id).lower() in APP_SERVICE_TYPES:
+        kind = resource_type(resource_id).lower()
+        if kind in APP_SERVICE_TYPES:
             subnet_id = entry.get("subnetId")
             if ("subnetId" not in entry or (subnet_id is not None and
                     (not entry["exists"] or not is_scoped_id(subnet_id, subscription, SUBNET_TYPE, 11)))):
                 raise DecommissionError(f"Plan lacks a valid subnet decision for {resource_id}")
+        if kind == AUTOSCALE_SETTING and entry["exists"] and (
+                not is_scoped_id(entry.get("targetPlanId"), subscription, APP_PLAN, 9)
+                or type(entry.get("disableAfterPlan")) is not bool):
+            raise DecommissionError(f"Plan lacks a valid autoscale decision for {resource_id}")
     return entries
 
 
@@ -345,7 +421,8 @@ def verify_approved_subnet(resource_id, subnet_id, approved_subnet):
         raise DecommissionError(f"VNet integration changed after the plan: {resource_id}. Run a new plan.")
 
 
-def delete_resource(resource_id, subscription, expected_subnet=None):
+def delete_resource(entry, subscription):
+    resource_id = entry["id"]
     operation = f"Delete {resource_id}"
     kind = resource_type(resource_id).lower()
     if kind in APP_SERVICE_TYPES:
@@ -353,7 +430,7 @@ def delete_resource(resource_id, subscription, expected_subnet=None):
         if not exists:
             print(f"Already deleted {resource_id}", flush=True)
             return False
-        verify_approved_subnet(resource_id, subnet_id, expected_subnet)
+        verify_approved_subnet(resource_id, subnet_id, entry["subnetId"])
         target = app_service_target(resource_id, kind)
         if subnet_id:
             disconnect = f"Disconnect {resource_id} from {subnet_id}"
@@ -378,6 +455,10 @@ def delete_resource(resource_id, subscription, expected_subnet=None):
                 print(f"Already deleted {resource_id}", flush=True)
                 return False
             verify_plan_members(resource_id, subscription)
+        if kind == AUTOSCALE_SETTING and not prepare_autoscale_delete(
+                resource_id, entry["targetPlanId"], entry["disableAfterPlan"], subscription):
+            print(f"Already deleted {resource_id}", flush=True)
+            return False
         command = ["resource", "delete", "--ids", resource_id]
 
     print(f"Deleting {resource_id}", flush=True)
@@ -430,11 +511,15 @@ def run(args):
         if current["exists"] and not approved["exists"]:
             raise DecommissionError(f"Resource appeared after the plan: {resource_id}. Run a new plan.")
         verify_approved_subnet(resource_id, current.get("subnetId"), approved.get("subnetId"))
+        if "targetPlanId" in current and (
+                current["targetPlanId"].lower() != approved["targetPlanId"].lower()
+                or current["disableAfterPlan"] != approved["disableAfterPlan"]):
+            raise DecommissionError(f"Autoscale target changed after the plan: {resource_id}. Run a new plan.")
 
     deleted = 0
     for current in states:
         if current["exists"]:
-            deleted += delete_resource(current["id"], subscription, current.get("subnetId"))
+            deleted += delete_resource(current, subscription)
     print(f"Summary: {len(resources)} listed, {deleted} deleted, "
           f"{len(resources) - deleted} already deleted", flush=True)
 

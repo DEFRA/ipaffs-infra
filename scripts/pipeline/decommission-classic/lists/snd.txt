@@ -265,3 +265,7 @@
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-vnet/providers/Microsoft.Web/serverfarms/reference-data-plan-2-vnet
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-openid-token-microservice/providers/Microsoft.Web/serverfarms/services-general-microservice
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp010/providers/Microsoft.Web/serverfarms/reference-data-planv3-2
+
+# Microsoft.Insights/autoscaleSettings
+# Disable and delete only after Azure confirms the listed target plan is gone.
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp010/providers/Microsoft.Insights/autoscalesettings/reference-data-planv3-2-AutoScaleSetting
