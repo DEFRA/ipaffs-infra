@@ -1,0 +1,39 @@
+parameters:
+  - name: environmentName
+    type: string
+
+  - name: subscriptionId
+    type: string
+
+  - name: serviceConnection
+    type: string
+
+  - name: action
+    type: string
+    values: [plan, delete]
+
+steps:
+  - checkout: self
+
+  - task: AzureCLI@2
+    displayName: Run ${{ parameters.action }} in ${{ parameters.environmentName }}
+    env:
+      RESOURCE_LIST: scripts/pipeline/decommission-classic/lists/${{ lower(parameters.environmentName) }}.txt
+      SUBSCRIPTION_ID: ${{ parameters.subscriptionId }}
+      ${{ if eq(parameters.action, 'plan') }}:
+        PLAN_FILE: $(Pipeline.Workspace)/classic-decommission-plan.json
+      ${{ else }}:
+        PLAN_FILE: $(Pipeline.Workspace)/classic-decommission-plan-${{ parameters.environmentName }}/classic-decommission-plan.json
+    inputs:
+      azureSubscription: ${{ parameters.serviceConnection }}
+      scriptType: bash
+      scriptLocation: inlineScript
+      inlineScript: |
+        set -euo pipefail
+        python3 -u scripts/pipeline/decommission-classic.py ${{ parameters.action }} \
+          "$RESOURCE_LIST" "$SUBSCRIPTION_ID" --plan-file "$PLAN_FILE"
+
+  - ${{ if eq(parameters.action, 'plan') }}:
+    - publish: $(Pipeline.Workspace)/classic-decommission-plan.json
+      artifact: classic-decommission-plan-${{ parameters.environmentName }}
+      displayName: Publish the ${{ parameters.environmentName }} plan

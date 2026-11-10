@@ -1,0 +1,42 @@
+# AZR-TST Classic resources marked Delete in the 9 November 2026 inventory.
+# Keep the groups in deletion order and use one full ARM resource ID per line.
+# App Services and their plans are deferred while recovery, rollback or
+# configuration validation tooling still references the apps.
+
+# Microsoft.Insights/autoscaleSettings
+# Disabled rules for App Service plans verified absent in Azure.
+# Rules for existing plans are deferred with those plans.
+
+# TSTIMPINFRGP001
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/autoscalesettings/enotification-plan-1-AutoScaleSetting
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/autoscalesettings/frontend-plan-1-AutoScaleSetting
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/autoscalesettings/high-traffic-plan-1-AutoScaleSetting
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/autoscalesettings/low-traffic-plan-1-AutoScaleSetting
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/autoscalesettings/reference-data-plan-1-AutoScaleSetting
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/autoscalesettings/reference-data-plan-2-AutoScaleSetting
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/autoscalesettings/soap-services-plan-1-AutoScaleSetting
+
+# TSTIMPINFRGP002
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/autoscalesettings/enotification-plan-1-AutoScaleSetting
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/autoscalesettings/frontend-plan-1-AutoScaleSetting
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/autoscalesettings/frontend-planv3-2-AutoScaleSetting
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/autoscalesettings/high-traffic-plan-1-AutoScaleSetting
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/autoscalesettings/low-traffic-plan-1-AutoScaleSetting
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/autoscalesettings/low-traffic-plan-2-AutoScaleSetting
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/autoscalesettings/reference-data-plan-1-AutoScaleSetting
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/autoscalesettings/reference-data-plan-2-AutoScaleSetting
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/autoscalesettings/soap-services-plan-1-AutoScaleSetting
+
+# TSTIMPINFRGP003
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP003/providers/Microsoft.Insights/autoscalesettings/enotification-planv3-1-AutoScaleSetting
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP003/providers/Microsoft.Insights/autoscalesettings/frontend-planv3-1-AutoScaleSetting
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP003/providers/Microsoft.Insights/autoscalesettings/high-traffic-planv3-1-AutoScaleSetting
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP003/providers/Microsoft.Insights/autoscalesettings/low-traffic-planv3-1-AutoScaleSetting
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP003/providers/Microsoft.Insights/autoscalesettings/reference-data-planv3-1-AutoScaleSetting
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP003/providers/Microsoft.Insights/autoscalesettings/reference-data-planv3-2-AutoScaleSetting
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP003/providers/Microsoft.Insights/autoscalesettings/soap-services-planv3-1-AutoScaleSetting
+
+# Microsoft.Portal/dashboards
+# Shared views for Classic Application Insights.
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Portal/dashboards/06211f32-c26f-4f5b-b148-7afdf8fd3f08-dashboard
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Portal/dashboards/179d0ce6-0bcc-4423-a76f-510ab48ac038-dashboard
