@@ -34,6 +34,9 @@ param sqlParams object
 param insightsParams object
 param storageParams object
 
+// Calculate the ID without a deployment output so what-if can resolve it.
+var logAnalyticsId = resourceId('Microsoft.OperationalInsights/workspaces', monitoringParams.logAnalyticsName)
+
 module aks './modules/aks.bicep' = {
   name: 'aks-${deploymentId}'
   scope: resourceGroup()
@@ -41,12 +44,13 @@ module aks './modules/aks.bicep' = {
     aksParams: aksParams
     deploymentId: deploymentId
     location: location
-    logAnalyticsId: monitoring.outputs.logAnalyticsId
+    logAnalyticsId: logAnalyticsId
     subnets: subnets
     tags: tags
     tenantId: tenantId
     vnetName: vnetName
   }
+  dependsOn: [monitoring]
 }
 
 module agc './modules/application-gateway-for-containers.bicep' = {
@@ -194,10 +198,11 @@ module insights './modules/insights.bicep' = {
   scope: resourceGroup()
   params: {
     insightsParams: insightsParams
-    logAnalyticsId: monitoring.outputs.logAnalyticsId
+    logAnalyticsId: logAnalyticsId
     location: location
     tags: tags
   }
+  dependsOn: [monitoring]
 }
 
 module storage './modules/storage.bicep' = {

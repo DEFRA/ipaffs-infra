@@ -34,6 +34,12 @@ OS disk type cannot be changed after pool creation. Declaring the observed
 Managed disks avoids relying on a different implicit disk selection after a VM
 size change; it does not request a disk migration.
 
+The single-stack `podCidr` and `serviceCidr` fields use the first entries of
+their existing arrays. When the template omitted the singular fields, what-if
+substituted the API defaults even though the arrays matched the live cluster.
+Read-only AKS previews in all four environments verified that both forms now
+match the deployed ranges.
+
 Declaring manual provisioning initially exposed the nested `defaultNodePools`
 omission. Fresh reads showed `Auto` in all four environments. The pinned API
 schema documents that this default has no effect unless provisioning mode is

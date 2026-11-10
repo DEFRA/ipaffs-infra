@@ -41,7 +41,6 @@ resource elasticPool 'Microsoft.Sql/servers/elasticPools@2023-08-01' = {
     licenseType: 'BasePrice'
     maxSizeBytes: sqlParams.maxSizeGiB * 1024 * 1024 * 1024
     perDatabaseSettings: {
-      autoPauseDelay: -1
       minCapacity: 0
       maxCapacity: sqlParams.?maxVCorePerDatabase ?? sqlParams.vCores
     }

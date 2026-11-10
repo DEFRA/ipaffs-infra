@@ -115,6 +115,11 @@ class CompiledAksSettingsTests(unittest.TestCase):
                          tuple(network[key] for key in ("networkPlugin", "networkPluginMode", "networkPolicy")))
         self.assertEqual(["IPv4"], network["ipFamilies"])
         self.assertEqual("userDefinedRouting", network["outboundType"])
+        for singular, plural in (("podCidr", "podCidrs"), ("serviceCidr", "serviceCidrs")):
+            self.assertEqual(f"[parameters('aksParams').{plural}[0]]", network[singular])
+            for environment, parameters in self.parameters.items():
+                with self.subTest(environment=environment, field=plural):
+                    self.assertEqual(1, len(parameter_value(network[plural], parameters)))
 
     def test_existing_tenant_input_is_forwarded_from_every_real_entrypoint(self):
         for environment, template in self.root_templates.items():

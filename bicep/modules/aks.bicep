@@ -198,7 +198,10 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2025-10-01' = {
       networkDataplane: 'azure'
       networkPolicy: 'calico'
       outboundType: 'userDefinedRouting'
+      // Keep the single-stack aliases aligned with the arrays so what-if does not inject defaults.
+      podCidr: aksParams.podCidrs[0]
       podCidrs: aksParams.podCidrs
+      serviceCidr: aksParams.serviceCidrs[0]
       serviceCidrs: aksParams.serviceCidrs
     }
 
