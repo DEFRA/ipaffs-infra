@@ -154,4 +154,5 @@ output serviceBusNamespaceName string = serviceBus.outputs.serviceBusNamespaceNa
 output serviceBusNamespaceResourceId string = serviceBus.outputs.serviceBusNamespaceResourceId
 output sqlServerName string = sql.outputs.sqlServerName
 output sqlServerResourceId string = sql.outputs.sqlServerResourceId
+output elasticJobPrivateEndpointResourceId string = sej.outputs.privateEndpointResourceId
 

@@ -21,6 +21,7 @@ trigger:
       - pipelines/vars/snd.yaml
       - scripts/pipeline/validate-access-contract.py
       - scripts/pipeline/sync-deployment-outputs.py
+      - scripts/pipeline/approve-sql-elastic-job-private-endpoint.py
       - scripts/pipeline/infrastructure_parameters.py
       - scripts/pipeline/ensure-bicep-version.sh
       - scripts/pipeline/add-principal-to-group.sh
