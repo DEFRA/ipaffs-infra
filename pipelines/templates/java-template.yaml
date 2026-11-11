@@ -44,6 +44,14 @@ parameters:
     type: string
     default: master
 
+  - name: mavenRegistry
+    displayName: Maven registry (artifactory or feed, see pipelines/steps/maven-settings.yaml)
+    type: string
+    default: artifactory
+    values:
+      - artifactory
+      - feed
+
 stages:
   - stage: DetectContainerBuild
     displayName: Detect Container Build Requirement
@@ -147,6 +155,7 @@ stages:
       - template: /pipelines/jobs/build-java-project.yaml@ipaffs-infra
         parameters:
           mvnGoals:  "${{ parameters.mvnGoals }}"
+          mavenRegistry: "${{ parameters.mavenRegistry }}"
 
   - ${{ if eq(parameters.sonarAnalysis, true) }}:
     - stage: SonarAnalysis
