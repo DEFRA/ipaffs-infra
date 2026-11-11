@@ -1,0 +1,77 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": "IPAFFS shared Renovate preset. Translated from the IMTA-21519 Dependabot template (dependabot-templates/java.yml). Applied to every repo by renovate/config.js; a repo can also opt in from its own renovate.json with \"extends\": [\"local>DEFRA/ipaffs-infra//renovate/default\"].",
+  "timezone": "Europe/London",
+  "enabledManagers": ["maven", "npm", "dockerfile", "helmv3"],
+  "includePaths": [
+    "service/**",
+    "integration/**",
+    "dataimporter/**",
+    "configuration/**",
+    "deploy/**"
+  ],
+  "labels": ["dependencies"],
+  "assignees": ["ardesai", "DannyJo", "khanhassan", "marcelvdh"],
+  "commitMessagePrefix": "IMTA-21519",
+  "prConcurrentLimit": 10,
+  "prHourlyLimit": 0,
+  "rebaseWhen": "conflicted",
+  "dependencyDashboard": false,
+  "vulnerabilityAlerts": {
+    "enabled": false
+  },
+  "npmrc": "@defra:registry=https://pkgs.dev.azure.com/defragovuk/DEFRA-EUTD-IPAFFS/_packaging/DEFRA-EUTD-IPAFFS/npm/registry/\n",
+  "npmrcMerge": true,
+  "packageRules": [
+    {
+      "description": "Resolve Maven from Maven Central plus the IPAFFS Azure Artifacts feed (internal uk.gov.defra artifacts). Overrides <repositories>/settings.xml in the repos, which still point at Artifactory.",
+      "matchDatasources": ["maven"],
+      "registryUrls": [
+        "https://repo.maven.apache.org/maven2",
+        "https://pkgs.dev.azure.com/defragovuk/DEFRA-EUTD-IPAFFS/_packaging/DEFRA-EUTD-IPAFFS/maven/v1"
+      ]
+    },
+    {
+      "matchManagers": ["maven"],
+      "addLabels": ["java"]
+    },
+    {
+      "matchManagers": ["npm"],
+      "addLabels": ["javascript"]
+    },
+    {
+      "matchManagers": ["dockerfile"],
+      "addLabels": ["docker"]
+    },
+    {
+      "matchManagers": ["helmv3"],
+      "addLabels": ["helm"]
+    },
+    {
+      "description": "Dependabot group 'minor-and-patch': one PR per repo for non-major Maven updates.",
+      "matchManagers": ["maven"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "maven minor and patch",
+      "groupSlug": "maven-minor-patch"
+    },
+    {
+      "description": "One PR per repo for non-major npm updates.",
+      "matchManagers": ["npm"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "npm minor and patch",
+      "groupSlug": "npm-minor-patch"
+    },
+    {
+      "description": "Dependabot group 'docker': all base image updates in one PR.",
+      "matchManagers": ["dockerfile"],
+      "groupName": "docker",
+      "groupSlug": "docker"
+    },
+    {
+      "description": "TracesX parent is version-locked across all IPAFFS services. Major bumps are a coordinated estate-wide migration, not a per-repo PR.",
+      "matchPackageNames": ["uk.gov.defra.tracesx:TracesX-SpringBoot-Common-Parent"],
+      "matchUpdateTypes": ["major"],
+      "enabled": false
+    }
+  ]
+}

@@ -1,0 +1,105 @@
+---
+# Renovate: dependency update PRs for IPAFFS GitHub repos, run from ADO.
+# No PATs, no app installs:
+#   GitHub - Azure Pipelines GitHub App installation token, from the DEFRA
+#            service connection's checkout of this repo.
+#   Feed   - System.AccessToken (DEFRA-EUTD-IPAFFS Build Service, Contributor
+#            on the DEFRA-EUTD-IPAFFS Azure Artifacts feed).
+# Rules live in renovate/default.json; platform config in renovate/config.js.
+#
+# One matrix job per repo, so each gets a fresh (~1 hour) token and one repo
+# failing doesn't stop the rest. The GitHub token can reach every DEFRA repo
+# the app is installed on, so the repo list is explicit: never autodiscover.
+#
+# First run for a new repo: queue manually with dryRun=full and check the log
+# for the PRs Renovate would open, then run with dryRun=none.
+
+trigger: none
+pr: none
+
+schedules:
+  - cron: "0 7 * * 1"
+    displayName: Weekly, Monday 07:00 UTC
+    branches:
+      include:
+        - main
+    always: true
+
+pool:
+  name: DEFRA-COMMON-ubuntu2204-SSV5
+
+parameters:
+  - name: repositories
+    displayName: DEFRA GitHub repos to run Renovate on
+    type: object
+    default:
+      - ipaffs-countries-microservice
+  - name: dryRun
+    displayName: Dry run (none = open real PRs)
+    type: string
+    default: none
+    values:
+      - none
+      - extract
+      - lookup
+      - full
+  - name: logLevel
+    displayName: Log level
+    type: string
+    default: info
+    values:
+      - info
+      - debug
+  - name: renovateImage
+    displayName: Renovate container image
+    type: string
+    default: ghcr.io/renovatebot/renovate:44.192.2
+
+jobs:
+  - job: Renovate
+    timeoutInMinutes: 50 # stay inside the installation token's ~1 hour lifetime
+    strategy:
+      maxParallel: 4
+      matrix:
+        ${{ each repo in parameters.repositories }}:
+          ${{ replace(repo, '-', '_') }}:
+            repoName: ${{ repo }}
+    steps:
+      - checkout: self
+        persistCredentials: true
+        fetchDepth: 1
+        clean: true
+
+      - template: steps/github-app-token.yaml
+
+      - task: Bash@3
+        displayName: Renovate DEFRA/$(repoName)
+        env:
+          RENOVATE_TOKEN: $(githubAppToken)
+          ADO_FEED_TOKEN: $(System.AccessToken)
+          RENOVATE_REPOSITORIES: DEFRA/$(repoName)
+          LOG_LEVEL: ${{ parameters.logLevel }}
+          DRY_RUN: ${{ parameters.dryRun }}
+          RENOVATE_IMAGE: ${{ parameters.renovateImage }}
+        inputs:
+          targetType: inline
+          workingDirectory: $(Build.SourcesDirectory)
+          script: |
+            set -euo pipefail
+            extra=()
+            if [ "${DRY_RUN}" != none ]; then
+              extra+=(-e "RENOVATE_DRY_RUN=${DRY_RUN}")
+              echo "Dry run (${DRY_RUN}): no branches or PRs will be created"
+            fi
+            # Secrets are passed by name only (-e VAR), so they never appear in the command line.
+            docker run --rm \
+              -v "$(Build.SourcesDirectory)/renovate:/usr/src/app/ipaffs:ro" \
+              -e RENOVATE_CONFIG_FILE=/usr/src/app/ipaffs/config.js \
+              -e RENOVATE_TOKEN \
+              -e ADO_FEED_TOKEN \
+              -e RENOVATE_REPOSITORIES \
+              -e LOG_LEVEL \
+              "${extra[@]}" \
+              "${RENOVATE_IMAGE}"
+
+# vim: set ts=2 sts=2 sw=2 et:

@@ -1,0 +1,40 @@
+---
+# Extracts the Azure Pipelines GitHub App installation token that a preceding
+# `checkout` (with persistCredentials: true) stored in git config, and exposes
+# it as the secret variable $(githubAppToken). Map it into a step via `env:`.
+#
+# The token is short-lived (about an hour) and, while the project setting
+# enforceReferencedGitHubRepoScopedToken is off, covers every repo the app is
+# installed on in DEFRA, so treat it as powerful.
+
+parameters:
+  - name: workingDirectory
+    type: string
+    default: $(Build.SourcesDirectory)
+
+steps:
+  - task: Bash@3
+    name: GitHubAppToken
+    displayName: Extract GitHub App installation token
+    inputs:
+      targetType: inline
+      workingDirectory: ${{ parameters.workingDirectory }}
+      script: |
+        set -euo pipefail
+        hdr=$(git config --get-regexp 'http\..*\.extraheader' | head -1 | sed -E 's/^[^ ]+ //')
+        if [ -z "$hdr" ]; then
+          echo "No persisted extraheader found; the checkout needs persistCredentials: true" >&2
+          exit 1
+        fi
+        scheme=$(echo "$hdr" | awk '{print tolower($2)}')
+        cred=$(echo "$hdr" | awk '{print $3}')
+        case "$scheme" in
+          basic)  tok=$(echo "$cred" | base64 -d | sed -E 's/^[^:]*://') ;;
+          bearer) tok="$cred" ;;
+          *) echo "Unexpected auth scheme: $scheme" >&2; exit 1 ;;
+        esac
+        echo "##vso[task.setsecret]$tok"
+        echo "##vso[task.setvariable variable=githubAppToken;issecret=true]$tok"
+        echo "GitHub App token extracted"
+
+# vim: set ts=2 sts=2 sw=2 et:
