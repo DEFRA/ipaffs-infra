@@ -21,8 +21,9 @@ ROOT = Path(__file__).resolve().parents[2]
 MODULE = ROOT / "bicep/modules/sql-elastic-jobs.bicep"
 MAINTENANCE_TYPES = {"Microsoft.Sql/servers/jobAgents/targetGroups",
                      "Microsoft.Sql/servers/jobAgents/jobs", "Microsoft.Sql/servers/jobAgents/jobs/steps"}
+PRIVATE_ENDPOINT_TYPE = "Microsoft.Sql/servers/jobAgents/privateEndpoints"
 CORE_TYPES = {"Microsoft.Sql/servers/databases", "Microsoft.ManagedIdentity/userAssignedIdentities",
-              "Microsoft.Sql/servers/jobAgents", "Microsoft.Insights/metricAlerts"}
+              "Microsoft.Sql/servers/jobAgents", PRIVATE_ENDPOINT_TYPE, "Microsoft.Insights/metricAlerts"}
 
 
 def arm_boolean(expression, parameters, variables):
@@ -113,12 +114,12 @@ class CompiledSqlMaintenanceOwnershipTests(unittest.TestCase):
         return [resource for resource in self.template["resources"]
                 if arm_boolean(resource.get("condition", True), parameters, self.template.get("variables", {}))]
 
-    def test_pre_and_prd_omit_all_five_maintenance_resources_but_keep_agent_and_alert(self):
+    def test_pre_and_prd_omit_all_five_maintenance_resources_but_keep_core_resources(self):
         for environment in ("pre", "prd"):
             with self.subTest(environment=environment):
                 resources = self.active(self.parameters[environment])
                 self.assertEqual(CORE_TYPES, {resource["type"] for resource in resources})
-                self.assertEqual(4, len(resources))
+                self.assertEqual(5, len(resources))
                 self.assertFalse(any(resource["type"] in MAINTENANCE_TYPES for resource in resources))
 
     def test_snd_and_tst_keep_the_existing_bootstrap_without_an_explicit_flag(self):
@@ -134,7 +135,14 @@ class CompiledSqlMaintenanceOwnershipTests(unittest.TestCase):
     def test_an_explicit_true_value_can_reenable_management(self):
         parameters = copy.deepcopy(self.parameters["pre"])
         parameters["sejParams"]["manageMaintenanceDefinitions"] = True
-        self.assertEqual(9, len(self.active(parameters)))
+        self.assertEqual(10, len(self.active(parameters)))
+
+    def test_private_endpoint_connects_the_agent_to_its_sql_server(self):
+        endpoint = next(resource for resource in self.template["resources"] if resource["type"] == PRIVATE_ENDPOINT_TYPE)
+        self.assertEqual("[resourceId('Microsoft.Sql/servers', parameters('sejParams').sqlServerName)]",
+                         endpoint["properties"]["targetServerAzureResourceId"])
+        self.assertEqual(["[resourceId('Microsoft.Sql/servers/jobAgents', parameters('sejParams').sqlServerName, parameters('sejParams').jobAgentName)]"],
+                         endpoint["dependsOn"])
 
     def test_only_maintenance_resources_are_conditional(self):
         guarded = [resource for resource in self.template["resources"] if "condition" in resource]

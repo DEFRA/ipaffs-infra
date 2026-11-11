@@ -35,6 +35,7 @@ PROTECTED_PATHS = [
     "pipelines/stages/deploy-bicep-infra.yaml",
     "pipelines/stages/deploy-bicep-privatelink.yaml",
     "scripts/pipeline/infrastructure_parameters.py",
+    "scripts/pipeline/approve-sql-elastic-job-private-endpoint.py",
     "scripts/pipeline/ensure-bicep-version.sh",
 ]
 DEPLOYMENT_TASKS = {

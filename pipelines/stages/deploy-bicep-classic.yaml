@@ -135,6 +135,29 @@ stages:
                         --created
 
                 - task: AzureCLI@2
+                  displayName: Approve SQL Elastic Jobs private endpoint
+                  condition: and(not(failed()), not(canceled()), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), and(${{ parameters.allowTaggedDeployments }}, startsWith(variables['Build.SourceBranch'], 'refs/tags/'))))
+                  env:
+                    CLASSIC_DEPLOYMENT_NAME: Classic-$(Build.BuildId)
+                    CLASSIC_RESOURCE_GROUP: $(classicResourceGroupName)
+                    CLASSIC_SUBSCRIPTION_ID: $(classicSubscriptionId)
+                  inputs:
+                    azureSubscription: ${{ variables.classicServiceConnection }}
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      set -euo pipefail
+                      endpoint_resource_id="$(az deployment group show \
+                        --name "$CLASSIC_DEPLOYMENT_NAME" \
+                        --resource-group "$CLASSIC_RESOURCE_GROUP" \
+                        --subscription "$CLASSIC_SUBSCRIPTION_ID" \
+                        --query properties.outputs.elasticJobPrivateEndpointResourceId.value \
+                        --output tsv --only-show-errors)"
+                      python3 scripts/pipeline/approve-sql-elastic-job-private-endpoint.py \
+                        --endpoint-resource-id "$endpoint_resource_id" \
+                        --subscription "$CLASSIC_SUBSCRIPTION_ID"
+
+                - task: AzureCLI@2
                   name: ClassicOutputs
                   displayName: Classic outputs
                   condition: and(not(failed()), not(canceled()), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), and(${{ parameters.allowTaggedDeployments }}, startsWith(variables['Build.SourceBranch'], 'refs/tags/'))))

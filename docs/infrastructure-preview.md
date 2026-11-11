@@ -224,6 +224,14 @@ with its owner rather than enable the bootstrap definitions without review. A
 newly rebuilt PRE/PRD job agent requires its maintenance definitions to be restored
 or provisioned by that owner.
 
+The Classic deployment requests one service-managed private endpoint per Elastic
+Job Agent in SND, TST, PRE and PRD. After the ARM deployment completes, the
+Classic service connection approves the matching connection on the agent's SQL
+server and verifies its status. The existing deployment gates apply to both
+steps. ARM WhatIf previews the endpoint resource. The approval runs after
+deployment. Check the per-database results of a test or scheduled job execution
+to verify connectivity.
+
 Deployment tasks, previews and CI use the compiler pinned in
 `scripts/pipeline/ensure-bicep-version.sh`. Each Azure CLI task selects the
 verified Azure CLI-managed binary and stops before compilation if verification fails.
