@@ -37,8 +37,6 @@ param dbwParams = {
     tier: 'Standard'
     capacity: 2
   }
-  sqlServerElasticPoolName: 'TSTIMPEDPSQA001'
-  sqlServerResourceId: '/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Sql/servers/TSTIMPDBSSQA001'
 }
 
 param redisParams = {

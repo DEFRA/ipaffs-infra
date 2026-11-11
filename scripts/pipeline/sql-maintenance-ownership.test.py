@@ -139,6 +139,9 @@ class CompiledSqlMaintenanceOwnershipTests(unittest.TestCase):
 
     def test_private_endpoint_connects_the_agent_to_its_sql_server(self):
         endpoint = next(resource for resource in self.template["resources"] if resource["type"] == PRIVATE_ENDPOINT_TYPE)
+        self.assertEqual("[format('{0}/{1}/{2}', parameters('sejParams').sqlServerName, "
+                         "parameters('sejParams').jobAgentName, toLower(parameters('sejParams').jobAgentName))]",
+                         endpoint["name"])
         self.assertEqual("[resourceId('Microsoft.Sql/servers', parameters('sejParams').sqlServerName)]",
                          endpoint["properties"]["targetServerAzureResourceId"])
         self.assertEqual(["[resourceId('Microsoft.Sql/servers/jobAgents', parameters('sejParams').sqlServerName, parameters('sejParams').jobAgentName)]"],
@@ -166,6 +169,24 @@ class CompiledSqlMaintenanceOwnershipTests(unittest.TestCase):
         schedules = [resource["properties"]["schedule"] for resource in resources if resource["type"].endswith("/jobs")]
         self.assertEqual({"P1W", "P1D"}, {schedule["interval"] for schedule in schedules})
         self.assertTrue(all(schedule["enabled"] for schedule in schedules))
+
+    def test_classic_deploys_the_data_store_and_reads_the_existing_watcher_identity(self):
+        classic = self.compile("build", ROOT / "bicep/30-classic.bicep")
+        watcher_deployment, = [
+            resource for resource in classic["resources"]
+            if "dbwParams" in resource.get("properties", {}).get("parameters", {})
+        ]
+        resources = {
+            resource["type"]: resource
+            for resource in watcher_deployment["properties"]["template"]["resources"]
+        }
+        assignment_type = "Microsoft.Kusto/clusters/databases/principalAssignments"
+        self.assertEqual({"Microsoft.Kusto/clusters", "Microsoft.Kusto/clusters/databases", assignment_type},
+                         resources.keys())
+        principal_id = resources[assignment_type]["properties"]["principalId"]
+        self.assertIn("reference(resourceId('Microsoft.DatabaseWatcher/watchers', parameters('dbwParams').name)",
+                      principal_id)
+        self.assertTrue(principal_id.endswith(".identity.principalId]"))
 
 
 if __name__ == "__main__":
