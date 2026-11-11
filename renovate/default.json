@@ -11,7 +11,7 @@
     "deploy/**"
   ],
   "labels": ["dependencies"],
-  "assignees": ["ardesai", "DannyJo", "khanhassan", "marcelvdh"],
+  "assignees": ["ardesai", "DannyJo", "jonnyshaw89", "andywhardy"],
   "commitMessagePrefix": "IMTA-21519",
   "prConcurrentLimit": 10,
   "prHourlyLimit": 0,

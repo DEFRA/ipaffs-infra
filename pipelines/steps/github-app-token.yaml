@@ -36,5 +36,3 @@ steps:
         echo "##vso[task.setsecret]$tok"
         echo "##vso[task.setvariable variable=githubAppToken;issecret=true]$tok"
         echo "GitHub App token extracted"
-
-# vim: set ts=2 sts=2 sw=2 et:

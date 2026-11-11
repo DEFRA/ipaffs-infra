@@ -101,5 +101,3 @@ jobs:
               -e LOG_LEVEL \
               "${extra[@]}" \
               "${RENOVATE_IMAGE}"
-
-# vim: set ts=2 sts=2 sw=2 et:
