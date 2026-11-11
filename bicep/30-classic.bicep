@@ -137,7 +137,9 @@ module sql './modules/sql-classic.bicep' = {
   scope: resourceGroup()
   params: {
     entraGroups: entraGroups
+    location: location
     sqlParams: sqlParams
+    tags: tags
     tenantId: tenantId
   }
 }

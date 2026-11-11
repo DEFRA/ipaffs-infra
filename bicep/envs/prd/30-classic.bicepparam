@@ -71,5 +71,13 @@ param serviceBusParams = {
 
 param sqlParams = {
   serverName: 'prdimpdbssqa001'
+  // IMTA-21718: fixed size, replacing the TST SQLeDTUUpdater schedules and the
+  // historical 2000 eDTU / 1000 per-database PRD settings.
+  elasticPool: {
+    name: 'prdimpedpsqa001'
+    eDtu: 1000
+    databaseDtuMax: 500
+    maxSizeBytes: 805306368000 // 750 GiB, the existing 768000 MB
+  }
 }
 
