@@ -65,6 +65,14 @@ resource jobAgent 'Microsoft.Sql/servers/jobAgents@2023-08-01' = {
   }
 }
 
+resource jobAgentPrivateEndpoint 'Microsoft.Sql/servers/jobAgents/privateEndpoints@2025-01-01' = {
+  parent: jobAgent
+  name: toLower(jobAgent.name)
+  properties: {
+    targetServerAzureResourceId: sqlServer.id
+  }
+}
+
 resource targetGroup 'Microsoft.Sql/servers/jobAgents/targetGroups@2023-08-01' = if (manageMaintenanceDefinitions) {
   parent: jobAgent
   name: 'index-maintenance'
