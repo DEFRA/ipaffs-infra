@@ -26,12 +26,13 @@ jobs:
           artifact: node-package
           path: $(Pipeline.Workspace)/node-package
 
-      # publishes with gitHubToken, the token the Java libraries release with
+      # needs a secret gitHubToken with write packages scope, from a variable group or the pipeline
       - script: |
           set -euo pipefail
 
-          # an undefined variable reaches the script as its own macro text
-          if [[ -z "${NPM_PUBLISH_TOKEN:-}" || "${NPM_PUBLISH_TOKEN}" == '$(gitHubToken)' ]]; then
+          # an undefined variable reaches the script as its own macro text, so look for its opening
+          # characters without writing them, otherwise ADO would expand them here as well
+          if [[ -z "${NPM_PUBLISH_TOKEN:-}" || "${NPM_PUBLISH_TOKEN}" == '$'\(* ]]; then
             echo "##vso[task.logissue type=error]gitHubToken is not available to this pipeline"
             exit 1
           fi
