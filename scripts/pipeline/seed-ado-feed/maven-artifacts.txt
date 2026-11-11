@@ -1,0 +1,93 @@
+# Internal Maven artifacts to copy from Artifactory / GitHub Packages into the
+# DEFRA-EUTD-IPAFFS Azure Artifacts feed. One groupId:artifactId:version[:type[:classifier]]
+# per line. Dependencies are resolved transitively, so parents, BOMs and internal
+# transitive dependencies come along. Only files that came from a non-public
+# repository (anything but central / jitpack.io) are uploaded.
+#
+# Built from what the default branches of the non-archived IPAFFS repos pin on
+# 2026-11-11, plus each library's latest release. Add a line and re-run to copy more;
+# versions already in the feed are skipped.
+
+# spring-boot-common 5.x (GitHub Packages)
+uk.gov.defra.tracesx:tracesx-springboot-common-parent:5.0.4:pom
+uk.gov.defra.tracesx:tracesx-springboot-common-azure:5.0.4
+uk.gov.defra.tracesx:tracesx-springboot-common-event:5.0.4
+uk.gov.defra.tracesx:tracesx-springboot-common-health:5.0.4
+uk.gov.defra.tracesx:tracesx-springboot-common-health-tests:5.0.4
+uk.gov.defra.tracesx:tracesx-springboot-common-logging:5.0.4
+uk.gov.defra.tracesx:tracesx-springboot-common-security:5.0.4
+uk.gov.defra.tracesx:tracesx-springboot-common-security-tests:5.0.4
+uk.gov.defra.tracesx:tracesx-springboot-common-version:5.0.4
+uk.gov.defra.tracesx:tracesx-springboot-common-parent:5.0.8:pom
+uk.gov.defra.tracesx:tracesx-springboot-common-azure:5.0.8
+uk.gov.defra.tracesx:tracesx-springboot-common-event:5.0.8
+uk.gov.defra.tracesx:tracesx-springboot-common-health:5.0.8
+uk.gov.defra.tracesx:tracesx-springboot-common-health-tests:5.0.8
+uk.gov.defra.tracesx:tracesx-springboot-common-logging:5.0.8
+uk.gov.defra.tracesx:tracesx-springboot-common-security:5.0.8
+uk.gov.defra.tracesx:tracesx-springboot-common-security-tests:5.0.8
+uk.gov.defra.tracesx:tracesx-springboot-common-version:5.0.8
+uk.gov.defra.tracesx:tracesx-springboot-common-parent:5.0.13:pom
+uk.gov.defra.tracesx:tracesx-springboot-common-azure:5.0.13
+uk.gov.defra.tracesx:tracesx-springboot-common-event:5.0.13
+uk.gov.defra.tracesx:tracesx-springboot-common-health:5.0.13
+uk.gov.defra.tracesx:tracesx-springboot-common-health-tests:5.0.13
+uk.gov.defra.tracesx:tracesx-springboot-common-logging:5.0.13
+uk.gov.defra.tracesx:tracesx-springboot-common-security:5.0.13
+uk.gov.defra.tracesx:tracesx-springboot-common-security-tests:5.0.13
+uk.gov.defra.tracesx:tracesx-springboot-common-version:5.0.13
+
+# TracesX-SpringBoot-Common 4.x (Artifactory)
+uk.gov.defra.tracesx:TracesX-SpringBoot-Common-Parent:4.0.18:pom
+uk.gov.defra.tracesx:TracesX-SpringBoot-Common-Azure:4.0.18
+uk.gov.defra.tracesx:TracesX-SpringBoot-Common-Event:4.0.18
+uk.gov.defra.tracesx:TracesX-SpringBoot-Common-Health:4.0.18
+uk.gov.defra.tracesx:TracesX-SpringBoot-Common-Health-Tests:4.0.18
+uk.gov.defra.tracesx:TracesX-SpringBoot-Common-Logging:4.0.18
+uk.gov.defra.tracesx:TracesX-SpringBoot-Common-Version:4.0.18
+uk.gov.defra.tracesx:TracesX-SpringBoot-Common-Azure:4.0.3
+uk.gov.defra.tracesx:TracesX-SpringBoot-Common-Event:4.0.3
+uk.gov.defra.tracesx:TracesX-SpringBoot-Common-Health:4.0.3
+uk.gov.defra.tracesx:TracesX-SpringBoot-Common-Logging:4.0.3
+uk.gov.defra.tracesx:TracesX-SpringBoot-CommonSecurity-Config:4.0.6
+uk.gov.defra.tracesx:TracesX-SpringBoot-CommonSecurity-Tests:4.0.4
+
+# notification schema
+uk.gov.defra.tracesx:notification-schema-core:4.0.59
+uk.gov.defra.tracesx:notification-schema-java:4.0.59
+uk.gov.defra.tracesx:notification-schema-core:4.0.65
+uk.gov.defra.tracesx:notification-schema-java:4.0.65
+uk.gov.defra.tracesx:notification-schema-core:5.0.0
+uk.gov.defra.tracesx:notification-schema-java:5.0.0
+uk.gov.defra.tracesx:notification-schema-core:5.0.1
+uk.gov.defra.tracesx:notification-schema-java:5.0.1
+uk.gov.defra.tracesx:notification-schema-core:5.0.3
+uk.gov.defra.tracesx:notification-schema-java:5.0.3
+
+# mapping-library
+uk.gov.defra.tracesx:trade-dtos:4.0.25
+uk.gov.defra.tracesx:trade-schema:4.0.25
+uk.gov.defra.tracesx:trade-validation:4.0.25
+uk.gov.defra.tracesx:trade-mapping-to-ipaffs:4.0.25
+uk.gov.defra.tracesx:trade-mapping-to-trade:4.0.25
+uk.gov.defra.tracesx:trade-dtos:4.0.27
+uk.gov.defra.tracesx:trade-schema:4.0.27
+uk.gov.defra.tracesx:trade-validation:4.0.27
+uk.gov.defra.tracesx:trade-mapping-to-ipaffs:4.0.27
+uk.gov.defra.tracesx:trade-mapping-to-trade:4.0.27
+uk.gov.defra.tracesx:trade-dtos:4.0.31
+uk.gov.defra.tracesx:trade-schema:4.0.31
+uk.gov.defra.tracesx:trade-validation:4.0.31
+uk.gov.defra.tracesx:trade-mapping-to-ipaffs:4.0.31
+uk.gov.defra.tracesx:trade-mapping-to-trade:4.0.31
+
+# others
+uk.gov.defra.tracesx:antivirus-core:1.0.4
+uk.gov.defra.tracesx:antivirus-stub:1.0.4
+uk.gov.defra.tracesx:antivirus-symantec:1.0.4
+uk.gov.defra.tracesx:antivirus-core:1.0.7
+uk.gov.defra.tracesx:antivirus-stub:1.0.7
+uk.gov.defra.tracesx:antivirus-symantec:1.0.7
+uk.gov.defra.tracesx:integration-test-parent:4.0.34:pom
+uk.gov.defra.tracesx:spring-boot-parent:4.0.54:pom
+uk.gov.defra.tracesx:shared-resources:1.0.4

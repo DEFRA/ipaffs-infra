@@ -1,0 +1,80 @@
+---
+# One-off migration: copies the internal Maven and npm packages that IPAFFS repos
+# depend on from Artifactory and GitHub Packages into the DEFRA-EUTD-IPAFFS Azure
+# Artifacts feed, so builds can switch to the feed without bumping any versions.
+#
+# Lists:   scripts/pipeline/seed-ado-feed/maven-artifacts.txt and npm-packages.txt
+# Sources: the existing CI Maven settings (secure file maven-settings.xml) and
+#          gitHubToken (variable group Common) for GitHub Packages npm.
+# Target:  System.AccessToken (DEFRA-EUTD-IPAFFS Build Service, Contributor on the feed).
+#
+# Runs on the DEFRA agent pool because Artifactory is only reachable from there.
+# Safe to re-run: versions already in the feed are skipped. Queue with dryRun=true
+# first and check the list of uploads.
+
+trigger: none
+pr: none
+
+pool:
+  name: DEFRA-COMMON-UBUNTU-SSV5
+
+parameters:
+  - name: dryRun
+    displayName: Dry run (resolve and list, upload nothing)
+    type: boolean
+    default: true
+
+variables:
+  - group: Common
+  - name: feedMavenUrl
+    value: https://pkgs.dev.azure.com/defragovuk/DEFRA-EUTD-IPAFFS/_packaging/DEFRA-EUTD-IPAFFS/maven/v1
+  - name: feedNpmRegistry
+    value: https://pkgs.dev.azure.com/defragovuk/DEFRA-EUTD-IPAFFS/_packaging/DEFRA-EUTD-IPAFFS/npm/registry/
+
+jobs:
+  - job: SeedFeed
+    displayName: Copy packages into the feed
+    timeoutInMinutes: 60
+    steps:
+      - checkout: self
+        fetchDepth: 1
+
+      - task: DownloadSecureFile@1
+        name: mavenSettings
+        displayName: Download Maven settings
+        inputs:
+          secureFile: maven-settings.xml
+
+      - task: JavaToolInstaller@0
+        displayName: Use JDK 21
+        inputs:
+          versionSpec: '21'
+          jdkArchitectureOption: x64
+          jdkSourceOption: PreInstalled
+
+      - task: Bash@3
+        displayName: Copy Maven artifacts
+        env:
+          ARTIFACTS_FILE: $(Build.SourcesDirectory)/scripts/pipeline/seed-ado-feed/maven-artifacts.txt
+          SOURCE_SETTINGS: $(mavenSettings.secureFilePath)
+          FEED_URL: $(feedMavenUrl)
+          SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+          GIT_HUB_TOKEN: $(gitHubToken)
+          WORKSPACE: $(Agent.TempDirectory)
+          DRY_RUN: ${{ lower(parameters.dryRun) }}
+        inputs:
+          targetType: filePath
+          filePath: scripts/pipeline/seed-ado-feed/seed-maven.sh
+
+      - task: Bash@3
+        displayName: Copy npm packages
+        condition: succeededOrFailed()
+        env:
+          PACKAGES_FILE: $(Build.SourcesDirectory)/scripts/pipeline/seed-ado-feed/npm-packages.txt
+          FEED_REGISTRY: $(feedNpmRegistry)
+          SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+          GITHUB_TOKEN: $(gitHubToken)
+          DRY_RUN: ${{ lower(parameters.dryRun) }}
+        inputs:
+          targetType: filePath
+          filePath: scripts/pipeline/seed-ado-feed/seed-npm.sh
