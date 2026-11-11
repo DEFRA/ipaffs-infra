@@ -1,11 +1,8 @@
 targetScope = 'resourceGroup'
 
-param databaseNames array
 param dbwParams object
 param location string
 param tags object
-
-var sqlServerHostname = '${last(split(dbwParams.sqlServerResourceId, '/'))}${environment().suffixes.sqlServerHostname}'
 
 resource kustoCluster 'Microsoft.Kusto/Clusters@2024-04-13' = {
   name: dbwParams.kustoName
@@ -72,59 +69,8 @@ resource kustoDataStoreWatcherAdmin 'Microsoft.Kusto/Clusters/Databases/Principa
 }
 
 
-// watchers@2025-01-02 is not available in northeurope
-resource dbWatcher 'Microsoft.DatabaseWatcher/watchers@2024-10-01-preview' = {
+// Azure has blocked changes to Database Watcher resources during retirement.
+// Read the existing identity so the Kusto permissions can still be deployed.
+resource dbWatcher 'Microsoft.DatabaseWatcher/watchers@2024-10-01-preview' existing = {
   name: dbwParams.name
-  location: location
-  tags: tags
-  identity: {
-    type: 'SystemAssigned'
-  }
-  properties: {
-    datastore: {
-      adxClusterResourceId: kustoCluster.id
-      kustoClusterDisplayName: kustoCluster.name
-      kustoClusterUri: kustoCluster.properties.uri
-      kustoDataIngestionUri: kustoCluster.properties.dataIngestionUri
-      kustoDatabaseName: kustoDataStore.name
-      kustoManagementUrl: 'https://portal.azure.com/resource/subscriptions${kustoCluster.id}/overview'
-      kustoOfferingType: 'adx'
-    }
-  }
 }
-
-resource dbWatcherPrivateEndpointSql 'Microsoft.DatabaseWatcher/watchers/sharedPrivateLinkResources@2024-10-01-preview' = {
-  parent: dbWatcher
-  name: dbwParams.name
-  properties: {
-    privateLinkResourceId: dbwParams.sqlServerResourceId
-    groupId: 'sqlServer'
-    requestMessage: 'please'
-  }
-}
-
-resource dbWatcherTargetSqlEp 'Microsoft.DatabaseWatcher/watchers/targets@2024-10-01-preview' = {
-  parent: dbWatcher
-  name: dbwParams.sqlServerElasticPoolName
-  properties: {
-    targetAuthenticationType: 'Aad'
-    connectionServerName: sqlServerHostname
-    targetType: 'SqlEp'
-    sqlEpResourceId: '${dbwParams.sqlServerResourceId}/elasticpools/${dbwParams.sqlServerElasticPoolName}'
-    anchorDatabaseResourceId: '${dbwParams.sqlServerResourceId}/databases/${first(databaseNames)}'
-    readIntent: false
-  }
-}
-
-resource dbWatcherTargetSqlDb 'Microsoft.DatabaseWatcher/watchers/targets@2024-10-01-preview' = [for db in databaseNames: {
-  parent: dbWatcher
-  name: '${dbwParams.sqlServerElasticPoolName}-${db}'
-  properties: {
-    targetAuthenticationType: 'Aad'
-    connectionServerName: sqlServerHostname
-    targetType: 'SqlDb'
-    sqlDbResourceId: '${dbwParams.sqlServerResourceId}/databases/${db}'
-    readIntent: false
-  }
-}]
-

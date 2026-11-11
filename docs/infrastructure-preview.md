@@ -225,12 +225,17 @@ newly rebuilt PRE/PRD job agent requires its maintenance definitions to be resto
 or provisioned by that owner.
 
 The Classic deployment requests one service-managed private endpoint per Elastic
-Job Agent in SND, TST, PRE and PRD. After the ARM deployment completes, the
-Classic service connection approves the matching connection on the agent's SQL
-server and verifies its status. The existing deployment gates apply to both
-steps. ARM WhatIf previews the endpoint resource. The approval runs after
-deployment. Check the per-database results of a test or scheduled job execution
-to verify connectivity.
+Job Agent in SND, TST, PRE and PRD. Azure waits for approval before completing the
+endpoint deployment. The pipeline submits ARM asynchronously, uses the Classic
+service connection to approve the exact SQL connection, and waits for ARM to
+succeed before publishing outputs. The existing deployment gates apply to the
+whole sequence. ARM WhatIf previews the endpoint resource. Check per-database
+results of a test or scheduled job execution to verify connectivity.
+
+Microsoft blocked changes to Database Watcher resources from 9 November 2026.
+The incremental Classic deployment reads the existing watcher identity for the
+Kusto data store role assignment and preserves its targets and private link.
+[Microsoft retirement notice](https://techcommunity.microsoft.com/blog/AzureSQLBlog/database-watcher-for-azure-sql-is-retiring-simplify-your-monitoring-with-databas/4567864)
 
 Deployment tasks, previews and CI use the compiler pinned in
 `scripts/pipeline/ensure-bicep-version.sh`. Each Azure CLI task selects the

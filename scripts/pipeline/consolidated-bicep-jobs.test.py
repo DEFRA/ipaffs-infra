@@ -211,12 +211,16 @@ class ConsolidatedBicepJobTests(unittest.TestCase):
                         wait = task_names.index("Wait for Deployment - Classic")
                         approve = task_names.index("Approve SQL Elastic Jobs private endpoint")
                         outputs = task_names.index("Classic outputs")
-                        self.assertLess(wait, approve)
-                        self.assertLess(approve, outputs)
+                        self.assertLess(deploy, approve)
+                        self.assertLess(approve, wait)
+                        self.assertLess(wait, outputs)
+                        self.assertIn("--no-wait", tasks[deploy]["inputs"]["inlineScript"])
                         self.assertEqual(tasks[deploy]["condition"], tasks[approve]["condition"])
                         approval_script = tasks[approve]["inputs"]["inlineScript"]
-                        self.assertIn("properties.outputs.elasticJobPrivateEndpointResourceId.value", approval_script)
                         self.assertIn("scripts/pipeline/approve-sql-elastic-job-private-endpoint.py", approval_script)
+                        self.assertIn('--deployment-name "$CLASSIC_DEPLOYMENT_NAME"', approval_script)
+                        self.assertIn('az deployment group cancel', approval_script)
+                        self.assertIn("--created", tasks[wait]["inputs"]["inlineScript"])
                     connection_environment = "SND" if component == "classic" and environment == "DEV" else environment
                     connection_variable = "classicServiceConnection" if component == "classic" else "serviceConnection"
                     connection = load(f"pipelines/vars/{connection_environment.lower()}.yaml")["variables"][connection_variable]

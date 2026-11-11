@@ -11,24 +11,21 @@ from urllib.parse import urlsplit
 
 
 API_VERSION = "2025-01-01"
+DEPLOYMENT_API_VERSION = "2025-04-01"
+DISCOVERY_TIMEOUT_SECONDS = 600
 POLL_ATTEMPTS = 24
 POLL_INTERVAL_SECONDS = 5
 SUBSCRIPTION_ID = r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
-RESOURCE_NAME = r"[a-z0-9_.()-]+"
-SQL_SERVER_ID = (
-    rf"/subscriptions/(?P<subscription>{SUBSCRIPTION_ID})/resourceGroups/{RESOURCE_NAME}"
-    rf"/providers/Microsoft\.Sql/servers/{RESOURCE_NAME}"
-)
-JOB_ENDPOINT_ID = re.compile(
-    rf"(?P<server>{SQL_SERVER_ID})/jobAgents/{RESOURCE_NAME}/privateEndpoints/{RESOURCE_NAME}",
-    re.IGNORECASE,
-)
+RESOURCE_NAME = r"(?!\.{1,2}(?:/|$))[a-z0-9_.()-]+"
 NETWORK_ENDPOINT_ID = re.compile(
     rf"/subscriptions/{SUBSCRIPTION_ID}/resourceGroups/{RESOURCE_NAME}"
     rf"/providers/Microsoft\.Network/privateEndpoints/{RESOURCE_NAME}",
     re.IGNORECASE,
 )
-NOT_FOUND = re.compile(r"^ERROR:\s*(?:Not Found\b|\((?:ResourceNotFound|JobPrivateEndpointNotFound)\))", re.I)
+NOT_FOUND = re.compile(
+    r"^ERROR:\s*(?:Not Found\b|\((?:ResourceNotFound|DeploymentNotFound|JobPrivateEndpointNotFound)\))",
+    re.I,
+)
 
 
 class ApprovalError(Exception):
@@ -61,6 +58,49 @@ def run_az(arguments, subscription, operation, *, read_json=False, allow_not_fou
             raise ApprovalError(f"{operation}: expected a JSON object.")
         return payload
     return None
+
+
+def get_deployment_target(deployment_id, subscription):
+    deployment = run_az(
+        ["rest", "--method", "get", "--url", f"{deployment_id}?api-version={DEPLOYMENT_API_VERSION}"],
+        subscription, "Read Classic deployment", read_json=True, allow_not_found=True,
+    )
+    if deployment is None:
+        return None
+    returned_id = deployment.get("id")
+    if not isinstance(returned_id, str) or returned_id.casefold() != deployment_id.casefold():
+        raise ApprovalError("Azure returned a different Classic deployment.")
+    properties = deployment.get("properties")
+    state = properties.get("provisioningState") if isinstance(properties, dict) else None
+    if state in ("Failed", "Canceled", "Deleting", "Deleted"):
+        raise ApprovalError(f"Classic deployment entered {state} while waiting for private endpoint approval.")
+    if state not in ("NotSpecified", "Accepted", "Creating", "Created", "Ready", "Running", "Updating", "Succeeded"):
+        raise ApprovalError("Azure returned an unexpected Classic deployment state.")
+
+    parameters = properties.get("parameters")
+    job_parameter = parameters.get("sejParams") if isinstance(parameters, dict) else None
+    settings = job_parameter.get("value") if isinstance(job_parameter, dict) else None
+    if settings is None and state != "Succeeded":
+        return None
+    sql_server = settings.get("sqlServerName") if isinstance(settings, dict) else None
+    job_agent = settings.get("jobAgentName") if isinstance(settings, dict) else None
+    if not all(isinstance(value, str) and re.fullmatch(RESOURCE_NAME, value, re.I)
+               for value in (sql_server, job_agent)):
+        raise ApprovalError("The Classic deployment does not contain valid SQL server and Elastic Job Agent parameters.")
+
+    group_id = deployment_id.split("/providers/", 1)[0]
+    server_id = f"{group_id}/providers/Microsoft.Sql/servers/{sql_server}"
+    # The child endpoint name in Bicep is toLower(jobAgent.name).
+    endpoint_id = f"{server_id}/jobAgents/{job_agent}/privateEndpoints/{job_agent.lower()}"
+    return server_id, endpoint_id
+
+
+def check_deployment_target(deployment_id, subscription, expected):
+    current = get_deployment_target(deployment_id, subscription)
+    if current is not None and expected is not None:
+        if current[1].casefold() != expected[1].casefold():
+            raise ApprovalError("The Elastic Job Agent private endpoint parameters changed during the Classic deployment.")
+    return current
 
 
 def get_managed_endpoint_id(endpoint_id, server_id, subscription):
@@ -175,9 +215,11 @@ def request_approval(connection_id, server_id, managed_id, subscription):
             raise
 
 
-def verify_approval(connection_id, server_id, managed_id, subscription):
+def verify_approval(connection_id, target, managed_id, subscription, deployment_id):
+    server_id, _ = target
     for attempt in range(POLL_ATTEMPTS):
-        connection = find_connection(server_id, managed_id, subscription)
+        current = check_deployment_target(deployment_id, subscription, target)
+        connection = find_connection(server_id, managed_id, subscription) if current is not None else None
         if connection is not None:
             current_id, status, provisioning = connection
             if current_id.casefold() != connection_id.casefold():
@@ -189,39 +231,49 @@ def verify_approval(connection_id, server_id, managed_id, subscription):
     raise ApprovalError("Timed out waiting for the SQL private endpoint connection to show Approved.")
 
 
-def approve(endpoint_id, subscription):
-    endpoint_scope = JOB_ENDPOINT_ID.fullmatch(endpoint_id)
-    if not endpoint_scope or endpoint_scope["subscription"].casefold() != subscription.casefold():
-        raise ApprovalError("Expected a SQL Elastic Job Agent private endpoint in the Classic subscription.")
-    server_id = endpoint_scope["server"]
+def approve(deployment_name, resource_group, subscription):
+    if not re.fullmatch(SUBSCRIPTION_ID, subscription, re.I):
+        raise ApprovalError("Expected a Classic subscription ID.")
+    if not all(re.fullmatch(RESOURCE_NAME, value, re.I) for value in (deployment_name, resource_group)):
+        raise ApprovalError("Expected a Classic deployment name and resource group.")
+    deployment_id = (f"/subscriptions/{subscription}/resourceGroups/{resource_group}"
+                     f"/providers/Microsoft.Resources/deployments/{deployment_name}")
+    target = None
     managed_id = None
-    for attempt in range(POLL_ATTEMPTS):
-        if managed_id is None:
-            managed_id = get_managed_endpoint_id(endpoint_id, server_id, subscription)
-        if managed_id is not None:
-            connection = find_connection(server_id, managed_id, subscription)
-            if connection is not None:
-                connection_id, status, provisioning = connection
-                if provisioning != "Approving":
-                    break
-        if attempt + 1 < POLL_ATTEMPTS:
-            time.sleep(POLL_INTERVAL_SECONDS)
+    deadline = time.monotonic() + DISCOVERY_TIMEOUT_SECONDS
+    while time.monotonic() < deadline:
+        current = check_deployment_target(deployment_id, subscription, target)
+        if current is not None:
+            target = current
+            server_id, endpoint_id = target
+            if managed_id is None:
+                managed_id = get_managed_endpoint_id(endpoint_id, server_id, subscription)
+            if managed_id is not None:
+                connection = find_connection(server_id, managed_id, subscription)
+                if connection is not None:
+                    connection_id, status, provisioning = connection
+                    if provisioning != "Approving":
+                        break
+        remaining = deadline - time.monotonic()
+        if remaining > 0:
+            time.sleep(min(POLL_INTERVAL_SECONDS, remaining))
     else:
         raise ApprovalError("Timed out waiting for the SQL connection for the Elastic Job Agent private endpoint.")
 
     if status == "Pending":
         request_approval(connection_id, server_id, managed_id, subscription)
-        verify_approval(connection_id, server_id, managed_id, subscription)
+        verify_approval(connection_id, target, managed_id, subscription, deployment_id)
     print(f"SQL Elastic Job Agent private endpoint connection approved: {connection_id}")
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--endpoint-resource-id", required=True)
+    parser.add_argument("--deployment-name", required=True)
+    parser.add_argument("--resource-group", required=True)
     parser.add_argument("--subscription", required=True)
     args = parser.parse_args()
     try:
-        approve(args.endpoint_resource_id, args.subscription)
+        approve(args.deployment_name, args.resource_group, args.subscription)
     except ApprovalError as error:
         print(error, file=sys.stderr)
         return 1

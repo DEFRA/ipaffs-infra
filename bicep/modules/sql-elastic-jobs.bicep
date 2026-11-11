@@ -198,5 +198,3 @@ resource alertExecutionsFailed 'Microsoft.Insights/metricAlerts@2018-03-01' = {
   }
 }
 
-output privateEndpointResourceId string = jobAgentPrivateEndpoint.id
-
