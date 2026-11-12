@@ -229,13 +229,13 @@ this.
 implements [IMTA-21888](https://eaflood.atlassian.net/browse/IMTA-21888) using
 the agent pool, Classic service connections and manual validation pattern from
 [`disable-app-services`](https://dev.azure.com/defragovuk/DEFRA-EUTD-IPAFFS/_build?definitionId=12566).
-The default `plan` action runs **Plan SND → Approve TST → Plan TST**. The `delete`
-action requires `main` and runs **Plan SND → Delete SND → Approve TST → Plan TST
-→ Delete TST**. Review the completed SND stages before approving the move to TST.
-Each delete stage checks its Azure DevOps environment and pauses for manual
-validation of its own plan before the deployment job starts. Someone other than
-the requester with permission to queue the pipeline must approve each manual
-validation. Rejection, timeout or failure stops progression.
+The SND and TST plans run in parallel in both modes. The `delete` action requires
+`main`. SND deletion follows its plan. TST deletion waits for its own plan and
+for approval after SND deletion. Review the SND deletion result before approving
+progression to TST deletion. Each delete stage checks its Azure DevOps environment
+and pauses for manual validation of its own plan before the deployment job starts.
+Someone other than the requester with permission to queue the pipeline must approve
+each manual validation. Rejection, timeout or failure blocks dependent stages.
 
 The [Decommission Classic definition](https://dev.azure.com/defragovuk/DEFRA-EUTD-IPAFFS/_build?definitionId=12638)
 is in the Azure DevOps `Infrastructure` folder. It uses the Classic service

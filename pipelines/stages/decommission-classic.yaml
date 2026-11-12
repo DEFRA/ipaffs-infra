@@ -13,6 +13,10 @@ parameters:
   - name: dependsOn
     type: string
 
+  - name: deleteGate
+    type: string
+    default: ''
+
 stages:
   - stage: Plan${{ parameters.environmentName }}
     displayName: Plan ${{ parameters.environmentName }} Classic decommissioning
@@ -34,7 +38,10 @@ stages:
   - ${{ if eq(parameters.action, 'delete') }}:
     - stage: Delete${{ parameters.environmentName }}
       displayName: Delete ${{ parameters.environmentName }} Classic resources
-      dependsOn: Plan${{ parameters.environmentName }}
+      dependsOn:
+        - Plan${{ parameters.environmentName }}
+        - ${{ if ne(parameters.deleteGate, '') }}:
+          - ${{ parameters.deleteGate }}
       condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
       isSkippable: false
       lockBehavior: sequential
