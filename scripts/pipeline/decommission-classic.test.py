@@ -34,6 +34,7 @@ AUTOSCALE = f"{GROUP}/providers/Microsoft.Insights/autoscalesettings/legacy-plan
 AUTOSCALE_QUERY = ("{id:id,enabled:properties.enabled,target:properties.targetResourceUri,"
                    "profiles:properties.profiles}")
 ABSENT = "ERROR: (ResourceNotFound) The resource could not be found\n"
+UNCODED_NOT_FOUND = "ERROR: Operation returned an invalid status 'Not Found'\n"
 THROTTLED = ("ERROR: Delete: INFO: Operation returned an invalid status 'Too Many Requests'\n"
              'Content: {"Code":"429","Message":"Cannot acquire exclusive lock to create or update '
              'this server farm. Retry the request later."}\n')
@@ -89,6 +90,7 @@ class DecommissionTests(unittest.TestCase):
         self.plan_reads = []
         self.after_delete = lambda resource_id: None
         self.check_failures = {}
+        self.check_sequences = {}
         self.delete_failures = {}
         self.throttles = {}
         self.stuck = set()
@@ -163,6 +165,9 @@ class DecommissionTests(unittest.TestCase):
             resource_id = arguments[arguments.index("--ids") + 1]
         if command == ["resource", "show"]:
             self.reads.append(resource_id)
+            if self.check_sequences.get(resource_id):
+                code, error = self.check_sequences[resource_id].pop(0)
+                return subprocess.CompletedProcess(arguments, code, "", error)
             if resource_id in self.check_failures:
                 code, error = self.check_failures[resource_id]
                 return subprocess.CompletedProcess(arguments, code, "", error)
@@ -752,6 +757,46 @@ class DecommissionTests(unittest.TestCase):
         self.assertEqual(1, status)
         self.assertIn("plan must be empty before deletion", errors)
         self.assertEqual([APP, APP_PLAN], self.deletes)
+
+    def test_throttled_delete_that_azure_completes_anyway_counts_as_deleted(self):
+        self.plan_successfully()
+        self.throttles[DATABASE] = [1]
+        original = self.fake_az
+
+        def fake(arguments, **kwargs):
+            result = original(arguments, **kwargs)
+            if arguments[1:3] == ["resource", "delete"] and result.returncode:
+                self.current.discard(arguments[arguments.index("--ids") + 1])
+            return result
+        self.az.side_effect = fake
+        status, output, errors = self.execute("delete")
+        self.assertEqual(0, status, errors)
+        self.assertIn(f"Verified deleted {DATABASE}", output)
+        self.assertEqual([DATABASE, SERVER], self.deletes)
+
+    def test_uncoded_not_found_during_deletion_is_checked_again(self):
+        self.plan_successfully()
+        self.throttles[DATABASE] = [1]
+        original = self.fake_az
+
+        def fake(arguments, **kwargs):
+            result = original(arguments, **kwargs)
+            if arguments[1:3] == ["resource", "delete"] and result.returncode:
+                self.current.discard(DATABASE)
+                self.check_sequences[DATABASE] = [(3, UNCODED_NOT_FOUND)] * 2
+            return result
+        self.az.side_effect = fake
+        status, output, errors = self.execute("delete")
+        self.assertEqual(0, status, errors)
+        self.assertIn(f"Verified deleted {DATABASE}", output)
+        self.assertEqual([DATABASE, SERVER], self.deletes)
+
+    def test_persistent_uncoded_not_found_blocks_deletion(self):
+        self.plan_successfully()
+        self.check_sequences[SERVER] = [(3, UNCODED_NOT_FOUND)] * (decommission.VERIFY_ATTEMPTS + 1)
+        status, _, errors = self.execute("delete")
+        self.assertEqual(1, status)
+        self.assertIn(f"Check {SERVER}: {UNCODED_NOT_FOUND.strip()}", errors)
 
     def test_persistent_throttling_fails_after_the_last_attempt(self):
         self.plan_successfully()

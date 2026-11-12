@@ -27,6 +27,7 @@ RESOURCE_ID = re.compile(
 ABSENT_CODES = r"ResourceNotFound|ResourceGroupNotFound|ParentResourceNotFound|NotFound"
 ABSENT_ERROR = re.compile(rf"^ERROR: \(({ABSENT_CODES})\)(?: |$)", re.MULTILINE)
 ABSENT_DELETE_DETAIL = re.compile(rf"^INFO: \(({ABSENT_CODES})\)(?: |$)", re.MULTILINE)
+UNCODED_NOT_FOUND = re.compile(r"Operation returned an invalid status 'Not Found'")
 VERIFY_ATTEMPTS = 6
 VERIFY_INTERVAL = 10
 THROTTLE_ATTEMPTS = 6
@@ -174,10 +175,18 @@ def read_resource(resource_id, subscription, *, require_stopped=False):
     operation = f"Check {resource_id}"
     query = "{id:id,state:properties.state,subnetId:properties.virtualNetworkSubnetId}" if require_stopped else "id"
     output = "json" if require_stopped else "tsv"
-    result = run_az([
-        "resource", "show", "--ids", resource_id, "--subscription", subscription,
-        "--query", query, "--output", output, "--only-show-errors",
-    ], operation)
+    for attempt in range(VERIFY_ATTEMPTS):
+        if attempt:
+            time.sleep(VERIFY_INTERVAL)
+        result = run_az([
+            "resource", "show", "--ids", resource_id, "--subscription", subscription,
+            "--query", query, "--output", output, "--only-show-errors",
+        ], operation)
+        # A resource part way through deletion can briefly answer 404 with no
+        # error code. Ask again until Azure gives a definite answer.
+        if not (result.returncode and UNCODED_NOT_FOUND.search(result.stderr)
+                and not ABSENT_ERROR.search(result.stderr)):
+            break
     # The CLI exits with status 3 on an HTTP 404. Require a resource
     # absence code too, since provider discovery can itself return 404.
     if result.returncode == 3 and ABSENT_ERROR.search(result.stderr):
@@ -544,7 +553,11 @@ def delete_resource(entry, subscription):
         print(f"{operation}: Azure is busy (429), retrying in {THROTTLE_INTERVAL}s "
               f"({attempt}/{THROTTLE_ATTEMPTS - 1})", flush=True)
         time.sleep(THROTTLE_INTERVAL)
-        if kind == APP_PLAN and resource_exists(resource_id, subscription):
+        # Azure sometimes completes the rejected delete anyway.
+        if not resource_exists(resource_id, subscription):
+            print(f"Verified deleted {resource_id}", flush=True)
+            return True
+        if kind == APP_PLAN:
             verify_plan_members(resource_id, subscription)
     if result.returncode:
         missing = (result.returncode == 3 and ABSENT_ERROR.search(result.stderr)) or (
