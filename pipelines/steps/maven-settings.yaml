@@ -9,13 +9,13 @@
 #                 the password is System.AccessToken, so the step that runs Maven must map
 #                 SYSTEM_ACCESSTOKEN: $(System.AccessToken) into its env.
 #
-# Repos opt in to the feed with mavenRegistry: feed. Once every Maven repo has, the
-# default becomes feed and the secure file is retired.
+# feed is the default. A repo that still needs something only Artifactory has can set
+# mavenRegistry: artifactory until it is moved; once none do, the secure file is retired.
 
 parameters:
   - name: mavenRegistry
     type: string
-    default: artifactory
+    default: feed
     values:
       - artifactory
       - feed

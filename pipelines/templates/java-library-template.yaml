@@ -28,7 +28,7 @@ parameters:
   - name: mavenRegistry
     displayName: Maven registry (artifactory or feed, see pipelines/steps/maven-settings.yaml)
     type: string
-    default: artifactory
+    default: feed
     values:
       - artifactory
       - feed
