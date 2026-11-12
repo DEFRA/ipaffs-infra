@@ -32,7 +32,7 @@ stages:
 
   - ${{ if eq(parameters.action, 'delete') }}:
     - stage: GateToTST
-      displayName: Manual approval before TST
+      displayName: Manual approval before TST deletion
       dependsOn: DeleteSND
       isSkippable: false
       jobs:
@@ -47,8 +47,9 @@ stages:
                 notifyUsers: $(Build.RequestedForEmail)
                 allowApproversToApproveTheirOwnRuns: false
                 instructions: >-
-                  Review the completed SND stages in this run. Approve to start
-                  the TST plan, or reject to stop the run here.
+                  Review the completed SND deletion in this run. Approve to
+                  proceed to TST deletion review once the TST plan succeeds,
+                  or reject to stop before TST deletion.
                 onTimeout: reject
 
   - template: stages/decommission-classic.yaml
@@ -56,7 +57,5 @@ stages:
       environmentName: TST
       subscriptionId: 00f1225e-37c2-4c7b-bc71-634164b667c6 # AZR-TST
       action: ${{ parameters.action }}
-      ${{ if eq(parameters.action, 'delete') }}:
-        dependsOn: GateToTST
-      ${{ else }}:
-        dependsOn: PlanSND
+      dependsOn: TagBuild
+      deleteGate: GateToTST
