@@ -47,6 +47,12 @@ steps:
                   <url>https://pkgs.dev.azure.com/defragovuk/DEFRA-EUTD-IPAFFS/_packaging/DEFRA-EUTD-IPAFFS/maven/v1</url>
                 </mirror>
               </mirrors>
+              <!-- As in the secure file: the POMs' jenkins profile turns off CI-unsuitable
+                   steps, such as git-build-hook installing the repo's git hooks, whose
+                   pre-push hook (trufflehog) would block the release push. -->
+              <activeProfiles>
+                <activeProfile>jenkins</activeProfile>
+              </activeProfiles>
             </settings>
             EOF
             echo "##vso[task.setvariable variable=mavenSettingsFile]${file}"
