@@ -69,33 +69,35 @@ param sqlParams = {
   serverName: 'tstimpdbssqa001'
 }
 
-param sqlPoolParams = {
-  serverName: 'tstimpdbssqa001'
-  name: 'tstimpedpsqa001'
-  // Scaled to 1000 eDTU on weekday mornings outside this repo; keep the live SKU.
-  keepLiveCapacity: true
-  sku: {
-    name: 'PremiumPool'
-    tier: 'Premium'
-    capacity: 250
+param sqlPoolsParams = [
+  {
+    serverName: 'tstimpdbssqa001'
+    name: 'tstimpedpsqa001'
+    // Scaled to 1000 eDTU on weekday mornings outside this repo; keep the live SKU.
+    keepLiveCapacity: true
+    sku: {
+      name: 'PremiumPool'
+      tier: 'Premium'
+      capacity: 250
+    }
+    perDatabaseSettings: {
+      minCapacity: 0
+      maxCapacity: 250
+    }
+    maxSizeGiB: 750
+    zoneRedundant: true
+    maintenanceConfigurationName: 'SQL_Default'
+    // The pool's own tags from the original ARM template, kept as they are live.
+    tags: {
+      CreatedDate: '20260609  '
+      Environment: 'TST'
+      Location: 'North Europe'
+      Name: 'tstimpedpsqa001'
+      ServiceCode: 'IMP'
+      ServiceName: 'EUX Imports'
+      ServiceType: 'LOB'
+      Tier: 'Database'
+    }
   }
-  perDatabaseSettings: {
-    minCapacity: 0
-    maxCapacity: 250
-  }
-  maxSizeGiB: 750
-  zoneRedundant: true
-  maintenanceConfigurationName: 'SQL_Default'
-  // The pool's own tags from the original ARM template, kept as they are live.
-  tags: {
-    CreatedDate: '20260609  '
-    Environment: 'TST'
-    Location: 'North Europe'
-    Name: 'tstimpedpsqa001'
-    ServiceCode: 'IMP'
-    ServiceName: 'EUX Imports'
-    ServiceType: 'LOB'
-    Tier: 'Database'
-  }
-}
+]
 

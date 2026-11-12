@@ -71,31 +71,62 @@ param sqlParams = {
   serverName: 'preimpdbssqa001'
 }
 
-param sqlPoolParams = {
-  serverName: 'preimpdbssqa001'
-  name: 'preimpedpsqa001'
-  sku: {
-    name: 'PremiumPool'
-    tier: 'Premium'
-    capacity: 250
+param sqlPoolsParams = [
+  {
+    serverName: 'preimpdbssqa001'
+    name: 'preimpedpsqa001'
+    sku: {
+      name: 'PremiumPool'
+      tier: 'Premium'
+      capacity: 250
+    }
+    perDatabaseSettings: {
+      minCapacity: 0
+      maxCapacity: 250
+    }
+    maxSizeGiB: 750
+    zoneRedundant: true
+    maintenanceConfigurationName: 'SQL_Default'
+    // The pool's own tags from the original ARM template, kept as they are live.
+    tags: {
+      CreatedDate: '20260616  '
+      Environment: 'PRE'
+      Location: 'North Europe'
+      Name: 'preimpedpsqa001'
+      ServiceCode: 'IMP'
+      ServiceName: 'EUX Imports'
+      ServiceType: 'LOB'
+      Tier: 'Database'
+    }
   }
-  perDatabaseSettings: {
-    minCapacity: 0
-    maxCapacity: 250
+  {
+    // PRE-TRN, on its own server in a separate resource group.
+    resourceGroupName: 'PREIMPINFRGP002'
+    serverName: 'preimpdbssqa002'
+    name: 'preimpedpsqa002'
+    sku: {
+      name: 'PremiumPool'
+      tier: 'Premium'
+      capacity: 250
+    }
+    perDatabaseSettings: {
+      minCapacity: 0
+      maxCapacity: 250
+    }
+    maxSizeGiB: 750
+    zoneRedundant: true
+    maintenanceConfigurationName: 'SQL_Default'
+    // The pool's own tags from the original ARM template, kept as they are live.
+    tags: {
+      CreatedDate: '20260611  '
+      Environment: 'PRE'
+      Location: 'North Europe'
+      Name: 'preimpedpsqa002'
+      ServiceCode: 'IMP'
+      ServiceName: 'EUX Imports'
+      ServiceType: 'LOB'
+      Tier: 'Database'
+    }
   }
-  maxSizeGiB: 750
-  zoneRedundant: true
-  maintenanceConfigurationName: 'SQL_Default'
-  // The pool's own tags from the original ARM template, kept as they are live.
-  tags: {
-    CreatedDate: '20260616  '
-    Environment: 'PRE'
-    Location: 'North Europe'
-    Name: 'preimpedpsqa001'
-    ServiceCode: 'IMP'
-    ServiceName: 'EUX Imports'
-    ServiceType: 'LOB'
-    Tier: 'Database'
-  }
-}
+]
 
