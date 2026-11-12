@@ -20,6 +20,9 @@ steps:
     env:
       RESOURCE_LIST: scripts/pipeline/decommission-classic/lists/${{ lower(parameters.environmentName) }}.txt
       SUBSCRIPTION_ID: ${{ parameters.subscriptionId }}
+      # Lets the script fetch fresh federated tokens and sign in again during
+      # jobs longer than the CLI's one-hour access token.
+      SYSTEM_ACCESSTOKEN: $(System.AccessToken)
       ${{ if eq(parameters.action, 'plan') }}:
         PLAN_FILE: $(Pipeline.Workspace)/classic-decommission-plan.json
       ${{ else }}:

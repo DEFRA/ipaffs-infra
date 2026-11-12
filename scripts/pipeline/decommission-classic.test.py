@@ -91,6 +91,7 @@ class DecommissionTests(unittest.TestCase):
         self.reads = []
         self.deletes = []
         self.mutations = []
+        self.enterContext(patch.dict(decommission.os.environ, {}, clear=True))
         self.az = self.enterContext(patch.object(decommission.subprocess, "run", side_effect=self.fake_az))
         self.enterContext(patch.object(decommission.time, "sleep"))
         self.resources.write_text(f"# Database before server\n{DATABASE}\n\n{SERVER}\n", encoding="utf-8")
@@ -713,6 +714,75 @@ class DecommissionTests(unittest.TestCase):
         self.assertEqual(1, status)
         self.assertIn(f"Delete {DATABASE}: resource still exists after deletion", errors)
         self.assertEqual([DATABASE], self.deletes)
+
+
+class PipelineSignInTests(unittest.TestCase):
+    ENVIRON = {
+        "SYSTEM_OIDCREQUESTURI": "https://dev.azure.com/org/project/_apis/distributedtask/hubs/build/plans/p/jobs/j/oidctoken",
+        "SYSTEM_ACCESSTOKEN": "pipeline-token",
+        "AZURESUBSCRIPTION_SERVICE_CONNECTION_ID": "33333333-3333-3333-3333-333333333333",
+        "AZURESUBSCRIPTION_CLIENT_ID": "44444444-4444-4444-4444-444444444444",
+        "AZURESUBSCRIPTION_TENANT_ID": "55555555-5555-5555-5555-555555555555",
+    }
+
+    def setUp(self):
+        self.now = 0
+        self.logins = []
+        self.requests = []
+        self.enterContext(patch.object(decommission.subprocess, "run", side_effect=self.fake_az))
+        self.enterContext(patch.object(decommission, "urlopen", side_effect=self.fake_urlopen))
+        self.enterContext(redirect_stdout(io.StringIO()))
+
+    def fake_az(self, arguments, **kwargs):
+        self.assertEqual(["az", "login", "--service-principal"], arguments[:3])
+        self.logins.append(arguments)
+        return subprocess.CompletedProcess(arguments, 0, "", "")
+
+    def fake_urlopen(self, request, timeout):
+        self.requests.append(request)
+        return io.BytesIO(json.dumps({"oidcToken": f"oidc-{len(self.requests)}"}).encode())
+
+    def sign_in(self, environ=None):
+        return decommission.PipelineSignIn(self.ENVIRON if environ is None else environ, clock=lambda: self.now)
+
+    def test_outside_a_pipeline_the_existing_sign_in_is_kept(self):
+        self.sign_in({}).renew_if_due()
+        self.assertEqual([], self.logins)
+        self.assertEqual([], self.requests)
+
+    def test_signs_in_with_a_fresh_federated_token_then_again_after_the_interval(self):
+        sign_in = self.sign_in()
+        sign_in.renew_if_due()
+        self.now = decommission.SIGN_IN_INTERVAL - 1
+        sign_in.renew_if_due()
+        self.assertEqual(1, len(self.logins))
+        self.now = decommission.SIGN_IN_INTERVAL
+        sign_in.renew_if_due()
+        self.assertEqual(2, len(self.logins))
+
+        request = self.requests[0]
+        self.assertEqual("POST", request.get_method())
+        self.assertEqual("Bearer pipeline-token", request.get_header("Authorization"))
+        query = parse_qs(urlsplit(request.full_url).query)
+        self.assertEqual({"api-version": ["7.1"], "serviceConnectionId": [self.ENVIRON[
+            "AZURESUBSCRIPTION_SERVICE_CONNECTION_ID"]]}, query)
+        login = self.logins[1]
+        self.assertEqual("oidc-2", login[login.index("--federated-token") + 1])
+        self.assertEqual(self.ENVIRON["AZURESUBSCRIPTION_CLIENT_ID"], login[login.index("--username") + 1])
+        self.assertEqual(self.ENVIRON["AZURESUBSCRIPTION_TENANT_ID"], login[login.index("--tenant") + 1])
+
+    def test_missing_pipeline_variables_fail_before_any_azure_call(self):
+        environ = dict(self.ENVIRON)
+        del environ["SYSTEM_ACCESSTOKEN"]
+        with self.assertRaisesRegex(decommission.DecommissionError, "SYSTEM_ACCESSTOKEN"):
+            self.sign_in(environ)
+        self.assertEqual([], self.requests)
+
+    def test_token_endpoint_without_a_token_stops_the_run(self):
+        self.enterContext(patch.object(decommission, "urlopen", return_value=io.BytesIO(b"{}")))
+        with self.assertRaisesRegex(decommission.DecommissionError, "no token returned"):
+            self.sign_in().renew_if_due()
+        self.assertEqual([], self.logins)
 
 
 if __name__ == "__main__":

@@ -3,12 +3,15 @@
 
 import argparse
 import json
+import os
 from pathlib import Path
 import re
 import subprocess
 import sys
 import time
+from urllib.error import URLError
 from urllib.parse import parse_qsl, urlencode, urlsplit
+from urllib.request import Request, urlopen
 
 
 GUID = r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
@@ -34,10 +37,72 @@ AUTOSCALE_API = "2022-10-01"
 APP_SERVICE_TYPES = {APP_SITE, APP_SLOT}
 APP_SERVICE_API = "2025-05-01"
 SUBNET_TYPE = "microsoft.network/virtualnetworks/subnets"
+SIGN_IN_INTERVAL = 30 * 60
+OIDC_API = "7.1"
+OIDC_VARIABLES = (
+    "SYSTEM_OIDCREQUESTURI", "SYSTEM_ACCESSTOKEN", "AZURESUBSCRIPTION_SERVICE_CONNECTION_ID",
+    "AZURESUBSCRIPTION_CLIENT_ID", "AZURESUBSCRIPTION_TENANT_ID",
+)
 
 
 class DecommissionError(Exception):
     pass
+
+
+class PipelineSignIn:
+    """Keeps the Azure CLI signed in for jobs that run longer than an hour.
+
+    AzureCLI@2 signs in once with a short-lived federated token. When the CLI's
+    access token expires it cannot renew it (AADSTS700024), so a long delete
+    fails part way through. Fetch a fresh token from the pipeline's OIDC
+    endpoint and sign in again well before that happens. Outside a pipeline
+    (no SYSTEM_OIDCREQUESTURI) the CLI's own sign-in is used unchanged.
+    """
+
+    def __init__(self, environ=None, clock=time.monotonic):
+        environ = os.environ if environ is None else environ
+        self.enabled = bool(environ.get("SYSTEM_OIDCREQUESTURI"))
+        self.clock = clock
+        self.signed_in_at = None
+        if self.enabled:
+            missing = [name for name in OIDC_VARIABLES if not environ.get(name)]
+            if missing:
+                raise DecommissionError(
+                    "Cannot renew the Azure sign-in: set " + ", ".join(missing)
+                    + " (map SYSTEM_ACCESSTOKEN from $(System.AccessToken))")
+            self.values = {name: environ[name] for name in OIDC_VARIABLES}
+
+    def federated_token(self):
+        query = urlencode({"api-version": OIDC_API,
+                           "serviceConnectionId": self.values["AZURESUBSCRIPTION_SERVICE_CONNECTION_ID"]})
+        request = Request(
+            f"{self.values['SYSTEM_OIDCREQUESTURI']}?{query}", data=b"", method="POST",
+            headers={"Authorization": f"Bearer {self.values['SYSTEM_ACCESSTOKEN']}",
+                     "Content-Type": "application/json"})
+        try:
+            with urlopen(request, timeout=60) as response:
+                token = json.load(response).get("oidcToken")
+        except (URLError, OSError, ValueError, AttributeError) as exc:
+            raise DecommissionError(f"Request a pipeline OIDC token: {exc}") from exc
+        if not isinstance(token, str) or not token:
+            raise DecommissionError("Request a pipeline OIDC token: no token returned")
+        return token
+
+    def renew_if_due(self):
+        if not self.enabled:
+            return
+        now = self.clock()
+        if self.signed_in_at is not None and now - self.signed_in_at < SIGN_IN_INTERVAL:
+            return
+        operation = "Renew the Azure CLI sign-in"
+        result = run_az([
+            "login", "--service-principal", "--username", self.values["AZURESUBSCRIPTION_CLIENT_ID"],
+            "--tenant", self.values["AZURESUBSCRIPTION_TENANT_ID"], "--federated-token", self.federated_token(),
+            "--allow-no-subscriptions", "--output", "none", "--only-show-errors",
+        ], operation)
+        require_success(result, operation)
+        self.signed_in_at = now
+        print("Renewed the Azure CLI sign-in", flush=True)
 
 
 def read_resources(path, subscription):
@@ -326,12 +391,13 @@ def prepare_autoscale_delete(resource_id, target, disable_after_plan, subscripti
     return True
 
 
-def resource_states(resources, subscription, plan):
+def resource_states(resources, subscription, plan, sign_in):
     states = []
     earlier_present = set()
     earlier_plans = set()
     failures = 0
     for resource_id in resources:
+        sign_in.renew_if_due()
         kind = resource_type(resource_id)
         kind_key = kind.lower()
         entry = {"id": resource_id}
@@ -495,8 +561,11 @@ def run(args):
     if args.mode == "delete":
         planned = read_plan(args.plan_file, resources, subscription)
 
+    # Renew once up front so a missing OIDC permission fails before any change.
+    sign_in = PipelineSignIn()
+    sign_in.renew_if_due()
     verify_subscription(subscription)
-    states = resource_states(resources, subscription, args.mode == "plan")
+    states = resource_states(resources, subscription, args.mode == "plan", sign_in)
     if args.mode == "plan":
         if args.plan_file:
             plan = {
@@ -519,6 +588,7 @@ def run(args):
     deleted = 0
     for current in states:
         if current["exists"]:
+            sign_in.renew_if_due()
             deleted += delete_resource(current, subscription)
     print(f"Summary: {len(resources)} listed, {deleted} deleted, "
           f"{len(resources) - deleted} already deleted", flush=True)
