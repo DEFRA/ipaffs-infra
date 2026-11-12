@@ -234,6 +234,15 @@ this repo scales its pool from 250 to 1000 eDTU on weekday mornings. It keeps
 whatever SKU and per-database limits are live, and What-If shows those two
 properties as unresolved `reference()` changes. SND is unused and lists no pools.
 
+What-If does not ask Azure whether a pool's SKU, maximum size and per-database
+limits can be combined, so the Classic deployment runs
+`scripts/pipeline/validate-sql-elastic-pools.py` first. It checks each
+`sqlPoolsParams` entry against the regional SQL capabilities API (SKU, maximum size,
+per-database min/max, zone redundancy, licence type and maintenance window) and
+against the live pool (used storage, database count and each database's maximum
+size). Any problem fails the stage before What-If. Pools with `keepLiveCapacity`
+are checked with their live SKU.
+
 The Classic deployment requests one service-managed private endpoint per Elastic
 Job Agent in SND, TST, PRE and PRD. Azure waits for approval before completing the
 endpoint deployment. The pipeline submits ARM asynchronously, uses the Classic

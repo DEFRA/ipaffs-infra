@@ -18,6 +18,7 @@ on:
       - "scripts/pipeline/create-release-refs.py"
       - "scripts/pipeline/sync-deployment-outputs.py"
       - "scripts/pipeline/approve-sql-elastic-job-private-endpoint.py"
+      - "scripts/pipeline/validate-sql-elastic-pools.py"
       - "scripts/pipeline/infrastructure_*.py"
       - "scripts/pipeline/plan-infrastructure.py"
       - "bicep/*.bicep"
@@ -44,6 +45,7 @@ on:
       - "scripts/pipeline/create-release-refs.py"
       - "scripts/pipeline/sync-deployment-outputs.py"
       - "scripts/pipeline/approve-sql-elastic-job-private-endpoint.py"
+      - "scripts/pipeline/validate-sql-elastic-pools.py"
       - "scripts/pipeline/infrastructure_*.py"
       - "scripts/pipeline/plan-infrastructure.py"
       - "bicep/*.bicep"
@@ -131,6 +133,9 @@ jobs:
 
       - name: Test SQL Elastic Jobs private endpoint approval
         run: python scripts/pipeline/approve-sql-elastic-job-private-endpoint.test.py
+
+      - name: Test SQL elastic pool validation
+        run: python scripts/pipeline/validate-sql-elastic-pools.test.py
 
       - name: Test consolidated Bicep jobs
         run: python scripts/pipeline/consolidated-bicep-jobs.test.py

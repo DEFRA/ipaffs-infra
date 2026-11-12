@@ -80,6 +80,25 @@ stages:
                     artifactName: ${{ parameters.stagePrefix }}bicepparam-classic
                     targetPath: $(Build.SourcesDirectory)/bicep/30-classic-runtime.bicepparam
 
+                # What-If does not check SQL SKU, size and per-database combinations.
+                - task: AzureCLI@2
+                  displayName: Validate SQL elastic pools - Classic
+                  env:
+                    AZURE_BICEP_USE_BINARY_FROM_PATH: 'false'
+                    CLASSIC_RESOURCE_GROUP: $(classicResourceGroupName)
+                    CLASSIC_SUBSCRIPTION_ID: $(classicSubscriptionId)
+                  inputs:
+                    azureSubscription: ${{ variables.classicServiceConnection }}
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      set -euo pipefail
+                      bash scripts/pipeline/ensure-bicep-version.sh
+                      python3 scripts/pipeline/validate-sql-elastic-pools.py \
+                        --parameters bicep/30-classic-runtime.bicepparam \
+                        --subscription "$CLASSIC_SUBSCRIPTION_ID" \
+                        --resource-group "$CLASSIC_RESOURCE_GROUP"
+
                 - task: AzureCLI@2
                   displayName: WhatIf - Classic
                   env:
