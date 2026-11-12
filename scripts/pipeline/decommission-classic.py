@@ -29,6 +29,9 @@ ABSENT_ERROR = re.compile(rf"^ERROR: \(({ABSENT_CODES})\)(?: |$)", re.MULTILINE)
 ABSENT_DELETE_DETAIL = re.compile(rf"^INFO: \(({ABSENT_CODES})\)(?: |$)", re.MULTILINE)
 VERIFY_ATTEMPTS = 6
 VERIFY_INTERVAL = 10
+THROTTLE_ATTEMPTS = 6
+THROTTLE_INTERVAL = 60
+THROTTLED = re.compile(r"Too Many Requests|\"Code\":\s*\"429\"|\(429\)")
 APP_SITE = "microsoft.web/sites"
 APP_SLOT = "microsoft.web/sites/slots"
 APP_PLAN = "microsoft.web/serverfarms"
@@ -528,11 +531,21 @@ def delete_resource(entry, subscription):
         command = ["resource", "delete", "--ids", resource_id]
 
     print(f"Deleting {resource_id}", flush=True)
-    # Azure CLI waits for the operation by default. Verbose output preserves
-    # the provider's error when the CLI wraps a rejected delete.
-    result = run_az([
-        *command, "--subscription", subscription, "--output", "none", "--verbose",
-    ], operation, timeout=1800)
+    for attempt in range(1, THROTTLE_ATTEMPTS + 1):
+        # Azure CLI waits for the operation by default. Verbose output preserves
+        # the provider's error when the CLI wraps a rejected delete.
+        result = run_az([
+            *command, "--subscription", subscription, "--output", "none", "--verbose",
+        ], operation, timeout=1800)
+        # App Service answers 429 while it still holds a lock on a plan whose
+        # apps were just deleted. Wait and try again rather than fail the run.
+        if not result.returncode or not THROTTLED.search(result.stderr) or attempt == THROTTLE_ATTEMPTS:
+            break
+        print(f"{operation}: Azure is busy (429), retrying in {THROTTLE_INTERVAL}s "
+              f"({attempt}/{THROTTLE_ATTEMPTS - 1})", flush=True)
+        time.sleep(THROTTLE_INTERVAL)
+        if kind == APP_PLAN and resource_exists(resource_id, subscription):
+            verify_plan_members(resource_id, subscription)
     if result.returncode:
         missing = (result.returncode == 3 and ABSENT_ERROR.search(result.stderr)) or (
             result.returncode == 1

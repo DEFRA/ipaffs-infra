@@ -34,6 +34,9 @@ AUTOSCALE = f"{GROUP}/providers/Microsoft.Insights/autoscalesettings/legacy-plan
 AUTOSCALE_QUERY = ("{id:id,enabled:properties.enabled,target:properties.targetResourceUri,"
                    "profiles:properties.profiles}")
 ABSENT = "ERROR: (ResourceNotFound) The resource could not be found\n"
+THROTTLED = ("ERROR: Delete: INFO: Operation returned an invalid status 'Too Many Requests'\n"
+             'Content: {"Code":"429","Message":"Cannot acquire exclusive lock to create or update '
+             'this server farm. Retry the request later."}\n')
 
 
 class CheckedInListsTests(unittest.TestCase):
@@ -87,6 +90,7 @@ class DecommissionTests(unittest.TestCase):
         self.after_delete = lambda resource_id: None
         self.check_failures = {}
         self.delete_failures = {}
+        self.throttles = {}
         self.stuck = set()
         self.reads = []
         self.deletes = []
@@ -180,6 +184,10 @@ class DecommissionTests(unittest.TestCase):
                 self.assertEqual(["webapp", "delete"], command)
             self.deletes.append(resource_id)
             self.mutations.append(("delete", resource_id))
+            throttles = self.throttles.get(resource_id)
+            if throttles:
+                throttles.pop()
+                return subprocess.CompletedProcess(arguments, 1, "", THROTTLED)
             if resource_id not in self.stuck:
                 self.current.remove(resource_id)
             self.after_delete(resource_id)
@@ -714,6 +722,44 @@ class DecommissionTests(unittest.TestCase):
         self.assertEqual(1, status)
         self.assertIn(f"Delete {DATABASE}: resource still exists after deletion", errors)
         self.assertEqual([DATABASE], self.deletes)
+
+    def test_throttled_delete_waits_and_retries_until_azure_accepts_it(self):
+        self.plan_successfully()
+        self.throttles[DATABASE] = [1, 1]
+        status, output, errors = self.execute("delete")
+        self.assertEqual(0, status, errors)
+        self.assertIn("Azure is busy (429), retrying in 60s (2/5)", output)
+        self.assertEqual([DATABASE, DATABASE, DATABASE, SERVER], self.deletes)
+
+    def test_throttled_plan_delete_rechecks_membership_before_retrying(self):
+        self.resources.write_text(f"{APP}\n{APP_PLAN}\n", encoding="utf-8")
+        self.current = {APP, APP_PLAN}
+        self.plan_successfully()
+        self.throttles[APP_PLAN] = [1]
+
+        def app_returns_after_throttle(resource_id):
+            if resource_id == APP_PLAN and self.throttles[APP_PLAN] == []:
+                self.current.add(APP)
+        original = self.fake_az
+
+        def fake(arguments, **kwargs):
+            result = original(arguments, **kwargs)
+            if arguments[1:3] == ["resource", "delete"]:
+                app_returns_after_throttle(arguments[arguments.index("--ids") + 1])
+            return result
+        self.az.side_effect = fake
+        status, _, errors = self.execute("delete")
+        self.assertEqual(1, status)
+        self.assertIn("plan must be empty before deletion", errors)
+        self.assertEqual([APP, APP_PLAN], self.deletes)
+
+    def test_persistent_throttling_fails_after_the_last_attempt(self):
+        self.plan_successfully()
+        self.throttles[DATABASE] = [1] * decommission.THROTTLE_ATTEMPTS
+        status, _, errors = self.execute("delete")
+        self.assertEqual(1, status)
+        self.assertIn("Cannot acquire exclusive lock", errors)
+        self.assertEqual([DATABASE] * decommission.THROTTLE_ATTEMPTS, self.deletes)
 
 
 class PipelineSignInTests(unittest.TestCase):
