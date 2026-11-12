@@ -23,6 +23,8 @@ param redisParams object
 param searchParams object
 param sejParams object
 param sqlParams object
+// Optional: SND keeps its DTU pools outside this deployment.
+param sqlPoolParams object = {}
 param serviceBusParams object
 
 var contributorRoleId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b24988ac-6180-42a0-ab88-20f7382dd24c')
@@ -107,6 +109,24 @@ module sql './modules/sql-classic.bicep' = {
     entraGroups: entraGroups
     sqlParams: sqlParams
     tenantId: tenantId
+  }
+}
+
+var manageSqlPool = !empty(sqlPoolParams)
+var keepLiveSqlPoolCapacity = manageSqlPool && (sqlPoolParams.?keepLiveCapacity ?? false)
+
+resource liveSqlPool 'Microsoft.Sql/servers/elasticPools@2023-08-01' existing = if (keepLiveSqlPoolCapacity) {
+  name: '${sqlPoolParams.serverName}/${sqlPoolParams.name}'
+}
+
+module sqlPool './modules/sql-pool-classic.bicep' = if (manageSqlPool) {
+  name: 'sqlPool-${deploymentId}'
+  scope: resourceGroup()
+  params: {
+    livePerDatabaseSettings: keepLiveSqlPoolCapacity ? liveSqlPool!.properties.perDatabaseSettings : {}
+    liveSku: keepLiveSqlPoolCapacity ? liveSqlPool!.sku : {}
+    location: location
+    sqlPoolParams: sqlPoolParams
   }
 }
 
