@@ -1,0 +1,65 @@
+---
+# Provides the Maven settings for a job as the variable $(mavenSettingsFile).
+#
+#   artifactory - the secure file maven-settings.xml: Artifactory and GitHub Packages,
+#                 using stored credentials.
+#   feed        - generated settings that resolve everything through the DEFRA-EUTD-IPAFFS
+#                 Azure Artifacts feed (its upstreams include Maven Central and JitPack)
+#                 and deploy to it (server id DEFRA-EUTD-IPAFFS). No stored credentials:
+#                 the password is System.AccessToken, so the step that runs Maven must map
+#                 SYSTEM_ACCESSTOKEN: $(System.AccessToken) into its env.
+#
+# Repos opt in to the feed with mavenRegistry: feed. Once every Maven repo has, the
+# default becomes feed and the secure file is retired.
+
+parameters:
+  - name: mavenRegistry
+    type: string
+    default: artifactory
+    values:
+      - artifactory
+      - feed
+
+steps:
+  - ${{ if eq(parameters.mavenRegistry, 'feed') }}:
+      - task: Bash@3
+        displayName: Write Maven settings for the Azure Artifacts feed
+        inputs:
+          targetType: inline
+          script: |
+            set -euo pipefail
+            file="$(Agent.TempDirectory)/maven-feed-settings.xml"
+            # The password stays a Maven expression; the token is only read from the environment.
+            cat > "${file}" <<'EOF'
+            <?xml version="1.0" encoding="UTF-8"?>
+            <settings xmlns="http://maven.apache.org/SETTINGS/1.2.0">
+              <servers>
+                <server>
+                  <id>DEFRA-EUTD-IPAFFS</id>
+                  <username>build</username>
+                  <password>${env.SYSTEM_ACCESSTOKEN}</password>
+                </server>
+              </servers>
+              <mirrors>
+                <mirror>
+                  <id>DEFRA-EUTD-IPAFFS</id>
+                  <mirrorOf>*</mirrorOf>
+                  <url>https://pkgs.dev.azure.com/defragovuk/DEFRA-EUTD-IPAFFS/_packaging/DEFRA-EUTD-IPAFFS/maven/v1</url>
+                </mirror>
+              </mirrors>
+            </settings>
+            EOF
+            echo "##vso[task.setvariable variable=mavenSettingsFile]${file}"
+
+  - ${{ else }}:
+      - task: DownloadSecureFile@1
+        name: mavenSettings
+        displayName: Download Maven Settings
+        inputs:
+          secureFile: 'maven-settings.xml'
+
+      - task: Bash@3
+        displayName: Use the Artifactory Maven settings
+        inputs:
+          targetType: inline
+          script: echo "##vso[task.setvariable variable=mavenSettingsFile]$(mavenSettings.secureFilePath)"
