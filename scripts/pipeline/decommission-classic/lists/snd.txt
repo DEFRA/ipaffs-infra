@@ -323,7 +323,29 @@
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-vnet/providers/Microsoft.Web/serverfarms/reference-data-plan-2-vnet
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-openid-token-microservice/providers/Microsoft.Web/serverfarms/services-general-microservice
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp010/providers/Microsoft.Web/serverfarms/reference-data-planv3-2
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-imports-static-integration/providers/Microsoft.Web/serverfarms/services-general-2-integration
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-imports-static-integration/providers/Microsoft.Web/serverfarms/services-general-3-integration
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-imports-static-integration/providers/Microsoft.Web/serverfarms/services-general-integration
+/subscriptions/E716414F-1F8E-48F1-8F56-65F35CFDAFB6/resourceGroups/SNDIMPINFRGP001-IMPORTS-STATIC-TEST/providers/Microsoft.Web/serverfarms/services-general-2-test
+/subscriptions/E716414F-1F8E-48F1-8F56-65F35CFDAFB6/resourceGroups/SNDIMPINFRGP001-IMPORTS-STATIC-TEST/providers/Microsoft.Web/serverfarms/services-general-3-test
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-imports-static-test/providers/Microsoft.Web/serverfarms/services-general-test
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-imports-static-vnet/providers/Microsoft.Web/serverfarms/enotification-plan-1-vnet
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-imports-static-vnet/providers/Microsoft.Web/serverfarms/high-traffic-plan-1-vnet
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-imports-static-vnet/providers/Microsoft.Web/serverfarms/low-traffic-plan-1-vnet
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-imports-static-vnet/providers/Microsoft.Web/serverfarms/reference-data-plan-1-vnet
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-imports-static-vnet/providers/Microsoft.Web/serverfarms/soap-services-plan-1-vnet
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-Pool-7/providers/Microsoft.Web/serverfarms/services-general-2-7
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-Pool-7/providers/Microsoft.Web/serverfarms/services-general-3-7
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-Pool-7/providers/Microsoft.Web/serverfarms/services-general-7
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Web/serverfarms/enotification-planv3-1
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Web/serverfarms/high-traffic-planv3-1
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Web/serverfarms/low-traffic-planv3-1
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Web/serverfarms/reference-data-planv3-1
 
 # Microsoft.Insights/autoscaleSettings
 # Disable and delete only after Azure confirms the listed target plan is gone.
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp010/providers/Microsoft.Insights/autoscalesettings/reference-data-planv3-2-AutoScaleSetting
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/microsoft.insights/autoscalesettings/enotification-planv3-1-AutoScaleSetting
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/microsoft.insights/autoscalesettings/high-traffic-planv3-1-AutoScaleSetting
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/microsoft.insights/autoscalesettings/low-traffic-planv3-1-AutoScaleSetting
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/microsoft.insights/autoscalesettings/reference-data-planv3-1-AutoScaleSetting

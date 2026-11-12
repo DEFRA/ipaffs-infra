@@ -128,3 +128,14 @@
 # Delete only after all earlier listed member apps are gone.
 /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/tstimpinfrgp002/providers/Microsoft.Web/serverfarms/frontend-planv3-1
 /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/tstimpinfrgp002/providers/Microsoft.Web/serverfarms/reference-data-planv3-2
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Web/serverfarms/enotification-planv3-1
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Web/serverfarms/high-traffic-planv3-1
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Web/serverfarms/low-traffic-planv3-1
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Web/serverfarms/reference-data-planv3-1
+
+# Microsoft.Insights/autoscaleSettings
+# Disable and delete only after Azure confirms the listed target plan is gone.
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/autoscalesettings/enotification-planv3-1-AutoScaleSetting
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/autoscalesettings/high-traffic-planv3-1-AutoScaleSetting
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/autoscalesettings/low-traffic-planv3-1-AutoScaleSetting
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/autoscalesettings/reference-data-planv3-1-AutoScaleSetting
