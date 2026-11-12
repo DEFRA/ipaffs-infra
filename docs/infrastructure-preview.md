@@ -224,15 +224,15 @@ with its owner rather than enable the bootstrap definitions without review. A
 newly rebuilt PRE/PRD job agent requires its maintenance definitions to be restored
 or provisioned by that owner.
 
-TST, PRE and PRD set `sqlPoolParams` so the Classic deployment manages their
+SND, TST, PRE and PRD set `sqlPoolParams` so the Classic deployment manages their
 existing elastic pool (`modules/sql-pool-classic.bicep`). The parameters pin the
 live SKU, per-database limits, maximum size, zone redundancy, maintenance window
 and tags, so What-If shows no change until a parameter is edited. TST sets
 `keepLiveCapacity: true` because something outside this repo scales its pool from
 250 to 1000 eDTU on weekday mornings. It keeps whatever SKU and per-database limits
 are live, and What-If shows those two properties as unresolved `reference()`
-changes. SND omits `sqlPoolParams`, and the PRE-TRN pool sits in another resource
-group, so neither is managed.
+changes. The SND `sndimpedpsqa001` pool and the PRE-TRN pool sit in other resource
+groups, so neither is managed.
 
 The Classic deployment requests one service-managed private endpoint per Elastic
 Job Agent in SND, TST, PRE and PRD. Azure waits for approval before completing the

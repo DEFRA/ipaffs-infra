@@ -69,3 +69,31 @@ param sqlParams = {
   serverName: 'sndimpdbssqa004'
 }
 
+param sqlPoolParams = {
+  serverName: 'sndimpdbssqa004'
+  name: 'sndimpedpsqa004'
+  sku: {
+    name: 'StandardPool'
+    tier: 'Standard'
+    capacity: 50
+  }
+  perDatabaseSettings: {
+    minCapacity: 0
+    maxCapacity: 50
+  }
+  maxSizeGiB: 100
+  zoneRedundant: false
+  maintenanceConfigurationName: 'SQL_Default'
+  // The pool's own tags from the original ARM template, kept as they are live.
+  tags: {
+    CreatedDate: '20260626  '
+    Environment: 'SND'
+    Location: 'North Europe'
+    Name: 'sndimpedpsqa004'
+    ServiceCode: 'IMP'
+    ServiceName: 'EUX Imports'
+    ServiceType: 'LOB'
+    Tier: 'Database'
+  }
+}
+

@@ -23,7 +23,7 @@ param redisParams object
 param searchParams object
 param sejParams object
 param sqlParams object
-// Optional: SND keeps its DTU pools outside this deployment.
+// Optional: an environment without it leaves its elastic pool unmanaged.
 param sqlPoolParams object = {}
 param serviceBusParams object
 
