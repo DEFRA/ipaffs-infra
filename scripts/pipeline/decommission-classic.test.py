@@ -783,7 +783,7 @@ class DecommissionTests(unittest.TestCase):
             result = original(arguments, **kwargs)
             if arguments[1:3] == ["resource", "delete"] and result.returncode:
                 self.current.discard(DATABASE)
-                self.check_sequences[DATABASE] = [(3, UNCODED_NOT_FOUND)] * 2
+                self.check_sequences[DATABASE] = [(3, UNCODED_NOT_FOUND)] * 7
             return result
         self.az.side_effect = fake
         status, output, errors = self.execute("delete")
@@ -793,7 +793,7 @@ class DecommissionTests(unittest.TestCase):
 
     def test_persistent_uncoded_not_found_blocks_deletion(self):
         self.plan_successfully()
-        self.check_sequences[SERVER] = [(3, UNCODED_NOT_FOUND)] * (decommission.VERIFY_ATTEMPTS + 1)
+        self.check_sequences[SERVER] = [(3, UNCODED_NOT_FOUND)] * (decommission.UNCODED_NOT_FOUND_ATTEMPTS + 1)
         status, _, errors = self.execute("delete")
         self.assertEqual(1, status)
         self.assertIn(f"Check {SERVER}: {UNCODED_NOT_FOUND.strip()}", errors)
