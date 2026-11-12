@@ -46,12 +46,15 @@
 # TSTIMPINFRGP002
 /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/tstimpinfrgp002/providers/Microsoft.Web/sites/approvedestablishment-microservice-blue-tst
 /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/tstimpinfrgp002/providers/Microsoft.Web/sites/approvedestablishment-microservice-green-tst
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Web/sites/archive-notifications-microservice-tst
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Web/sites/auto-clearance-microservice-tst
 /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/tstimpinfrgp002/providers/Microsoft.Web/sites/bip-microservice-blue-tst
 /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/tstimpinfrgp002/providers/Microsoft.Web/sites/bip-microservice-green-tst
 /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/tstimpinfrgp002/providers/Microsoft.Web/sites/bordernotification-microservice-blue-tst
 /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/tstimpinfrgp002/providers/Microsoft.Web/sites/bordernotification-microservice-green-tst
 /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/tstimpinfrgp002/providers/Microsoft.Web/sites/bordernotification-refdata-microservice-blue-tst
 /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/tstimpinfrgp002/providers/Microsoft.Web/sites/bordernotification-refdata-microservice-green-tst
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Web/sites/bulk-upload-microservice-tst
 /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/tstimpinfrgp002/providers/Microsoft.Web/sites/certificate-microservice-blue-tst
 /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/tstimpinfrgp002/providers/Microsoft.Web/sites/certificate-microservice-green-tst
 /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/tstimpinfrgp002/providers/Microsoft.Web/sites/checks-microservice-blue-tst
@@ -66,10 +69,13 @@
 /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/tstimpinfrgp002/providers/Microsoft.Web/sites/customer-microservice-green-tst
 /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/tstimpinfrgp002/providers/Microsoft.Web/sites/decision-microservice-blue-tst
 /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/tstimpinfrgp002/providers/Microsoft.Web/sites/decision-microservice-green-tst
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Web/sites/dmp-integration-microservice-tst
 /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/tstimpinfrgp002/providers/Microsoft.Web/sites/economicoperator-microservice-blue-tst
 /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/tstimpinfrgp002/providers/Microsoft.Web/sites/economicoperator-microservice-green-tst
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Web/sites/enotification-event-listener-microservice-tst
 /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/tstimpinfrgp002/providers/Microsoft.Web/sites/enotification-event-microservice-blue-tst
 /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/tstimpinfrgp002/providers/Microsoft.Web/sites/enotification-event-microservice-green-tst
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Web/sites/enotification-processing-microservice-tst
 /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/tstimpinfrgp002/providers/Microsoft.Web/sites/enotification-submission-microservice-blue-tst
 /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/tstimpinfrgp002/providers/Microsoft.Web/sites/enotification-submission-microservice-green-tst
 /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/tstimpinfrgp002/providers/Microsoft.Web/sites/fieldconfig-microservice-blue-tst
@@ -92,6 +98,7 @@
 /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/tstimpinfrgp002/providers/Microsoft.Web/sites/frontend-notification-green-tst
 /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/tstimpinfrgp002/providers/Microsoft.Web/sites/frontend-upload-blue-tst
 /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/tstimpinfrgp002/providers/Microsoft.Web/sites/frontend-upload-green-tst
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Web/sites/gvms-microservice-tst
 /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/tstimpinfrgp002/providers/Microsoft.Web/sites/imports-proxy-blue-tst
 /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/tstimpinfrgp002/providers/Microsoft.Web/sites/imports-proxy-green-tst
 /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/tstimpinfrgp002/providers/Microsoft.Web/sites/imports-proxy-idmlatest-tst
@@ -103,11 +110,15 @@
 /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/tstimpinfrgp002/providers/Microsoft.Web/sites/legacy-notifications-microservice-green-tst
 /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/tstimpinfrgp002/providers/Microsoft.Web/sites/notification-microservice-blue-tst
 /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/tstimpinfrgp002/providers/Microsoft.Web/sites/notification-microservice-green-tst
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Web/sites/notify-microservice-tst
 /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/tstimpinfrgp002/providers/Microsoft.Web/sites/permissions-blue-tst
 /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/tstimpinfrgp002/providers/Microsoft.Web/sites/permissions-green-tst
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Web/sites/referencedataloader-microservice-blue-tst
 /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/tstimpinfrgp002/providers/Microsoft.Web/sites/referencedataloader-microservice-green-tst
 /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/tstimpinfrgp002/providers/Microsoft.Web/sites/risk-assessment-microservice-blue-tst
 /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/tstimpinfrgp002/providers/Microsoft.Web/sites/risk-assessment-microservice-green-tst
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Web/sites/risk-interface-microservice-tst
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Web/sites/risk-locking-microservice-tst
 /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/tstimpinfrgp002/providers/Microsoft.Web/sites/soaprequest-microservice-blue-tst
 /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/tstimpinfrgp002/providers/Microsoft.Web/sites/soaprequest-microservice-green-tst
 /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/tstimpinfrgp002/providers/Microsoft.Web/sites/soapsearch-microservice-blue-tst
@@ -117,3 +128,14 @@
 # Delete only after all earlier listed member apps are gone.
 /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/tstimpinfrgp002/providers/Microsoft.Web/serverfarms/frontend-planv3-1
 /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/tstimpinfrgp002/providers/Microsoft.Web/serverfarms/reference-data-planv3-2
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Web/serverfarms/enotification-planv3-1
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Web/serverfarms/high-traffic-planv3-1
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Web/serverfarms/low-traffic-planv3-1
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Web/serverfarms/reference-data-planv3-1
+
+# Microsoft.Insights/autoscaleSettings
+# Disable and delete only after Azure confirms the listed target plan is gone.
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/autoscalesettings/enotification-planv3-1-AutoScaleSetting
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/autoscalesettings/high-traffic-planv3-1-AutoScaleSetting
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/autoscalesettings/low-traffic-planv3-1-AutoScaleSetting
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/autoscalesettings/reference-data-planv3-1-AutoScaleSetting

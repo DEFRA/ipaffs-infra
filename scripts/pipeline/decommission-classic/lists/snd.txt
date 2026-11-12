@@ -37,9 +37,12 @@
 
 # SNDIMPINFRGP001-imports-static-integration
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-integration/providers/Microsoft.Web/sites/approvedestablishment-microservice-integration
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-integration/providers/Microsoft.Web/sites/archive-notifications-microservice-integration
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-integration/providers/Microsoft.Web/sites/auto-clearance-microservice-integration
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-integration/providers/Microsoft.Web/sites/bip-microservice-integration
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-integration/providers/Microsoft.Web/sites/bordernotification-microservice-integration
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-integration/providers/Microsoft.Web/sites/bordernotification-refdata-microservice-integration
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-integration/providers/Microsoft.Web/sites/bulk-upload-microservice-integration
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-integration/providers/Microsoft.Web/sites/certificate-microservice-integration
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-integration/providers/Microsoft.Web/sites/checks-microservice-integration
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-integration/providers/Microsoft.Web/sites/cloning-microservice-integration
@@ -48,8 +51,11 @@
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-integration/providers/Microsoft.Web/sites/customer-microservice-integration
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-integration/providers/Microsoft.Web/sites/customer-wiremock-microservice-integration
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-integration/providers/Microsoft.Web/sites/decision-microservice-integration
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-integration/providers/Microsoft.Web/sites/dmp-integration-microservice-integration
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-integration/providers/Microsoft.Web/sites/economicoperator-microservice-integration
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-integration/providers/Microsoft.Web/sites/enotification-event-listener-microservice-integration
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-integration/providers/Microsoft.Web/sites/enotification-event-microservice-integration
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-integration/providers/Microsoft.Web/sites/enotification-processing-microservice-integration
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-integration/providers/Microsoft.Web/sites/enotification-submission-microservice-integration
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-integration/providers/Microsoft.Web/sites/fieldconfig-microservice-integration
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-integration/providers/Microsoft.Web/sites/file-compression-microservice-integration
@@ -61,22 +67,30 @@
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-integration/providers/Microsoft.Web/sites/frontend-decision-integration
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-integration/providers/Microsoft.Web/sites/frontend-notification-integration
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-integration/providers/Microsoft.Web/sites/frontend-upload-integration
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-integration/providers/Microsoft.Web/sites/gvms-microservice-integration
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-integration/providers/Microsoft.Web/sites/in-service-messaging-microservice-integration
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-integration/providers/Microsoft.Web/sites/laboratories-microservice-integration
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-integration/providers/Microsoft.Web/sites/legacy-notifications-microservice-integration
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-integration/providers/Microsoft.Web/sites/notification-microservice-integration
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-integration/providers/Microsoft.Web/sites/notification-search-migration-microservice-integration
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-integration/providers/Microsoft.Web/sites/notify-microservice-integration
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-integration/providers/Microsoft.Web/sites/permissions-integration
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-integration/providers/Microsoft.Web/sites/rds-wiremock-microservice-integration
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-integration/providers/Microsoft.Web/sites/referencedataloader-microservice-integration
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-integration/providers/Microsoft.Web/sites/risk-assessment-microservice-integration
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-integration/providers/Microsoft.Web/sites/risk-interface-microservice-integration
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-integration/providers/Microsoft.Web/sites/risk-locking-microservice-integration
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-integration/providers/Microsoft.Web/sites/soaprequest-microservice-integration
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-integration/providers/Microsoft.Web/sites/soapsearch-microservice-integration
 
 # SNDIMPINFRGP001-imports-static-test
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-test/providers/Microsoft.Web/sites/approvedestablishment-microservice-test
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-test/providers/Microsoft.Web/sites/archive-notifications-microservice-test
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-test/providers/Microsoft.Web/sites/auto-clearance-microservice-test
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-test/providers/Microsoft.Web/sites/bip-microservice-test
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-test/providers/Microsoft.Web/sites/bordernotification-microservice-test
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-test/providers/Microsoft.Web/sites/bordernotification-refdata-microservice-test
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-test/providers/Microsoft.Web/sites/bulk-upload-microservice-test
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-test/providers/Microsoft.Web/sites/certificate-microservice-test
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-test/providers/Microsoft.Web/sites/checks-microservice-test
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-test/providers/Microsoft.Web/sites/cloning-microservice-test
@@ -85,8 +99,11 @@
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-test/providers/Microsoft.Web/sites/customer-microservice-test
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-test/providers/Microsoft.Web/sites/customer-wiremock-microservice-test
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-test/providers/Microsoft.Web/sites/decision-microservice-test
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-test/providers/Microsoft.Web/sites/dmp-integration-microservice-test
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-test/providers/Microsoft.Web/sites/economicoperator-microservice-test
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-test/providers/Microsoft.Web/sites/enotification-event-listener-microservice-test
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-test/providers/Microsoft.Web/sites/enotification-event-microservice-test
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-test/providers/Microsoft.Web/sites/enotification-processing-microservice-test
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-test/providers/Microsoft.Web/sites/enotification-submission-microservice-test
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-test/providers/Microsoft.Web/sites/fieldconfig-microservice-test
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-test/providers/Microsoft.Web/sites/file-compression-microservice-test
@@ -98,22 +115,30 @@
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-test/providers/Microsoft.Web/sites/frontend-decision-test
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-test/providers/Microsoft.Web/sites/frontend-notification-test
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-test/providers/Microsoft.Web/sites/frontend-upload-test
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-test/providers/Microsoft.Web/sites/gvms-microservice-test
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-test/providers/Microsoft.Web/sites/in-service-messaging-microservice-test
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-test/providers/Microsoft.Web/sites/laboratories-microservice-test
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-test/providers/Microsoft.Web/sites/legacy-notifications-microservice-test
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-test/providers/Microsoft.Web/sites/notification-microservice-test
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-test/providers/Microsoft.Web/sites/notification-search-migration-microservice-test
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-test/providers/Microsoft.Web/sites/notify-microservice-test
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-test/providers/Microsoft.Web/sites/permissions-test
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-test/providers/Microsoft.Web/sites/rds-wiremock-microservice-test
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-test/providers/Microsoft.Web/sites/referencedataloader-microservice-test
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-test/providers/Microsoft.Web/sites/risk-assessment-microservice-test
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-test/providers/Microsoft.Web/sites/risk-interface-microservice-test
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-test/providers/Microsoft.Web/sites/risk-locking-microservice-test
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-test/providers/Microsoft.Web/sites/soaprequest-microservice-test
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-test/providers/Microsoft.Web/sites/soapsearch-microservice-test
 
 # SNDIMPINFRGP001-imports-static-vnet
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-vnet/providers/Microsoft.Web/sites/approvedestablishment-microservice-vnet
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-vnet/providers/Microsoft.Web/sites/archive-notifications-microservice-vnet
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-vnet/providers/Microsoft.Web/sites/auto-clearance-microservice-vnet
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-vnet/providers/Microsoft.Web/sites/bip-microservice-vnet
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-vnet/providers/Microsoft.Web/sites/bordernotification-microservice-vnet
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-vnet/providers/Microsoft.Web/sites/bordernotification-refdata-microservice-vnet
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-vnet/providers/Microsoft.Web/sites/bulk-upload-microservice-vnet
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-vnet/providers/Microsoft.Web/sites/certificate-microservice-vnet
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-vnet/providers/Microsoft.Web/sites/checks-microservice-vnet
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-vnet/providers/Microsoft.Web/sites/cloning-microservice-vnet
@@ -121,8 +146,11 @@
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-vnet/providers/Microsoft.Web/sites/countries-microservice-vnet
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-vnet/providers/Microsoft.Web/sites/customer-microservice-vnet
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-vnet/providers/Microsoft.Web/sites/decision-microservice-vnet
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-vnet/providers/Microsoft.Web/sites/dmp-integration-microservice-vnet
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-vnet/providers/Microsoft.Web/sites/economicoperator-microservice-vnet
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-vnet/providers/Microsoft.Web/sites/enotification-event-listener-microservice-vnet
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-vnet/providers/Microsoft.Web/sites/enotification-event-microservice-vnet
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-vnet/providers/Microsoft.Web/sites/enotification-processing-microservice-vnet
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-vnet/providers/Microsoft.Web/sites/enotification-submission-microservice-vnet
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-vnet/providers/Microsoft.Web/sites/fieldconfig-microservice-vnet
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-vnet/providers/Microsoft.Web/sites/file-compression-microservice-vnet
@@ -134,15 +162,20 @@
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-vnet/providers/Microsoft.Web/sites/frontend-decision-vnet
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-vnet/providers/Microsoft.Web/sites/frontend-notification-vnet
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-vnet/providers/Microsoft.Web/sites/frontend-upload-vnet
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-vnet/providers/Microsoft.Web/sites/gvms-microservice-vnet
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-vnet/providers/Microsoft.Web/sites/imports-proxy-static
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-vnet/providers/Microsoft.Web/sites/in-service-messaging-microservice-vnet
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-vnet/providers/Microsoft.Web/sites/laboratories-microservice-vnet
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-vnet/providers/Microsoft.Web/sites/legacy-notifications-microservice-vnet
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-vnet/providers/Microsoft.Web/sites/notification-microservice-vnet
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-vnet/providers/Microsoft.Web/sites/notification-search-migration-microservice-vnet
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-vnet/providers/Microsoft.Web/sites/notify-microservice-vnet
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-vnet/providers/Microsoft.Web/sites/permissions-vnet
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-vnet/providers/Microsoft.Web/sites/rds-wiremock-microservice-vnet
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-vnet/providers/Microsoft.Web/sites/referencedataloader-microservice-vnet
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-vnet/providers/Microsoft.Web/sites/risk-assessment-microservice-vnet
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-vnet/providers/Microsoft.Web/sites/risk-interface-microservice-vnet
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-vnet/providers/Microsoft.Web/sites/risk-locking-microservice-vnet
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-vnet/providers/Microsoft.Web/sites/soaprequest-microservice-vnet
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-vnet/providers/Microsoft.Web/sites/soapsearch-microservice-vnet
 
@@ -154,9 +187,12 @@
 
 # SNDIMPINFRGP001-Pool-7
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-pool-7/providers/Microsoft.Web/sites/approvedestablishment-microservice-7
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-pool-7/providers/Microsoft.Web/sites/archive-notifications-microservice-7
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-pool-7/providers/Microsoft.Web/sites/auto-clearance-microservice-7
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-pool-7/providers/Microsoft.Web/sites/bip-microservice-7
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-pool-7/providers/Microsoft.Web/sites/bordernotification-microservice-7
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-pool-7/providers/Microsoft.Web/sites/bordernotification-refdata-microservice-7
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-pool-7/providers/Microsoft.Web/sites/bulk-upload-microservice-7
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-pool-7/providers/Microsoft.Web/sites/certificate-microservice-7
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-pool-7/providers/Microsoft.Web/sites/checks-microservice-7
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-pool-7/providers/Microsoft.Web/sites/cloning-microservice-7
@@ -165,8 +201,11 @@
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-pool-7/providers/Microsoft.Web/sites/customer-microservice-7
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-pool-7/providers/Microsoft.Web/sites/customer-wiremock-microservice-7
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-pool-7/providers/Microsoft.Web/sites/decision-microservice-7
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-pool-7/providers/Microsoft.Web/sites/dmp-integration-microservice-7
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-pool-7/providers/Microsoft.Web/sites/economicoperator-microservice-7
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-pool-7/providers/Microsoft.Web/sites/enotification-event-listener-microservice-7
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-pool-7/providers/Microsoft.Web/sites/enotification-event-microservice-7
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-pool-7/providers/Microsoft.Web/sites/enotification-processing-microservice-7
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-pool-7/providers/Microsoft.Web/sites/enotification-submission-microservice-7
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-pool-7/providers/Microsoft.Web/sites/fieldconfig-microservice-7
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-pool-7/providers/Microsoft.Web/sites/file-compression-microservice-7
@@ -178,25 +217,33 @@
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-pool-7/providers/Microsoft.Web/sites/frontend-decision-7
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-pool-7/providers/Microsoft.Web/sites/frontend-notification-7
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-pool-7/providers/Microsoft.Web/sites/frontend-upload-7
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-pool-7/providers/Microsoft.Web/sites/gvms-microservice-7
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-pool-7/providers/Microsoft.Web/sites/in-service-messaging-microservice-7
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-pool-7/providers/Microsoft.Web/sites/laboratories-microservice-7
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-pool-7/providers/Microsoft.Web/sites/legacy-notifications-microservice-7
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-pool-7/providers/Microsoft.Web/sites/notification-microservice-7
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-pool-7/providers/Microsoft.Web/sites/notify-microservice-7
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-pool-7/providers/Microsoft.Web/sites/permissions-7
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-pool-7/providers/Microsoft.Web/sites/rds-wiremock-microservice-7
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-pool-7/providers/Microsoft.Web/sites/referencedataloader-microservice-7
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-pool-7/providers/Microsoft.Web/sites/risk-assessment-microservice-7
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-pool-7/providers/Microsoft.Web/sites/risk-interface-microservice-7
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-pool-7/providers/Microsoft.Web/sites/risk-locking-microservice-7
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-pool-7/providers/Microsoft.Web/sites/soaprequest-microservice-7
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-pool-7/providers/Microsoft.Web/sites/soapsearch-microservice-7
 
 # SNDIMPINFRGP010
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp010/providers/Microsoft.Web/sites/approvedestablishment-microservice-blue-snd
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp010/providers/Microsoft.Web/sites/approvedestablishment-microservice-green-snd
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp010/providers/Microsoft.Web/sites/archive-notifications-microservice-snd
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp010/providers/Microsoft.Web/sites/auto-clearance-microservice-snd
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp010/providers/Microsoft.Web/sites/bip-microservice-blue-snd
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp010/providers/Microsoft.Web/sites/bip-microservice-green-snd
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp010/providers/Microsoft.Web/sites/bordernotification-microservice-blue-snd
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp010/providers/Microsoft.Web/sites/bordernotification-microservice-green-snd
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp010/providers/Microsoft.Web/sites/bordernotification-refdata-microservice-blue-snd
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp010/providers/Microsoft.Web/sites/bordernotification-refdata-microservice-green-snd
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp010/providers/Microsoft.Web/sites/bulk-upload-microservice-snd
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp010/providers/Microsoft.Web/sites/certificate-microservice-blue-snd
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp010/providers/Microsoft.Web/sites/certificate-microservice-green-snd
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp010/providers/Microsoft.Web/sites/checks-microservice-blue-snd
@@ -213,10 +260,14 @@
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp010/providers/Microsoft.Web/sites/customer-microservice-green-snd
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp010/providers/Microsoft.Web/sites/decision-microservice-blue-snd
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp010/providers/Microsoft.Web/sites/decision-microservice-green-snd
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp010/providers/Microsoft.Web/sites/dmp-integration-microservice-snd
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp010/providers/Microsoft.Web/sites/economicoperator-microservice-blue-snd
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp010/providers/Microsoft.Web/sites/economicoperator-microservice-green-snd
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp010/providers/Microsoft.Web/sites/enotification-event-internal-microservice-blue-snd
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp010/providers/Microsoft.Web/sites/enotification-event-listener-microservice-snd
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp010/providers/Microsoft.Web/sites/enotification-event-microservice-blue-snd
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp010/providers/Microsoft.Web/sites/enotification-event-microservice-green-snd
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp010/providers/Microsoft.Web/sites/enotification-processing-microservice-snd
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp010/providers/Microsoft.Web/sites/enotification-submission-microservice-blue-snd
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp010/providers/Microsoft.Web/sites/enotification-submission-microservice-green-snd
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp010/providers/Microsoft.Web/sites/fieldconfig-microservice-blue-snd
@@ -239,6 +290,7 @@
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp010/providers/Microsoft.Web/sites/frontend-notification-green-snd
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp010/providers/Microsoft.Web/sites/frontend-upload-blue-snd
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp010/providers/Microsoft.Web/sites/frontend-upload-green-snd
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp010/providers/Microsoft.Web/sites/gvms-microservice-snd
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp010/providers/Microsoft.Web/sites/imports-proxy-blue-snd
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp010/providers/Microsoft.Web/sites/imports-proxy-green-snd
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp010/providers/Microsoft.Web/sites/in-service-messaging-microservice-blue-snd
@@ -249,10 +301,16 @@
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp010/providers/Microsoft.Web/sites/legacy-notifications-microservice-green-snd
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp010/providers/Microsoft.Web/sites/notification-microservice-blue-snd
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp010/providers/Microsoft.Web/sites/notification-microservice-green-snd
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp010/providers/Microsoft.Web/sites/notification-search-migration-microservice-snd
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp010/providers/Microsoft.Web/sites/notify-microservice-snd
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp010/providers/Microsoft.Web/sites/permissions-blue-snd
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp010/providers/Microsoft.Web/sites/permissions-green-snd
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp010/providers/Microsoft.Web/sites/referencedataloader-microservice-blue-snd
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp010/providers/Microsoft.Web/sites/referencedataloader-microservice-green-snd
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp010/providers/Microsoft.Web/sites/risk-assessment-microservice-blue-snd
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp010/providers/Microsoft.Web/sites/risk-assessment-microservice-green-snd
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp010/providers/Microsoft.Web/sites/risk-interface-microservice-snd
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp010/providers/Microsoft.Web/sites/risk-locking-microservice-snd
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp010/providers/Microsoft.Web/sites/soaprequest-microservice-blue-snd
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp010/providers/Microsoft.Web/sites/soaprequest-microservice-green-snd
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp010/providers/Microsoft.Web/sites/soapsearch-microservice-blue-snd
@@ -265,7 +323,29 @@
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-static-vnet/providers/Microsoft.Web/serverfarms/reference-data-plan-2-vnet
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-openid-token-microservice/providers/Microsoft.Web/serverfarms/services-general-microservice
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp010/providers/Microsoft.Web/serverfarms/reference-data-planv3-2
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-imports-static-integration/providers/Microsoft.Web/serverfarms/services-general-2-integration
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-imports-static-integration/providers/Microsoft.Web/serverfarms/services-general-3-integration
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-imports-static-integration/providers/Microsoft.Web/serverfarms/services-general-integration
+/subscriptions/E716414F-1F8E-48F1-8F56-65F35CFDAFB6/resourceGroups/SNDIMPINFRGP001-IMPORTS-STATIC-TEST/providers/Microsoft.Web/serverfarms/services-general-2-test
+/subscriptions/E716414F-1F8E-48F1-8F56-65F35CFDAFB6/resourceGroups/SNDIMPINFRGP001-IMPORTS-STATIC-TEST/providers/Microsoft.Web/serverfarms/services-general-3-test
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-imports-static-test/providers/Microsoft.Web/serverfarms/services-general-test
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-imports-static-vnet/providers/Microsoft.Web/serverfarms/enotification-plan-1-vnet
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-imports-static-vnet/providers/Microsoft.Web/serverfarms/high-traffic-plan-1-vnet
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-imports-static-vnet/providers/Microsoft.Web/serverfarms/low-traffic-plan-1-vnet
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-imports-static-vnet/providers/Microsoft.Web/serverfarms/reference-data-plan-1-vnet
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-imports-static-vnet/providers/Microsoft.Web/serverfarms/soap-services-plan-1-vnet
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-Pool-7/providers/Microsoft.Web/serverfarms/services-general-2-7
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-Pool-7/providers/Microsoft.Web/serverfarms/services-general-3-7
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-Pool-7/providers/Microsoft.Web/serverfarms/services-general-7
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Web/serverfarms/enotification-planv3-1
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Web/serverfarms/high-traffic-planv3-1
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Web/serverfarms/low-traffic-planv3-1
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Web/serverfarms/reference-data-planv3-1
 
 # Microsoft.Insights/autoscaleSettings
 # Disable and delete only after Azure confirms the listed target plan is gone.
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp010/providers/Microsoft.Insights/autoscalesettings/reference-data-planv3-2-AutoScaleSetting
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/microsoft.insights/autoscalesettings/enotification-planv3-1-AutoScaleSetting
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/microsoft.insights/autoscalesettings/high-traffic-planv3-1-AutoScaleSetting
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/microsoft.insights/autoscalesettings/low-traffic-planv3-1-AutoScaleSetting
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/microsoft.insights/autoscalesettings/reference-data-planv3-1-AutoScaleSetting
