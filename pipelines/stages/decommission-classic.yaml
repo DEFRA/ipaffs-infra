@@ -13,35 +13,32 @@ parameters:
   - name: dependsOn
     type: string
 
-  - name: deleteGate
-    type: string
-    default: ''
+  - name: planRunId
+    type: number
 
 stages:
-  - stage: Plan${{ parameters.environmentName }}
-    displayName: Plan ${{ parameters.environmentName }} Classic decommissioning
-    dependsOn: ${{ parameters.dependsOn }}
-    isSkippable: false
-    variables:
-      - template: /pipelines/vars/${{ lower(parameters.environmentName) }}.yaml
-    jobs:
-      - job: Plan
-        displayName: Check listed resources in Azure
-        steps:
-          - template: /pipelines/steps/decommission-classic.yaml
-            parameters:
-              environmentName: ${{ parameters.environmentName }}
-              subscriptionId: ${{ parameters.subscriptionId }}
-              serviceConnection: ${{ variables.classicServiceConnection }}
-              action: plan
+  - ${{ if eq(parameters.action, 'plan') }}:
+    - stage: Plan${{ parameters.environmentName }}
+      displayName: Plan ${{ parameters.environmentName }} Classic decommissioning
+      dependsOn: ${{ parameters.dependsOn }}
+      isSkippable: false
+      variables:
+        - template: /pipelines/vars/${{ lower(parameters.environmentName) }}.yaml
+      jobs:
+        - job: Plan
+          displayName: Check listed resources in Azure
+          steps:
+            - template: /pipelines/steps/decommission-classic.yaml
+              parameters:
+                environmentName: ${{ parameters.environmentName }}
+                subscriptionId: ${{ parameters.subscriptionId }}
+                serviceConnection: ${{ variables.classicServiceConnection }}
+                action: plan
 
   - ${{ if eq(parameters.action, 'delete') }}:
     - stage: Delete${{ parameters.environmentName }}
       displayName: Delete ${{ parameters.environmentName }} Classic resources
-      dependsOn:
-        - Plan${{ parameters.environmentName }}
-        - ${{ if ne(parameters.deleteGate, '') }}:
-          - ${{ parameters.deleteGate }}
+      dependsOn: ${{ parameters.dependsOn }}
       condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
       isSkippable: false
       lockBehavior: sequential
@@ -59,8 +56,10 @@ stages:
               inputs:
                 notifyUsers: $(Build.RequestedForEmail)
                 allowApproversToApproveTheirOwnRuns: false
-                instructions: >-
-                  Review the Plan ${{ parameters.environmentName }} stage in this run.
+                instructions: |
+                  Review the Plan ${{ parameters.environmentName }} stage in run ${{ parameters.planRunId }}.
+                  $(System.CollectionUri)$(System.TeamProjectId)/_build/results?buildId=${{ parameters.planRunId }}
+
                   Check the listed resource IDs, app VNet disconnects, plan membership
                   and autoscale changes against the reviewed Classic inventory. Approval
                   allows the listed disconnects, autoscale disables and resource deletions in
@@ -78,8 +77,16 @@ stages:
               deploy:
                 steps:
                   - download: none
-                  - download: current
-                    artifact: classic-decommission-plan-${{ parameters.environmentName }}
+                  - task: DownloadPipelineArtifact@2
+                    displayName: Download the ${{ parameters.environmentName }} plan from run ${{ parameters.planRunId }}
+                    inputs:
+                      buildType: specific
+                      project: $(System.TeamProjectId)
+                      definition: $(System.DefinitionId)
+                      buildVersionToDownload: specific
+                      pipelineId: '${{ parameters.planRunId }}'
+                      artifactName: classic-decommission-plan-${{ parameters.environmentName }}
+                      targetPath: $(Pipeline.Workspace)/$(Build.BuildId)/classic-decommission-plan-${{ parameters.environmentName }}
                   - template: /pipelines/steps/decommission-classic.yaml
                     parameters:
                       environmentName: ${{ parameters.environmentName }}

@@ -229,13 +229,17 @@ this.
 implements [IMTA-21888](https://eaflood.atlassian.net/browse/IMTA-21888) using
 the agent pool, Classic service connections and manual validation pattern from
 [`disable-app-services`](https://dev.azure.com/defragovuk/DEFRA-EUTD-IPAFFS/_build?definitionId=12566).
-The SND and TST plans run in parallel in both modes. The `delete` action requires
-`main`. SND deletion follows its plan. TST deletion waits for its own plan and
-for approval after SND deletion. Review the SND deletion result before approving
-progression to TST deletion. Each delete stage checks its Azure DevOps environment
-and pauses for manual validation of its own plan before the deployment job starts.
-Someone other than the requester with permission to queue the pipeline must approve
-each manual validation. Rejection, timeout or failure blocks dependent stages.
+Run `plan` on `main` to generate the SND and TST plans in parallel. For `delete`,
+queue from `main` and enter the successful plan run's numeric ID (`buildId` in its
+URL) as `planRunId`. The pipeline checks that the selected run published both
+plan artifacts, then runs **Delete SND → Approve TST → Delete TST**. Keep the plan
+run's artifacts available until both deletions finish.
+
+Review the SND deletion result before approving progression to TST deletion.
+Each delete stage checks its Azure DevOps environment and pauses for review of its
+plan from the selected run before the deployment job starts. Someone other than the
+requester with permission to queue the pipeline must approve each manual validation.
+Rejection, timeout or failure blocks dependent stages.
 
 The [Decommission Classic definition](https://dev.azure.com/defragovuk/DEFRA-EUTD-IPAFFS/_build?definitionId=12638)
 is in the Azure DevOps `Infrastructure` folder. It uses the Classic service
@@ -257,9 +261,9 @@ owner questions. For resources managed by `30-classic.bicep`, first retire the
 declarations and references that would recreate them or break later deployments.
 
 Review the plan log for each resource's ID, type and current existence, plus the
-totals. The deployment compares the list with the plan artifact from the same
-run and checks Azure again before deleting. If an ID marked absent in the plan
-reappears, queue a fresh plan for review. A rerun skips resources already gone.
+totals. The deployment compares the current list with the selected plan artifact
+and checks Azure again before deleting. If the list changed or an ID marked absent
+in the plan reappears, queue a fresh plan for review. A rerun skips resources already gone.
 After a failed delete, check the logged resource ID and Azure error before
 retrying. An autoscale setting whose target plan is outside the list must
 already be disabled and its target absent. To retire an enabled setting with

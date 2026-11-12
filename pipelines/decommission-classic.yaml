@@ -16,6 +16,11 @@ parameters:
       - plan
       - delete
 
+  - name: planRunId
+    displayName: Plan run ID (required for delete)
+    type: number
+    default: 0
+
 stages:
   - template: stages/tag-build.yaml
     parameters:
@@ -23,12 +28,65 @@ stages:
         - ServiceGroup-decommission-classic
         - Action-${{ parameters.action }}
 
+  - ${{ if eq(parameters.action, 'delete') }}:
+    - stage: ValidatePlanRun
+      displayName: Validate selected plan run
+      dependsOn: TagBuild
+      isSkippable: false
+      jobs:
+        - job: ValidatePlanRun
+          steps:
+            - checkout: none
+            - bash: |
+                set -euo pipefail
+
+                if [[ ! "$PLAN_RUN_ID" =~ ^[1-9][0-9]*$ ]]; then
+                  echo 'Enter the run ID of a successful plan run on main.' >&2
+                  exit 1
+                fi
+
+                build_url="${COLLECTION_URI}${PROJECT_ID}/_apis/build/builds/${PLAN_RUN_ID}"
+                build=$(curl --fail --silent --show-error --retry 2 --max-time 30 \
+                  -H "Authorization: Bearer $SYSTEM_ACCESSTOKEN" "${build_url}?api-version=7.1")
+                if ! jq -e --arg definition "$DEFINITION_ID" --arg repository "$REPOSITORY_ID" '
+                  (.definition.id | tostring) == $definition and
+                  .repository.id == $repository and .sourceBranch == "refs/heads/main" and
+                  .status == "completed" and .result == "succeeded" and
+                  (.templateParameters.action // "plan") == "plan" and
+                  (.tags // [] | index("Action-plan") != null)
+                ' <<< "$build" >/dev/null; then
+                  echo "Run $PLAN_RUN_ID must be a successful plan run on main from this pipeline." >&2
+                  exit 1
+                fi
+
+                artifacts=$(curl --fail --silent --show-error --retry 2 --max-time 30 \
+                  -H "Authorization: Bearer $SYSTEM_ACCESSTOKEN" "${build_url}/artifacts?api-version=7.1")
+                if ! jq -e '[.value[].name] |
+                  index("classic-decommission-plan-SND") != null and
+                  index("classic-decommission-plan-TST") != null' <<< "$artifacts" >/dev/null; then
+                  echo "Run $PLAN_RUN_ID must have both SND and TST plan artifacts." >&2
+                  exit 1
+                fi
+                echo "Using SND and TST plans from run $PLAN_RUN_ID."
+              displayName: Check plan run and artifacts
+              env:
+                PLAN_RUN_ID: ${{ parameters.planRunId }}
+                COLLECTION_URI: $(System.CollectionUri)
+                PROJECT_ID: $(System.TeamProjectId)
+                DEFINITION_ID: $(System.DefinitionId)
+                REPOSITORY_ID: $(Build.Repository.ID)
+                SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+
   - template: stages/decommission-classic.yaml
     parameters:
       environmentName: SND
       subscriptionId: e716414f-1f8e-48f1-8f56-65f35cfdafb6 # AZR-SND
       action: ${{ parameters.action }}
-      dependsOn: TagBuild
+      planRunId: ${{ parameters.planRunId }}
+      ${{ if eq(parameters.action, 'delete') }}:
+        dependsOn: ValidatePlanRun
+      ${{ else }}:
+        dependsOn: TagBuild
 
   - ${{ if eq(parameters.action, 'delete') }}:
     - stage: GateToTST
@@ -48,8 +106,7 @@ stages:
                 allowApproversToApproveTheirOwnRuns: false
                 instructions: >-
                   Review the completed SND deletion in this run. Approve to
-                  proceed to TST deletion review once the TST plan succeeds,
-                  or reject to stop before TST deletion.
+                  proceed to TST deletion review, or reject to stop before TST deletion.
                 onTimeout: reject
 
   - template: stages/decommission-classic.yaml
@@ -57,5 +114,8 @@ stages:
       environmentName: TST
       subscriptionId: 00f1225e-37c2-4c7b-bc71-634164b667c6 # AZR-TST
       action: ${{ parameters.action }}
-      dependsOn: TagBuild
-      deleteGate: GateToTST
+      planRunId: ${{ parameters.planRunId }}
+      ${{ if eq(parameters.action, 'delete') }}:
+        dependsOn: GateToTST
+      ${{ else }}:
+        dependsOn: TagBuild
