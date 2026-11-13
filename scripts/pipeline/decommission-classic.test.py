@@ -23,6 +23,12 @@ GROUP = f"/subscriptions/{SUBSCRIPTION}/resourceGroups/example"
 SERVER = f"{GROUP}/providers/Microsoft.Sql/servers/legacy"
 DATABASE = f"{SERVER}/databases/example-green"
 EXTENSION = f"{SERVER}/providers/Microsoft.Insights/diagnosticSettings/settings"
+WORKFLOW = f"{GROUP}/providers/Microsoft.Logic/workflows/legacy-workflow"
+CONNECTION = f"{GROUP}/providers/Microsoft.Web/connections/legacy-connection"
+STORAGE = f"{GROUP}/providers/Microsoft.Storage/storageAccounts/legacystorage"
+NAMESPACE = f"{GROUP}/providers/Microsoft.ServiceBus/namespaces/legacy-bus"
+SEARCH = f"{GROUP}/providers/Microsoft.Search/searchServices/legacy-search"
+REDIS = f"{GROUP}/providers/Microsoft.Cache/Redis/legacy-redis"
 APP = f"{GROUP}/providers/Microsoft.Web/sites/legacy-app"
 OTHER_APP = f"{GROUP}/providers/Microsoft.Web/sites/other-app"
 SLOT = f"{APP}/slots/staging"
@@ -34,6 +40,7 @@ AUTOSCALE = f"{GROUP}/providers/Microsoft.Insights/autoscalesettings/legacy-plan
 AUTOSCALE_QUERY = ("{id:id,enabled:properties.enabled,target:properties.targetResourceUri,"
                    "profiles:properties.profiles}")
 ABSENT = "ERROR: (ResourceNotFound) The resource could not be found\n"
+NAMESPACE_ABSENT = "ERROR: (NamespaceNotFound) Namespace 'legacy-bus' not found\n"
 UNCODED_NOT_FOUND = "ERROR: Operation returned an invalid status 'Not Found'\n"
 THROTTLED = ("ERROR: Delete: INFO: Operation returned an invalid status 'Too Many Requests'\n"
              'Content: {"Code":"429","Message":"Cannot acquire exclusive lock to create or update '
@@ -691,7 +698,8 @@ class DecommissionTests(unittest.TestCase):
     def test_unexpected_lookup_errors_block_deletion(self):
         self.plan_successfully()
         for code, error in ((1, "ERROR: (AuthorizationFailed) Access denied"),
-                            (3, "ERROR: (ProviderNotFound) Provider unavailable")):
+                            (3, "ERROR: (ProviderNotFound) Provider unavailable"),
+                            (3, NAMESPACE_ABSENT.strip())):
             with self.subTest(error=error):
                 self.check_failures[SERVER] = code, error
                 status, _, errors = self.execute("delete")
@@ -756,21 +764,68 @@ class DecommissionTests(unittest.TestCase):
         self.assertIn("2 listed, 1 deleted, 1 already deleted", output)
         self.assertEqual([DATABASE, SERVER], self.deletes)
 
-    def test_delete_rejection_stops_before_next_resource(self):
+    def test_delete_reports_multiple_failures_and_continues_with_independent_resources(self):
+        self.resources.write_text(f"{DATABASE}\n{SERVER}\n{SEARCH}\n{REDIS}\n", encoding="utf-8")
+        self.current.update({SEARCH, REDIS})
         self.plan_successfully()
+        self.stuck.update({DATABASE, SEARCH})
         self.delete_failures[DATABASE] = 1, "ERROR: (ScopeLocked) Azure rejected the deletion"
-        status, _, errors = self.execute("delete")
-        self.assertEqual(1, status)
-        self.assertIn(f"Delete {DATABASE}: ERROR: (ScopeLocked)", errors)
-        self.assertEqual([DATABASE], self.deletes)
+        self.delete_failures[SEARCH] = 1, "ERROR: (AuthorizationFailed) Azure rejected the deletion"
 
-    def test_delete_success_must_be_verified_before_next_resource(self):
+        status, output, errors = self.execute("delete")
+        self.assertEqual(1, status)
+        self.assertIn("4 listed, 1 deleted, 0 already deleted, 2 failed, 1 blocked", output)
+        self.assertIn(f"Failed {DATABASE}: Delete {DATABASE}: ERROR: (ScopeLocked)", errors)
+        self.assertIn(f"Failed {SEARCH}: Delete {SEARCH}: ERROR: (AuthorizationFailed)", errors)
+        self.assertIn(f"Blocked {SERVER}: earlier child deletion incomplete: {DATABASE}", errors)
+        self.assertEqual([DATABASE, SEARCH, REDIS], self.deletes)
+        self.assertEqual({DATABASE, SERVER, SEARCH}, self.current)
+
+    def test_unverified_delete_blocks_its_parent_but_allows_independent_deletes(self):
+        self.resources.write_text(f"{DATABASE}\n{SERVER}\n{SEARCH}\n", encoding="utf-8")
+        self.current.add(SEARCH)
         self.plan_successfully()
         self.stuck.add(DATABASE)
         status, _, errors = self.execute("delete")
         self.assertEqual(1, status)
         self.assertIn(f"Delete {DATABASE}: resource still exists after deletion", errors)
-        self.assertEqual([DATABASE], self.deletes)
+        self.assertIn(f"Blocked {SERVER}: earlier child deletion incomplete: {DATABASE}", errors)
+        self.assertEqual([DATABASE, SEARCH], self.deletes)
+
+    def test_failed_workflow_blocks_backing_resources_but_allows_independent_deletes(self):
+        self.resources.write_text(f"{WORKFLOW}\n{CONNECTION}\n{NAMESPACE}\n{SEARCH}\n{STORAGE}\n", encoding="utf-8")
+        self.current = {WORKFLOW, CONNECTION, NAMESPACE, SEARCH, STORAGE}
+        self.plan_successfully()
+        self.stuck.add(WORKFLOW)
+        self.delete_failures[WORKFLOW] = 1, "ERROR: (ScopeLocked) Azure rejected the deletion"
+
+        status, output, errors = self.execute("delete")
+        self.assertEqual(1, status)
+        self.assertIn("5 listed, 1 deleted, 0 already deleted, 1 failed, 3 blocked", output)
+        for dependent in (CONNECTION, NAMESPACE, STORAGE):
+            self.assertIn(f"Blocked {dependent}: earlier Logic workflow deletion incomplete: {WORKFLOW}", errors)
+        self.assertEqual([WORKFLOW, SEARCH], self.deletes)
+
+    def test_namespace_not_found_verifies_service_bus_delete_and_allows_rerun(self):
+        self.resources.write_text(f"{NAMESPACE}\n{SEARCH}\n", encoding="utf-8")
+        self.current = {NAMESPACE, SEARCH}
+        self.plan_successfully()
+
+        def after_delete(resource_id):
+            if resource_id == NAMESPACE:
+                self.check_failures[NAMESPACE] = 3, NAMESPACE_ABSENT
+
+        self.after_delete = after_delete
+        status, output, errors = self.execute("delete")
+        self.assertEqual(0, status, errors)
+        self.assertIn(f"Verified deleted {NAMESPACE}", output)
+        self.assertEqual([NAMESPACE, SEARCH], self.deletes)
+
+        self.deletes.clear()
+        status, output, errors = self.execute("delete")
+        self.assertEqual(0, status, errors)
+        self.assertIn("2 listed, 0 deleted, 2 already deleted, 0 failed, 0 blocked", output)
+        self.assertEqual([], self.deletes)
 
     def test_throttled_delete_waits_and_retries_until_azure_accepts_it(self):
         self.plan_successfully()
