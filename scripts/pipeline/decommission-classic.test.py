@@ -241,6 +241,21 @@ class DecommissionTests(unittest.TestCase):
         self.assertEqual([], self.deletes)
         self.assertIn("2 listed, 0 deleted, 2 already deleted", output)
 
+    def test_resource_name_with_spaces_is_passed_unchanged(self):
+        alert = f"{GROUP}/providers/Microsoft.Insights/metricAlerts/Classic high CPU (SND)"
+        self.current = {alert}
+        self.resources.write_text(f"{alert}\n", encoding="utf-8")
+
+        output = self.plan_successfully()
+        self.assertIn(f"exists\tMicrosoft.Insights/metricAlerts\t{alert}", output)
+        self.assertEqual([{"id": alert, "exists": True}],
+                         json.loads(self.plan.read_text(encoding="utf-8"))["resources"])
+
+        status, _, errors = self.execute("delete")
+        self.assertEqual(0, status, errors)
+        self.assertEqual([alert, alert, alert], self.reads)
+        self.assertEqual([alert], self.deletes)
+
     def test_empty_allowlist_is_valid(self):
         self.resources.write_text("# Inventory pending\n", encoding="utf-8")
         self.assertIn("0 listed, 0 exist", self.plan_successfully())

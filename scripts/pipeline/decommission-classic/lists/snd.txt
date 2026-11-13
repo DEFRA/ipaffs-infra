@@ -378,6 +378,597 @@
 # Microsoft.ServiceBus/namespaces
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001/providers/Microsoft.ServiceBus/namespaces/SNDIMPINFSBS002-dev
 
+# Classic SND Monitoring resources marked Delete in the inventory.
+# Remove alert rules before action groups and tests, then remove views, components and workspaces.
+
+# Metric alert rules
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Dead Letter Queue Health Certificates
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Dead Letter Queue Health Certificates insights-SNDIMPINFRGP001
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Dead Letter Queue Notifications
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Dead Letter Queue Notifications insights-SNDIMPINFRGP001
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001/providers/microsoft.insights/metricalerts/Trade Platform Alerts Name
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-imports-static-vnet/providers/Microsoft.Insights/metricalerts/Dead Letter Queue GVMS insights-SNDIMPINFRGP001-imports-static-vnet
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-imports-static-vnet/providers/Microsoft.Insights/metricalerts/Dead Letter Queue Health Certificates insights-SNDIMPINFRGP001-imports-static-vnet
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-imports-static-vnet/providers/Microsoft.Insights/metricalerts/Dead Letter Queue Notifications insights-SNDIMPINFRGP001-imports-static-vnet
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-imports-static-vnet/providers/Microsoft.Insights/metricalerts/Dead Letter Queue Notify insights-SNDIMPINFRGP001-imports-static-vnet
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Dead Letter Queue
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Dead Letter Queue Traces insights-SNDIMPINFRGP009-blue
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Dead Letter Queue Traces insights-SNDIMPINFRGP009-green
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Dependencies - APPROVEDESTABLISHMENT-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Dependencies - ARCHIVE-NOTIFICATIONS-MICROSERVICE-SND
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Dependencies - AUTO-CLEARANCE-MICROSERVICE-SND
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Dependencies - BIP-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Dependencies - BORDERNOTIFICATION-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Dependencies - BORDERNOTIFICATION-REFDATA-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Dependencies - BULK-UPLOAD-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Dependencies - CERTIFICATE-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Dependencies - CHECKS-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Dependencies - CLONING-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Dependencies - COMMODITYCODE-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Dependencies - COUNTRIES-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Dependencies - CUSTOMER-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Dependencies - DECISION-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Dependencies - DMP-INTEGRATION-MICROSERVICE-SND
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Dependencies - ECONOMICOPERATOR-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Dependencies - ENOTIFICATION-EVENT-LISTENER-MICROSERVICE-SND
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Dependencies - ENOTIFICATION-EVENT-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Dependencies - ENOTIFICATION-PROCESSING-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Dependencies - ENOTIFICATION-SUBMISSION-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Dependencies - FIELDCONFIG-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Dependencies - FILE-COMPRESSION-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Dependencies - FILE-UPLOAD-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Dependencies - GVMS-MICROSERVICE-SND
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Dependencies - IMPORTS-MS-FRONTENDBCPADMIN
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Dependencies - IMPORTS-MS-FRONTENDBORDERNOTIFICATION
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Dependencies - IMPORTS-MS-FRONTENDCHECKS
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Dependencies - IMPORTS-MS-FRONTENDCONTROL
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Dependencies - IMPORTS-MS-FRONTENDNOTIFICATION
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Dependencies - IMPORTS-MS-FRONTENDUPLOAD
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Dependencies - IMPORTS-PROXY
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Dependencies - IN-SERVICE-MESSAGING-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Dependencies - LABORATORIES-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Dependencies - LEGACY-NOTIFICATIONS-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Dependencies - NOTIFICATION-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Dependencies - NOTIFY-MICROSERVICE-SND
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Dependencies - PERMISSIONS
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Dependencies - REFERENCEDATALOADER-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Dependencies - RISK-ASSESSMENT-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Dependencies - RISK-INTERFACE-MICROSERVICE-SND
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Dependencies - RISK-LOCKING-MICROSERVICE-SND
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Dependencies - SOAPREQUEST-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Dependencies - SOAPSEARCH-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Exceptions - APPROVEDESTABLISHMENT-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Exceptions - ARCHIVE-NOTIFICATIONS-MICROSERVICE-SND
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Exceptions - AUTO-CLEARANCE-MICROSERVICE-SND
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Exceptions - BIP-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Exceptions - BORDERNOTIFICATION-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Exceptions - BORDERNOTIFICATION-REFDATA-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Exceptions - BULK-UPLOAD-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Exceptions - CERTIFICATE-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Exceptions - CHECKS-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Exceptions - CLONING-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Exceptions - COMMODITYCODE-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Exceptions - COUNTRIES-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Exceptions - CUSTOMER-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Exceptions - DECISION-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Exceptions - DMP-INTEGRATION-MICROSERVICE-SND
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Exceptions - ECONOMICOPERATOR-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Exceptions - ENOTIFICATION-EVENT-LISTENER-MICROSERVICE-SND
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Exceptions - ENOTIFICATION-EVENT-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Exceptions - ENOTIFICATION-PROCESSING-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Exceptions - ENOTIFICATION-SUBMISSION-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Exceptions - FIELDCONFIG-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Exceptions - FILE-COMPRESSION-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Exceptions - FILE-UPLOAD-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Exceptions - GVMS-MICROSERVICE-SND
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Exceptions - IMPORTS-MS-FRONTENDBCPADMIN
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Exceptions - IMPORTS-MS-FRONTENDBORDERNOTIFICATION
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Exceptions - IMPORTS-MS-FRONTENDCHECKS
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Exceptions - IMPORTS-MS-FRONTENDCONTROL
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Exceptions - IMPORTS-MS-FRONTENDNOTIFICATION
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Exceptions - IMPORTS-MS-FRONTENDUPLOAD
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Exceptions - IMPORTS-PROXY
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Exceptions - IN-SERVICE-MESSAGING-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Exceptions - LABORATORIES-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Exceptions - LEGACY-NOTIFICATIONS-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Exceptions - NOTIFICATION-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Exceptions - NOTIFY-MICROSERVICE-SND
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Exceptions - PERMISSIONS
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Exceptions - REFERENCEDATALOADER-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Exceptions - RISK-ASSESSMENT-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Exceptions - RISK-INTERFACE-MICROSERVICE-SND
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Exceptions - RISK-LOCKING-MICROSERVICE-SND
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Exceptions - SOAPREQUEST-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Exceptions - SOAPSEARCH-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/ipaffs-snd--dependencies-customer-microservice
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/ipaffs-snd-exceptions-customer-microservice
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/ipaffs-snd-requests-customer-microservice
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/ipaffs-snd-server-response-time-customer-microservice
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/ipaffs-snd-ssl-certificate-expiry-warming-GREEN
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Requests - APPROVEDESTABLISHMENT-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Requests - ARCHIVE-NOTIFICATIONS-MICROSERVICE-SND
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Requests - AUTO-CLEARANCE-MICROSERVICE-SND
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Requests - BIP-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Requests - BORDERNOTIFICATION-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Requests - BORDERNOTIFICATION-REFDATA-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Requests - BULK-UPLOAD-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Requests - CERTIFICATE-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Requests - CHECKS-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Requests - CLONING-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Requests - COMMODITYCODE-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Requests - COUNTRIES-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Requests - CUSTOMER-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Requests - DECISION-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Requests - DMP-INTEGRATION-MICROSERVICE-SND
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Requests - ECONOMICOPERATOR-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Requests - ENOTIFICATION-EVENT-LISTENER-MICROSERVICE-SND
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Requests - ENOTIFICATION-EVENT-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Requests - ENOTIFICATION-PROCESSING-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Requests - ENOTIFICATION-SUBMISSION-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Requests - FIELDCONFIG-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Requests - FILE-COMPRESSION-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Requests - FILE-UPLOAD-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Requests - GVMS-MICROSERVICE-SND
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Requests - IMPORTS-MS-FRONTENDBCPADMIN
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Requests - IMPORTS-MS-FRONTENDBORDERNOTIFICATION
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Requests - IMPORTS-MS-FRONTENDCHECKS
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Requests - IMPORTS-MS-FRONTENDCONTROL
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Requests - IMPORTS-MS-FRONTENDNOTIFICATION
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Requests - IMPORTS-MS-FRONTENDUPLOAD
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Requests - IMPORTS-PROXY
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Requests - IN-SERVICE-MESSAGING-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Requests - LABORATORIES-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Requests - LEGACY-NOTIFICATIONS-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Requests - NOTIFICATION-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Requests - NOTIFY-MICROSERVICE-SND
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Requests - PERMISSIONS
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Requests - REFERENCEDATALOADER-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Requests - RISK-ASSESSMENT-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Requests - RISK-INTERFACE-MICROSERVICE-SND
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Requests - RISK-LOCKING-MICROSERVICE-SND
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Requests - SOAPREQUEST-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Requests - SOAPSEARCH-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Server Response Time - APPROVEDESTABLISHMENT-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Server Response Time - ARCHIVE-NOTIFICATIONS-MICROSERVICE-SND
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Server Response Time - AUTO-CLEARANCE-MICROSERVICE-SND
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Server Response Time - BIP-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Server Response Time - BORDERNOTIFICATION-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Server Response Time - BORDERNOTIFICATION-REFDATA-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Server Response Time - BULK-UPLOAD-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Server Response Time - CERTIFICATE-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Server Response Time - CHECKS-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Server Response Time - CLONING-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Server Response Time - COMMODITYCODE-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Server Response Time - COUNTRIES-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Server Response Time - CUSTOMER-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Server Response Time - DECISION-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Server Response Time - DMP-INTEGRATION-MICROSERVICE-SND
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Server Response Time - ECONOMICOPERATOR-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Server Response Time - ENOTIFICATION-EVENT-LISTENER-MICROSERVICE-SND
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Server Response Time - ENOTIFICATION-EVENT-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Server Response Time - ENOTIFICATION-PROCESSING-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Server Response Time - ENOTIFICATION-SUBMISSION-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Server Response Time - FIELDCONFIG-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Server Response Time - FILE-COMPRESSION-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Server Response Time - FILE-UPLOAD-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Server Response Time - GVMS-MICROSERVICE-SND
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Server Response Time - IMPORTS-MS-FRONTENDBCPADMIN
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Server Response Time - IMPORTS-MS-FRONTENDBORDERNOTIFICATION
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Server Response Time - IMPORTS-MS-FRONTENDCHECKS
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Server Response Time - IMPORTS-MS-FRONTENDCONTROL
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Server Response Time - IMPORTS-MS-FRONTENDNOTIFICATION
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Server Response Time - IMPORTS-MS-FRONTENDUPLOAD
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Server Response Time - IMPORTS-PROXY
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Server Response Time - IN-SERVICE-MESSAGING-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Server Response Time - LABORATORIES-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Server Response Time - LEGACY-NOTIFICATIONS-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Server Response Time - NOTIFICATION-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Server Response Time - NOTIFY-MICROSERVICE-SND
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Server Response Time - PERMISSIONS
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Server Response Time - REFERENCEDATALOADER-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Server Response Time - RISK-ASSESSMENT-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Server Response Time - RISK-INTERFACE-MICROSERVICE-SND
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Server Response Time - RISK-LOCKING-MICROSERVICE-SND
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Server Response Time - SOAPREQUEST-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/Server Response Time - SOAPSEARCH-MICROSERVICE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/metricalerts/test-delete-me-insights-sndimpinfrgp009-green
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/approvedestablishment-microservice-blue-snd_northeurope_HealthCheckStatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/approvedestablishment-microservice-blue-snd_northeurope_ServerError
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/approvedestablishment-microservice-green-snd_northeurope_HealthCheckStatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/approvedestablishment-microservice-green-snd_northeurope_ServerError
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/archive-notifications-microservice-snd_northeurope_HealthCheckStatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/archive-notifications-microservice-snd_northeurope_ServerError
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/auto-clearance-microservice-snd_northeurope_HealthCheckStatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/auto-clearance-microservice-snd_northeurope_ServerError
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/bip-microservice-blue-snd_northeurope_HealthCheckStatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/bip-microservice-blue-snd_northeurope_ServerError
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/bip-microservice-green-snd_northeurope_HealthCheckStatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/bip-microservice-green-snd_northeurope_ServerError
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/bordernotification-microservice-blue-snd_northeurope_HealthCheckStatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/bordernotification-microservice-blue-snd_northeurope_ServerError
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/bordernotification-microservice-green-snd_northeurope_HealthCheckStatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/bordernotification-microservice-green-snd_northeurope_ServerError
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/bordernotification-refdata-microservice-blue-snd_northeurope_HealthCheckStatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/bordernotification-refdata-microservice-blue-snd_northeurope_ServerError
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/bordernotification-refdata-microservice-green-snd_northeurope_HealthCheckStatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/bordernotification-refdata-microservice-green-snd_northeurope_ServerError
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/bulk-upload-microservice-snd_northeurope_HealthCheckStatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/bulk-upload-microservice-snd_northeurope_ServerError
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/certificate-microservice-blue-snd_northeurope_HealthCheckStatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/certificate-microservice-blue-snd_northeurope_ServerError
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/certificate-microservice-green-snd_northeurope_HealthCheckStatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/certificate-microservice-green-snd_northeurope_ServerError
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/checks-microservice-blue-snd_northeurope_HealthCheckStatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/checks-microservice-blue-snd_northeurope_ServerError
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/checks-microservice-green-snd_northeurope_HealthCheckStatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/checks-microservice-green-snd_northeurope_ServerError
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/cloning-microservice-blue-snd_northeurope_HealthCheckStatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/cloning-microservice-blue-snd_northeurope_ServerError
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/cloning-microservice-green-snd_northeurope_HealthCheckStatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/cloning-microservice-green-snd_northeurope_ServerError
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/commoditycode-microservice-blue-snd_northeurope_HealthCheckStatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/commoditycode-microservice-blue-snd_northeurope_ServerError
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/commoditycode-microservice-green-snd_northeurope_HealthCheckStatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/commoditycode-microservice-green-snd_northeurope_ServerError
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/countries-microservice-blue-snd_northeurope_HealthCheckStatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/countries-microservice-blue-snd_northeurope_ServerError
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/countries-microservice-green-snd_northeurope_HealthCheckStatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/countries-microservice-green-snd_northeurope_ServerError
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/customer-microservice-blue-snd_northeurope_HealthCheckStatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/customer-microservice-blue-snd_northeurope_ServerError
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/customer-microservice-green-snd_northeurope_HealthCheckStatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/customer-microservice-green-snd_northeurope_ServerError
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/decision-microservice-blue-snd_northeurope_HealthCheckStatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/decision-microservice-blue-snd_northeurope_ServerError
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/decision-microservice-green-snd_northeurope_HealthCheckStatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/decision-microservice-green-snd_northeurope_ServerError
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/dmp-integration-microservice-snd_northeurope_HealthCheckStatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/dmp-integration-microservice-snd_northeurope_ServerError
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/economicoperator-microservice-blue-snd_northeurope_HealthCheckStatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/economicoperator-microservice-blue-snd_northeurope_ServerError
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/economicoperator-microservice-green-snd_northeurope_HealthCheckStatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/economicoperator-microservice-green-snd_northeurope_ServerError
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/enotification-event-internal-microservice-blue-snd_northeurope_HealthCheckStatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/enotification-event-internal-microservice-blue-snd_northeurope_ServerError
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/enotification-event-listener-microservice-snd_northeurope_HealthCheckStatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/enotification-event-listener-microservice-snd_northeurope_ServerError
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/enotification-event-microservice-blue-snd_northeurope_HealthCheckStatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/enotification-event-microservice-blue-snd_northeurope_ServerError
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/enotification-event-microservice-green-snd_northeurope_HealthCheckStatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/enotification-event-microservice-green-snd_northeurope_ServerError
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/enotification-processing-microservice-snd_northeurope_HealthCheckStatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/enotification-processing-microservice-snd_northeurope_ServerError
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/enotification-submission-microservice-blue-snd_northeurope_HealthCheckStatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/enotification-submission-microservice-blue-snd_northeurope_ServerError
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/enotification-submission-microservice-green-snd_northeurope_HealthCheckStatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/enotification-submission-microservice-green-snd_northeurope_ServerError
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/fieldconfig-microservice-blue-snd_northeurope_HealthCheckStatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/fieldconfig-microservice-blue-snd_northeurope_ServerError
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/fieldconfig-microservice-green-snd_northeurope_HealthCheckStatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/fieldconfig-microservice-green-snd_northeurope_ServerError
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/file-compression-microservice-blue-snd_northeurope_HealthCheckStatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/file-compression-microservice-blue-snd_northeurope_ServerError
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/file-compression-microservice-green-snd_northeurope_HealthCheckStatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/file-compression-microservice-green-snd_northeurope_ServerError
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/file-upload-microservice-blue-snd_northeurope_HealthCheckStatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/file-upload-microservice-blue-snd_northeurope_ServerError
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/file-upload-microservice-green-snd_northeurope_HealthCheckStatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/file-upload-microservice-green-snd_northeurope_ServerError
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/frontend-bcpadmin-blue-snd_northeurope_HealthCheckStatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/frontend-bcpadmin-blue-snd_northeurope_ServerError
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/frontend-bcpadmin-green-snd_northeurope_HealthCheckStatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/frontend-bcpadmin-green-snd_northeurope_ServerError
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/frontend-bordernotification-blue-snd_northeurope_HealthCheckStatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/frontend-bordernotification-blue-snd_northeurope_ServerError
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/frontend-bordernotification-green-snd_northeurope_HealthCheckStatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/frontend-bordernotification-green-snd_northeurope_ServerError
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/frontend-checks-blue-snd_northeurope_HealthCheckStatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/frontend-checks-blue-snd_northeurope_ServerError
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/frontend-checks-green-snd_northeurope_HealthCheckStatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/frontend-checks-green-snd_northeurope_ServerError
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/frontend-control-blue-snd_northeurope_HealthCheckStatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/frontend-control-blue-snd_northeurope_ServerError
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/frontend-control-green-snd_northeurope_HealthCheckStatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/frontend-control-green-snd_northeurope_ServerError
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/frontend-decision-blue-snd_northeurope_HealthCheckStatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/frontend-decision-blue-snd_northeurope_ServerError
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/frontend-decision-green-snd_northeurope_HealthCheckStatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/frontend-decision-green-snd_northeurope_ServerError
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/frontend-notification-blue-snd_northeurope_HealthCheckStatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/frontend-notification-blue-snd_northeurope_ServerError
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/frontend-notification-green-snd_northeurope_HealthCheckStatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/frontend-notification-green-snd_northeurope_ServerError
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/frontend-upload-blue-snd_northeurope_HealthCheckStatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/frontend-upload-blue-snd_northeurope_ServerError
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/frontend-upload-green-snd_northeurope_HealthCheckStatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/frontend-upload-green-snd_northeurope_ServerError
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/gvms-microservice-snd_northeurope_HealthCheckStatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/gvms-microservice-snd_northeurope_ServerError
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/imports-proxy-blue-snd_northeurope_HealthCheckStatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/imports-proxy-blue-snd_northeurope_ServerError
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/imports-proxy-green-snd_northeurope_HealthCheckStatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/imports-proxy-green-snd_northeurope_ServerError
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/in-service-messaging-microservice-blue-snd_northeurope_HealthCheckStatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/in-service-messaging-microservice-blue-snd_northeurope_ServerError
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/in-service-messaging-microservice-green-snd_northeurope_HealthCheckStatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/in-service-messaging-microservice-green-snd_northeurope_ServerError
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/laboratories-microservice-blue-snd_northeurope_HealthCheckStatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/laboratories-microservice-blue-snd_northeurope_ServerError
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/laboratories-microservice-green-snd_northeurope_HealthCheckStatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/laboratories-microservice-green-snd_northeurope_ServerError
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/legacy-notifications-microservice-blue-snd_northeurope_HealthCheckStatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/legacy-notifications-microservice-blue-snd_northeurope_ServerError
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/legacy-notifications-microservice-green-snd_northeurope_HealthCheckStatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/legacy-notifications-microservice-green-snd_northeurope_ServerError
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/notification-microservice-blue-snd_northeurope_HealthCheckStatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/notification-microservice-blue-snd_northeurope_ServerError
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/notification-microservice-green-snd_northeurope_HealthCheckStatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/notification-microservice-green-snd_northeurope_ServerError
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/notification-search-migration-microservice-snd_northeurope_HealthCheckStatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/notification-search-migration-microservice-snd_northeurope_ServerError
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/notify-microservice-snd_northeurope_HealthCheckStatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/notify-microservice-snd_northeurope_ServerError
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/permissions-blue-snd_northeurope_HealthCheckStatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/permissions-blue-snd_northeurope_ServerError
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/permissions-green-snd_northeurope_HealthCheckStatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/permissions-green-snd_northeurope_ServerError
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/referencedataloader-microservice-blue-snd_northeurope_HealthCheckStatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/referencedataloader-microservice-blue-snd_northeurope_ServerError
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/referencedataloader-microservice-green-snd_northeurope_HealthCheckStatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/referencedataloader-microservice-green-snd_northeurope_ServerError
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/risk-assessment-microservice-blue-snd_northeurope_HealthCheckStatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/risk-assessment-microservice-blue-snd_northeurope_ServerError
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/risk-assessment-microservice-green-snd_northeurope_HealthCheckStatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/risk-assessment-microservice-green-snd_northeurope_ServerError
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/risk-interface-microservice-snd_northeurope_HealthCheckStatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/risk-interface-microservice-snd_northeurope_ServerError
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/risk-locking-microservice-snd_northeurope_HealthCheckStatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/risk-locking-microservice-snd_northeurope_ServerError
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/soaprequest-microservice-blue-snd_northeurope_HealthCheckStatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/soaprequest-microservice-blue-snd_northeurope_ServerError
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/soaprequest-microservice-green-snd_northeurope_HealthCheckStatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/soaprequest-microservice-green-snd_northeurope_ServerError
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/soapsearch-microservice-blue-snd_northeurope_HealthCheckStatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/soapsearch-microservice-blue-snd_northeurope_ServerError
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/soapsearch-microservice-green-snd_northeurope_HealthCheckStatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/soapsearch-microservice-green-snd_northeurope_ServerError
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/microsoft.insights/metricalerts/Test Alert-ipaff-checks-ms
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/WebApp_northeurope_HealthCheckStatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/WebApp_northeurope_ServerError
+
+# Log search alert rules
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-imports-static-vnet/providers/microsoft.insights/scheduledqueryrules/Address_lookup_failures
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-imports-static-vnet/providers/Microsoft.Insights/scheduledqueryrules/Archive Soft DeleteError Alert insights-SNDIMPINFRGP001-imports-static-vnet
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-imports-static-vnet/providers/Microsoft.Insights/scheduledqueryrules/AutoClearance Error Alerts insights-SNDIMPINFRGP001-imports-static-vnet
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-imports-static-vnet/providers/Microsoft.Insights/scheduledqueryrules/IPAFFS Traces data import alert insights-SNDIMPINFRGP001-imports-static-vnet
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-imports-static-vnet/providers/Microsoft.Insights/scheduledqueryrules/IPAFFS Trade Platform connectivity alert insights-SNDIMPINFRGP001-imports-static-vnet
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-imports-static-vnet/providers/Microsoft.Insights/scheduledqueryrules/IPAFFS Trade Platform dispatch alert insights-SNDIMPINFRGP001-imports-static-vnet
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-imports-static-vnet/providers/Microsoft.Insights/scheduledqueryrules/IPAFFS Trade Platform mapping alert insights-SNDIMPINFRGP001-imports-static-vnet
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-imports-static-vnet/providers/Microsoft.Insights/scheduledqueryrules/Notify Microservice Error Alerts insights-SNDIMPINFRGP001-imports-static-vnet
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-imports-static-vnet/providers/Microsoft.Insights/scheduledqueryrules/RDL Sync Field Configuration Alert insights-SNDIMPINFRGP001-imports-static-vnet
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-imports-static-vnet/providers/Microsoft.Insights/scheduledqueryrules/RDS Count Error Alert insights-SNDIMPINFRGP001-imports-static-vnet
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-imports-static-vnet/providers/Microsoft.Insights/scheduledqueryrules/RDS Sync Error Alert insights-SNDIMPINFRGP001-imports-static-vnet
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-imports-static-vnet/providers/Microsoft.Insights/scheduledqueryrules/Risk Interface Error Alerts insights-SNDIMPINFRGP001-imports-static-vnet
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-imports-static-vnet/providers/Microsoft.Insights/scheduledqueryrules/Risk Locking Microservice Error Alerts insights-SNDIMPINFRGP001-imports-static-vnet
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/scheduledqueryrules/Archive Soft DeleteError Alert insights-SNDIMPINFRGP009-blue
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/scheduledqueryrules/Archive Soft DeleteError Alert insights-SNDIMPINFRGP009-green
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/scheduledqueryrules/IPAFFS Traces data import alert
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/scheduledqueryrules/IPAFFS Traces data import alert insights-SNDIMPINFRGP009-blue
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/scheduledqueryrules/IPAFFS Traces data import alert insights-SNDIMPINFRGP009-green
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/scheduledqueryrules/IPAFFS Traces dispatch alert insights-SNDIMPINFRGP009-blue
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/scheduledqueryrules/IPAFFS Traces dispatch alert insights-SNDIMPINFRGP009-green
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/scheduledqueryrules/IPAFFS Trade Platform connectivity alert insights-SNDIMPINFRGP009-blue
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/scheduledqueryrules/IPAFFS Trade Platform connectivity alert insights-SNDIMPINFRGP009-green
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/scheduledqueryrules/IPAFFS Trade Platform dispatch alert insights-SNDIMPINFRGP009-blue
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/scheduledqueryrules/IPAFFS Trade Platform dispatch alert insights-SNDIMPINFRGP009-green
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/scheduledqueryrules/IPAFFS Trade Platform mapping alert insights-SNDIMPINFRGP009-blue
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/scheduledqueryrules/IPAFFS Trade Platform mapping alert insights-SNDIMPINFRGP009-green
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-approvedestablishment-microservice-availability
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-approvedestablishment-microservice-availability-BLUE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-approvedestablishment-microservice-availability-green
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-azure-search-503-BLUE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-azure-search-503-GREEN
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-azure-search-average-response-time
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-azure-search-average-response-time-BLUE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-azure-search-average-response-time-green
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-bip-microservice-availability
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-bip-microservice-availability-BLUE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-bip-microservice-availability-green
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-bordernotification-microservice-availability
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-bordernotification-microservice-availability-BLUE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-bordernotification-microservice-availability-green
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-bordernotification-refdata-microservice-availability
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-bordernotification-refdata-microservice-availability-BLUE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-bordernotification-refdata-microservice-availability-green
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-certificate-microservice-availability
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-certificate-microservice-availability-BLUE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-certificate-microservice-availability-green
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-checks-microservice-availability
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-checks-microservice-availability-BLUE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-checks-microservice-availability-green
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-commoditycode-microservice-availability
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-commoditycode-microservice-availability-BLUE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-commoditycode-microservice-availability-green
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-countries-microservice-availability
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-countries-microservice-availability-BLUE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-countries-microservice-availability-green
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-customer-average-response-time
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-customer-average-response-time-BLUE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-customer-average-response-time-green
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-customer-microservice-availability
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-customer-microservice-availability-BLUE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-customer-microservice-availability-green
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-decision-microservice-availability
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-decision-microservice-availability-BLUE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-decision-microservice-availability-green
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-economicoperator-microservice-availability
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-economicoperator-microservice-availability-BLUE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-economicoperator-microservice-availability-green
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-fieldconfig-microservice-availability
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-fieldconfig-microservice-availability-BLUE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-fieldconfig-microservice-availability-green
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-file-upload-average-response-time
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-file-upload-average-response-time-BLUE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-file-upload-average-response-time-GREEN
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-file-upload-microservice-availability
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-file-upload-microservice-availability-BLUE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-file-upload-microservice-availability-GREEN
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-file-upload-microservicee-availability
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-frontend-bordernotification-availability
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-frontend-bordernotification-availability-BLUE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-frontend-bordernotification-availability-green
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-frontend-checks-availability
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-frontend-checks-availability-BLUE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-frontend-checks-availability-green
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-frontend-control-availability
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-frontend-control-availability-BLUE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-frontend-control-availability-green
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-frontend-decision-availability
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-frontend-decision-availability-BLUE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-frontend-decision-availability-green
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-frontend-notification-availability
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-frontend-notification-availability-BLUE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-frontend-notification-availability-green
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-frontend-upload-availability
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-frontend-upload-availability-BLUE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-frontend-upload-availability-green
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-imports-proxy-availability-green
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-imports-proxy-average-response-time-green
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-invalid-certificate-detected-green
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-laboratories-microservice-availability
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-laboratories-microservice-availability-BLUE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-laboratories-microservice-availability-green
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-notification-microservice-availability
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-notification-microservice-availability-BLUE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-notification-microservice-availability-green
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-permissions-availability
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-permissions-availability-BLUE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-permissions-availability-green
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-referencedataloader-microservice-availability
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-referencedataloader-microservice-availability-BLUE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-referencedataloader-microservice-availability-green
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-soaprequest-microservice-availability
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-soaprequest-microservice-availability-BLUE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-soaprequest-microservice-availability-green
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-soapsearch-microservice-availability
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-soapsearch-microservice-availability-BLUE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-soapsearch-microservice-availability-green
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-soapsearch-microservicee-availability
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-sql-average-response-time
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-sql-average-response-time-BLUE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-sql-average-response-time-green
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-traces-code15-error-BLUE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-traces-code15-error-green
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-traces-data-processor-microservice-availability
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-traces-data-processor-microservice-availability-BLUE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-traces-data-processor-microservice-availability-green
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/scheduledqueryrules/Notify Microservice Error Alerts insights-SNDIMPINFRGP009-blue
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/scheduledqueryrules/Notify Microservice Error Alerts insights-SNDIMPINFRGP009-green
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/scheduledqueryrules/RDL Sync Field Configuration Alert insights-SNDIMPINFRGP009-blue
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/scheduledqueryrules/RDL Sync Field Configuration Alert insights-SNDIMPINFRGP009-green
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/scheduledqueryrules/RDS Count Error Alert insights-SNDIMPINFRGP009-blue
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/scheduledqueryrules/RDS Count Error Alert insights-SNDIMPINFRGP009-green
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/scheduledqueryrules/RDS Sync Error Alert insights-SNDIMPINFRGP009-blue
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/scheduledqueryrules/RDS Sync Error Alert insights-SNDIMPINFRGP009-green
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/scheduledqueryrules/Risk Locking Microservice Error Alerts insights-SNDIMPINFRGP009-blue
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/scheduledqueryrules/Risk Locking Microservice Error Alerts insights-SNDIMPINFRGP009-green
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/scheduledqueryrules/IPAFFS Traces data import alert insights-SNDIMPINFRGP010-blue
+
+# Smart detector rules
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001/providers/microsoft.alertsmanagement/smartDetectorAlertRules/Failure Anomalies - test-gs-2
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-imports-proxy/providers/microsoft.alertsManagement/smartDetectorAlertRules/Failure Anomalies - insights-SNDIMPINFRGP001-imports-proxy
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-imports-static-integration/providers/microsoft.alertsmanagement/smartDetectorAlertRules/Failure Anomalies - insights-SNDIMPINFRGP001-imports-static-integration
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-imports-static-test/providers/microsoft.alertsmanagement/smartDetectorAlertRules/Failure Anomalies - insights-SNDIMPINFRGP001-imports-static-test
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-imports-static-vnet/providers/microsoft.alertsmanagement/smartDetectorAlertRules/Failure Anomalies - insights-SNDIMPINFRGP001-imports-static-vnet
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-openid-token-microservice/providers/microsoft.alertsManagement/smartDetectorAlertRules/Failure Anomalies - insights-SNDIMPINFRGP001-openid-token-microservice
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-openid-token-microservice-feature/providers/microsoft.alertsManagement/smartDetectorAlertRules/Failure Anomalies - insights-SNDIMPINFRGP001-openid-token-microservice-feature
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-Pool-7/providers/microsoft.alertsmanagement/smartDetectorAlertRules/Failure Anomalies - insights-SNDIMPINFRGP001-Pool-7
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/microsoft.alertsmanagement/smartDetectorAlertRules/Failure Anomalies - insights-SNDIMPINFRGP010-blue
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/microsoft.alertsmanagement/smartDetectorAlertRules/Failure Anomalies - insights-SNDIMPINFRGP010-green
+
+# Action groups
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-imports-static-vnet/providers/microsoft.insights/actiongroups/Archive Soft Delete Error Alerts Recipients
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-imports-static-vnet/providers/microsoft.insights/actiongroups/AutoClearance Error Alerts Recipients
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-imports-static-vnet/providers/Microsoft.Insights/actiongroups/Dead Letter Queue Alerts Recipients
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-imports-static-vnet/providers/microsoft.insights/actiongroups/Notify Microservice Error Alerts Recipients
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-imports-static-vnet/providers/microsoft.insights/actiongroups/RDL Sync Alerts Recipients
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-imports-static-vnet/providers/microsoft.insights/actiongroups/RDS Count Error Alerts Recipients
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-imports-static-vnet/providers/microsoft.insights/actiongroups/RDS Sync Error Alerts Recipients
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-imports-static-vnet/providers/microsoft.insights/actiongroups/Risk Interface Error Alerts Recipients
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-imports-static-vnet/providers/microsoft.insights/actiongroups/Risk Locking Microservice Error Alerts Recipients
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-imports-static-vnet/providers/Microsoft.Insights/actiongroups/Traces Data Import Alerts Recipients
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-imports-static-vnet/providers/Microsoft.Insights/actiongroups/Trade Platform Alerts Recipients
+
+# Availability tests
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/webtests/test-delete-me-insights-sndimpinfrgp009-green
+
+# Portal dashboards
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001/providers/Microsoft.Portal/dashboards/38866c0f-b910-48be-a895-aaace4a5464d-dashboard
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001/providers/Microsoft.Portal/dashboards/a4533466-0868-45da-a3e3-10328926410a
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001/providers/Microsoft.Portal/dashboards/ea910b07-1ae9-4df6-acc6-c916d4b77042
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001/providers/Microsoft.Portal/dashboards/IPAFFS-snd-App-dashboard
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001/providers/Microsoft.Portal/dashboards/IPAFFS-snd-App-dashboard-events
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-imports-proxy/providers/Microsoft.Portal/dashboards/200ffd57-5bc0-409e-a656-3f5f73a51b33-dashboard
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-imports-static-vnet/providers/Microsoft.Portal/dashboards/e565d850-cf36-4de0-8ef0-49d597f07051-dashboard
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Portal/dashboards/186fde4f-230f-47e4-bf49-d5e15330650e-dashboard
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Portal/dashboards/IPAFFS-snd-App-dashboard-events
+
+# Application Insights
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001/providers/microsoft.insights/components/test-gs-2
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-imports-proxy/providers/Microsoft.Insights/components/insights-SNDIMPINFRGP001-imports-proxy
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-imports-static-integration/providers/Microsoft.Insights/components/insights-SNDIMPINFRGP001-imports-static-integration
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-imports-static-test/providers/Microsoft.Insights/components/insights-SNDIMPINFRGP001-imports-static-test
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-imports-static-vnet/providers/Microsoft.Insights/components/insights-SNDIMPINFRGP001-imports-static-vnet
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-openid-token-microservice/providers/Microsoft.Insights/components/insights-SNDIMPINFRGP001-openid-token-microservice
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-openid-token-microservice-feature/providers/Microsoft.Insights/components/insights-SNDIMPINFRGP001-openid-token-microservice-feature
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-Pool-7/providers/Microsoft.Insights/components/insights-SNDIMPINFRGP001-Pool-7
+
+# Log Analytics workspaces
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-imports-proxy/providers/Microsoft.OperationalInsights/workspaces/log-analytics-SNDIMPINFRGP001-imports-proxy
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-imports-static-integration/providers/Microsoft.OperationalInsights/workspaces/log-analytics-SNDIMPINFRGP001-imports-static-integration
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-imports-static-test/providers/Microsoft.OperationalInsights/workspaces/log-analytics-SNDIMPINFRGP001-imports-static-test
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-Pool-7/providers/Microsoft.OperationalInsights/workspaces/log-analytics-SNDIMPINFRGP001-Pool-7
+
+# Monitoring resources held out of execution while their dependencies remain.
+
+# These workspaces still receive gateway or retained storage diagnostics.
+# /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001/providers/Microsoft.OperationalInsights/workspaces/waflogs-imta9334
+# /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-imports-static-vnet/providers/Microsoft.OperationalInsights/workspaces/log-analytics-SNDIMPINFRGP001-imports-static-vnet
+
+# The remaining SND apps use blue Application Insights and the proxy alerts.
+# /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.alertsmanagement/smartDetectorAlertRules/Failure Anomalies - insights-SNDIMPINFRGP009-blue
+# /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/components/insights-SNDIMPINFRGP009-blue
+# /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/imports-proxy-idmlatest-snd_northeurope_HealthCheckStatus
+# /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/imports-proxy-idmlatest-snd_northeurope_ServerError
+# /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-imports-proxy-availability
+# /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-imports-proxy-availability-BLUE
+# /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-imports-proxy-average-response-time
+# /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-imports-proxy-average-response-time-BLUE
+# /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-invalid-certificate-detected-BLUE
+# /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.OperationalInsights/workspaces/log-analytics-SNDIMPINFRGP009-blue
+
+# Keep the SND SSL, Gov Gateway and DEV PIMS checks and their monitoring resources.
+# /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.alertsmanagement/smartDetectorAlertRules/Failure Anomalies - insights-SNDIMPINFRGP009-green
+# /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/components/insights-SNDIMPINFRGP009-green
+# /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/ipaffs-snd-ssl-certificate-expiry-warning-GREEN
+# /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/ipaffs-snd-ssl-certificate-expiry-warning-insights-SNDIMPINFRGP009-GREEN
+# /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/ipaffs-snd-ssl-certificate-validity-GREEN
+# /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/ipaffs-snd-ssl-certificate-validity-insights-SNDIMPINFRGP009-GREEN
+# /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/metricalerts/ipaffs-snd-to-govgateway-availability-GREEN
+# /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/metricalerts/ipaffs-snd-to-govgateway-availability-insights-SNDIMPINFRGP009-GREEN
+# /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp009/providers/microsoft.insights/metricalerts/pims endpoint test-insights-sndimpinfrgp009-green
+# /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/webtests/ipaffs-snd-SSL-Certificate-Expiry-warning-GREEN
+# /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/webtests/ipaffs-snd-SSL-Certificate-Validity-GREEN
+# /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/webtests/ipaffs-snd-to-GovGateway-Availability-GREEN
+# /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/webtests/pims endpoint test-insights-SNDIMPINFRGP009-blue
+# /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/webtests/pims endpoint test-insights-sndimpinfrgp009-green
+# /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.OperationalInsights/workspaces/log-analytics-SNDIMPINFRGP009-green
+
+# These dashboards display retained SND resources.
+# /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Portal/dashboards/IPAFFS-snd-App-dashboard
+# /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Portal/dashboards/IPAFFS-sndApp-dashboard
+# /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp009/providers/Microsoft.Portal/dashboards/sndIMPWEBAIS002-Dashboard
+
 # Microsoft.Search/searchServices
 # Deleting each service also removes its indexes, indexers and data sources.
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001/providers/Microsoft.Search/searchServices/import-azure-search-dev

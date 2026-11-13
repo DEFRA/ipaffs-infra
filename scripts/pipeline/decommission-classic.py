@@ -16,8 +16,10 @@ from urllib.request import Request, urlopen
 
 GUID = r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
 PROVIDER = r"[a-z][a-z0-9]*(?:\.[a-z][a-z0-9]*)+"
-NAME = r"(?!\.{1,2}(?:/|$))[a-z0-9_.()-]+"
-TYPE_AND_NAME = rf"/(?!providers/)[a-z][a-z0-9]*/{NAME}"
+NAME_CHARACTER = r"[a-z0-9_.()-]"
+NAME = rf"(?!\.{{1,2}}(?:/|$)){NAME_CHARACTER}+"
+RESOURCE_NAME = rf"{NAME}(?: +{NAME_CHARACTER}+)*"
+TYPE_AND_NAME = rf"/(?!providers/)[a-z][a-z0-9]*/{RESOURCE_NAME}"
 RESOURCE_ID = re.compile(
     rf"/subscriptions/(?P<subscription>{GUID})/resourceGroups/{NAME}"
     rf"/providers/{PROVIDER}(?:{TYPE_AND_NAME})+"
