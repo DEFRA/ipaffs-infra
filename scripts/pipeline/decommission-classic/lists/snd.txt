@@ -350,6 +350,22 @@
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/microsoft.insights/autoscalesettings/low-traffic-planv3-1-AutoScaleSetting
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/microsoft.insights/autoscalesettings/reference-data-planv3-1-AutoScaleSetting
 
+# Microsoft.Logic/workflows
+# Retire the workflows before their API connection, storage accounts and Service Bus namespace.
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001/providers/Microsoft.Logic/workflows/SNDIMPINFALA001-DEV
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001/providers/Microsoft.Logic/workflows/SNDIMPINFALA002-DEV
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001/providers/Microsoft.Logic/workflows/SNDIMPINFALA002-DEV-PLNT14908
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001/providers/Microsoft.Logic/workflows/SNDIMPINFALA003
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001/providers/Microsoft.Logic/workflows/Tmp-Blobs-Daily-Purge-Task
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-imports-static-vnet/providers/Microsoft.Logic/workflows/Tmp-Blobs-Daily-Purge-Task
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Logic/workflows/SNDIMPINFALA002-Wave
+
+# Microsoft.Web/connections
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-imports-static-vnet/providers/Microsoft.Web/connections/azureblob-sndimpinfsto002vnet
+
+# Microsoft.ServiceBus/namespaces
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001/providers/Microsoft.ServiceBus/namespaces/SNDIMPINFSBS002-dev
+
 # Microsoft.Search/searchServices
 # Deleting each service also removes its indexes, indexers and data sources.
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001/providers/Microsoft.Search/searchServices/import-azure-search-dev
