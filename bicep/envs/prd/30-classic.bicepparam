@@ -71,3 +71,33 @@ param sqlParams = {
   serverName: 'prdimpdbssqa001'
 }
 
+param sqlPoolsParams = [
+  {
+    serverName: 'prdimpdbssqa001'
+    name: 'prdimpedpsqa001'
+    sku: {
+      name: 'PremiumPool'
+      tier: 'Premium'
+      capacity: 2000
+    }
+    perDatabaseSettings: {
+      minCapacity: 0
+      maxCapacity: 1000
+    }
+    maxSizeGiB: 750
+    zoneRedundant: true
+    maintenanceConfigurationName: 'SQL_Default'
+    // The pool's own tags from the original ARM template, kept as they are live.
+    tags: {
+      CreatedDate: '20260602  '
+      Environment: 'PRD'
+      Location: 'North Europe'
+      Name: 'prdimpedpsqa001'
+      ServiceCode: 'IMP'
+      ServiceName: 'EUX Imports'
+      ServiceType: 'LOB'
+      Tier: 'Database'
+    }
+  }
+]
+

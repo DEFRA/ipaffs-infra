@@ -210,6 +210,11 @@ class ConsolidatedBicepJobTests(unittest.TestCase):
                     if component == "classic":
                         wait = task_names.index("Wait for Deployment - Classic")
                         approve = task_names.index("Approve SQL Elastic Jobs private endpoint")
+                        validate = task_names.index("Validate SQL elastic pools - Classic")
+                        self.assertLess(validate, preview)
+                        self.assertNotIn("condition", tasks[validate])
+                        self.assertIn("scripts/pipeline/validate-sql-elastic-pools.py",
+                                      tasks[validate]["inputs"]["inlineScript"])
                         outputs = task_names.index("Classic outputs")
                         self.assertLess(deploy, approve)
                         self.assertLess(approve, wait)

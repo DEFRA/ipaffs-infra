@@ -23,6 +23,9 @@ param redisParams object
 param searchParams object
 param sejParams object
 param sqlParams object
+// Optional: the elastic pools to manage. An entry may set resourceGroupName when its
+// pool is outside this resource group (PRE-TRN). SND manages none.
+param sqlPoolsParams array = []
 param serviceBusParams object
 
 var contributorRoleId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b24988ac-6180-42a0-ab88-20f7382dd24c')
@@ -109,6 +112,22 @@ module sql './modules/sql-classic.bicep' = {
     tenantId: tenantId
   }
 }
+
+resource liveSqlPools 'Microsoft.Sql/servers/elasticPools@2023-08-01' existing = [for pool in sqlPoolsParams: if (pool.?keepLiveCapacity ?? false) {
+  name: '${pool.serverName}/${pool.name}'
+  scope: resourceGroup(pool.?resourceGroupName ?? resourceGroup().name)
+}]
+
+module sqlPools './modules/sql-pool-classic.bicep' = [for (pool, i) in sqlPoolsParams: {
+  name: 'sqlPool-${pool.name}-${deploymentId}'
+  scope: resourceGroup(pool.?resourceGroupName ?? resourceGroup().name)
+  params: {
+    livePerDatabaseSettings: (pool.?keepLiveCapacity ?? false) ? liveSqlPools[i]!.properties.perDatabaseSettings : {}
+    liveSku: (pool.?keepLiveCapacity ?? false) ? liveSqlPools[i]!.sku : {}
+    location: location
+    sqlPoolParams: pool
+  }
+}]
 
 output redisName string = redis.outputs.redisName
 output redisResourceId string = redis.outputs.redisResourceId

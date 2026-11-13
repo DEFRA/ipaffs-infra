@@ -224,6 +224,25 @@ with its owner rather than enable the bootstrap definitions without review. A
 newly rebuilt PRE/PRD job agent requires its maintenance definitions to be restored
 or provisioned by that owner.
 
+TST, PRE and PRD list their existing elastic pools in `sqlPoolsParams`, and the
+Classic deployment manages each one with `modules/sql-pool-classic.bicep`. PRE also
+lists the PRE-TRN pool, which is in `PREIMPINFRGP002`, so its entry sets
+`resourceGroupName`. The parameters pin the live SKU, per-database limits, maximum
+size, zone redundancy, maintenance window and tags, so What-If shows no change until
+a parameter is edited. TST sets `keepLiveCapacity: true` because something outside
+this repo scales its pool from 250 to 1000 eDTU on weekday mornings. It keeps
+whatever SKU and per-database limits are live, and What-If shows those two
+properties as unresolved `reference()` changes. SND is unused and lists no pools.
+
+What-If does not ask Azure whether a pool's SKU, maximum size and per-database
+limits can be combined, so the Classic deployment runs
+`scripts/pipeline/validate-sql-elastic-pools.py` first. It checks each
+`sqlPoolsParams` entry against the regional SQL capabilities API (SKU, maximum size,
+per-database min/max, zone redundancy, licence type and maintenance window) and
+against the live pool (used storage, database count and each database's maximum
+size). Any problem fails the stage before What-If. Pools with `keepLiveCapacity`
+are checked with their live SKU.
+
 The Classic deployment requests one service-managed private endpoint per Elastic
 Job Agent in SND, TST, PRE and PRD. Azure waits for approval before completing the
 endpoint deployment. The pipeline submits ARM asynchronously, uses the Classic
