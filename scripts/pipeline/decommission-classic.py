@@ -28,6 +28,8 @@ ABSENT_CODES = r"ResourceNotFound|ResourceGroupNotFound|ParentResourceNotFound|N
 ABSENT_ERROR = re.compile(rf"^ERROR: \(({ABSENT_CODES})\)(?: |$)", re.MULTILINE)
 ABSENT_DELETE_DETAIL = re.compile(rf"^INFO: \(({ABSENT_CODES})\)(?: |$)", re.MULTILINE)
 UNCODED_NOT_FOUND = re.compile(r"Operation returned an invalid status 'Not Found'")
+# App Service has answered an uncoded 404 for over a minute while it deletes a plan.
+UNCODED_NOT_FOUND_ATTEMPTS = 60
 VERIFY_ATTEMPTS = 6
 VERIFY_INTERVAL = 10
 THROTTLE_ATTEMPTS = 6
@@ -175,8 +177,10 @@ def read_resource(resource_id, subscription, *, require_stopped=False):
     operation = f"Check {resource_id}"
     query = "{id:id,state:properties.state,subnetId:properties.virtualNetworkSubnetId}" if require_stopped else "id"
     output = "json" if require_stopped else "tsv"
-    for attempt in range(VERIFY_ATTEMPTS):
+    for attempt in range(UNCODED_NOT_FOUND_ATTEMPTS):
         if attempt:
+            print(f"{operation}: Azure answered 404 with no error code, checking again in "
+                  f"{VERIFY_INTERVAL}s ({attempt}/{UNCODED_NOT_FOUND_ATTEMPTS - 1})", flush=True)
             time.sleep(VERIFY_INTERVAL)
         result = run_az([
             "resource", "show", "--ids", resource_id, "--subscription", subscription,
