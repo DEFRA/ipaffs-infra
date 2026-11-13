@@ -350,6 +350,18 @@
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/microsoft.insights/autoscalesettings/low-traffic-planv3-1-AutoScaleSetting
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/microsoft.insights/autoscalesettings/reference-data-planv3-1-AutoScaleSetting
 
+# Remaining Compute resources marked Delete in the inventory. Held out of execution.
+# SECIMPSNDAGW101 and SECIMPSNDAGW102 still route to this stopped proxy.
+# Once those routes are retired, review the site, its plan and the autoscale rule in this order.
+# /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Web/sites/imports-proxy-idmlatest-snd
+# /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Web/serverFarms/frontend-planv3-1
+# /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/autoscalesettings/frontend-planv3-1-AutoScaleSetting
+
+# The SOAP plan still hosts the running SNDIMPWEBAFA001 Function App.
+# Review the plan and autoscale rule after the function has been moved or retired.
+# /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Web/serverFarms/soap-services-planv3-1
+# /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/autoscalesettings/soap-services-planv3-1-AutoScaleSetting
+
 # Microsoft.Logic/workflows
 # Retire the workflows before their API connection, storage accounts and Service Bus namespace.
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001/providers/Microsoft.Logic/workflows/SNDIMPINFALA001-DEV
