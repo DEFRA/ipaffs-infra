@@ -20,7 +20,9 @@ parameters:
     type: string
     default: ' '
 
-  # passes gitHubToken to the build as the secret npm_token, for Dockerfiles that install @defra packages
+  # for Dockerfiles that install @defra packages: passes System.AccessToken as the build
+  # secret ado_feed_token (Azure Artifacts feed) and gitHubToken as npm_token (GitHub
+  # Packages, until every repo has moved)
   - name: npmTokenSecret
     type: boolean
     default: false
@@ -35,6 +37,7 @@ steps:
       ${{ if eq(parameters.npmTokenSecret, true) }}:
         DOCKER_BUILDKIT: 1
         NPM_TOKEN: $(gitHubToken)
+        ADO_FEED_TOKEN: $(System.AccessToken)
     inputs:
       azureSubscription: $(serviceConnection)
       scriptType: bash
@@ -62,7 +65,7 @@ steps:
         az acr login --name "${ACR_NAME}" --subscription "${SUBSCRIPTION_NAME}"
         SECRET_ARGS=()
         if [[ "${{ parameters.npmTokenSecret }}" == "True" ]]; then
-          SECRET_ARGS=(--secret id=npm_token,env=NPM_TOKEN)
+          SECRET_ARGS=(--secret id=npm_token,env=NPM_TOKEN --secret id=ado_feed_token,env=ADO_FEED_TOKEN)
         fi
         docker build --platform=linux/amd64 "${SECRET_ARGS[@]}" --tag "${{ parameters.imageName }}:${TAG_NAME}" --file "${{ parameters.dockerFile }}" "${{ parameters.directory }}"
         docker tag "${{ parameters.imageName }}:${TAG_NAME}" "${ACR_NAME}.azurecr.io/ipaffs/${{ parameters.imageName }}:${TAG_NAME}"

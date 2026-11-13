@@ -12,12 +12,14 @@ jobs:
           versionSpec: ${{ parameters.nodeVersion }}
           addToPath: true
 
-      # NPM_TOKEN lets .npmrc read @defra packages from GitHub Packages
+      # .npmrc reads @defra packages with ADO_FEED_TOKEN (the Azure Artifacts feed) or,
+      # until every repo has moved, NPM_TOKEN (GitHub Packages)
       - script: npm ci
         displayName: Install dependencies
         workingDirectory: service
         env:
           NPM_TOKEN: $(gitHubToken)
+          ADO_FEED_TOKEN: $(System.AccessToken)
 
       - script: npx playwright install --with-deps chromium
         displayName: Install Playwright browsers
