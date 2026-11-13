@@ -24,7 +24,8 @@ RESOURCE_ID = re.compile(
     rf"(?:/providers/{PROVIDER}(?:{TYPE_AND_NAME})+)*",
     re.IGNORECASE | re.ASCII,
 )
-ABSENT_CODES = r"ResourceNotFound|ResourceGroupNotFound|ParentResourceNotFound|NotFound"
+# Service Bus answers NamespaceNotFound for a deleted namespace.
+ABSENT_CODES = r"ResourceNotFound|ResourceGroupNotFound|ParentResourceNotFound|NamespaceNotFound|NotFound"
 ABSENT_ERROR = re.compile(rf"^ERROR: \(({ABSENT_CODES})\)(?: |$)", re.MULTILINE)
 ABSENT_DELETE_DETAIL = re.compile(rf"^INFO: \(({ABSENT_CODES})\)(?: |$)", re.MULTILINE)
 UNCODED_NOT_FOUND = re.compile(r"Operation returned an invalid status 'Not Found'")

@@ -756,6 +756,17 @@ class DecommissionTests(unittest.TestCase):
         self.assertIn("2 listed, 1 deleted, 1 already deleted", output)
         self.assertEqual([DATABASE, SERVER], self.deletes)
 
+    def test_service_bus_namespace_not_found_counts_as_deleted(self):
+        self.plan_successfully()
+        self.after_delete = lambda resource_id: self.check_failures.update({resource_id: (
+            3, f"ERROR: (NamespaceNotFound) Namespace '{resource_id.rsplit('/', 1)[1]}' not found\n"
+               "Code: NamespaceNotFound\n",
+        )})
+        status, output, errors = self.execute("delete")
+        self.assertEqual(0, status, errors)
+        self.assertIn(f"Verified deleted {DATABASE}", output)
+        self.assertEqual([DATABASE, SERVER], self.deletes)
+
     def test_delete_rejection_stops_before_next_resource(self):
         self.plan_successfully()
         self.delete_failures[DATABASE] = 1, "ERROR: (ScopeLocked) Azure rejected the deletion"
