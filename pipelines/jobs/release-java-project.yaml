@@ -1,10 +1,9 @@
 parameters:
   - name: mavenRegistry
-    displayName: Maven registry (artifactory or feed, see pipelines/steps/maven-settings.yaml)
+    displayName: Maven registry (only feed; kept so pipelines that set it still work)
     type: string
     default: feed
     values:
-      - artifactory
       - feed
 
 jobs:
@@ -65,9 +64,6 @@ jobs:
         displayName: 'Release'
         env:
           SYSTEM_ACCESSTOKEN: $(System.AccessToken)
-          # only the Artifactory settings deploy to GitHub Packages with this PAT
-          ${{ if eq(parameters.mavenRegistry, 'artifactory') }}:
-            GIT_HUB_TOKEN: $(gitHubToken)
         inputs:
           mavenPomFile: 'pom.xml'
           mavenOptions: $(MAVEN_OPTS)

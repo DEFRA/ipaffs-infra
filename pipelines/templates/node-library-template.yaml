@@ -27,11 +27,10 @@ parameters:
     type: boolean
     default: false
 
-  # https://pkgs.dev.azure.com/defragovuk/DEFRA-EUTD-IPAFFS/_packaging/DEFRA-EUTD-IPAFFS/npm/registry/
-  # publishes to the Azure Artifacts feed with System.AccessToken instead of gitHubToken
+  # the Azure Artifacts feed, published to with System.AccessToken
   - name: registryUrl
     type: string
-    default: https://npm.pkg.github.com/
+    default: https://pkgs.dev.azure.com/defragovuk/DEFRA-EUTD-IPAFFS/_packaging/DEFRA-EUTD-IPAFFS/npm/registry/
 
 stages:
   - stage: BuildPackage

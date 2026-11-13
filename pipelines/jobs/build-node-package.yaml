@@ -27,19 +27,16 @@ jobs:
           addToPath: true
         displayName: Install Node and NPM and add to path
 
-      # .npmrc reads @defra packages with ADO_FEED_TOKEN (the Azure Artifacts feed) or,
-      # until every repo has moved, NPM_TOKEN (GitHub Packages)
+      # ADO_FEED_TOKEN lets .npmrc read @defra packages from the Azure Artifacts feed
       - script: npm --prefix ./${{ parameters.packagePath }} ci
         displayName: Install package dependencies
         env:
-          NPM_TOKEN: $(gitHubToken)
           ADO_FEED_TOKEN: $(System.AccessToken)
 
       - ${{ each installPath in parameters.installPaths }}:
           - script: npm --prefix ./${{ installPath }} ci
             displayName: Install dependencies in ${{ installPath }}
             env:
-              NPM_TOKEN: $(gitHubToken)
               ADO_FEED_TOKEN: $(System.AccessToken)
 
       - ${{ if eq(parameters.runLint, true) }}:
