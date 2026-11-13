@@ -26,11 +26,10 @@ parameters:
     default: master
 
   - name: mavenRegistry
-    displayName: Maven registry (artifactory or feed, see pipelines/steps/maven-settings.yaml)
+    displayName: Maven registry (only feed; kept so pipelines that set it still work)
     type: string
     default: feed
     values:
-      - artifactory
       - feed
 
 stages:

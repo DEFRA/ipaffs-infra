@@ -26,16 +26,14 @@ jobs:
           artifact: node-package
           path: $(Pipeline.Workspace)/node-package
 
-      # The Azure Artifacts feed uses System.AccessToken (the project build identity is a
-      # Contributor on the feed). Other registries, such as GitHub Packages, need a secret
-      # gitHubToken with write packages scope, from a variable group or the pipeline.
+      # publishes with System.AccessToken: the project build identity is a Contributor on the feed
       - script: |
           set -euo pipefail
 
           # an undefined variable reaches the script as its own macro text, so look for its opening
           # characters without writing them, otherwise ADO would expand them here as well
           if [[ -z "${NPM_PUBLISH_TOKEN:-}" || "${NPM_PUBLISH_TOKEN}" == '$'\(* ]]; then
-            echo "##vso[task.logissue type=error]no publish token: gitHubToken is not available to this pipeline"
+            echo "##vso[task.logissue type=error]no publish token: System.AccessToken is not available to this job"
             exit 1
           fi
 
@@ -59,9 +57,6 @@ jobs:
           echo "Published ${name}@${version}"
         displayName: Publish package if the version is new
         env:
-          ${{ if contains(parameters.registryUrl, 'pkgs.dev.azure.com') }}:
-            NPM_PUBLISH_TOKEN: $(System.AccessToken)
-          ${{ else }}:
-            NPM_PUBLISH_TOKEN: $(gitHubToken)
+          NPM_PUBLISH_TOKEN: $(System.AccessToken)
           PACKAGE_PATH: ${{ parameters.packagePath }}
           REGISTRY_URL: ${{ parameters.registryUrl }}
