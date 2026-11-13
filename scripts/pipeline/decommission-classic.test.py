@@ -563,6 +563,23 @@ class DecommissionTests(unittest.TestCase):
         self.assertEqual([("delete", APP_PLAN), ("patch", AUTOSCALE), ("delete", AUTOSCALE)], self.mutations)
         self.assertEqual(set(), self.current)
 
+    def test_enabled_autoscale_with_earlier_target_absent_from_approved_plan(self):
+        self.current = {DATABASE, AUTOSCALE}
+        self.autoscale_setting["enabled"] = True
+        self.resources.write_text(f"{DATABASE}\n{APP_PLAN}\n{AUTOSCALE}\n", encoding="utf-8")
+        self.plan_successfully()
+        self.current.add(APP_PLAN)
+
+        status, _, errors = self.execute("delete")
+        self.assertEqual(1, status)
+        self.assertIn(f"target plan still exists: {APP_PLAN}", errors)
+        self.assertEqual([], self.mutations)
+
+        self.current.remove(APP_PLAN)
+        status, _, errors = self.execute("delete")
+        self.assertEqual(0, status, errors)
+        self.assertEqual([("delete", DATABASE), ("patch", AUTOSCALE), ("delete", AUTOSCALE)], self.mutations)
+
     def test_enabled_autoscale_requires_an_earlier_target_and_scaling_profiles(self):
         self.current = {APP_PLAN, AUTOSCALE}
         self.autoscale_setting["enabled"] = True
@@ -691,14 +708,41 @@ class DecommissionTests(unittest.TestCase):
         self.assertIn("Plan does not match the ordered resource list", errors)
         self.az.assert_not_called()
 
-    def test_appearance_after_plan_blocks_all_deletions(self):
-        self.current.remove(SERVER)
+    def test_skips_azure_reads_and_deletes_for_unrelated_resources_absent_in_plan(self):
+        self.current = {DATABASE}
+        self.resources.write_text(f"{OTHER_APP_PLAN}\n{DATABASE}\n", encoding="utf-8")
         self.plan_successfully()
-        self.current.add(SERVER)
+        self.current.add(OTHER_APP_PLAN)
+        self.reads.clear()
+
+        status, output, errors = self.execute("delete")
+        self.assertEqual(0, status, errors)
+        self.assertEqual([DATABASE, DATABASE], self.reads)
+        self.assertEqual([DATABASE], self.deletes)
+        self.assertEqual({OTHER_APP_PLAN}, self.current)
+        self.assertIn("1 absent in approved plan and skipped", output)
+        self.assertNotIn(f"exists\tMicrosoft.Sql/servers/databases\t{DATABASE}", output)
+
+    def test_skipped_child_reappearing_blocks_parent_delete_before_any_mutation(self):
+        self.current = {SERVER}
+        self.plan_successfully()
+        self.current.add(DATABASE)
         status, _, errors = self.execute("delete")
         self.assertEqual(1, status)
-        self.assertIn(f"Resource appeared after the plan: {SERVER}", errors)
+        self.assertIn(f"Resource appeared after the plan: {DATABASE}", errors)
         self.assertEqual([], self.deletes)
+
+    def test_skipped_child_is_rechecked_immediately_before_parent_delete(self):
+        self.current = {EXTENSION, SERVER}
+        self.resources.write_text(f"{DATABASE}\n{EXTENSION}\n{SERVER}\n", encoding="utf-8")
+        self.plan_successfully()
+        self.after_delete = lambda resource_id: self.current.add(DATABASE)
+
+        status, _, errors = self.execute("delete")
+        self.assertEqual(1, status)
+        self.assertIn(f"Deleting {SERVER} could remove it", errors)
+        self.assertEqual([EXTENSION], self.deletes)
+        self.assertEqual({DATABASE, SERVER}, self.current)
 
     def test_concurrent_removal_after_preflight_is_idempotent(self):
         self.plan_successfully()
