@@ -258,8 +258,11 @@ declarations and references that would recreate them or break later deployments.
 
 Review the plan log for each resource's ID, type and current existence, plus the
 totals. The deployment compares the list with the plan artifact from the same
-run and checks Azure again before deleting. If an ID marked absent in the plan
-reappears, queue a fresh plan for review. A rerun skips resources already gone.
+run and rechecks only resources marked present as deletion targets. Entries
+marked absent require a fresh plan before they can be deleted. The runner still
+checks any listed absent child before deleting its parent and verifies that an
+autoscale rule's target is gone before removing the rule. A rerun also skips
+resources that were present in the plan and have since been deleted.
 After a failed delete, check the logged resource ID and Azure error before
 retrying. An autoscale setting whose target plan is outside the list must
 already be disabled and its target absent. To retire an enabled setting with

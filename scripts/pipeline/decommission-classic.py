@@ -407,15 +407,21 @@ def prepare_autoscale_delete(resource_id, target, disable_after_plan, subscripti
     return True
 
 
-def resource_states(resources, subscription, plan, sign_in):
+def resource_states(resources, subscription, plan, sign_in, skipped):
     states = []
     earlier_present = set()
     earlier_plans = set()
     failures = 0
     for resource_id in resources:
-        sign_in.renew_if_due()
         kind = resource_type(resource_id)
         kind_key = kind.lower()
+        if resource_id.lower() in skipped:
+            # A later autoscale rule still uses the target's position in the approved list.
+            if kind_key == APP_PLAN:
+                earlier_plans.add(resource_id.lower())
+            continue
+
+        sign_in.renew_if_due()
         entry = {"id": resource_id}
         try:
             if kind_key in APP_SERVICE_TYPES:
@@ -430,6 +436,8 @@ def resource_states(resources, subscription, plan, sign_in):
                     target = setting["target"]
                     disable_after_plan = target.lower() in earlier_plans
                     if disable_after_plan:
+                        if target.lower() in skipped:
+                            require_absent_autoscale_target(resource_id, target, subscription)
                         if setting["enabled"]:
                             autoscale_disable_body(resource_id, setting)
                         if plan:
@@ -441,7 +449,8 @@ def resource_states(resources, subscription, plan, sign_in):
                                 f"{resource_id}: only disabled autoscale settings can be deleted "
                                 "unless their target plan is listed earlier")
                         require_absent_autoscale_target(resource_id, target, subscription)
-                        print(f"{resource_id} is disabled and its target plan is absent: {target}", flush=True)
+                        if plan:
+                            print(f"{resource_id} is disabled and its target plan is absent: {target}", flush=True)
                     entry.update(targetPlanId=target, disableAfterPlan=disable_after_plan)
             else:
                 exists = resource_exists(resource_id, subscription)
@@ -457,11 +466,12 @@ def resource_states(resources, subscription, plan, sign_in):
         states.append(entry)
         if exists:
             earlier_present.add(resource_id.lower())
-        state = "exists" if exists else ("already gone" if plan else "already deleted")
-        print(f"{state}\t{kind}\t{resource_id}", flush=True)
+        if plan:
+            state = "exists" if exists else "already gone"
+            print(f"{state}\t{kind}\t{resource_id}", flush=True)
     if plan or failures:
         exists_count = sum(entry["exists"] for entry in states)
-        print(f"Summary: {len(resources)} listed, {exists_count} exist, "
+        print(f"Summary: {len(resources) - len(skipped)} listed, {exists_count} exist, "
               f"{len(states) - exists_count} already gone, {failures} checks failed", flush=True)
     if failures:
         raise DecommissionError("Could not verify every listed resource")
@@ -503,7 +513,16 @@ def verify_approved_subnet(resource_id, subnet_id, approved_subnet):
         raise DecommissionError(f"VNet integration changed after the plan: {resource_id}. Run a new plan.")
 
 
-def delete_resource(entry, subscription):
+def verify_skipped_descendants(resource_id, descendants, subscription):
+    # Deleting a parent can also delete its children, even if we skip their IDs.
+    for descendant in descendants:
+        if resource_exists(descendant, subscription):
+            raise DecommissionError(
+                f"Resource appeared after the plan: {descendant}. "
+                f"Deleting {resource_id} could remove it. Run a new plan.")
+
+
+def delete_resource(entry, subscription, skipped_descendants):
     resource_id = entry["id"]
     operation = f"Delete {resource_id}"
     kind = resource_type(resource_id).lower()
@@ -545,6 +564,7 @@ def delete_resource(entry, subscription):
 
     print(f"Deleting {resource_id}", flush=True)
     for attempt in range(1, THROTTLE_ATTEMPTS + 1):
+        verify_skipped_descendants(resource_id, skipped_descendants, subscription)
         # Azure CLI waits for the operation by default. Verbose output preserves
         # the provider's error when the CLI wraps a rejected delete.
         result = run_az([
@@ -588,15 +608,21 @@ def run(args):
     if not re.fullmatch(GUID, subscription) or not subscription.replace("-", "").strip("0"):
         raise DecommissionError("Expected subscription must be a nonzero GUID")
     resources = read_resources(args.list_path, subscription)
-    if args.mode == "delete":
-        planned = read_plan(args.plan_file, resources, subscription)
+    is_plan = args.mode == "plan"
+    approved = {}
+    if not is_plan:
+        approved = {entry["id"]: entry for entry in read_plan(args.plan_file, resources, subscription)}
+    skipped = {resource_id.lower(): resource_id for resource_id, entry in approved.items() if not entry["exists"]}
 
     # Renew once up front so a missing OIDC permission fails before any change.
     sign_in = PipelineSignIn()
     sign_in.renew_if_due()
     verify_subscription(subscription)
-    states = resource_states(resources, subscription, args.mode == "plan", sign_in)
-    if args.mode == "plan":
+    if not is_plan:
+        print(f"Rechecking {len(resources) - len(skipped)} resources marked present in the approved plan. "
+              f"Skipping {len(skipped)} absent entries as deletion targets.", flush=True)
+    states = resource_states(resources, subscription, is_plan, sign_in, skipped)
+    if is_plan:
         if args.plan_file:
             plan = {
                 "subscriptionId": subscription,
@@ -605,23 +631,28 @@ def run(args):
             args.plan_file.write_text(json.dumps(plan, indent=2) + "\n", encoding="utf-8")
         return
 
-    for approved, current in zip(planned, states):
+    skipped_descendants = {}
+    for current in states:
         resource_id = current["id"]
-        if current["exists"] and not approved["exists"]:
-            raise DecommissionError(f"Resource appeared after the plan: {resource_id}. Run a new plan.")
-        verify_approved_subnet(resource_id, current.get("subnetId"), approved.get("subnetId"))
+        planned = approved[resource_id]
+        verify_approved_subnet(resource_id, current.get("subnetId"), planned.get("subnetId"))
         if "targetPlanId" in current and (
-                current["targetPlanId"].lower() != approved["targetPlanId"].lower()
-                or current["disableAfterPlan"] != approved["disableAfterPlan"]):
+                current["targetPlanId"].lower() != planned["targetPlanId"].lower()
+                or current["disableAfterPlan"] != planned["disableAfterPlan"]):
             raise DecommissionError(f"Autoscale target changed after the plan: {resource_id}. Run a new plan.")
+        if current["exists"]:
+            prefix = resource_id.lower() + "/"
+            descendants = [target for key, target in skipped.items() if key.startswith(prefix)]
+            verify_skipped_descendants(resource_id, descendants, subscription)
+            skipped_descendants[resource_id] = descendants
 
     deleted = 0
     for current in states:
         if current["exists"]:
             sign_in.renew_if_due()
-            deleted += delete_resource(current, subscription)
+            deleted += delete_resource(current, subscription, skipped_descendants[current["id"]])
     print(f"Summary: {len(resources)} listed, {deleted} deleted, "
-          f"{len(resources) - deleted} already deleted", flush=True)
+          f"{len(states) - deleted} already deleted, {len(skipped)} absent in approved plan and skipped", flush=True)
 
 
 def main(argv=None):
