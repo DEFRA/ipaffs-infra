@@ -43,7 +43,10 @@ AUTOSCALE_API = "2022-10-01"
 APP_SERVICE_TYPES = {APP_SITE, APP_SLOT}
 APP_SERVICE_API = "2025-05-01"
 SUBNET_TYPE = "microsoft.network/virtualnetworks/subnets"
-SIGN_IN_INTERVAL = 30 * 60
+# Pipeline OIDC tokens expire about 12 minutes after they are issued, and the
+# CLI needs a valid one whenever it fetches a new access token.
+SIGN_IN_INTERVAL = 10 * 60
+EXPIRED_ASSERTION = "AADSTS700024"
 OIDC_API = "7.1"
 OIDC_VARIABLES = (
     "SYSTEM_OIDCREQUESTURI", "SYSTEM_ACCESSTOKEN", "AZURESUBSCRIPTION_SERVICE_CONNECTION_ID",
@@ -97,9 +100,12 @@ class PipelineSignIn:
     def renew_if_due(self):
         if not self.enabled:
             return
-        now = self.clock()
-        if self.signed_in_at is not None and now - self.signed_in_at < SIGN_IN_INTERVAL:
+        if self.signed_in_at is not None and self.clock() - self.signed_in_at < SIGN_IN_INTERVAL:
             return
+        self.renew()
+
+    def renew(self):
+        now = self.clock()
         operation = "Renew the Azure CLI sign-in"
         result = run_az([
             "login", "--service-principal", "--username", self.values["AZURESUBSCRIPTION_CLIENT_ID"],
@@ -139,7 +145,22 @@ def resource_type(resource_id):
     return "/".join([parts[provider + 1], *parts[provider + 2::2]])
 
 
+# Set by run() so any Azure CLI call can sign in again if its assertion expired.
+pipeline_sign_in = None
+
+
 def run_az(arguments, operation, timeout=120):
+    result = invoke_az(arguments, operation, timeout)
+    # The CLI rejects the call before it reaches Azure, so running it again is safe.
+    if (pipeline_sign_in is not None and pipeline_sign_in.enabled and arguments[0] != "login"
+            and EXPIRED_ASSERTION in result.stderr):
+        print(f"{operation}: the Azure sign-in expired, signing in again", flush=True)
+        pipeline_sign_in.renew()
+        result = invoke_az(arguments, operation, timeout)
+    return result
+
+
+def invoke_az(arguments, operation, timeout):
     try:
         return subprocess.run(["az", *arguments], text=True, capture_output=True, timeout=timeout)
     except subprocess.TimeoutExpired as exc:
@@ -615,7 +636,8 @@ def run(args):
     skipped = {resource_id.lower(): resource_id for resource_id, entry in approved.items() if not entry["exists"]}
 
     # Renew once up front so a missing OIDC permission fails before any change.
-    sign_in = PipelineSignIn()
+    global pipeline_sign_in
+    sign_in = pipeline_sign_in = PipelineSignIn()
     sign_in.renew_if_due()
     verify_subscription(subscription)
     if not is_plan:

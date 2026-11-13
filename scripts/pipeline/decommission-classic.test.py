@@ -906,6 +906,35 @@ class PipelineSignInTests(unittest.TestCase):
         self.assertEqual(self.ENVIRON["AZURESUBSCRIPTION_CLIENT_ID"], login[login.index("--username") + 1])
         self.assertEqual(self.ENVIRON["AZURESUBSCRIPTION_TENANT_ID"], login[login.index("--tenant") + 1])
 
+    def test_expired_assertion_signs_in_again_and_reruns_the_command(self):
+        sign_in = self.sign_in()
+        sign_in.renew_if_due()
+        self.enterContext(patch.object(decommission, "pipeline_sign_in", sign_in))
+        calls = []
+
+        def fake(arguments, **kwargs):
+            if arguments[1] == "login":
+                return self.fake_az(arguments, **kwargs)
+            calls.append(arguments)
+            if len(calls) == 1:
+                return subprocess.CompletedProcess(arguments, 1, "", "ERROR: AADSTS700024: Client assertion is not "
+                                                   "within its valid time range.")
+            return subprocess.CompletedProcess(arguments, 0, "deleted", "")
+        decommission.subprocess.run.side_effect = fake
+        result = decommission.run_az(["resource", "delete", "--ids", "x"], "Delete x")
+        self.assertEqual(0, result.returncode)
+        self.assertEqual(2, len(calls))
+        self.assertEqual(2, len(self.logins))
+        self.assertEqual("oidc-2", self.logins[1][self.logins[1].index("--federated-token") + 1])
+
+    def test_expired_assertion_outside_a_pipeline_is_reported_unchanged(self):
+        self.enterContext(patch.object(decommission, "pipeline_sign_in", self.sign_in({})))
+        decommission.subprocess.run.side_effect = lambda arguments, **kwargs: subprocess.CompletedProcess(
+            arguments, 1, "", "ERROR: AADSTS700024")
+        result = decommission.run_az(["resource", "delete", "--ids", "x"], "Delete x")
+        self.assertEqual(1, result.returncode)
+        self.assertEqual([], self.logins)
+
     def test_missing_pipeline_variables_fail_before_any_azure_call(self):
         environ = dict(self.ENVIRON)
         del environ["SYSTEM_ACCESSTOKEN"]
