@@ -26,7 +26,7 @@ RESOURCE_ID = re.compile(
     rf"(?:/providers/{PROVIDER}(?:{TYPE_AND_NAME})+)*",
     re.IGNORECASE | re.ASCII,
 )
-ABSENT_CODES = r"ResourceNotFound|ResourceGroupNotFound|ParentResourceNotFound|NotFound"
+ABSENT_CODES = r"ResourceNotFound|ResourceGroupNotFound|ParentResourceNotFound|NotFound|NamespaceNotFound"
 ABSENT_ERROR = re.compile(rf"^ERROR: \(({ABSENT_CODES})\)(?: |$)", re.MULTILINE)
 ABSENT_DELETE_DETAIL = re.compile(rf"^INFO: \(({ABSENT_CODES})\)(?: |$)", re.MULTILINE)
 UNCODED_NOT_FOUND = re.compile(r"Operation returned an invalid status 'Not Found'")
@@ -40,6 +40,10 @@ THROTTLED = re.compile(r"Too Many Requests|\"Code\":\s*\"429\"|\(429\)")
 APP_SITE = "microsoft.web/sites"
 APP_SLOT = "microsoft.web/sites/slots"
 APP_PLAN = "microsoft.web/serverfarms"
+SERVICE_BUS_NAMESPACE = "microsoft.servicebus/namespaces"
+LOGIC_WORKFLOW = "microsoft.logic/workflows"
+# The Classic inventory retires workflows before their connections and backing services.
+WORKFLOW_DEPENDENCIES = {"microsoft.web/connections", "microsoft.storage/storageaccounts", SERVICE_BUS_NAMESPACE}
 AUTOSCALE_SETTING = "microsoft.insights/autoscalesettings"
 AUTOSCALE_API = "2022-10-01"
 APP_SERVICE_TYPES = {APP_SITE, APP_SLOT}
@@ -196,6 +200,13 @@ def verify_subscription(subscription):
         raise DecommissionError(f"{operation}: Azure CLI returned a different subscription")
 
 
+def is_absence_error(pattern, stderr, resource_id):
+    match = pattern.search(stderr)
+    return match is not None and (
+        match[1] != "NamespaceNotFound" or resource_type(resource_id).lower() == SERVICE_BUS_NAMESPACE
+    )
+
+
 def read_resource(resource_id, subscription, *, require_stopped=False):
     operation = f"Check {resource_id}"
     query = "{id:id,state:properties.state,subnetId:properties.virtualNetworkSubnetId}" if require_stopped else "id"
@@ -209,14 +220,14 @@ def read_resource(resource_id, subscription, *, require_stopped=False):
             "resource", "show", "--ids", resource_id, "--subscription", subscription,
             "--query", query, "--output", output, "--only-show-errors",
         ], operation)
+        absent = result.returncode == 3 and is_absence_error(ABSENT_ERROR, result.stderr, resource_id)
         # A resource part way through deletion can briefly answer 404 with no
         # error code. Ask again until Azure gives a definite answer.
-        if not (result.returncode and UNCODED_NOT_FOUND.search(result.stderr)
-                and not ABSENT_ERROR.search(result.stderr)):
+        if absent or not result.returncode or not UNCODED_NOT_FOUND.search(result.stderr):
             break
     # The CLI exits with status 3 on an HTTP 404. Require a resource
     # absence code too, since provider discovery can itself return 404.
-    if result.returncode == 3 and ABSENT_ERROR.search(result.stderr):
+    if absent:
         return None
     if require_stopped:
         resource = read_azure_json(result, operation)
@@ -371,7 +382,7 @@ def read_autoscale_setting(resource_id, subscription):
         "--query", "{id:id,enabled:properties.enabled,target:properties.targetResourceUri,profiles:properties.profiles}",
         "--output", "json", "--only-show-errors",
     ], operation)
-    if result.returncode == 3 and ABSENT_ERROR.search(result.stderr):
+    if result.returncode == 3 and is_absence_error(ABSENT_ERROR, result.stderr, resource_id):
         return None
     setting = read_azure_json(result, operation)
     returned_id = setting.get("id") if isinstance(setting, dict) else None
@@ -607,10 +618,10 @@ def delete_resource(entry, subscription, skipped_descendants):
         if kind == APP_PLAN:
             verify_plan_members(resource_id, subscription)
     if result.returncode:
-        missing = (result.returncode == 3 and ABSENT_ERROR.search(result.stderr)) or (
+        missing = (result.returncode == 3 and is_absence_error(ABSENT_ERROR, result.stderr, resource_id)) or (
             result.returncode == 1
             and "ERROR: Some resources failed to be deleted" in result.stderr
-            and ABSENT_DELETE_DETAIL.search(result.stderr)
+            and is_absence_error(ABSENT_DELETE_DETAIL, result.stderr, resource_id)
         )
         if missing and not resource_exists(resource_id, subscription):
             print(f"Already deleted {resource_id}", flush=True)
@@ -624,6 +635,17 @@ def delete_resource(entry, subscription, skipped_descendants):
             print(f"Verified deleted {resource_id}", flush=True)
             return True
     raise DecommissionError(f"{operation}: resource still exists after deletion")
+
+
+def deletion_blocker(resource_id, unfinished):
+    prefix = resource_id.lower() + "/"
+    kind = resource_type(resource_id).lower()
+    for earlier_id in unfinished:
+        if earlier_id.lower().startswith(prefix):
+            return f"earlier child deletion incomplete: {earlier_id}"
+        if kind in WORKFLOW_DEPENDENCIES and resource_type(earlier_id).lower() == LOGIC_WORKFLOW:
+            return f"earlier Logic workflow deletion incomplete: {earlier_id}"
+    return None
 
 
 def run(args):
@@ -671,12 +693,30 @@ def run(args):
             skipped_descendants[resource_id] = descendants
 
     deleted = 0
+    failures = {}
+    blocked = {}
     for current in states:
-        if current["exists"]:
+        if not current["exists"]:
+            continue
+        resource_id = current["id"]
+        blocker = deletion_blocker(resource_id, (*failures, *blocked)) if failures else None
+        if blocker:
+            blocked[resource_id] = blocker
+            continue
+        try:
             sign_in.renew_if_due()
-            deleted += delete_resource(current, subscription, skipped_descendants[current["id"]])
+            deleted += delete_resource(current, subscription, skipped_descendants[resource_id])
+        except DecommissionError as exc:
+            failures[resource_id] = str(exc)
+
+    already_deleted = len(states) - deleted - len(failures) - len(blocked)
     print(f"Summary: {len(resources)} listed, {deleted} deleted, "
-          f"{len(states) - deleted} already deleted, {len(skipped)} absent in approved plan and skipped", flush=True)
+          f"{already_deleted} already deleted, {len(failures)} failed, {len(blocked)} blocked, "
+          f"{len(skipped)} absent in approved plan and skipped", flush=True)
+    if failures or blocked:
+        details = [f"Failed {resource_id}: {reason}" for resource_id, reason in failures.items()]
+        details.extend(f"Blocked {resource_id}: {reason}" for resource_id, reason in blocked.items())
+        raise DecommissionError("Classic decommissioning failures:\n" + "\n".join(details))
 
 
 def main(argv=None):
