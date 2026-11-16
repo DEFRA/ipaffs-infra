@@ -1019,6 +1019,8 @@
 # Deleting each service also removes its indexes, indexers and data sources.
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001/providers/Microsoft.Search/searchServices/import-azure-search-dev
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001/providers/Microsoft.Search/searchServices/imports-azure-search-shared-s2
+# Retire the SND Classic Bicep and DEV Classic Access references before approving deletion.
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Search/searchServices/sndimpinfass001
 
 # Microsoft.Cache/redis
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001/providers/Microsoft.Cache/Redis/SNDIMPRDS001

@@ -186,6 +186,7 @@ stages:
                     ADO_ORG_URL: $(System.CollectionUri)
                     ADO_PROJECT: $(System.TeamProject)
                     ADO_GROUP_NAME: ${{ parameters.environmentName }}
+                    CLASSIC_ENVIRONMENT_NAME: ${{ parameters.classicEnvironmentName }}
                     AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
                     DEPLOYMENT_NAME: Classic-$(Build.BuildId)
                     RESOURCE_GROUP: $(classicResourceGroupName)
@@ -196,20 +197,26 @@ stages:
                     scriptLocation: inlineScript
                     inlineScript: |
                       set -euo pipefail
-                      python3 scripts/pipeline/sync-deployment-outputs.py \
-                        --emit-output=classicRedisResourceId \
-                        --emit-output=classicSearchServiceResourceId \
-                        --emit-output=classicServiceBusNamespaceResourceId \
-                        --emit-output=classicSqlServerResourceId \
-                        classicRedisName=redisName \
-                        classicRedisResourceId=redisResourceId \
-                        classicSearchServiceSubscriptionId=searchServiceSubscriptionId \
-                        classicSearchServiceResourceGroupName=searchServiceResourceGroupName \
-                        classicSearchServiceName=searchServiceName \
-                        classicSearchServiceManagedIdentityPrincipalId=searchServiceManagedIdentityPrincipalId \
-                        classicSearchServiceManagedIdentityPrincipalName=searchServiceManagedIdentityPrincipalName \
-                        classicSearchServiceResourceId=searchServiceResourceId \
-                        classicServiceBusNamespaceName=serviceBusNamespaceName \
-                        classicServiceBusNamespaceResourceId=serviceBusNamespaceResourceId \
-                        classicSqlServerName=sqlServerName \
+                      mappings=(
+                        --emit-output=classicRedisResourceId
+                        --emit-output=classicServiceBusNamespaceResourceId
+                        --emit-output=classicSqlServerResourceId
+                        classicRedisName=redisName
+                        classicRedisResourceId=redisResourceId
+                        classicServiceBusNamespaceName=serviceBusNamespaceName
+                        classicServiceBusNamespaceResourceId=serviceBusNamespaceResourceId
+                        classicSqlServerName=sqlServerName
                         classicSqlServerResourceId=sqlServerResourceId
+                      )
+                      if [[ "$CLASSIC_ENVIRONMENT_NAME" != SND ]]; then
+                        mappings+=(
+                          --emit-output=classicSearchServiceResourceId
+                          classicSearchServiceSubscriptionId=searchServiceSubscriptionId
+                          classicSearchServiceResourceGroupName=searchServiceResourceGroupName
+                          classicSearchServiceName=searchServiceName
+                          classicSearchServiceManagedIdentityPrincipalId=searchServiceManagedIdentityPrincipalId
+                          classicSearchServiceManagedIdentityPrincipalName=searchServiceManagedIdentityPrincipalName
+                          classicSearchServiceResourceId=searchServiceResourceId
+                        )
+                      fi
+                      python3 scripts/pipeline/sync-deployment-outputs.py "${mappings[@]}"

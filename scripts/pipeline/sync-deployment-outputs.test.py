@@ -332,12 +332,6 @@ class OutputSyncTests(unittest.TestCase):
 EXPECTED_MAPPINGS = {
     "acr": """acrLoginServer=acrLoginServer acrName=acrName acrResourceId=acrResourceId""".split(),
     "classic": """classicRedisName=redisName classicRedisResourceId=redisResourceId
-        classicSearchServiceSubscriptionId=searchServiceSubscriptionId
-        classicSearchServiceResourceGroupName=searchServiceResourceGroupName
-        classicSearchServiceName=searchServiceName
-        classicSearchServiceManagedIdentityPrincipalId=searchServiceManagedIdentityPrincipalId
-        classicSearchServiceManagedIdentityPrincipalName=searchServiceManagedIdentityPrincipalName
-        classicSearchServiceResourceId=searchServiceResourceId
         classicServiceBusNamespaceName=serviceBusNamespaceName
         classicServiceBusNamespaceResourceId=serviceBusNamespaceResourceId
         classicSqlServerName=sqlServerName classicSqlServerResourceId=sqlServerResourceId""".split(),
@@ -364,6 +358,12 @@ EXPECTED_MAPPINGS = {
         insightsInstrumentationKey=insightsInstrumentationKey grafanaManagedIdentityPrincipalId=grafanaManagedIdentityPrincipalId
         grafanaName=grafanaName prometheusName=prometheusName""".split(),
 }
+CLASSIC_SEARCH_MAPPINGS = """classicSearchServiceSubscriptionId=searchServiceSubscriptionId
+    classicSearchServiceResourceGroupName=searchServiceResourceGroupName
+    classicSearchServiceName=searchServiceName
+    classicSearchServiceManagedIdentityPrincipalId=searchServiceManagedIdentityPrincipalId
+    classicSearchServiceManagedIdentityPrincipalName=searchServiceManagedIdentityPrincipalName
+    classicSearchServiceResourceId=searchServiceResourceId""".split()
 QA_MAPPINGS = ["qaKeyVaultName=qaKeyVaultName", "qaKeyVaultUrl=qaKeyVaultUri"]
 
 
@@ -390,6 +390,7 @@ sys.exit(int(os.environ["COLLECTOR_EXIT"]))
             collector.chmod(0o755)
             log = directory / "mappings.jsonl"
             for environment in ("DEV", "TST", "PRE", "PRD"):
+                classic_environment = "SND" if environment == "DEV" else environment
                 count = 0
                 for component, expected in EXPECTED_MAPPINGS.items():
                     if component == "acr" and environment == "TST":
@@ -409,16 +410,24 @@ sys.exit(int(os.environ["COLLECTOR_EXIT"]))
                                                  "variables": {"Build.SourceBranch": branch},
                                                  "failed": failed, "canceled": canceled}),
                                              (component, branch, failed, canceled))
-                    self.assertEqual(set(ENVIRONMENT), set(task["env"]))
+                    extra_env = {"CLASSIC_ENVIRONMENT_NAME": classic_environment} if component == "classic" else {}
+                    if extra_env:
+                        self.assertEqual("${{ parameters.classicEnvironmentName }}",
+                                         task["env"]["CLASSIC_ENVIRONMENT_NAME"])
+                    self.assertEqual(set(ENVIRONMENT) | set(extra_env), set(task["env"]))
                     self.assertNotIn("set -x", task["inputs"]["inlineScript"])
                     script = task["inputs"]["inlineScript"].replace("${{ parameters.environmentName }}", environment)
                     actual_expected = expected + (QA_MAPPINGS if component == "infra" and environment == "TST" else [])
+                    sync_classic_search = component == "classic" and classic_environment != "SND"
+                    if sync_classic_search:
+                        actual_expected += CLASSIC_SEARCH_MAPPINGS
                     count += len(actual_expected)
                     for collector_exit in (0, 23):
                         with self.subTest(environment=environment, component=component, collector_exit=collector_exit):
                             log.unlink(missing_ok=True)
                             result = subprocess.run([shutil.which("bash"), "-c", script], cwd=ROOT,
-                                                    env={**os.environ, "PATH": str(directory) + os.pathsep + os.environ["PATH"],
+                                                    env={**os.environ, **extra_env,
+                                                         "PATH": str(directory) + os.pathsep + os.environ["PATH"],
                                                          "MAPPING_LOG": str(log), "COLLECTOR_EXIT": str(collector_exit)},
                                                     text=True, capture_output=True, timeout=10)
                             self.assertEqual(collector_exit, result.returncode, result.stderr)
@@ -431,7 +440,8 @@ sys.exit(int(os.environ["COLLECTOR_EXIT"]))
                                        if arg.startswith("--emit-output=")]
                             self.assertEqual(len(set(emitted)), len(emitted))
                             self.assertLessEqual(set(emitted), {mapping.split("=")[0] for mapping in actual_expected})
-                self.assertEqual(53 if environment == "TST" else 54, count)
+                            self.assertEqual(sync_classic_search, "classicSearchServiceResourceId" in emitted)
+                self.assertEqual({"DEV": 48, "TST": 53, "PRE": 54, "PRD": 54}[environment], count)
 
 
 if __name__ == "__main__":

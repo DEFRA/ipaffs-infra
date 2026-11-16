@@ -20,7 +20,7 @@ var tags = union(loadJsonContent('default-tags.json'), {
 param alertsParams object
 param dbwParams object
 param redisParams object
-param searchParams object
+param searchParams object?
 param sejParams object
 param sqlParams object
 // Optional: the elastic pools to manage. An entry may set resourceGroupName when its
@@ -29,6 +29,7 @@ param sqlPoolsParams array = []
 param serviceBusParams object
 
 var contributorRoleId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b24988ac-6180-42a0-ab88-20f7382dd24c')
+var deploySearch = searchParams != null
 
 module additionalContributors './modules/resource-group-role-assignment.bicep' = [for principalId in principalsNeedingContributor: {
   name: format('additionalContributors-{0}-{1}', deploymentId, substring(uniqueString(principalId), 0, 7))
@@ -68,13 +69,13 @@ module redis './modules/redis-classic.bicep' = {
   }
 }
 
-module search './modules/search-classic.bicep' = {
+module search './modules/search-classic.bicep' = if (deploySearch) {
   name: 'search-${deploymentId}'
   scope: resourceGroup()
   params: {
     deploymentId: deploymentId
     location: location
-    searchParams: searchParams
+    searchParams: searchParams!
     sqlServerName: sql.outputs.sqlServerName
     tags: tags
   }
@@ -131,12 +132,12 @@ module sqlPools './modules/sql-pool-classic.bicep' = [for (pool, i) in sqlPoolsP
 
 output redisName string = redis.outputs.redisName
 output redisResourceId string = redis.outputs.redisResourceId
-output searchServiceSubscriptionId string = search.outputs.searchServiceSubscriptionId
-output searchServiceResourceGroupName string = search.outputs.searchServiceResourceGroupName
-output searchServiceName string = search.outputs.searchServiceName
-output searchServiceManagedIdentityPrincipalName string = search.outputs.searchServiceManagedIdentityPrincipalName
-output searchServiceManagedIdentityPrincipalId string = search.outputs.searchServiceManagedIdentityPrincipalId
-output searchServiceResourceId string = search.outputs.searchServiceResourceId
+output searchServiceSubscriptionId string = deploySearch ? search!.outputs.searchServiceSubscriptionId : ''
+output searchServiceResourceGroupName string = deploySearch ? search!.outputs.searchServiceResourceGroupName : ''
+output searchServiceName string = deploySearch ? search!.outputs.searchServiceName : ''
+output searchServiceManagedIdentityPrincipalName string = deploySearch ? search!.outputs.searchServiceManagedIdentityPrincipalName : ''
+output searchServiceManagedIdentityPrincipalId string = deploySearch ? search!.outputs.searchServiceManagedIdentityPrincipalId : ''
+output searchServiceResourceId string = deploySearch ? search!.outputs.searchServiceResourceId : ''
 output serviceBusNamespaceName string = serviceBus.outputs.serviceBusNamespaceName
 output serviceBusNamespaceResourceId string = serviceBus.outputs.serviceBusNamespaceResourceId
 output sqlServerName string = sql.outputs.sqlServerName
