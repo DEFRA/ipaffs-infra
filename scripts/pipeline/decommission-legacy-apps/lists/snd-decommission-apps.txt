@@ -1,2 +1,3 @@
-# No apps to stop or recover
-# The AZR-SND Classic apps are listed in the Classic decommissioning pipeline.
+# Stop the PerformMatching Function App before running Classic decommissioning.
+# Remove this entry once the Function App has been deleted.
+SNDIMPINFRGP010/SNDIMPWEBAFA001
