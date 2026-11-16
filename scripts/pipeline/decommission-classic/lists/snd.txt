@@ -2,6 +2,50 @@
 # Keep the groups in deletion order and use one full ARM resource ID per line.
 # Includes stopped App Services approved for retirement and verified in Azure.
 
+# Remaining Classic SND network resources and unused managed identities.
+
+# Microsoft.Network/privateEndpoints
+# Storage accounts behind these endpoints have been deleted.
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Network/privateEndpoints/sndimpinfsto005privateEndpoint
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Network/privateEndpoints/sndimpinfsto019privateEndpoint
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Network/privateEndpoints/archivenotificationssndprivateEndpoint
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Network/privateEndpoints/sndimpinfsto020privateEndpoint
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Network/privateEndpoints/sndimpinfsto021privateEndpoint
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Network/privateEndpoints/sndimpinfsto022privateEndpoint
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Network/privateEndpoints/sndimpinfsto023privateEndpoint
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Network/privateEndpoints/sndimpinfsto025privateEndpoint
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Network/privateEndpoints/sndimpinfsto026privateEndpoint
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Network/privateEndpoints/sndimpinfsto027privateEndpoint
+
+# Microsoft.Network/networkInterfaces
+# Azure manages these interfaces with their endpoints. List the endpoints first.
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Network/networkInterfaces/sndimpinfsto005privateEndpointnic
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Network/networkInterfaces/sndimpinfsto019privateEndpointnic
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Network/networkInterfaces/archivenotificationssndprivateEndpointnic
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Network/networkInterfaces/sndimpinfsto020privateEndpointnic
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Network/networkInterfaces/sndimpinfsto021privateEndpointnic
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Network/networkInterfaces/sndimpinfsto022privateEndpointnic
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Network/networkInterfaces/sndimpinfsto023privateEndpointnic
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Network/networkInterfaces/sndimpinfsto025privateEndpointnic
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Network/networkInterfaces/sndimpinfsto026privateEndpointnic
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Network/networkInterfaces/sndimpinfsto027privateEndpointnic
+
+# Microsoft.Network/virtualNetworks
+# Retire the unused Jenkins build agent network.
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-jenkins-build-slaves/providers/Microsoft.Network/virtualNetworks/jenkinsarm-vnet
+
+# Microsoft.Network/applicationSecurityGroups
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Network/applicationSecurityGroups/sndimpdatabaseprivateEndpointTest
+
+# Microsoft.ManagedIdentity/userAssignedIdentities
+# Classic identities with no observed attachments or federated credentials.
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001/providers/Microsoft.ManagedIdentity/userAssignedIdentities/dev-imp-docker-pull
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001/providers/Microsoft.ManagedIdentity/userAssignedIdentities/dev-imp-secrets-keyvault
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001/providers/Microsoft.ManagedIdentity/userAssignedIdentities/hfx-imp-secrets-keyvault
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001/providers/Microsoft.ManagedIdentity/userAssignedIdentities/snd-imp-secrets-keyvault
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001/providers/Microsoft.ManagedIdentity/userAssignedIdentities/sndimpjesuid001
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.ManagedIdentity/userAssignedIdentities/snd-imp-docker-pull
+
 # Microsoft.Insights/autoscaleSettings
 # Disabled rules for App Service plans verified absent in Azure.
 # Rules for existing plans are deferred with those plans.
