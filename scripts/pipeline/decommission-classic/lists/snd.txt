@@ -361,6 +361,16 @@
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp010/providers/Microsoft.Web/sites/soapsearch-microservice-green-snd
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Web/sites/imports-proxy-idmlatest-snd
 
+# The SOAP plan hosts only the SND PerformMatching Function App.
+# Delete its alerts before the app and the plan diagnostic before the plan.
+# Disable and delete the autoscale setting after the plan is gone.
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp010/providers/microsoft.insights/metricalerts/sndimpwebafa001_northeurope_healthcheckstatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp010/providers/microsoft.insights/metricalerts/sndimpwebafa001_northeurope_servererror
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Web/sites/SNDIMPWEBAFA001
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp010/providers/microsoft.web/serverfarms/soap-services-planv3-1/providers/microsoft.insights/diagnosticSettings/setByLAPolicy
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Web/serverfarms/soap-services-planv3-1
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/autoscaleSettings/soap-services-planv3-1-AutoScaleSetting
+
 # Microsoft.Insights/diagnosticSettings
 # Remove the settings before their source App Service plans and SQL pool.
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Web/serverFarms/frontend-planv3-1/providers/Microsoft.Insights/diagnosticSettings/setByLAPolicy
