@@ -364,7 +364,6 @@
 # Microsoft.Insights/diagnosticSettings
 # Remove the settings before their source App Service plans and SQL pool.
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Web/serverFarms/frontend-planv3-1/providers/Microsoft.Insights/diagnosticSettings/setByLAPolicy
-/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Web/serverFarms/soap-services-planv3-1/providers/Microsoft.Insights/diagnosticSettings/setByLAPolicy
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Sql/servers/sndimpdbssqa004/elasticPools/sndimpedpsqa004/providers/Microsoft.Insights/diagnosticSettings/setByLAPolicy
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Sql/servers/sndimpdbssqa004/elasticPools/sndimpedpsqa004/providers/Microsoft.Insights/diagnosticSettings/sndimpedpsqa004SendToStorage
 
@@ -394,7 +393,6 @@
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Web/serverfarms/low-traffic-planv3-1
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Web/serverfarms/reference-data-planv3-1
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Web/serverFarms/frontend-planv3-1
-/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Web/serverFarms/soap-services-planv3-1
 
 # Microsoft.Insights/autoscaleSettings
 # Disable and delete only after Azure confirms the listed target plan is gone.
@@ -404,7 +402,6 @@
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/microsoft.insights/autoscalesettings/low-traffic-planv3-1-AutoScaleSetting
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/microsoft.insights/autoscalesettings/reference-data-planv3-1-AutoScaleSetting
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/autoscalesettings/frontend-planv3-1-AutoScaleSetting
-/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/autoscalesettings/soap-services-planv3-1-AutoScaleSetting
 
 # Microsoft.ManagedIdentity/userAssignedIdentities
 # Identity used by the proxy listed above.
