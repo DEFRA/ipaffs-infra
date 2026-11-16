@@ -46,6 +46,8 @@ LOGIC_WORKFLOW = "microsoft.logic/workflows"
 WORKFLOW_DEPENDENCIES = {"microsoft.web/connections", "microsoft.storage/storageaccounts", SERVICE_BUS_NAMESPACE}
 AUTOSCALE_SETTING = "microsoft.insights/autoscalesettings"
 AUTOSCALE_API = "2022-10-01"
+DIAGNOSTIC_SETTING = "microsoft.insights/diagnosticsettings"
+DIAGNOSTIC_SETTING_API = "2021-05-01-preview"
 APP_SERVICE_TYPES = {APP_SITE, APP_SLOT}
 APP_SERVICE_API = "2025-05-01"
 SUBNET_TYPE = "microsoft.network/virtualnetworks/subnets"
@@ -151,6 +153,13 @@ def resource_type(resource_id):
     return "/".join([parts[provider + 1], *parts[provider + 2::2]])
 
 
+def resource_api_version_args(kind):
+    if kind.lower() == DIAGNOSTIC_SETTING:
+        # Azure CLI version discovery can select an unsupported API for this extension.
+        return ["--api-version", DIAGNOSTIC_SETTING_API]
+    return []
+
+
 # Set by run() so any Azure CLI call can sign in again if its assertion expired.
 pipeline_sign_in = None
 
@@ -211,13 +220,14 @@ def read_resource(resource_id, subscription, *, require_stopped=False):
     operation = f"Check {resource_id}"
     query = "{id:id,state:properties.state,subnetId:properties.virtualNetworkSubnetId}" if require_stopped else "id"
     output = "json" if require_stopped else "tsv"
+    api_version_args = resource_api_version_args(resource_type(resource_id))
     for attempt in range(UNCODED_NOT_FOUND_ATTEMPTS):
         if attempt:
             print(f"{operation}: Azure answered 404 with no error code, checking again in "
                   f"{VERIFY_INTERVAL}s ({attempt}/{UNCODED_NOT_FOUND_ATTEMPTS - 1})", flush=True)
             time.sleep(VERIFY_INTERVAL)
         result = run_az([
-            "resource", "show", "--ids", resource_id, "--subscription", subscription,
+            "resource", "show", "--ids", resource_id, *api_version_args, "--subscription", subscription,
             "--query", query, "--output", output, "--only-show-errors",
         ], operation)
         absent = result.returncode == 3 and is_absence_error(ABSENT_ERROR, result.stderr, resource_id)
@@ -594,7 +604,7 @@ def delete_resource(entry, subscription, skipped_descendants):
                 resource_id, entry["targetPlanId"], entry["disableAfterPlan"], subscription):
             print(f"Already deleted {resource_id}", flush=True)
             return False
-        command = ["resource", "delete", "--ids", resource_id]
+        command = ["resource", "delete", "--ids", resource_id, *resource_api_version_args(kind)]
 
     print(f"Deleting {resource_id}", flush=True)
     for attempt in range(1, THROTTLE_ATTEMPTS + 1):

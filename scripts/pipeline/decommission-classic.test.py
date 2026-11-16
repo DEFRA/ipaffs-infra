@@ -170,6 +170,11 @@ class DecommissionTests(unittest.TestCase):
             resource_id = SLOT if "--slot=staging" in arguments else APP
         else:
             resource_id = arguments[arguments.index("--ids") + 1]
+            if "/providers/microsoft.insights/diagnosticsettings/" in resource_id.lower():
+                self.assertIn("--api-version", arguments)
+                self.assertEqual("2021-05-01-preview", arguments[arguments.index("--api-version") + 1])
+            else:
+                self.assertNotIn("--api-version", arguments)
         if command == ["resource", "show"]:
             self.reads.append(resource_id)
             if self.check_sequences.get(resource_id):
@@ -247,6 +252,29 @@ class DecommissionTests(unittest.TestCase):
         self.assertEqual(0, status, errors)
         self.assertEqual([], self.deletes)
         self.assertIn("2 listed, 0 deleted, 2 already deleted", output)
+
+    def test_deletes_and_verifies_diagnostic_setting_before_its_parent(self):
+        self.current = {EXTENSION, SERVER}
+        self.resources.write_text(f"{EXTENSION}\n{SERVER}\n", encoding="utf-8")
+        self.plan_successfully()
+        self.reads.clear()
+
+        status, output, errors = self.execute("delete")
+
+        self.assertEqual(0, status, errors)
+        self.assertEqual([EXTENSION, SERVER], self.deletes)
+        self.assertEqual([EXTENSION, SERVER, EXTENSION, SERVER], self.reads)
+        self.assertIn(f"Verified deleted {EXTENSION}", output)
+
+    def test_diagnostic_setting_provider_error_is_not_absence(self):
+        self.resources.write_text(f"{EXTENSION}\n", encoding="utf-8")
+        self.check_failures[EXTENSION] = 3, "ERROR: (OperationNotFound) Path is not supported"
+
+        status, _, errors = self.execute("plan")
+
+        self.assertEqual(1, status)
+        self.assertIn("(OperationNotFound)", errors)
+        self.assertFalse(self.plan.exists())
 
     def test_resource_name_with_spaces_is_passed_unchanged(self):
         alert = f"{GROUP}/providers/Microsoft.Insights/metricAlerts/Classic high CPU (SND)"

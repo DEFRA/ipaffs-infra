@@ -361,6 +361,13 @@
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp010/providers/Microsoft.Web/sites/soapsearch-microservice-green-snd
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Web/sites/imports-proxy-idmlatest-snd
 
+# Microsoft.Insights/diagnosticSettings
+# Remove the settings before their source App Service plans and SQL pool.
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Web/serverFarms/frontend-planv3-1/providers/Microsoft.Insights/diagnosticSettings/setByLAPolicy
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Web/serverFarms/soap-services-planv3-1/providers/Microsoft.Insights/diagnosticSettings/setByLAPolicy
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Sql/servers/sndimpdbssqa004/elasticPools/sndimpedpsqa004/providers/Microsoft.Insights/diagnosticSettings/setByLAPolicy
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Sql/servers/sndimpdbssqa004/elasticPools/sndimpedpsqa004/providers/Microsoft.Insights/diagnosticSettings/sndimpedpsqa004SendToStorage
+
 # Microsoft.Web/serverFarms
 # Delete only after all earlier listed member apps are gone.
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp001-imports-proxy/providers/Microsoft.Web/serverfarms/services-general-proxy
@@ -776,6 +783,8 @@
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/microsoft.insights/metricalerts/Test Alert-ipaff-checks-ms
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/WebApp_northeurope_HealthCheckStatus
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/WebApp_northeurope_ServerError
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/imports-proxy-idmlatest-snd_northeurope_HealthCheckStatus
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/imports-proxy-idmlatest-snd_northeurope_ServerError
 
 # Log search alert rules
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-imports-static-vnet/providers/microsoft.insights/scheduledqueryrules/Address_lookup_failures
@@ -914,6 +923,10 @@
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/scheduledqueryrules/Risk Locking Microservice Error Alerts insights-SNDIMPINFRGP009-blue
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/scheduledqueryrules/Risk Locking Microservice Error Alerts insights-SNDIMPINFRGP009-green
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/scheduledqueryrules/IPAFFS Traces data import alert insights-SNDIMPINFRGP010-blue
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-imports-proxy-availability
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-imports-proxy-availability-BLUE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-imports-proxy-average-response-time
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-imports-proxy-average-response-time-BLUE
 
 # Smart detector rules
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001/providers/microsoft.alertsmanagement/smartDetectorAlertRules/Failure Anomalies - test-gs-2
@@ -939,6 +952,7 @@
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-imports-static-vnet/providers/microsoft.insights/actiongroups/Risk Locking Microservice Error Alerts Recipients
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-imports-static-vnet/providers/Microsoft.Insights/actiongroups/Traces Data Import Alerts Recipients
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-imports-static-vnet/providers/Microsoft.Insights/actiongroups/Trade Platform Alerts Recipients
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/actionGroups/snd-IPAFFS-AMS-TEAM-P1
 
 # Availability tests
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/webtests/test-delete-me-insights-sndimpinfrgp009-green
@@ -976,15 +990,9 @@
 # /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001/providers/Microsoft.OperationalInsights/workspaces/waflogs-imta9334
 # /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-imports-static-vnet/providers/Microsoft.OperationalInsights/workspaces/log-analytics-SNDIMPINFRGP001-imports-static-vnet
 
-# The remaining SND apps use blue Application Insights and the proxy alerts.
+# Blue Application Insights still receives Function App telemetry and runs the DEV PIMS test.
 # /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.alertsmanagement/smartDetectorAlertRules/Failure Anomalies - insights-SNDIMPINFRGP009-blue
 # /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/components/insights-SNDIMPINFRGP009-blue
-# /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/imports-proxy-idmlatest-snd_northeurope_HealthCheckStatus
-# /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP010/providers/Microsoft.Insights/metricalerts/imports-proxy-idmlatest-snd_northeurope_ServerError
-# /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-imports-proxy-availability
-# /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-imports-proxy-availability-BLUE
-# /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-imports-proxy-average-response-time
-# /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-imports-proxy-average-response-time-BLUE
 # /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-invalid-certificate-detected-BLUE
 # /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.OperationalInsights/workspaces/log-analytics-SNDIMPINFRGP009-blue
 
