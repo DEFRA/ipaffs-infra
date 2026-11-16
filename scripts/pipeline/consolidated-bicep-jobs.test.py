@@ -329,6 +329,7 @@ class ConsolidatedBicepJobTests(unittest.TestCase):
                                      values["parameterSqlAdminGroup" + suffix])
                 output_task, = [task for task in steps(classic) if task.get("name") == "ClassicOutputs"]
                 self.assertEqual("DEV", output_task["env"]["ADO_GROUP_NAME"])
+                self.assertEqual("SND", output_task["env"]["CLASSIC_ENVIRONMENT_NAME"])
                 self.assertEqual("$(classicSubscriptionId)", output_task["env"]["SUBSCRIPTION_ID"])
                 self.assertEqual("$(classicResourceGroupName)", output_task["env"]["RESOURCE_GROUP"])
 

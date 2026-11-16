@@ -43,11 +43,6 @@ param redisParams = {
   name: 'SNDIMPINFRDS001'
 }
 
-param searchParams = {
-  name: 'sndimpinfass001'
-  userAssignedIdentityName: 'SNDIMPINFASS001'
-}
-
 param sejParams = {
   databaseName: 'elasticjobs'
   databaseNames: ['notification-microservice']
