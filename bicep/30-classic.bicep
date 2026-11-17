@@ -19,17 +19,20 @@ var tags = union(loadJsonContent('default-tags.json'), {
 
 param alertsParams object
 param dbwParams object
-param redisParams object
+param redisParams object?
 param searchParams object?
-param sejParams object
-param sqlParams object
+param sejParams object?
+param sqlParams object?
 // Optional: the elastic pools to manage. An entry may set resourceGroupName when its
 // pool is outside this resource group (PRE-TRN). SND manages none.
 param sqlPoolsParams array = []
 param serviceBusParams object
 
 var contributorRoleId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b24988ac-6180-42a0-ab88-20f7382dd24c')
+var deployRedis = redisParams != null
 var deploySearch = searchParams != null
+var deployElasticJobs = sejParams != null
+var deploySql = sqlParams != null
 
 module additionalContributors './modules/resource-group-role-assignment.bicep' = [for principalId in principalsNeedingContributor: {
   name: format('additionalContributors-{0}-{1}', deploymentId, substring(uniqueString(principalId), 0, 7))
@@ -61,11 +64,11 @@ module dbw './modules/database-watcher.bicep' = {
   }
 }
 
-module redis './modules/redis-classic.bicep' = {
+module redis './modules/redis-classic.bicep' = if (deployRedis) {
   name: 'redis-${deploymentId}'
   scope: resourceGroup()
   params: {
-    redisParams: redisParams
+    redisParams: redisParams!
   }
 }
 
@@ -76,12 +79,12 @@ module search './modules/search-classic.bicep' = if (deploySearch) {
     deploymentId: deploymentId
     location: location
     searchParams: searchParams!
-    sqlServerName: sql.outputs.sqlServerName
+    sqlServerName: deploySql ? sql!.outputs.sqlServerName : ''
     tags: tags
   }
 }
 
-module sej './modules/sql-elastic-jobs.bicep' = {
+module sej './modules/sql-elastic-jobs.bicep' = if (deployElasticJobs) {
   name: 'sej-${deploymentId}'
   scope: resourceGroup()
   params: {
@@ -90,7 +93,7 @@ module sej './modules/sql-elastic-jobs.bicep' = {
       notifyDba: resourceId('Microsoft.Insights/actionGroups', alertsParams.actionGroups.notifyDba.name)
     }
     location: location
-    sejParams: sejParams
+    sejParams: sejParams!
     tags: tags
   }
   dependsOn: [alerts]
@@ -104,12 +107,12 @@ module serviceBus './modules/servicebus-classic.bicep' = {
   }
 }
 
-module sql './modules/sql-classic.bicep' = {
+module sql './modules/sql-classic.bicep' = if (deploySql) {
   name: 'sql-${deploymentId}'
   scope: resourceGroup()
   params: {
     entraGroups: entraGroups
-    sqlParams: sqlParams
+    sqlParams: sqlParams!
     tenantId: tenantId
   }
 }
@@ -130,8 +133,8 @@ module sqlPools './modules/sql-pool-classic.bicep' = [for (pool, i) in sqlPoolsP
   }
 }]
 
-output redisName string = redis.outputs.redisName
-output redisResourceId string = redis.outputs.redisResourceId
+output redisName string = deployRedis ? redis!.outputs.redisName : ''
+output redisResourceId string = deployRedis ? redis!.outputs.redisResourceId : ''
 output searchServiceSubscriptionId string = deploySearch ? search!.outputs.searchServiceSubscriptionId : ''
 output searchServiceResourceGroupName string = deploySearch ? search!.outputs.searchServiceResourceGroupName : ''
 output searchServiceName string = deploySearch ? search!.outputs.searchServiceName : ''
@@ -140,6 +143,6 @@ output searchServiceManagedIdentityPrincipalId string = deploySearch ? search!.o
 output searchServiceResourceId string = deploySearch ? search!.outputs.searchServiceResourceId : ''
 output serviceBusNamespaceName string = serviceBus.outputs.serviceBusNamespaceName
 output serviceBusNamespaceResourceId string = serviceBus.outputs.serviceBusNamespaceResourceId
-output sqlServerName string = sql.outputs.sqlServerName
-output sqlServerResourceId string = sql.outputs.sqlServerResourceId
+output sqlServerName string = deploySql ? sql!.outputs.sqlServerName : ''
+output sqlServerResourceId string = deploySql ? sql!.outputs.sqlServerResourceId : ''
 

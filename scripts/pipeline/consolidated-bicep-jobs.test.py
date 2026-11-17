@@ -209,22 +209,27 @@ class ConsolidatedBicepJobTests(unittest.TestCase):
                     self.assert_main_only(tasks[deploy]["condition"])
                     if component == "classic":
                         wait = task_names.index("Wait for Deployment - Classic")
-                        approve = task_names.index("Approve SQL Elastic Jobs private endpoint")
+                        approval_name = "Approve SQL Elastic Jobs private endpoint"
                         validate = task_names.index("Validate SQL elastic pools - Classic")
                         self.assertLess(validate, preview)
                         self.assertNotIn("condition", tasks[validate])
                         self.assertIn("scripts/pipeline/validate-sql-elastic-pools.py",
                                       tasks[validate]["inputs"]["inlineScript"])
                         outputs = task_names.index("Classic outputs")
-                        self.assertLess(deploy, approve)
-                        self.assertLess(approve, wait)
+                        self.assertLess(deploy, wait)
                         self.assertLess(wait, outputs)
                         self.assertIn("--no-wait", tasks[deploy]["inputs"]["inlineScript"])
-                        self.assertEqual(tasks[deploy]["condition"], tasks[approve]["condition"])
-                        approval_script = tasks[approve]["inputs"]["inlineScript"]
-                        self.assertIn("scripts/pipeline/approve-sql-elastic-job-private-endpoint.py", approval_script)
-                        self.assertIn('--deployment-name "$CLASSIC_DEPLOYMENT_NAME"', approval_script)
-                        self.assertIn('az deployment group cancel', approval_script)
+                        if environment == "DEV":
+                            self.assertNotIn(approval_name, task_names)
+                        else:
+                            approve = task_names.index(approval_name)
+                            self.assertLess(deploy, approve)
+                            self.assertLess(approve, wait)
+                            self.assertEqual(tasks[deploy]["condition"], tasks[approve]["condition"])
+                            approval_script = tasks[approve]["inputs"]["inlineScript"]
+                            self.assertIn("scripts/pipeline/approve-sql-elastic-job-private-endpoint.py", approval_script)
+                            self.assertIn('--deployment-name "$CLASSIC_DEPLOYMENT_NAME"', approval_script)
+                            self.assertIn('az deployment group cancel', approval_script)
                         self.assertIn("--created", tasks[wait]["inputs"]["inlineScript"])
                     connection_environment = "SND" if component == "classic" and environment == "DEV" else environment
                     connection_variable = "classicServiceConnection" if component == "classic" else "serviceConnection"
