@@ -39,28 +39,7 @@ param dbwParams = {
   }
 }
 
-param redisParams = {
-  name: 'SNDIMPINFRDS001'
-}
-
-param sejParams = {
-  databaseName: 'elasticjobs'
-  databaseNames: ['notification-microservice']
-  databaseMaxSizeGiB: 10
-  jobAgentName: 'SNDIMPDBSJBA001'
-  jobAgentSku: {
-    name: 'JA100'
-    capacity: 100
-  }
-  sqlServerName: 'SNDIMPDBSSQA004'
-  userAssignedIdentityName: 'snd-imp-elasticjobs-sql'
-}
-
 param serviceBusParams = {
   namespaceName: 'SNDIMPINFSBS002'
-}
-
-param sqlParams = {
-  serverName: 'sndimpdbssqa004'
 }
 

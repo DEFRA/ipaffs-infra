@@ -1225,3 +1225,34 @@
 
 # Microsoft.Sql/servers
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001/providers/Microsoft.Sql/servers/sndimpdbssqa001
+
+# Classic Redis and its dedicated private endpoint and diagnostics.
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Cache/Redis/SNDIMPINFRDS001/providers/Microsoft.Insights/diagnosticSettings/setByLAPolicy
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Cache/Redis/SNDIMPINFRDS001/providers/Microsoft.Insights/diagnosticSettings/Send-AllLogs-to-CCoE-LAW
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Cache/Redis/SNDIMPINFRDS001/providers/Microsoft.Insights/diagnosticSettings/Send-Audit-Logs-to-SOC-LAW
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Network/privateEndpoints/SNDIMPINFRDS001privateEndpoint
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Network/networkInterfaces/SNDIMPINFRDS001privateEndpointnic
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Cache/Redis/SNDIMPINFRDS001
+
+# Storage for the retired PerformMatching Function App.
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Storage/storageAccounts/sndimpinfsto007/providers/Microsoft.Insights/diagnosticSettings/storageAccountsDiagnosticsLogsToWorkspace
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Storage/storageAccounts/sndimpinfsto007/blobServices/default/providers/Microsoft.Insights/diagnosticSettings/blobServicesDiagnosticsLogsToWorkspace
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Storage/storageAccounts/sndimpinfsto007/fileServices/default/providers/Microsoft.Insights/diagnosticSettings/fileServicesDiagnosticsLogsToWorkspace
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Storage/storageAccounts/sndimpinfsto007/queueServices/default/providers/Microsoft.Insights/diagnosticSettings/queueServicesDiagnosticsLogsToWorkspace
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Storage/storageAccounts/sndimpinfsto007/tableServices/default/providers/Microsoft.Insights/diagnosticSettings/tableServicesDiagnosticsLogsToWorkspace
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Network/privateEndpoints/sndimpinfsto007privateEndpoint
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Network/networkInterfaces/sndimpinfsto007privateEndpointnic
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Storage/storageAccounts/sndimpinfsto007
+
+# Classic SQL and its Elastic Job Agent. Retire the agent before its catalog.
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricAlerts/SqlElasticJobsFailed-SNDIMPDBSJBA001
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Sql/servers/sndimpdbssqa004/databases/elasticjobs/providers/Microsoft.Insights/diagnosticSettings/SQLDatabaseDiagnosticsLogsToWorkspace
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Sql/servers/sndimpdbssqa004/databases/elasticjobs/providers/Microsoft.Insights/diagnosticSettings/Send-AllLogs-to-CCoE-LAW
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Sql/servers/sndimpdbssqa004/databases/elasticjobs/providers/Microsoft.Insights/diagnosticSettings/Send-Audit-Logs-to-SOC-LAW
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Sql/servers/sndimpdbssqa004/databases/elasticjobs/providers/Microsoft.Insights/diagnosticSettings/setByPolicyStorage
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Sql/servers/sndimpdbssqa004/jobAgents/SNDIMPDBSJBA001/privateEndpoints/sndimpdbsjba001
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Sql/servers/sndimpdbssqa004/jobAgents/SNDIMPDBSJBA001
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Sql/servers/sndimpdbssqa004/databases/elasticjobs
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Network/privateEndpoints/sndimpdbssqa004-privateEndpoint
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Network/networkInterfaces/sndimpdbssqa004-privateEndpoint-nic
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Sql/servers/sndimpdbssqa004

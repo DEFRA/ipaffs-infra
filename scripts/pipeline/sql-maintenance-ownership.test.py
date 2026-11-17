@@ -122,15 +122,17 @@ class CompiledSqlMaintenanceOwnershipTests(unittest.TestCase):
                 self.assertEqual(5, len(resources))
                 self.assertFalse(any(resource["type"] in MAINTENANCE_TYPES for resource in resources))
 
-    def test_snd_and_tst_keep_the_existing_bootstrap_without_an_explicit_flag(self):
+    def test_snd_omits_the_elastic_job_agent(self):
+        self.assertIsNone(self.parameters["snd"].get("sejParams"))
+
+    def test_tst_keeps_the_existing_bootstrap_without_an_explicit_flag(self):
         expected = Counter({**{resource_type: 1 for resource_type in CORE_TYPES},
                             "Microsoft.Sql/servers/jobAgents/targetGroups": 1,
                             "Microsoft.Sql/servers/jobAgents/jobs": 2,
                             "Microsoft.Sql/servers/jobAgents/jobs/steps": 2})
-        for environment in ("snd", "tst"):
-            with self.subTest(environment=environment):
-                self.assertNotIn("manageMaintenanceDefinitions", self.parameters[environment]["sejParams"])
-                self.assertEqual(expected, Counter(resource["type"] for resource in self.active(self.parameters[environment])))
+        parameters = self.parameters["tst"]
+        self.assertNotIn("manageMaintenanceDefinitions", parameters["sejParams"])
+        self.assertEqual(expected, Counter(resource["type"] for resource in self.active(parameters)))
 
     def test_an_explicit_true_value_can_reenable_management(self):
         parameters = copy.deepcopy(self.parameters["pre"])
@@ -172,8 +174,11 @@ class CompiledSqlMaintenanceOwnershipTests(unittest.TestCase):
 
     def test_classic_deploys_the_data_store_and_reads_the_existing_watcher_identity(self):
         classic = self.compile("build", ROOT / "bicep/30-classic.bicep")
+        classic_resources = classic["resources"]
+        if isinstance(classic_resources, dict):
+            classic_resources = classic_resources.values()
         watcher_deployment, = [
-            resource for resource in classic["resources"]
+            resource for resource in classic_resources
             if "dbwParams" in resource.get("properties", {}).get("parameters", {})
         ]
         resources = {

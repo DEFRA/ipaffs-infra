@@ -139,29 +139,30 @@ stages:
                         --template-file bicep/30-classic.bicep \
                         --parameters bicep/30-classic-runtime.bicepparam
 
-                - task: AzureCLI@2
-                  displayName: Approve SQL Elastic Jobs private endpoint
-                  condition: and(not(failed()), not(canceled()), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), and(${{ parameters.allowTaggedDeployments }}, startsWith(variables['Build.SourceBranch'], 'refs/tags/'))))
-                  env:
-                    CLASSIC_DEPLOYMENT_NAME: Classic-$(Build.BuildId)
-                    CLASSIC_RESOURCE_GROUP: $(classicResourceGroupName)
-                    CLASSIC_SUBSCRIPTION_ID: $(classicSubscriptionId)
-                  inputs:
-                    azureSubscription: ${{ variables.classicServiceConnection }}
-                    scriptType: bash
-                    scriptLocation: inlineScript
-                    inlineScript: |
-                      set -euo pipefail
-                      if ! python3 scripts/pipeline/approve-sql-elastic-job-private-endpoint.py \
-                        --deployment-name "$CLASSIC_DEPLOYMENT_NAME" \
-                        --resource-group "$CLASSIC_RESOURCE_GROUP" \
-                        --subscription "$CLASSIC_SUBSCRIPTION_ID"; then
-                        az deployment group cancel \
-                          --name "$CLASSIC_DEPLOYMENT_NAME" \
+                - ${{ if ne(parameters.classicEnvironmentName, 'SND') }}:
+                  - task: AzureCLI@2
+                    displayName: Approve SQL Elastic Jobs private endpoint
+                    condition: and(not(failed()), not(canceled()), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), and(${{ parameters.allowTaggedDeployments }}, startsWith(variables['Build.SourceBranch'], 'refs/tags/'))))
+                    env:
+                      CLASSIC_DEPLOYMENT_NAME: Classic-$(Build.BuildId)
+                      CLASSIC_RESOURCE_GROUP: $(classicResourceGroupName)
+                      CLASSIC_SUBSCRIPTION_ID: $(classicSubscriptionId)
+                    inputs:
+                      azureSubscription: ${{ variables.classicServiceConnection }}
+                      scriptType: bash
+                      scriptLocation: inlineScript
+                      inlineScript: |
+                        set -euo pipefail
+                        if ! python3 scripts/pipeline/approve-sql-elastic-job-private-endpoint.py \
+                          --deployment-name "$CLASSIC_DEPLOYMENT_NAME" \
                           --resource-group "$CLASSIC_RESOURCE_GROUP" \
-                          --subscription "$CLASSIC_SUBSCRIPTION_ID" --only-show-errors || true
-                        exit 1
-                      fi
+                          --subscription "$CLASSIC_SUBSCRIPTION_ID"; then
+                          az deployment group cancel \
+                            --name "$CLASSIC_DEPLOYMENT_NAME" \
+                            --resource-group "$CLASSIC_RESOURCE_GROUP" \
+                            --subscription "$CLASSIC_SUBSCRIPTION_ID" --only-show-errors || true
+                          exit 1
+                        fi
 
                 - task: AzureCLI@2
                   displayName: Wait for Deployment - Classic
@@ -198,19 +199,19 @@ stages:
                     inlineScript: |
                       set -euo pipefail
                       mappings=(
-                        --emit-output=classicRedisResourceId
                         --emit-output=classicServiceBusNamespaceResourceId
-                        --emit-output=classicSqlServerResourceId
-                        classicRedisName=redisName
-                        classicRedisResourceId=redisResourceId
                         classicServiceBusNamespaceName=serviceBusNamespaceName
                         classicServiceBusNamespaceResourceId=serviceBusNamespaceResourceId
-                        classicSqlServerName=sqlServerName
-                        classicSqlServerResourceId=sqlServerResourceId
                       )
                       if [[ "$CLASSIC_ENVIRONMENT_NAME" != SND ]]; then
                         mappings+=(
+                          --emit-output=classicRedisResourceId
+                          --emit-output=classicSqlServerResourceId
                           --emit-output=classicSearchServiceResourceId
+                          classicRedisName=redisName
+                          classicRedisResourceId=redisResourceId
+                          classicSqlServerName=sqlServerName
+                          classicSqlServerResourceId=sqlServerResourceId
                           classicSearchServiceSubscriptionId=searchServiceSubscriptionId
                           classicSearchServiceResourceGroupName=searchServiceResourceGroupName
                           classicSearchServiceName=searchServiceName

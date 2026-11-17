@@ -331,10 +331,8 @@ class OutputSyncTests(unittest.TestCase):
 
 EXPECTED_MAPPINGS = {
     "acr": """acrLoginServer=acrLoginServer acrName=acrName acrResourceId=acrResourceId""".split(),
-    "classic": """classicRedisName=redisName classicRedisResourceId=redisResourceId
-        classicServiceBusNamespaceName=serviceBusNamespaceName
-        classicServiceBusNamespaceResourceId=serviceBusNamespaceResourceId
-        classicSqlServerName=sqlServerName classicSqlServerResourceId=sqlServerResourceId""".split(),
+    "classic": """classicServiceBusNamespaceName=serviceBusNamespaceName
+        classicServiceBusNamespaceResourceId=serviceBusNamespaceResourceId""".split(),
     "network": """aksApiServerSubnetId=aksApiServerSubnetId aksApiServerSubnetName=aksApiServerSubnetName
         aksSystemNodesSubnetId=aksSystemNodesSubnetId aksSystemNodesSubnetName=aksSystemNodesSubnetName
         aksUserNodesSubnetId=aksUserNodesSubnetId aksUserNodesSubnetName=aksUserNodesSubnetName
@@ -358,7 +356,9 @@ EXPECTED_MAPPINGS = {
         insightsInstrumentationKey=insightsInstrumentationKey grafanaManagedIdentityPrincipalId=grafanaManagedIdentityPrincipalId
         grafanaName=grafanaName prometheusName=prometheusName""".split(),
 }
-CLASSIC_SEARCH_MAPPINGS = """classicSearchServiceSubscriptionId=searchServiceSubscriptionId
+CLASSIC_DATA_MAPPINGS = """classicRedisName=redisName classicRedisResourceId=redisResourceId
+    classicSqlServerName=sqlServerName classicSqlServerResourceId=sqlServerResourceId
+    classicSearchServiceSubscriptionId=searchServiceSubscriptionId
     classicSearchServiceResourceGroupName=searchServiceResourceGroupName
     classicSearchServiceName=searchServiceName
     classicSearchServiceManagedIdentityPrincipalId=searchServiceManagedIdentityPrincipalId
@@ -418,9 +418,9 @@ sys.exit(int(os.environ["COLLECTOR_EXIT"]))
                     self.assertNotIn("set -x", task["inputs"]["inlineScript"])
                     script = task["inputs"]["inlineScript"].replace("${{ parameters.environmentName }}", environment)
                     actual_expected = expected + (QA_MAPPINGS if component == "infra" and environment == "TST" else [])
-                    sync_classic_search = component == "classic" and classic_environment != "SND"
-                    if sync_classic_search:
-                        actual_expected += CLASSIC_SEARCH_MAPPINGS
+                    sync_classic_data = component == "classic" and classic_environment != "SND"
+                    if sync_classic_data:
+                        actual_expected += CLASSIC_DATA_MAPPINGS
                     count += len(actual_expected)
                     for collector_exit in (0, 23):
                         with self.subTest(environment=environment, component=component, collector_exit=collector_exit):
@@ -440,8 +440,13 @@ sys.exit(int(os.environ["COLLECTOR_EXIT"]))
                                        if arg.startswith("--emit-output=")]
                             self.assertEqual(len(set(emitted)), len(emitted))
                             self.assertLessEqual(set(emitted), {mapping.split("=")[0] for mapping in actual_expected})
-                            self.assertEqual(sync_classic_search, "classicSearchServiceResourceId" in emitted)
-                self.assertEqual({"DEV": 48, "TST": 53, "PRE": 54, "PRD": 54}[environment], count)
+                            if component == "classic":
+                                expected_outputs = {"classicServiceBusNamespaceResourceId"}
+                                if sync_classic_data:
+                                    expected_outputs.update({"classicRedisResourceId", "classicSqlServerResourceId",
+                                                             "classicSearchServiceResourceId"})
+                                self.assertEqual(expected_outputs, set(emitted))
+                self.assertEqual({"DEV": 44, "TST": 53, "PRE": 54, "PRD": 54}[environment], count)
 
 
 if __name__ == "__main__":
