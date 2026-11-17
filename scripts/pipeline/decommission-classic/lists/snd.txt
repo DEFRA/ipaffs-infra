@@ -991,39 +991,41 @@
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-imports-static-test/providers/Microsoft.OperationalInsights/workspaces/log-analytics-SNDIMPINFRGP001-imports-static-test
 /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-Pool-7/providers/Microsoft.OperationalInsights/workspaces/log-analytics-SNDIMPINFRGP001-Pool-7
 
-# Monitoring resources held out of execution while their dependencies remain.
+# Remaining Classic SND monitoring resources.
 
-# These workspaces still receive gateway or retained storage diagnostics.
-# /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001/providers/Microsoft.OperationalInsights/workspaces/waflogs-imta9334
-# /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-imports-static-vnet/providers/Microsoft.OperationalInsights/workspaces/log-analytics-SNDIMPINFRGP001-imports-static-vnet
+# Alert rules
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.alertsmanagement/smartDetectorAlertRules/Failure Anomalies - insights-SNDIMPINFRGP009-blue
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.alertsmanagement/smartDetectorAlertRules/Failure Anomalies - insights-SNDIMPINFRGP009-green
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-invalid-certificate-detected-BLUE
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/ipaffs-snd-ssl-certificate-expiry-warning-GREEN
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/ipaffs-snd-ssl-certificate-expiry-warning-insights-SNDIMPINFRGP009-GREEN
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/ipaffs-snd-ssl-certificate-validity-GREEN
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/ipaffs-snd-ssl-certificate-validity-insights-SNDIMPINFRGP009-GREEN
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/metricalerts/ipaffs-snd-to-govgateway-availability-GREEN
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/metricalerts/ipaffs-snd-to-govgateway-availability-insights-SNDIMPINFRGP009-GREEN
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp009/providers/microsoft.insights/metricalerts/pims endpoint test-insights-sndimpinfrgp009-green
 
-# Blue Application Insights still receives Function App telemetry and runs the DEV PIMS test.
-# /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.alertsmanagement/smartDetectorAlertRules/Failure Anomalies - insights-SNDIMPINFRGP009-blue
-# /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/components/insights-SNDIMPINFRGP009-blue
-# /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/scheduledqueryrules/ipaffs-snd-invalid-certificate-detected-BLUE
-# /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.OperationalInsights/workspaces/log-analytics-SNDIMPINFRGP009-blue
+# Availability tests
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/webtests/ipaffs-snd-SSL-Certificate-Expiry-warning-GREEN
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/webtests/ipaffs-snd-SSL-Certificate-Validity-GREEN
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/webtests/ipaffs-snd-to-GovGateway-Availability-GREEN
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/webtests/pims endpoint test-insights-SNDIMPINFRGP009-blue
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/webtests/pims endpoint test-insights-sndimpinfrgp009-green
 
-# Keep the SND SSL, Gov Gateway and DEV PIMS checks and their monitoring resources.
-# /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.alertsmanagement/smartDetectorAlertRules/Failure Anomalies - insights-SNDIMPINFRGP009-green
-# /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/components/insights-SNDIMPINFRGP009-green
-# /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/ipaffs-snd-ssl-certificate-expiry-warning-GREEN
-# /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/ipaffs-snd-ssl-certificate-expiry-warning-insights-SNDIMPINFRGP009-GREEN
-# /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/ipaffs-snd-ssl-certificate-validity-GREEN
-# /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/metricalerts/ipaffs-snd-ssl-certificate-validity-insights-SNDIMPINFRGP009-GREEN
-# /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/metricalerts/ipaffs-snd-to-govgateway-availability-GREEN
-# /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/metricalerts/ipaffs-snd-to-govgateway-availability-insights-SNDIMPINFRGP009-GREEN
-# /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp009/providers/microsoft.insights/metricalerts/pims endpoint test-insights-sndimpinfrgp009-green
-# /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/webtests/ipaffs-snd-SSL-Certificate-Expiry-warning-GREEN
-# /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/webtests/ipaffs-snd-SSL-Certificate-Validity-GREEN
-# /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/webtests/ipaffs-snd-to-GovGateway-Availability-GREEN
-# /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/webtests/pims endpoint test-insights-SNDIMPINFRGP009-blue
-# /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/microsoft.insights/webtests/pims endpoint test-insights-sndimpinfrgp009-green
-# /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.OperationalInsights/workspaces/log-analytics-SNDIMPINFRGP009-green
+# Dashboards
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Portal/dashboards/IPAFFS-snd-App-dashboard
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Portal/dashboards/IPAFFS-sndApp-dashboard
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp009/providers/Microsoft.Portal/dashboards/sndIMPWEBAIS002-Dashboard
 
-# These dashboards display retained SND resources.
-# /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Portal/dashboards/IPAFFS-snd-App-dashboard
-# /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Portal/dashboards/IPAFFS-sndApp-dashboard
-# /subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/sndimpinfrgp009/providers/Microsoft.Portal/dashboards/sndIMPWEBAIS002-Dashboard
+# Application Insights
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/components/insights-SNDIMPINFRGP009-blue
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.Insights/components/insights-SNDIMPINFRGP009-green
+
+# Log Analytics workspaces
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001/providers/Microsoft.OperationalInsights/workspaces/waflogs-imta9334
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP001-imports-static-vnet/providers/Microsoft.OperationalInsights/workspaces/log-analytics-SNDIMPINFRGP001-imports-static-vnet
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.OperationalInsights/workspaces/log-analytics-SNDIMPINFRGP009-blue
+/subscriptions/e716414f-1f8e-48f1-8f56-65f35cfdafb6/resourceGroups/SNDIMPINFRGP009/providers/Microsoft.OperationalInsights/workspaces/log-analytics-SNDIMPINFRGP009-green
 
 # Microsoft.Search/searchServices
 # Deleting each service also removes its indexes, indexers and data sources.
