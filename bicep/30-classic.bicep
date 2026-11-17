@@ -18,7 +18,7 @@ var tags = union(loadJsonContent('default-tags.json'), {
 })
 
 param alertsParams object
-param dbwParams object
+param dbwParams object?
 param redisParams object?
 param searchParams object?
 param sejParams object?
@@ -54,12 +54,12 @@ module alerts './modules/alerts-classic.bicep' = {
   }
 }
 
-module dbw './modules/database-watcher.bicep' = {
+module dbw './modules/database-watcher.bicep' = if (dbwParams != null) {
   name: 'dbw-${deploymentId}'
   scope: resourceGroup()
   params: {
     location: location
-    dbwParams: dbwParams
+    dbwParams: dbwParams!
     tags: tags
   }
 }

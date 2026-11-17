@@ -28,17 +28,6 @@ param alertsParams = {
   }
 }
 
-param dbwParams = {
-  name: 'SNDIMPDBSDBW001'
-  adminEntraGroup: 'AG-Azure-EUX-IPAFFS-Kainos-DevUsers'
-  kustoName: 'SNDIMPDBSKUS001'
-  kustoSku: {
-    name: 'Standard_E2ads_v5'
-    tier: 'Standard'
-    capacity: 2
-  }
-}
-
 param serviceBusParams = {
   namespaceName: 'SNDIMPINFSBS002'
 }
