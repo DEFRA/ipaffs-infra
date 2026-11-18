@@ -207,17 +207,18 @@ state, retries throttled calls and fails unless every listed app ends in the
 target state. Unlisted apps are never touched. Tests:
 `bash scripts/pipeline/decommission-legacy-apps/disable.test.sh`.
 
-**Stages and gates:** one run goes SND → TST → PRE → PRD. SND starts straight
-away. TST, PRE and PRD each start with a `ManualValidation` approval in the
-pipeline itself, which rejects after 43,199 minutes (one minute short of 30
-days), matching the [infrastructure release pipeline](release-pipeline.yaml).
-Their deployment jobs still target the ADO Environment of the same name, so
-any checks configured there apply as well. A rejected approval or a failure
-stops the run there. A stage whose list is empty fails.
+**Stages and gates:** use **Run pipeline → Stages to run** to untick any
+environment you want to skip. The selected environments run in SND → TST → PRE
+→ PRD order. SND runs without manual approval. TST, PRE and PRD each start with
+a `ManualValidation` approval in the pipeline itself, which rejects after
+43,199 minutes (one minute short of 30 days), matching the
+[infrastructure release pipeline](release-pipeline.yaml). Their deployment
+jobs also require any checks configured on the matching ADO Environment. A
+rejected approval or a failure stops the run there. A stage whose list is
+empty fails.
 
-**Rollback:** queue a new run with `action=recover` and approve up to the
-environment that needs it. Lower environments run again first, which keeps
-them consistent with higher ones.
+**Rollback:** queue a new run with `action=recover`, select the environments
+that need recovery, and approve each selected stage that requires it.
 
 **Approvers:** anyone who can queue the pipeline can approve, including the
 person who queued it. Set `approvers` on the `ManualValidation` task to restrict
