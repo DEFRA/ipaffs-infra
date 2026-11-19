@@ -166,6 +166,17 @@ installers. Retire ADO definitions `import-acr-artifacts` (10054) and
 **Fresh environment:** core infrastructure (`includePlatform: false`) → manifest
 platform stage → Private Link → applications.
 
+### Service manifest updates
+
+The shared Java and Node pipelines use the `ipaffs-manifest-write` Azure DevOps
+environment for `UpdateManifest`. Its **Exclusive lock** check serializes the
+manifest checkout, file generation, commit and push across pipelines. The stage
+uses `lockBehavior: sequential` so each queued service update gets a turn.
+Build, test and image packaging run before the lock is acquired.
+
+When registering a service pipeline that writes to the manifest, authorize it
+under **Pipelines → Environments → ipaffs-manifest-write → Security → Pipeline permissions**.
+
 ### DEV Java build image
 
 The shared Java service build passes the DEV registry hostname as `IMAGE_ACR`
