@@ -260,10 +260,11 @@ implements [IMTA-21888](https://eaflood.atlassian.net/browse/IMTA-21888) using
 the agent pool, Classic service connections and manual validation pattern from
 [`disable-app-services`](https://dev.azure.com/defragovuk/DEFRA-EUTD-IPAFFS/_build?definitionId=12566).
 The SND and TST plans run in parallel in both modes. The `delete` action requires
-`main`. SND deletion follows its plan. TST deletion waits for its own plan and
-for approval after SND deletion. Review the SND deletion result before approving
-progression to TST deletion. Each delete stage checks its Azure DevOps environment
-and pauses for manual validation of its own plan before the deployment job starts.
+`main`. SND deletion follows its plan. The TST delete stage waits for both the
+TST plan and SND deletion to succeed. At the “Review the TST plan” prompt,
+review the TST plan and the SND deletion result together before approving TST
+deletion. Each delete stage checks its Azure DevOps environment and pauses for
+manual validation of its own plan before the deployment job starts.
 Someone other than the requester with permission to queue the pipeline must approve
 each manual validation. Rejection, timeout or failure blocks dependent stages.
 

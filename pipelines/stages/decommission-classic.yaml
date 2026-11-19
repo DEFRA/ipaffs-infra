@@ -13,7 +13,7 @@ parameters:
   - name: dependsOn
     type: string
 
-  - name: deleteGate
+  - name: deleteDependsOn
     type: string
     default: ''
 
@@ -40,8 +40,8 @@ stages:
       displayName: Delete ${{ parameters.environmentName }} Classic resources
       dependsOn:
         - Plan${{ parameters.environmentName }}
-        - ${{ if ne(parameters.deleteGate, '') }}:
-          - ${{ parameters.deleteGate }}
+        - ${{ if ne(parameters.deleteDependsOn, '') }}:
+          - ${{ parameters.deleteDependsOn }}
       condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
       isSkippable: false
       lockBehavior: sequential
@@ -61,6 +61,7 @@ stages:
                 allowApproversToApproveTheirOwnRuns: false
                 instructions: >-
                   Review the Plan ${{ parameters.environmentName }} stage in this run.
+                  For TST, also review the completed SND deletion in this run.
                   Check the listed resource IDs, app VNet disconnects, plan membership
                   and autoscale changes against the reviewed Classic inventory. Approval
                   allows the listed disconnects, autoscale disables and resource deletions in
