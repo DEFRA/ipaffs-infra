@@ -139,3 +139,529 @@
 /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/autoscalesettings/high-traffic-planv3-1-AutoScaleSetting
 /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/autoscalesettings/low-traffic-planv3-1-AutoScaleSetting
 /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/autoscalesettings/reference-data-planv3-1-AutoScaleSetting
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/autoscalesettings/frontend-planv3-1-AutoScaleSetting
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/autoscalesettings/reference-data-planv3-2-AutoScaleSetting
+
+# Remaining TST resources marked Delete in the Classic Azure Decommission report.
+
+# Metric alert rules
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Dependencies - APPROVEDESTABLISHMENT-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Dependencies - ARCHIVE-NOTIFICATIONS-MICROSERVICE-TST
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Dependencies - AUTO-CLEARANCE-MICROSERVICE-TST
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Dependencies - BIP-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Dependencies - BORDERNOTIFICATION-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Dependencies - BORDERNOTIFICATION-REFDATA-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Dependencies - BULK-UPLOAD-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Dependencies - CERTIFICATE-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Dependencies - CHECKS-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Dependencies - CLONING-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Dependencies - COMMODITYCODE-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Dependencies - COUNTRIES-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Dependencies - CUSTOMER-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Dependencies - DECISION-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Dependencies - DMP-INTEGRATION-MICROSERVICE-TST
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Dependencies - ECONOMICOPERATOR-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Dependencies - ENOTIFICATION-EVENT-LISTENER-MICROSERVICE-TST
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Dependencies - ENOTIFICATION-EVENT-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Dependencies - ENOTIFICATION-PROCESSING-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Dependencies - ENOTIFICATION-SUBMISSION-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Dependencies - FIELDCONFIG-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Dependencies - FILE-COMPRESSION-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Dependencies - FILE-UPLOAD-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Dependencies - GVMS-MICROSERVICE-TST
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Dependencies - IMPORTS-MS-FRONTENDBCPADMIN
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Dependencies - IMPORTS-MS-FRONTENDBORDERNOTIFICATION
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Dependencies - IMPORTS-MS-FRONTENDCHECKS
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Dependencies - IMPORTS-MS-FRONTENDCONTROL
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Dependencies - IMPORTS-MS-FRONTENDNOTIFICATION
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Dependencies - IMPORTS-MS-FRONTENDUPLOAD
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Dependencies - IMPORTS-PROXY
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Dependencies - IN-SERVICE-MESSAGING-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Dependencies - LABORATORIES-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Dependencies - LEGACY-NOTIFICATIONS-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Dependencies - NOTIFICATION-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Dependencies - NOTIFY-MICROSERVICE-TST
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Dependencies - PERMISSIONS
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Dependencies - REFERENCEDATALOADER-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Dependencies - RISK-ASSESSMENT-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Dependencies - RISK-INTERFACE-MICROSERVICE-TST
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Dependencies - RISK-LOCKING-MICROSERVICE-TST
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Dependencies - SOAPREQUEST-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Dependencies - SOAPSEARCH-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Exceptions - APPROVEDESTABLISHMENT-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Exceptions - ARCHIVE-NOTIFICATIONS-MICROSERVICE-TST
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Exceptions - AUTO-CLEARANCE-MICROSERVICE-TST
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Exceptions - BIP-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Exceptions - BORDERNOTIFICATION-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Exceptions - BORDERNOTIFICATION-REFDATA-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Exceptions - BULK-UPLOAD-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Exceptions - CERTIFICATE-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Exceptions - CHECKS-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Exceptions - CLONING-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Exceptions - COMMODITYCODE-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Exceptions - COUNTRIES-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Exceptions - CUSTOMER-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Exceptions - DECISION-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Exceptions - DMP-INTEGRATION-MICROSERVICE-TST
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Exceptions - ECONOMICOPERATOR-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Exceptions - ENOTIFICATION-EVENT-LISTENER-MICROSERVICE-TST
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Exceptions - ENOTIFICATION-EVENT-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Exceptions - ENOTIFICATION-PROCESSING-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Exceptions - ENOTIFICATION-SUBMISSION-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Exceptions - FIELDCONFIG-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Exceptions - FILE-COMPRESSION-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Exceptions - FILE-UPLOAD-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Exceptions - GVMS-MICROSERVICE-TST
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Exceptions - IMPORTS-MS-FRONTENDBCPADMIN
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Exceptions - IMPORTS-MS-FRONTENDBORDERNOTIFICATION
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Exceptions - IMPORTS-MS-FRONTENDCHECKS
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Exceptions - IMPORTS-MS-FRONTENDCONTROL
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Exceptions - IMPORTS-MS-FRONTENDNOTIFICATION
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Exceptions - IMPORTS-MS-FRONTENDUPLOAD
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Exceptions - IMPORTS-PROXY
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Exceptions - IN-SERVICE-MESSAGING-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Exceptions - LABORATORIES-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Exceptions - LEGACY-NOTIFICATIONS-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Exceptions - NOTIFICATION-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Exceptions - NOTIFY-MICROSERVICE-TST
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Exceptions - PERMISSIONS
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Exceptions - REFERENCEDATALOADER-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Exceptions - RISK-ASSESSMENT-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Exceptions - RISK-INTERFACE-MICROSERVICE-TST
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Exceptions - RISK-LOCKING-MICROSERVICE-TST
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Exceptions - SOAPREQUEST-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Exceptions - SOAPSEARCH-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Requests - APPROVEDESTABLISHMENT-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Requests - ARCHIVE-NOTIFICATIONS-MICROSERVICE-TST
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Requests - AUTO-CLEARANCE-MICROSERVICE-TST
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Requests - BIP-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Requests - BORDERNOTIFICATION-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Requests - BORDERNOTIFICATION-REFDATA-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Requests - BULK-UPLOAD-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Requests - CERTIFICATE-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Requests - CHECKS-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Requests - CLONING-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Requests - COMMODITYCODE-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Requests - COUNTRIES-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Requests - CUSTOMER-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Requests - DECISION-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Requests - DMP-INTEGRATION-MICROSERVICE-TST
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Requests - ECONOMICOPERATOR-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Requests - ENOTIFICATION-EVENT-LISTENER-MICROSERVICE-TST
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Requests - ENOTIFICATION-EVENT-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Requests - ENOTIFICATION-PROCESSING-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Requests - ENOTIFICATION-SUBMISSION-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Requests - FIELDCONFIG-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Requests - FILE-COMPRESSION-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Requests - FILE-UPLOAD-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Requests - GVMS-MICROSERVICE-TST
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Requests - IMPORTS-MS-FRONTENDBCPADMIN
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Requests - IMPORTS-MS-FRONTENDBORDERNOTIFICATION
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Requests - IMPORTS-MS-FRONTENDCHECKS
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Requests - IMPORTS-MS-FRONTENDCONTROL
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Requests - IMPORTS-MS-FRONTENDNOTIFICATION
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Requests - IMPORTS-MS-FRONTENDUPLOAD
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Requests - IMPORTS-PROXY
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Requests - IN-SERVICE-MESSAGING-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Requests - LABORATORIES-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Requests - LEGACY-NOTIFICATIONS-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Requests - NOTIFICATION-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Requests - NOTIFY-MICROSERVICE-TST
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Requests - PERMISSIONS
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Requests - REFERENCEDATALOADER-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Requests - RISK-ASSESSMENT-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Requests - RISK-INTERFACE-MICROSERVICE-TST
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Requests - RISK-LOCKING-MICROSERVICE-TST
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Requests - SOAPREQUEST-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Requests - SOAPSEARCH-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Server Response Time - APPROVEDESTABLISHMENT-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Server Response Time - ARCHIVE-NOTIFICATIONS-MICROSERVICE-TST
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Server Response Time - AUTO-CLEARANCE-MICROSERVICE-TST
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Server Response Time - BIP-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Server Response Time - BORDERNOTIFICATION-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Server Response Time - BORDERNOTIFICATION-REFDATA-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Server Response Time - BULK-UPLOAD-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Server Response Time - CERTIFICATE-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Server Response Time - CHECKS-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Server Response Time - CLONING-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Server Response Time - COMMODITYCODE-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Server Response Time - COUNTRIES-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Server Response Time - CUSTOMER-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Server Response Time - DECISION-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Server Response Time - DMP-INTEGRATION-MICROSERVICE-TST
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Server Response Time - ECONOMICOPERATOR-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Server Response Time - ENOTIFICATION-EVENT-LISTENER-MICROSERVICE-TST
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Server Response Time - ENOTIFICATION-EVENT-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Server Response Time - ENOTIFICATION-PROCESSING-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Server Response Time - ENOTIFICATION-SUBMISSION-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Server Response Time - FIELDCONFIG-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Server Response Time - FILE-COMPRESSION-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Server Response Time - FILE-UPLOAD-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Server Response Time - GVMS-MICROSERVICE-TST
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Server Response Time - IMPORTS-MS-FRONTENDBCPADMIN
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Server Response Time - IMPORTS-MS-FRONTENDBORDERNOTIFICATION
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Server Response Time - IMPORTS-MS-FRONTENDCHECKS
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Server Response Time - IMPORTS-MS-FRONTENDCONTROL
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Server Response Time - IMPORTS-MS-FRONTENDNOTIFICATION
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Server Response Time - IMPORTS-MS-FRONTENDUPLOAD
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Server Response Time - IMPORTS-PROXY
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Server Response Time - IN-SERVICE-MESSAGING-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Server Response Time - LABORATORIES-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Server Response Time - LEGACY-NOTIFICATIONS-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Server Response Time - NOTIFICATION-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Server Response Time - NOTIFY-MICROSERVICE-TST
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Server Response Time - PERMISSIONS
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Server Response Time - REFERENCEDATALOADER-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Server Response Time - RISK-ASSESSMENT-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Server Response Time - RISK-INTERFACE-MICROSERVICE-TST
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Server Response Time - RISK-LOCKING-MICROSERVICE-TST
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Server Response Time - SOAPREQUEST-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/metricalerts/Server Response Time - SOAPSEARCH-MICROSERVICE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/approvedestablishment-microservice-blue-tst_northeurope_HealthCheckStatus
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/approvedestablishment-microservice-blue-tst_northeurope_ServerError
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/approvedestablishment-microservice-green-tst_northeurope_HealthCheckStatus
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/approvedestablishment-microservice-green-tst_northeurope_ServerError
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/archive-notifications-microservice-tst_northeurope_HealthCheckStatus
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/archive-notifications-microservice-tst_northeurope_ServerError
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/auto-clearance-microservice-tst_northeurope_HealthCheckStatus
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/auto-clearance-microservice-tst_northeurope_ServerError
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/bip-microservice-blue-tst_northeurope_HealthCheckStatus
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/bip-microservice-blue-tst_northeurope_ServerError
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/bip-microservice-green-tst_northeurope_HealthCheckStatus
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/bip-microservice-green-tst_northeurope_ServerError
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/bordernotification-microservice-blue-tst_northeurope_HealthCheckStatus
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/bordernotification-microservice-blue-tst_northeurope_ServerError
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/bordernotification-microservice-green-tst_northeurope_HealthCheckStatus
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/bordernotification-microservice-green-tst_northeurope_ServerError
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/bordernotification-refdata-microservice-blue-tst_northeurope_HealthCheckStatus
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/bordernotification-refdata-microservice-blue-tst_northeurope_ServerError
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/bordernotification-refdata-microservice-green-tst_northeurope_HealthCheckStatus
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/bordernotification-refdata-microservice-green-tst_northeurope_ServerError
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/bulk-upload-microservice-tst_northeurope_HealthCheckStatus
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/bulk-upload-microservice-tst_northeurope_ServerError
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/certificate-microservice-blue-tst_northeurope_HealthCheckStatus
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/certificate-microservice-blue-tst_northeurope_ServerError
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/certificate-microservice-green-tst_northeurope_HealthCheckStatus
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/certificate-microservice-green-tst_northeurope_ServerError
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/checks-microservice-blue-tst_northeurope_HealthCheckStatus
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/checks-microservice-blue-tst_northeurope_ServerError
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/checks-microservice-green-tst_northeurope_HealthCheckStatus
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/checks-microservice-green-tst_northeurope_ServerError
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/cloning-microservice-blue-tst_northeurope_HealthCheckStatus
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/cloning-microservice-blue-tst_northeurope_ServerError
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/cloning-microservice-green-tst_northeurope_HealthCheckStatus
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/cloning-microservice-green-tst_northeurope_ServerError
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/commoditycode-microservice-blue-tst_northeurope_HealthCheckStatus
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/commoditycode-microservice-blue-tst_northeurope_ServerError
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/commoditycode-microservice-green-tst_northeurope_HealthCheckStatus
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/commoditycode-microservice-green-tst_northeurope_ServerError
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/countries-microservice-blue-tst_northeurope_HealthCheckStatus
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/countries-microservice-blue-tst_northeurope_ServerError
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/countries-microservice-green-tst_northeurope_HealthCheckStatus
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/countries-microservice-green-tst_northeurope_ServerError
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/customer-microservice-blue-tst_northeurope_HealthCheckStatus
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/customer-microservice-blue-tst_northeurope_ServerError
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/customer-microservice-green-tst_northeurope_HealthCheckStatus
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/customer-microservice-green-tst_northeurope_ServerError
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/decision-microservice-blue-tst_northeurope_HealthCheckStatus
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/decision-microservice-blue-tst_northeurope_ServerError
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/decision-microservice-green-tst_northeurope_HealthCheckStatus
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/decision-microservice-green-tst_northeurope_ServerError
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/dmp-integration-microservice-tst_northeurope_HealthCheckStatus
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/dmp-integration-microservice-tst_northeurope_ServerError
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/economicoperator-microservice-blue-tst_northeurope_HealthCheckStatus
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/economicoperator-microservice-blue-tst_northeurope_ServerError
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/economicoperator-microservice-green-tst_northeurope_HealthCheckStatus
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/economicoperator-microservice-green-tst_northeurope_ServerError
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/enotification-event-listener-microservice-tst_northeurope_HealthCheckStatus
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/enotification-event-listener-microservice-tst_northeurope_ServerError
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/enotification-event-microservice-blue-tst_northeurope_HealthCheckStatus
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/enotification-event-microservice-blue-tst_northeurope_ServerError
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/enotification-event-microservice-green-tst_northeurope_HealthCheckStatus
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/enotification-event-microservice-green-tst_northeurope_ServerError
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/enotification-processing-microservice-tst_northeurope_HealthCheckStatus
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/enotification-processing-microservice-tst_northeurope_ServerError
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/enotification-submission-microservice-blue-tst_northeurope_HealthCheckStatus
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/enotification-submission-microservice-blue-tst_northeurope_ServerError
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/enotification-submission-microservice-green-tst_northeurope_HealthCheckStatus
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/enotification-submission-microservice-green-tst_northeurope_ServerError
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/fieldconfig-microservice-blue-tst_northeurope_HealthCheckStatus
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/fieldconfig-microservice-blue-tst_northeurope_ServerError
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/fieldconfig-microservice-green-tst_northeurope_HealthCheckStatus
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/fieldconfig-microservice-green-tst_northeurope_ServerError
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/file-compression-microservice-blue-tst_northeurope_HealthCheckStatus
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/file-compression-microservice-blue-tst_northeurope_ServerError
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/file-compression-microservice-green-tst_northeurope_HealthCheckStatus
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/file-compression-microservice-green-tst_northeurope_ServerError
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/file-upload-microservice-blue-tst_northeurope_HealthCheckStatus
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/file-upload-microservice-blue-tst_northeurope_ServerError
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/file-upload-microservice-green-tst_northeurope_HealthCheckStatus
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/file-upload-microservice-green-tst_northeurope_ServerError
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/frontend-bcpadmin-blue-tst_northeurope_HealthCheckStatus
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/frontend-bcpadmin-blue-tst_northeurope_ServerError
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/frontend-bcpadmin-green-tst_northeurope_HealthCheckStatus
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/frontend-bcpadmin-green-tst_northeurope_ServerError
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/frontend-bordernotification-blue-tst_northeurope_HealthCheckStatus
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/frontend-bordernotification-blue-tst_northeurope_ServerError
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/frontend-bordernotification-green-tst_northeurope_HealthCheckStatus
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/frontend-bordernotification-green-tst_northeurope_ServerError
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/frontend-checks-blue-tst_northeurope_HealthCheckStatus
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/frontend-checks-blue-tst_northeurope_ServerError
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/frontend-checks-green-tst_northeurope_HealthCheckStatus
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/frontend-checks-green-tst_northeurope_ServerError
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/frontend-control-blue-tst_northeurope_HealthCheckStatus
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/frontend-control-blue-tst_northeurope_ServerError
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/frontend-control-green-tst_northeurope_HealthCheckStatus
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/frontend-control-green-tst_northeurope_ServerError
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/frontend-decision-blue-tst_northeurope_HealthCheckStatus
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/frontend-decision-blue-tst_northeurope_ServerError
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/frontend-decision-green-tst_northeurope_HealthCheckStatus
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/frontend-decision-green-tst_northeurope_ServerError
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/frontend-notification-blue-tst_northeurope_HealthCheckStatus
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/frontend-notification-blue-tst_northeurope_ServerError
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/frontend-notification-green-tst_northeurope_HealthCheckStatus
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/frontend-notification-green-tst_northeurope_ServerError
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/frontend-upload-blue-tst_northeurope_HealthCheckStatus
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/frontend-upload-blue-tst_northeurope_ServerError
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/frontend-upload-green-tst_northeurope_HealthCheckStatus
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/frontend-upload-green-tst_northeurope_ServerError
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/gvms-microservice-tst_northeurope_HealthCheckStatus
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/gvms-microservice-tst_northeurope_ServerError
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/imports-proxy-blue-tst_northeurope_HealthCheckStatus
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/imports-proxy-blue-tst_northeurope_ServerError
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/imports-proxy-green-tst_northeurope_HealthCheckStatus
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/imports-proxy-green-tst_northeurope_ServerError
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/imports-proxy-idmlatest-tst_northeurope_HealthCheckStatus
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/imports-proxy-idmlatest-tst_northeurope_ServerError
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/in-service-messaging-microservice-blue-tst_northeurope_HealthCheckStatus
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/in-service-messaging-microservice-blue-tst_northeurope_ServerError
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/in-service-messaging-microservice-green-tst_northeurope_HealthCheckStatus
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/in-service-messaging-microservice-green-tst_northeurope_ServerError
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/laboratories-microservice-blue-tst_northeurope_HealthCheckStatus
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/laboratories-microservice-blue-tst_northeurope_ServerError
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/laboratories-microservice-green-tst_northeurope_HealthCheckStatus
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/laboratories-microservice-green-tst_northeurope_ServerError
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/legacy-notifications-microservice-blue-tst_northeurope_HealthCheckStatus
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/legacy-notifications-microservice-blue-tst_northeurope_ServerError
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/legacy-notifications-microservice-green-tst_northeurope_HealthCheckStatus
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/legacy-notifications-microservice-green-tst_northeurope_ServerError
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/notification-microservice-blue-tst_northeurope_HealthCheckStatus
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/notification-microservice-blue-tst_northeurope_ServerError
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/notification-microservice-green-tst_northeurope_HealthCheckStatus
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/notification-microservice-green-tst_northeurope_ServerError
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/notify-microservice-tst_northeurope_HealthCheckStatus
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/notify-microservice-tst_northeurope_ServerError
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/permissions-blue-tst_northeurope_HealthCheckStatus
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/permissions-blue-tst_northeurope_ServerError
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/permissions-green-tst_northeurope_HealthCheckStatus
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/permissions-green-tst_northeurope_ServerError
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/referencedataloader-microservice-blue-tst_northeurope_HealthCheckStatus
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/referencedataloader-microservice-blue-tst_northeurope_ServerError
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/referencedataloader-microservice-green-tst_northeurope_HealthCheckStatus
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/referencedataloader-microservice-green-tst_northeurope_ServerError
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/risk-assessment-microservice-blue-tst_northeurope_HealthCheckStatus
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/risk-assessment-microservice-blue-tst_northeurope_ServerError
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/risk-assessment-microservice-green-tst_northeurope_HealthCheckStatus
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/risk-assessment-microservice-green-tst_northeurope_ServerError
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/risk-interface-microservice-tst_northeurope_HealthCheckStatus
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/risk-interface-microservice-tst_northeurope_ServerError
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/risk-locking-microservice-tst_northeurope_HealthCheckStatus
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/risk-locking-microservice-tst_northeurope_ServerError
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/soaprequest-microservice-blue-tst_northeurope_HealthCheckStatus
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/soaprequest-microservice-blue-tst_northeurope_ServerError
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/soaprequest-microservice-green-tst_northeurope_HealthCheckStatus
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/soaprequest-microservice-green-tst_northeurope_ServerError
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/soapsearch-microservice-blue-tst_northeurope_HealthCheckStatus
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/soapsearch-microservice-blue-tst_northeurope_ServerError
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/soapsearch-microservice-green-tst_northeurope_HealthCheckStatus
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/soapsearch-microservice-green-tst_northeurope_ServerError
+
+# Log search alert rules
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.insights/scheduledqueryrules/ipaffs-tst-approvedestablishment-microservice-availability-blue
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.insights/scheduledqueryrules/ipaffs-tst-approvedestablishment-microservice-availability-GREEN
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.insights/scheduledqueryrules/ipaffs-tst-azure-search-average-response-time-blue
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.insights/scheduledqueryrules/ipaffs-tst-azure-search-average-response-time-GREEN
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.insights/scheduledqueryrules/ipaffs-tst-bip-microservice-availability-blue
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.insights/scheduledqueryrules/ipaffs-tst-bordernotification-microservice-availability-blue
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.insights/scheduledqueryrules/ipaffs-tst-bordernotification-refdata-microservice-availability-blue
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.insights/scheduledqueryrules/ipaffs-tst-certificate-microservice-availability-blue
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.insights/scheduledqueryrules/ipaffs-tst-checks-microservice-availability-blue
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.insights/scheduledqueryrules/ipaffs-tst-checks-microservice-availability-GREEN
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.insights/scheduledqueryrules/ipaffs-tst-commoditycode-microservice-availability-blue
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.insights/scheduledqueryrules/ipaffs-tst-commoditycode-microservice-availability-GREEN
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.insights/scheduledqueryrules/ipaffs-tst-countries-microservice-availability-blue
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.insights/scheduledqueryrules/ipaffs-tst-customer-average-response-time-blue
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.insights/scheduledqueryrules/ipaffs-tst-customer-average-response-time-GREEN
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.insights/scheduledqueryrules/ipaffs-tst-customer-microservice-availability-blue
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.insights/scheduledqueryrules/ipaffs-tst-decision-microservice-availability-blue
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.insights/scheduledqueryrules/ipaffs-tst-decision-microservice-availability-GREEN
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.insights/scheduledqueryrules/ipaffs-tst-economicoperator-microservice-availability-blue
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.insights/scheduledqueryrules/ipaffs-tst-economicoperator-microservice-availability-GREEN
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.insights/scheduledqueryrules/ipaffs-tst-fieldconfig-microservice-availability-blue
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.insights/scheduledqueryrules/ipaffs-tst-fieldconfig-microservice-availability-GREEN
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.insights/scheduledqueryrules/ipaffs-tst-file-upload-average-response-time-blue
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.insights/scheduledqueryrules/ipaffs-tst-file-upload-average-response-time-GREEN
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.insights/scheduledqueryrules/ipaffs-tst-file-upload-microservice-availability-blue
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.insights/scheduledqueryrules/ipaffs-tst-frontend-bordernotification-availability-blue
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.insights/scheduledqueryrules/ipaffs-tst-frontend-checks-availability-blue
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.insights/scheduledqueryrules/ipaffs-tst-frontend-checks-availability-GREEN
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.insights/scheduledqueryrules/ipaffs-tst-frontend-control-availability-blue
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.insights/scheduledqueryrules/ipaffs-tst-frontend-decision-availability-blue
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.insights/scheduledqueryrules/ipaffs-tst-frontend-notification-availability-blue
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.insights/scheduledqueryrules/ipaffs-tst-frontend-notification-availability-GREEN
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.insights/scheduledqueryrules/ipaffs-tst-frontend-upload-availability-blue
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.insights/scheduledqueryrules/ipaffs-tst-frontend-upload-availability-GREEN
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.insights/scheduledqueryrules/ipaffs-tst-imports-proxy-availability-blue
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.insights/scheduledqueryrules/ipaffs-tst-imports-proxy-availability-GREEN
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.insights/scheduledqueryrules/ipaffs-tst-imports-proxy-average-response-time-blue
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.insights/scheduledqueryrules/ipaffs-tst-imports-proxy-average-response-time-GREEN
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.insights/scheduledqueryrules/ipaffs-tst-laboratories-microservice-availability-blue
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.insights/scheduledqueryrules/ipaffs-tst-notification-microservice-availability-blue
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.insights/scheduledqueryrules/ipaffs-tst-notification-microservice-availability-GREEN
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.insights/scheduledqueryrules/ipaffs-tst-permissions-availability-blue
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.insights/scheduledqueryrules/ipaffs-tst-permissions-availability-GREEN
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.insights/scheduledqueryrules/ipaffs-tst-referencedataloader-microservice-availability-blue
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.insights/scheduledqueryrules/ipaffs-tst-referencedataloader-microservice-availability-GREEN
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.insights/scheduledqueryrules/ipaffs-tst-soaprequest-microservice-availability-blue
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.insights/scheduledqueryrules/ipaffs-tst-soaprequest-microservice-availability-GREEN
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.insights/scheduledqueryrules/ipaffs-tst-soapsearch-microservice-availability-blue
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.insights/scheduledqueryrules/ipaffs-tst-sql-average-response-time-blue
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.insights/scheduledqueryrules/ipaffs-tst-sql-average-response-time-GREEN
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.insights/scheduledqueryrules/ipaffs-tst-traces-data-processor-microservice-availability-blue
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/scheduledqueryrules/Notify Microservice Error Alerts insights-TSTIMPINFRGP001-blue
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/scheduledqueryrules/Notify Microservice Error Alerts insights-TSTIMPINFRGP001-green
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/scheduledqueryrules/Risk Locking Microservice Error Alerts insights-TSTIMPINFRGP001-blue
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/scheduledqueryrules/Risk Locking Microservice Error Alerts insights-TSTIMPINFRGP001-green
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.insights/scheduledqueryrules/ipaffs-tst-bip-microservice-availability-GREEN
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.insights/scheduledqueryrules/ipaffs-tst-soapsearch-microservice-availability-GREEN
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.insights/scheduledqueryrules/ipaffs-tst-certificate-microservice-availability-GREEN
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.insights/scheduledqueryrules/ipaffs-tst-customer-microservice-availability-GREEN
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.insights/scheduledqueryrules/ipaffs-tst-bordernotification-refdata-microservice-availability-GREEN
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.insights/scheduledqueryrules/ipaffs-tst-frontend-bordernotification-availability-GREEN
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.insights/scheduledqueryrules/ipaffs-tst-file-upload-microservice-availability-GREEN
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.insights/scheduledqueryrules/ipaffs-tst-frontend-control-availability-GREEN
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.insights/scheduledqueryrules/ipaffs-tst-laboratories-microservice-availability-GREEN
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.insights/scheduledqueryrules/ipaffs-tst-bordernotification-microservice-availability-GREEN
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.insights/scheduledqueryrules/ipaffs-tst-countries-microservice-availability-GREEN
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.insights/scheduledqueryrules/ipaffs-tst-frontend-decision-availability-GREEN
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/scheduledqueryrules/Archive Soft DeleteError Alert insights-TSTIMPINFRGP001-blue
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/scheduledqueryrules/Archive Soft DeleteError Alert insights-TSTIMPINFRGP001-green
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/scheduledqueryrules/IPAFFS Traces data import alert insights-TSTIMPINFRGP001-blue
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/scheduledqueryrules/IPAFFS Traces dispatch alert insights-TSTIMPINFRGP001-blue
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/scheduledqueryrules/IPAFFS Trade Platform dispatch alert insights-TSTIMPINFRGP001-blue
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/scheduledqueryrules/IPAFFS Trade Platform mapping alert insights-TSTIMPINFRGP001-blue
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/scheduledqueryrules/IPAFFS Trade Platform mapping alert insights-TSTIMPINFRGP001-green
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.insights/scheduledqueryrules/ipaffs-tst-traces-code15-error-blue
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.insights/scheduledqueryrules/ipaffs-tst-traces-code15-error-GREEN
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/scheduledqueryrules/RDL Sync Field Configuration Alert insights-TSTIMPINFRGP001-blue
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/scheduledqueryrules/RDL Sync Field Configuration Alert insights-TSTIMPINFRGP001-green
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/scheduledqueryrules/RDS Sync Error Alert insights-TSTIMPINFRGP001-blue
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/scheduledqueryrules/RDS Sync Error Alert insights-TSTIMPINFRGP001-green
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/scheduledqueryrules/IPAFFS Traces data import alert insights-TSTIMPINFRGP001-green
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/scheduledqueryrules/IPAFFS Trade Platform dispatch alert insights-TSTIMPINFRGP001-green
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/scheduledqueryrules/IPAFFS Traces data import alert
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/scheduledqueryrules/IPAFFS Traces dispatch alert insights-TSTIMPINFRGP001-green
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/scheduledqueryrules/IPAFFS Trade Platform connectivity alert insights-TSTIMPINFRGP001-blue
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/scheduledqueryrules/IPAFFS Trade Platform connectivity alert insights-TSTIMPINFRGP001-green
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.insights/scheduledqueryrules/ipaffs-tst-azure-search-503-BLUE
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.insights/scheduledqueryrules/ipaffs-tst-azure-search-503-GREEN
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.insights/scheduledqueryrules/ipaffs-tst-invalid-certificate-detected-blue
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.insights/scheduledqueryrules/ipaffs-tst-invalid-certificate-detected-GREEN
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.insights/scheduledqueryrules/ipaffs-tst-traces-data-processor-microservice-availability-GREEN
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/scheduledqueryrules/RDS Count Error Alert insights-TSTIMPINFRGP001-blue
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/scheduledqueryrules/RDS Count Error Alert insights-TSTIMPINFRGP001-green
+
+# Smart detector alert rules
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/tstimpinfrgp001/providers/microsoft.alertsManagement/smartDetectorAlertRules/Failure Anomalies - insights-TSTIMPINFRGP001
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.alertsManagement/smartDetectorAlertRules/Failure Anomalies - insights-TSTIMPINFRGP001-blue
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/microsoft.alertsManagement/smartDetectorAlertRules/Failure Anomalies - insights-TSTIMPINFRGP002
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/microsoft.alertsManagement/smartDetectorAlertRules/Failure Anomalies - insights-TSTIMPINFRGP002-trn
+
+# Availability tests
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.insights/webtests/pims endpoint test-insights-TSTIMPINFRGP001-blue
+
+# Portal dashboards
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Portal/dashboards/72c24e59-f75a-423e-82fd-47c5a48b9f8c-dashboard
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Portal/dashboards/IPAFFS-tst-App-dashboard
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Portal/dashboards/IPAFFS-tst-App-dashboard-events
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Portal/dashboards/TSTIMPWEBAIS002-Dashboard
+
+# Application Insights
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/components/insights-TSTIMPINFRGP001-blue
+
+# Log Analytics workspaces
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.OperationalInsights/workspaces/log-analytics-TSTIMPINFRGP001-blue
+
+# Logic Apps
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Logic/workflows/TSTIMPINFALA001
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Logic/workflows/TSTIMPINFALA002_727
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Logic/workflows/TSTIMPINFALA002-Wave1-2023
+
+# Private endpoints
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Network/privateEndpoints/archivenotificationststprivateEndpoint
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Network/privateEndpoints/tstimpinfsto020privateEndpoint
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Network/privateEndpoints/tstimpinfsto021privateEndpoint
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Network/privateEndpoints/tstimpinfsto022privateEndpoint
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Network/privateEndpoints/tstimpinfsto023privateEndpoint
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Network/privateEndpoints/tstimpinfsto025privateEndpoint
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Network/privateEndpoints/tstimpinfsto026privateEndpoint
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Network/privateEndpoints/tstimpinfsto027privateEndpoint
+
+# Network interfaces
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Network/networkInterfaces/archivenotificationststprivateEndpointnic
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Network/networkInterfaces/tstimpinfsto020privateEndpointnic
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Network/networkInterfaces/tstimpinfsto021privateEndpointnic
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Network/networkInterfaces/tstimpinfsto022privateEndpointnic
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Network/networkInterfaces/tstimpinfsto023privateEndpointnic
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Network/networkInterfaces/tstimpinfsto025privateEndpointnic
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Network/networkInterfaces/tstimpinfsto026privateEndpointnic
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Network/networkInterfaces/tstimpinfsto027privateEndpointnic
+
+# Storage accounts
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Storage/storageAccounts/tstimpinfsto025
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Storage/storageAccounts/tstimpinfsto020
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Storage/storageAccounts/tstimpinfsto021
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Storage/storageAccounts/tstimpinfsto022
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Storage/storageAccounts/archivenotificationstst
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Storage/storageAccounts/notificationsearchmigtst
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Storage/storageAccounts/tstimpinfsto023
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Storage/storageAccounts/tstimpinfsto026
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Storage/storageAccounts/tstimpinfsto027
+
+# SQL databases
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Sql/servers/tstimpdbssqa001/databases/bordernotification-refdata-microservice-green
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Sql/servers/tstimpdbssqa001/databases/commoditycode-microservice-blue_old
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Sql/servers/tstimpdbssqa001/databases/commoditycode-microservice-green
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Sql/servers/tstimpdbssqa001/databases/commoditycode-microservice-green_old
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Sql/servers/tstimpdbssqa001/databases/decision-microservice-green
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Sql/servers/tstimpdbssqa001/databases/fieldconfig-microservice-green
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Sql/servers/tstimpdbssqa001/databases/laboratories-microservice-green
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Sql/servers/tstimpdbssqa001/databases/permissions-green
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Sql/servers/tstimpdbssqa001/databases/referencedataloader-microservice-green
+
+# User-assigned managed identities
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.ManagedIdentity/userAssignedIdentities/tst-imp-secrets-keyvault
+
+# Report rows with a live dependency or an Azure system resource. These entries are inactive.
+# The SOAP plan still hosts running Function App TSTIMPWEBAFA001.
+# /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Web/serverFarms/soap-services-planv3-1
+# The SOAP plan is still in use.
+# /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/autoscalesettings/soap-services-planv3-1-AutoScaleSetting
+# This database still has SQL connections matching a scheduled tstimpinfass001 indexer.
+# /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Sql/servers/tstimpdbssqa001/databases/approvedestablishment-microservice-green
+# This database still has SQL connections matching a scheduled tstimpinfass001 indexer.
+# /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Sql/servers/tstimpdbssqa001/databases/economicoperator-microservice-public-green
+# The retained Azure SQL server requires its system database.
+# /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Sql/servers/tstimpdbssqa001/databases/master
+# This workspace backs the Application Insights component used by TSTIMPWEBAFA001.
+# /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.OperationalInsights/workspaces/log-analytics-TSTIMPINFRGP001-green
+# This PIMS test or alert monitors the separate Dynamics PIMS test endpoint.
+# /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.insights/metricalerts/pims endpoint test-insights-TSTIMPINFRGP001-green
+# The running TSTIMPWEBAFA001 Function App is configured to send telemetry to this component.
+# /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/components/insights-TSTIMPINFRGP001-green
+# This detector covers the component receiving TSTIMPWEBAFA001 telemetry.
+# /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.alertsManagement/smartDetectorAlertRules/Failure Anomalies - insights-TSTIMPINFRGP001-green
+# This PIMS test or alert monitors the separate Dynamics PIMS test endpoint.
+# /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.insights/webtests/pims endpoint test-insights-TSTIMPINFRGP001-green
+# This identity holds subscription Contributor and Azure DevOps federation for ADO-DefraGovUK-MI-AZR-TST1.
+# /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.ManagedIdentity/userAssignedIdentities/MI-AZR-TST1
