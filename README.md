@@ -166,6 +166,24 @@ installers. Retire ADO definitions `import-acr-artifacts` (10054) and
 **Fresh environment:** core infrastructure (`includePlatform: false`) → manifest
 platform stage → Private Link → applications.
 
+### DEV Java build image
+
+The shared Java service build passes the DEV registry hostname as `IMAGE_ACR`
+and pulls the current base images when building. The
+[`refresh-dev-java-base-image`](pipelines/refresh-dev-java-base-image.yaml)
+pipeline imports `docker.io/defradigital/java:jre-21` into DEV ACR daily at
+04:00 UTC. Queue it manually on `main` for an immediate refresh.
+
+After merge, register the schedule once in the `DEFRA-EUTD-IPAFFS` Azure DevOps project.
+
+1. Open **Pipelines → New pipeline → GitHub** and select `DEFRA/ipaffs-infra`.
+2. Choose **Existing Azure Pipelines YAML file**, branch `main`, and
+   `/pipelines/refresh-dev-java-base-image.yaml`. Save the pipeline and name it
+   `refresh-dev-java-base-image`.
+3. Give the pipeline access to the `Common` and `LowerEnvs` variable groups,
+   the `DEFRA-COMMON-ubuntu2204-SSV5` pool, and the `ADO-DefraGovUK-AZR-IMP-DEV1`
+   Azure service connection. The Docker Hub credentials come from `Common`.
+
 ### Operational tooling ownership
 
 Grafana dashboards, their deployment pipeline and datasource helpers, and the

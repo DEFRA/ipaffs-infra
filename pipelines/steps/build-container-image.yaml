@@ -20,6 +20,10 @@ parameters:
     type: string
     default: ' '
 
+  - name: useAcrBaseImage
+    type: boolean
+    default: false
+
   # for Dockerfiles that install @defra packages: passes System.AccessToken as the build
   # secret ado_feed_token, for reading the Azure Artifacts feed
   - name: npmTokenSecret
@@ -41,7 +45,7 @@ steps:
       scriptType: bash
       scriptLocation: inlineScript
       inlineScript: |
-        set -x
+        set -ex
         if [[ -n "${ACR_NAME_PARAMETER// /}" ]]; then
           ACR_NAME="${ACR_NAME_PARAMETER}"
         else
@@ -61,10 +65,13 @@ steps:
         fi
 
         az acr login --name "${ACR_NAME}" --subscription "${SUBSCRIPTION_NAME}"
-        SECRET_ARGS=()
-        if [[ "${{ parameters.npmTokenSecret }}" == "True" ]]; then
-          SECRET_ARGS=(--secret id=ado_feed_token,env=ADO_FEED_TOKEN)
+        BUILD_ARGS=()
+        if [[ "${{ parameters.useAcrBaseImage }}" == "True" ]]; then
+          BUILD_ARGS+=(--pull --build-arg "IMAGE_ACR=$(acrLoginServer)")
         fi
-        docker build --platform=linux/amd64 "${SECRET_ARGS[@]}" --tag "${{ parameters.imageName }}:${TAG_NAME}" --file "${{ parameters.dockerFile }}" "${{ parameters.directory }}"
+        if [[ "${{ parameters.npmTokenSecret }}" == "True" ]]; then
+          BUILD_ARGS+=(--secret id=ado_feed_token,env=ADO_FEED_TOKEN)
+        fi
+        docker build --platform=linux/amd64 "${BUILD_ARGS[@]}" --tag "${{ parameters.imageName }}:${TAG_NAME}" --file "${{ parameters.dockerFile }}" "${{ parameters.directory }}"
         docker tag "${{ parameters.imageName }}:${TAG_NAME}" "${ACR_NAME}.azurecr.io/ipaffs/${{ parameters.imageName }}:${TAG_NAME}"
         docker push "${ACR_NAME}.azurecr.io/ipaffs/${{ parameters.imageName }}:${TAG_NAME}"

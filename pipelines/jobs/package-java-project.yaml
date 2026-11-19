@@ -7,6 +7,9 @@ parameters:
     default: false
   - name: serviceName
     type: string
+  - name: useAcrBaseImage
+    type: boolean
+    default: false
 
 jobs:
   - job: PackageJavaImage
@@ -27,6 +30,7 @@ jobs:
           dockerFile: service/${{ parameters.dockerFile }}
           directory: ./service
           imageName: ${{ parameters.serviceName }}
+          useAcrBaseImage: ${{ parameters.useAcrBaseImage }}
 
       - template: /pipelines/steps/scan-container-image.yaml@ipaffs-infra
         parameters:
