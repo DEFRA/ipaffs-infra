@@ -19,8 +19,6 @@ parameters:
 stages:
   - stage: ${{ parameters.stagePrefix }}InfraPermissions
     displayName: Infrastructure Permissions
-    ${{ if eq(parameters.environmentName, 'DEV') }}:
-      lockBehavior: sequential
     ${{ if gt(length(parameters.dependsOn), 0) }}:
       dependsOn: ${{ parameters.dependsOn }}
     variables:

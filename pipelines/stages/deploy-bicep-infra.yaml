@@ -10,6 +10,10 @@ parameters:
   - name: environmentName
     type: string
 
+  - name: useDevAksLock
+    type: boolean
+    default: false
+
   - name: dependsOn
     type: object
     default: []
@@ -20,11 +24,13 @@ parameters:
 stages:
   - stage: ${{ parameters.stagePrefix }}DeployInfrastructure
     displayName: Deploy Infrastructure
-    ${{ if eq(parameters.environmentName, 'DEV') }}:
+    ${{ if parameters.useDevAksLock }}:
       lockBehavior: sequential
     ${{ if gt(length(parameters.dependsOn), 0) }}:
       dependsOn: ${{ parameters.dependsOn }}
     variables:
+      - ${{ if parameters.useDevAksLock }}:
+        - group: ipaffs-dev-aks-lock
       - group: Common
       - ${{ if or(eq(parameters.environmentName, 'PRD'), eq(parameters.environmentName, 'PRE')) }}:
         - group: HigherEnvs

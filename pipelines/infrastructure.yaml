@@ -150,6 +150,7 @@ stages:
   - template: stages/deploy-bicep-infra.yaml
     parameters:
       environmentName: ${{ parameters.environmentName }}
+      useDevAksLock: ${{ and(eq(parameters.environmentName, 'DEV'), eq(variables['Build.SourceBranch'], 'refs/heads/main')) }}
       dependsOn: [DeployClassic, DeployNetwork]
       ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/main') }}:
         deploymentVariables:

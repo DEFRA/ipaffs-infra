@@ -90,14 +90,18 @@ Things are moving along quickly. At the time of writing, migration of ipaffs-imp
 * Run `scripts/build.sh` to build the service, package a container and push to the local registry.
 * Run `scripts/deploy.sh` to deploy the latest built container image and run with remote debugger enabled.
 
-### DEV deployment lock
+### DEV AKS deployment lock
 
-After both the infrastructure and manifest pipeline changes reach their default
-branches, enable **Exclusive lock** under **Pipelines → Environments → DEV →
-Approvals and checks** in Azure DevOps. Both pipelines use the existing `DEV`
-environment. Its lock queues competing deployment stages in sequence. The
-`DeployInfrastructure` stage holds it through the AKS update and the wait for
-the Azure deployment to finish. Azure DevOps releases the lock between stages.
+The [ipaffs-dev-aks-lock variable group](https://dev.azure.com/defragovuk/DEFRA-EUTD-IPAFFS/_library?itemType=VariableGroups&view=VariableGroupView&variableGroupId=3341)
+has an **Exclusive lock** check with a 240-minute wait timeout. Its secret
+marker `devAksLockMarker` makes the group a protected resource. Pipeline
+permissions grant access to **infrastructure** (9217) and **Deploy DEV** (11017).
+
+On `main`, the infrastructure pipeline takes the lock in its DEV
+`DeployInfrastructure` stage and holds it until the ARM deployment completes.
+The manifest pipeline takes the same lock in stages that write to the DEV
+cluster. Use **infrastructure** for DEV upgrades. A manual DEV apply from the
+separate **deploy-bicep** pipeline bypasses this lock.
 
 ### Infrastructure releases
 

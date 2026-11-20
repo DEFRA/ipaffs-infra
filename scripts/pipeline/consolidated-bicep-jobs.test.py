@@ -433,18 +433,21 @@ class ConsolidatedBicepJobTests(unittest.TestCase):
 
 
 class AutomaticDevTriggerTests(unittest.TestCase):
-    def test_stages_using_dev_environment_queue_sequentially(self):
-        for environment in ("DEV", "TST", "PRE", "PRD"):
-            stages = expand_stages("pipelines/infrastructure.yaml", {
-                "environmentName": environment, "establishPeering": True, "includePlatform": True})
-            for stage in stages:
-                with self.subTest(environment=environment, stage=stage["stage"]):
-                    targets_dev = any(job.get("environment", {}).get("name") == "DEV"
-                                      for job in stage["jobs"])
-                    if targets_dev:
-                        self.assertEqual("sequential", stage["lockBehavior"])
-                    else:
-                        self.assertNotIn("lockBehavior", stage)
+    def test_dev_aks_lock_only_queues_the_infrastructure_stage_that_applies_dev(self):
+        lock = {"group": "ipaffs-dev-aks-lock"}
+        cases = [
+            ("infrastructure", "DEV", "refs/heads/main", ["DeployInfrastructure"]),
+            ("infrastructure", "DEV", "refs/heads/feature", []),
+            ("deploy-bicep", "DEV", "refs/heads/main", []),
+            *[("infrastructure", env, "refs/heads/main", []) for env in ("TST", "PRE", "PRD")],
+        ]
+        for pipeline, environment, branch, expected in cases:
+            path = f"pipelines/{pipeline}.yaml"
+            self.assertNotIn(lock, load(path)["variables"])
+            stages = expand_stages(path, {"environmentName": environment, "establishPeering": True}, branch)
+            with self.subTest(pipeline=pipeline, environment=environment, branch=branch):
+                self.assertEqual(expected, [s["stage"] for s in stages if lock in s.get("variables", [])])
+                self.assertEqual(expected, [s["stage"] for s in stages if s.get("lockBehavior") == "sequential"])
 
     def test_only_infrastructure_auto_deploys_dev_for_relevant_main_changes(self):
         pipeline = load("pipelines/infrastructure.yaml")
