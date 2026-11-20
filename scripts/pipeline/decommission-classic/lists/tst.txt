@@ -1,6 +1,6 @@
 # AZR-TST Classic resources marked Delete in the 9 November 2026 inventory.
 # Keep the groups in deletion order and use one full ARM resource ID per line.
-# Includes stopped App Services approved for retirement and verified in Azure.
+# Stop TSTIMPWEBAFA001 with the TST stop pipeline before running the deletion plan.
 
 # Microsoft.Insights/autoscaleSettings
 # Disabled rules for App Service plans verified absent in Azure.
@@ -123,6 +123,7 @@
 /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/tstimpinfrgp002/providers/Microsoft.Web/sites/soaprequest-microservice-green-tst
 /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/tstimpinfrgp002/providers/Microsoft.Web/sites/soapsearch-microservice-blue-tst
 /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/tstimpinfrgp002/providers/Microsoft.Web/sites/soapsearch-microservice-green-tst
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Web/sites/TSTIMPWEBAFA001
 
 # Microsoft.Web/serverFarms
 # Delete only after all earlier listed member apps are gone.
@@ -132,6 +133,7 @@
 /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Web/serverfarms/high-traffic-planv3-1
 /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Web/serverfarms/low-traffic-planv3-1
 /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Web/serverfarms/reference-data-planv3-1
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Web/serverFarms/soap-services-planv3-1
 
 # Microsoft.Insights/autoscaleSettings
 # Disable and delete only after Azure confirms the listed target plan is gone.
@@ -141,6 +143,7 @@
 /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/autoscalesettings/reference-data-planv3-1-AutoScaleSetting
 /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/autoscalesettings/frontend-planv3-1-AutoScaleSetting
 /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/autoscalesettings/reference-data-planv3-2-AutoScaleSetting
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/autoscalesettings/soap-services-planv3-1-AutoScaleSetting
 
 # Remaining TST resources marked Delete in the Classic Azure Decommission report.
 
@@ -475,6 +478,7 @@
 /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/soapsearch-microservice-blue-tst_northeurope_ServerError
 /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/soapsearch-microservice-green-tst_northeurope_HealthCheckStatus
 /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/metricalerts/soapsearch-microservice-green-tst_northeurope_ServerError
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.insights/metricalerts/pims endpoint test-insights-TSTIMPINFRGP001-green
 
 # Log search alert rules
 /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.insights/scheduledqueryrules/ipaffs-tst-approvedestablishment-microservice-availability-blue
@@ -576,9 +580,11 @@
 /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.alertsManagement/smartDetectorAlertRules/Failure Anomalies - insights-TSTIMPINFRGP001-blue
 /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/microsoft.alertsManagement/smartDetectorAlertRules/Failure Anomalies - insights-TSTIMPINFRGP002
 /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/microsoft.alertsManagement/smartDetectorAlertRules/Failure Anomalies - insights-TSTIMPINFRGP002-trn
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.alertsManagement/smartDetectorAlertRules/Failure Anomalies - insights-TSTIMPINFRGP001-green
 
 # Availability tests
 /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.insights/webtests/pims endpoint test-insights-TSTIMPINFRGP001-blue
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.insights/webtests/pims endpoint test-insights-TSTIMPINFRGP001-green
 
 # Portal dashboards
 /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Portal/dashboards/72c24e59-f75a-423e-82fd-47c5a48b9f8c-dashboard
@@ -588,9 +594,11 @@
 
 # Application Insights
 /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/components/insights-TSTIMPINFRGP001-blue
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/components/insights-TSTIMPINFRGP001-green
 
 # Log Analytics workspaces
 /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.OperationalInsights/workspaces/log-analytics-TSTIMPINFRGP001-blue
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.OperationalInsights/workspaces/log-analytics-TSTIMPINFRGP001-green
 
 # Logic Apps
 /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Logic/workflows/TSTIMPINFALA001
@@ -638,30 +646,12 @@
 /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Sql/servers/tstimpdbssqa001/databases/laboratories-microservice-green
 /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Sql/servers/tstimpdbssqa001/databases/permissions-green
 /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Sql/servers/tstimpdbssqa001/databases/referencedataloader-microservice-green
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Sql/servers/tstimpdbssqa001/databases/approvedestablishment-microservice-green
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Sql/servers/tstimpdbssqa001/databases/economicoperator-microservice-public-green
 
 # User-assigned managed identities
 /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.ManagedIdentity/userAssignedIdentities/tst-imp-secrets-keyvault
+/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.ManagedIdentity/userAssignedIdentities/MI-AZR-TST1
 
-# Report rows with a live dependency or an Azure system resource. These entries are inactive.
-# The SOAP plan still hosts running Function App TSTIMPWEBAFA001.
-# /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Web/serverFarms/soap-services-planv3-1
-# The SOAP plan is still in use.
-# /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP002/providers/Microsoft.Insights/autoscalesettings/soap-services-planv3-1-AutoScaleSetting
-# This database still has SQL connections matching a scheduled tstimpinfass001 indexer.
-# /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Sql/servers/tstimpdbssqa001/databases/approvedestablishment-microservice-green
-# This database still has SQL connections matching a scheduled tstimpinfass001 indexer.
-# /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Sql/servers/tstimpdbssqa001/databases/economicoperator-microservice-public-green
 # The retained Azure SQL server requires its system database.
 # /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Sql/servers/tstimpdbssqa001/databases/master
-# This workspace backs the Application Insights component used by TSTIMPWEBAFA001.
-# /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.OperationalInsights/workspaces/log-analytics-TSTIMPINFRGP001-green
-# This PIMS test or alert monitors the separate Dynamics PIMS test endpoint.
-# /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.insights/metricalerts/pims endpoint test-insights-TSTIMPINFRGP001-green
-# The running TSTIMPWEBAFA001 Function App is configured to send telemetry to this component.
-# /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Insights/components/insights-TSTIMPINFRGP001-green
-# This detector covers the component receiving TSTIMPWEBAFA001 telemetry.
-# /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.alertsManagement/smartDetectorAlertRules/Failure Anomalies - insights-TSTIMPINFRGP001-green
-# This PIMS test or alert monitors the separate Dynamics PIMS test endpoint.
-# /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/microsoft.insights/webtests/pims endpoint test-insights-TSTIMPINFRGP001-green
-# This identity holds subscription Contributor and Azure DevOps federation for ADO-DefraGovUK-MI-AZR-TST1.
-# /subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.ManagedIdentity/userAssignedIdentities/MI-AZR-TST1
