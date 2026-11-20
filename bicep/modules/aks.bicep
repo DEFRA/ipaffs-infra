@@ -97,6 +97,9 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2025-10-01' = {
         maxCount: aksParams.nodePools.system.maxCount
         maxPods: aksParams.nodePools.system.maxPods
         mode: 'System'
+        nodeTaints: [
+          'CriticalAddonsOnly=true:NoSchedule'
+        ]
         osType: 'Linux'
         type: 'VirtualMachineScaleSets'
         vmSize: aksParams.nodePools.system.vmSize
