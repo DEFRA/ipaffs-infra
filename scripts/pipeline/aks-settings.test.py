@@ -71,6 +71,11 @@ class CompiledAksSettingsTests(unittest.TestCase):
                     expected = "Standard_E2as_" if name == "system" else "Standard_E16as_"
                     self.assertEqual(expected + generation, parameter_value(pool["vmSize"], parameters))
 
+    def test_only_the_system_pool_is_reserved_for_critical_addons(self):
+        taint = "CriticalAddonsOnly=true:NoSchedule"
+        self.assertIn(taint, self.pools["system"].get("nodeTaints", []))
+        self.assertNotIn(taint, self.pools["user"].get("nodeTaints", []))
+
     def test_autoscaled_counts_runtime_states_and_generated_node_metadata_are_not_pinned(self):
         for name, pool in self.pools.items():
             with self.subTest(pool=name):
