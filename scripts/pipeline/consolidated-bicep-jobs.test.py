@@ -338,6 +338,14 @@ class ConsolidatedBicepJobTests(unittest.TestCase):
                 self.assertEqual("$(classicSubscriptionId)", output_task["env"]["SUBSCRIPTION_ID"])
                 self.assertEqual("$(classicResourceGroupName)", output_task["env"]["RESOURCE_GROUP"])
 
+    def test_directory_readers_membership_for_each_environment(self):
+        for environment in ("DEV", "TST", "PRE", "PRD"):
+            with self.subTest(environment=environment):
+                stage, = expand_stages("pipelines/stages/infra-permissions.yaml", {"environmentName": environment})
+                names = [task.get("name") for task in steps(stage)]
+                self.assertIn("SQLServerDirectoryReaders", names)
+                self.assertEqual(environment != "DEV", "SQLClassicServerDirectoryReaders" in names)
+
     def test_access_contract_exports_modern_sql_group_only_after_successful_validation(self):
         stage, = expand_stages("pipelines/stages/validate-access-contract.yaml", {"environmentName": "DEV"})
         job, = stage["jobs"]
