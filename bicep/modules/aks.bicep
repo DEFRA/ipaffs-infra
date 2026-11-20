@@ -10,7 +10,7 @@ param tenantId string
 param vnetName string
 
 // Shared pin for the control plane and both node pools in every environment.
-var kubernetesVersion = '1.34.7'
+var kubernetesVersion = '1.35.9'
 
 var fortinetCA = loadFileAsBase64('../files/PAsubca.crt')
 
