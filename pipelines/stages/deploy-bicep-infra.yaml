@@ -20,6 +20,8 @@ parameters:
 stages:
   - stage: ${{ parameters.stagePrefix }}DeployInfrastructure
     displayName: Deploy Infrastructure
+    ${{ if eq(parameters.environmentName, 'DEV') }}:
+      lockBehavior: sequential
     ${{ if gt(length(parameters.dependsOn), 0) }}:
       dependsOn: ${{ parameters.dependsOn }}
     variables:

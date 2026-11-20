@@ -19,6 +19,8 @@ parameters:
 stages:
   - stage: ${{ parameters.stagePrefix }}PrivateLinkDNSRecords
     displayName: Set Private Endpoint DNS Records
+    ${{ if eq(parameters.environmentName, 'DEV') }}:
+      lockBehavior: sequential
     ${{ if gt(length(parameters.dependsOn), 0) }}:
       dependsOn: ${{ parameters.dependsOn }}
     variables:

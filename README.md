@@ -90,6 +90,15 @@ Things are moving along quickly. At the time of writing, migration of ipaffs-imp
 * Run `scripts/build.sh` to build the service, package a container and push to the local registry.
 * Run `scripts/deploy.sh` to deploy the latest built container image and run with remote debugger enabled.
 
+### DEV deployment lock
+
+After both the infrastructure and manifest pipeline changes reach their default
+branches, enable **Exclusive lock** under **Pipelines → Environments → DEV →
+Approvals and checks** in Azure DevOps. Both pipelines use the existing `DEV`
+environment. Its lock queues competing deployment stages in sequence. The
+`DeployInfrastructure` stage holds it through the AKS update and the wait for
+the Azure deployment to finish. Azure DevOps releases the lock between stages.
+
 ### Infrastructure releases
 
 [`release-pipeline.yaml`](release-pipeline.yaml) promotes the same tagged commit

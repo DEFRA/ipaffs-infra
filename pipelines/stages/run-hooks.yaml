@@ -24,6 +24,8 @@ parameters:
 stages:
   - stage: ${{ parameters.stagePrefix }}RunHooks
     displayName: Run Hooks
+    ${{ if eq(parameters.environmentName, 'DEV') }}:
+      lockBehavior: sequential
     ${{ if gt(length(parameters.dependsOn), 0) }}:
       dependsOn: ${{ parameters.dependsOn }}
     variables:

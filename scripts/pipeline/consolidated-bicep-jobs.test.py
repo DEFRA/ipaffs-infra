@@ -433,6 +433,19 @@ class ConsolidatedBicepJobTests(unittest.TestCase):
 
 
 class AutomaticDevTriggerTests(unittest.TestCase):
+    def test_stages_using_dev_environment_queue_sequentially(self):
+        for environment in ("DEV", "TST", "PRE", "PRD"):
+            stages = expand_stages("pipelines/infrastructure.yaml", {
+                "environmentName": environment, "establishPeering": True, "includePlatform": True})
+            for stage in stages:
+                with self.subTest(environment=environment, stage=stage["stage"]):
+                    targets_dev = any(job.get("environment", {}).get("name") == "DEV"
+                                      for job in stage["jobs"])
+                    if targets_dev:
+                        self.assertEqual("sequential", stage["lockBehavior"])
+                    else:
+                        self.assertNotIn("lockBehavior", stage)
+
     def test_only_infrastructure_auto_deploys_dev_for_relevant_main_changes(self):
         pipeline = load("pipelines/infrastructure.yaml")
         trigger = pipeline["trigger"]
