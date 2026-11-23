@@ -165,9 +165,6 @@ def validate_pool(pool, capabilities, live):
         size_bytes = size_gib * GIB
         if not size_allowed(size_bytes, database_sizes):
             problems.append(f"{name}: database {database_name} maxSizeGiB {size_gib} is not offered for {sku_label}.")
-        if size_bytes > max_size_bytes:
-            problems.append(f"{name}: database {database_name} maxSizeGiB {size_gib} exceeds "
-                            f"the configured pool limit of {pool['maxSizeGiB']} GiB.")
         current_size = member.get("maxSizeBytes")
         if current_size is None:
             problems.append(f"{name}: Azure did not return the current storage limit for database {database_name}.")

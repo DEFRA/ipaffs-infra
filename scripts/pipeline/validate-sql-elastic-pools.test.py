@@ -191,11 +191,11 @@ class ValidatePoolTest(unittest.TestCase):
         candidate = pool(databases=[{"name": "different-database", "maxSizeGiB": 1024}])
         self.assertProblem("database different-database is not an existing member", self.check(candidate))
 
-    def test_managed_database_limit_must_be_offered_and_fit_the_pool(self):
+    def test_pool_and_database_limits_use_their_own_supported_sizes(self):
         database = {"name": "notification-microservice", "maxSizeGiB": 1024}
-        self.assertProblem("exceeds the configured pool limit of 750 GiB", self.check(pool(databases=[database])))
-        database["maxSizeGiB"] = 701
-        self.assertProblem("maxSizeGiB 701 is not offered", self.check(pool(databases=[database])))
+        self.assertEqual([], self.check(pool(maxSizeGiB=800, databases=[database])))
+        database["maxSizeGiB"] = 800
+        self.assertProblem("maxSizeGiB 800 is not offered", self.check(pool(maxSizeGiB=800, databases=[database])))
 
     def test_managed_database_limit_cannot_be_reduced_or_unknown(self):
         database = {"name": "notification-microservice", "maxSizeGiB": 64}
