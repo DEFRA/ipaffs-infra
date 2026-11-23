@@ -234,6 +234,12 @@ this repo scales its pool from 250 to 1000 eDTU on weekday mornings. It keeps
 whatever SKU and per-database limits are live, and What-If shows those two
 properties as unresolved `reference()` changes. SND is unused and lists no pools.
 
+An optional `databases` list declares individual databases in a pool. The Classic
+deployment manages each named database's storage limit, pool membership,
+availability and backup settings, collation, read scale and tags. The preflight
+checks membership and validates pool and database limits against their respective
+regional SKU limits. A database can grow only into space available in its pool.
+
 What-If does not ask Azure whether a pool's SKU, maximum size and per-database
 limits can be combined, so the Classic deployment runs
 `scripts/pipeline/validate-sql-elastic-pools.py` first. It checks each

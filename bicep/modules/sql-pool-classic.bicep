@@ -10,6 +10,7 @@ param liveSku object = {}
 param livePerDatabaseSettings object = {}
 
 var keepLiveCapacity = sqlPoolParams.?keepLiveCapacity ?? false
+var poolSku = keepLiveCapacity ? liveSku : sqlPoolParams.sku
 
 resource sqlServer 'Microsoft.Sql/servers@2023-08-01' existing = {
   name: sqlPoolParams.serverName
@@ -23,7 +24,7 @@ resource elasticPool 'Microsoft.Sql/servers/elasticPools@2023-08-01' = {
   location: location
   tags: sqlPoolParams.tags
 
-  sku: keepLiveCapacity ? liveSku : sqlPoolParams.sku
+  sku: poolSku
 
   properties: {
     licenseType: sqlPoolParams.?licenseType
@@ -33,6 +34,31 @@ resource elasticPool 'Microsoft.Sql/servers/elasticPools@2023-08-01' = {
     zoneRedundant: sqlPoolParams.zoneRedundant
   }
 }
+
+// Only named databases are managed here. The pool reference orders their updates after the pool resize.
+resource pooledDatabases 'Microsoft.Sql/servers/databases@2023-08-01' = [for database in sqlPoolParams.?databases ?? []: {
+  parent: sqlServer
+  name: database.name
+  location: location
+  tags: database.tags
+  sku: {
+    name: 'ElasticPool'
+    tier: poolSku.tier
+    capacity: 0
+  }
+  properties: {
+    elasticPoolId: elasticPool.id
+    maxSizeBytes: database.maxSizeGiB * 1024 * 1024 * 1024
+    collation: database.collation
+    catalogCollation: database.catalogCollation
+    readScale: database.readScale
+    zoneRedundant: database.zoneRedundant
+    requestedBackupStorageRedundancy: database.requestedBackupStorageRedundancy
+    maintenanceConfigurationId: subscriptionResourceId('Microsoft.Maintenance/publicMaintenanceConfigurations', database.maintenanceConfigurationName)
+    availabilityZone: database.availabilityZone
+    isLedgerOn: database.isLedgerOn
+  }
+}]
 
 output elasticPoolName string = elasticPool.name
 output elasticPoolResourceId string = elasticPool.id
