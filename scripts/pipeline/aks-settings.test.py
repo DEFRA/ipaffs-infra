@@ -94,7 +94,7 @@ class CompiledAksSettingsTests(unittest.TestCase):
                                      parameter_value(pool["osDiskSizeGB"], parameters))
                     self.assertEqual("Managed", pool["osDiskType"])
                     self.assertEqual("OS", pool["kubeletDiskType"])
-                    self.assertEqual("AzureContainerLinux" if name == "user" else "Ubuntu", pool["osSKU"])
+                    self.assertEqual("AzureContainerLinux", pool["osSKU"])
                     self.assertFalse(pool["enableFIPS"])
                     self.assertEqual("Delete", pool["scaleDownMode"])
                     self.assertTrue(pool["securityProfile"]["enableSecureBoot"])

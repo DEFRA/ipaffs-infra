@@ -95,7 +95,7 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2026-03-01' = {
         kubeletDiskType: 'OS'
         osDiskSizeGB: aksParams.nodePools.system.osDiskSizeGB
         osDiskType: 'Managed'
-        osSKU: 'Ubuntu'
+        osSKU: 'AzureContainerLinux'
         scaleDownMode: 'Delete'
         minCount: aksParams.nodePools.system.minCount
         maxCount: aksParams.nodePools.system.maxCount
