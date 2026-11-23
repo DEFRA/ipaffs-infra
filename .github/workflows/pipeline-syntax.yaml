@@ -15,6 +15,7 @@ on:
       - "scripts/pipeline/validate-access-contract.py"
       - "scripts/pipeline/decommission-classic.py"
       - "scripts/pipeline/decommission-classic/lists/*.txt"
+      - "scripts/hooks/*.txt"
       - "scripts/pipeline/create-release-refs.py"
       - "scripts/pipeline/sync-deployment-outputs.py"
       - "scripts/pipeline/approve-sql-elastic-job-private-endpoint.py"
@@ -42,6 +43,7 @@ on:
       - "scripts/pipeline/validate-access-contract.py"
       - "scripts/pipeline/decommission-classic.py"
       - "scripts/pipeline/decommission-classic/lists/*.txt"
+      - "scripts/hooks/*.txt"
       - "scripts/pipeline/create-release-refs.py"
       - "scripts/pipeline/sync-deployment-outputs.py"
       - "scripts/pipeline/approve-sql-elastic-job-private-endpoint.py"
@@ -113,6 +115,10 @@ jobs:
       - name: Test generated manifest service values
         shell: bash
         run: bash scripts/pipeline/update-manifest-service-values.test.sh
+
+      - name: Test decommissioned secret deletion hook
+        shell: bash
+        run: bash scripts/pipeline/delete-decommissioned-secrets.test.sh
 
       - name: Set up Python
         uses: actions/setup-python@v5

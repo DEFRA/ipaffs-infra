@@ -28,6 +28,7 @@ trigger:
       - scripts/pipeline/run-hooks.sh
       - scripts/pipeline/trigger-peering-pipeline.sh
       - scripts/hooks/*.sh
+      - scripts/hooks/*.txt
       - scripts/hooks/dev/*.sh
     exclude:
       - bicep/envs/tst/**
