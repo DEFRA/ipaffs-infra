@@ -51,6 +51,7 @@ param aksParams = {
 
   nodePools: {
     system: {
+      osSKU: 'AzureContainerLinux'
       minCount: 3
       maxCount: 5
       maxPods: 250

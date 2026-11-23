@@ -185,7 +185,7 @@ class CompiledAksSettingsTests(unittest.TestCase):
                 self.assertEqual(expected if environment == "dev" else None,
                                  parameters["aksParams"].get("containerLinuxApiSettings"))
 
-    def test_only_dev_user_pool_selects_container_linux(self):
+    def test_only_dev_pools_select_container_linux(self):
         self.assertEqual("[contains(parameters('aksParams'), 'containerLinuxApiSettings')]",
                          self.module["variables"]["useContainerLinuxApi"])
         for name, pool in self.pools.items():
@@ -194,7 +194,7 @@ class CompiledAksSettingsTests(unittest.TestCase):
         for environment, parameters in self.parameters.items():
             for name, pool in parameters["aksParams"]["nodePools"].items():
                 with self.subTest(environment=environment, pool=name):
-                    expected = "AzureContainerLinux" if environment == "dev" and name == "user" else "Ubuntu"
+                    expected = "AzureContainerLinux" if environment == "dev" else "Ubuntu"
                     self.assertEqual(expected, pool.get("osSKU", "Ubuntu"))
 
     def test_autoscaler_settings_keep_boolean_and_string_api_types(self):
