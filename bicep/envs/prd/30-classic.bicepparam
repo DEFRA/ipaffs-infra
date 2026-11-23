@@ -84,7 +84,31 @@ param sqlPoolsParams = [
       minCapacity: 0
       maxCapacity: 1000
     }
-    maxSizeGiB: 750
+    maxSizeGiB: 1024
+    databases: [
+      {
+        name: 'notification-microservice'
+        maxSizeGiB: 1024
+        collation: 'SQL_Latin1_General_CP1_CI_AS'
+        catalogCollation: 'SQL_Latin1_General_CP1_CI_AS'
+        readScale: 'Enabled'
+        zoneRedundant: true
+        requestedBackupStorageRedundancy: 'GeoZone'
+        maintenanceConfigurationName: 'SQL_Default'
+        availabilityZone: 'NoPreference'
+        isLedgerOn: false
+        tags: {
+          CreatedDate: '20260602  '
+          Environment: 'PRD'
+          Location: 'North Europe'
+          Name: 'notification-microservice'
+          ServiceCode: 'IMP'
+          ServiceName: 'EUX Imports'
+          ServiceType: 'LOB'
+          Tier: 'Database'
+        }
+      }
+    ]
     zoneRedundant: true
     maintenanceConfigurationName: 'SQL_Default'
     // The pool's own tags from the original ARM template, kept as they are live.
