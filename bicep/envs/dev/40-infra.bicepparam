@@ -24,6 +24,7 @@ param aksParams = {
   name: 'DEVIMPINFAK1401'
   dnsPrefix: 'devimpinfak1401'
   nodeResourceGroup: 'DEVIMPINFRG1402'
+  nodeOSUpgradeChannel: 'NodeImage'
   sku: 'Standard'
 
   // Container Insights collection (logs and inventory) into this environment's Log Analytics workspace
