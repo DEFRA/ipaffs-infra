@@ -25,6 +25,20 @@ param aksParams = {
   dnsPrefix: 'devimpinfak1401'
   nodeResourceGroup: 'DEVIMPINFRG1402'
   nodeOSUpgradeChannel: 'NodeImage'
+  // Preserve the existing DEV add-on settings when AKS uses the newer Container Linux API.
+  containerLinuxApiSettings: {
+    hostedSystemProfile: { enabled: false }
+    gatewayAPIImplementations: { appRoutingIstio: { mode: 'Disabled' } }
+    advancedNetworking: {
+      enabled: true
+      observability: { enabled: true }
+      performance: { accelerationMode: 'None' }
+      security: {
+        advancedNetworkPolicies: 'None'
+        enabled: false
+      }
+    }
+  }
   sku: 'Standard'
 
   // Container Insights collection (logs and inventory) into this environment's Log Analytics workspace
@@ -44,6 +58,7 @@ param aksParams = {
       osDiskSizeGB: 128
     }
     user: {
+      osSKU: 'AzureContainerLinux'
       minCount: 3
       maxCount: 12
       maxPods: 250
