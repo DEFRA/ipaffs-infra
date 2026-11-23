@@ -12,9 +12,6 @@ param vnetName string
 // Shared pin for the control plane and both node pools in every environment.
 var kubernetesVersion = '1.35.9'
 
-// Keep using the same API if a pool rolls back to Ubuntu.
-var useContainerLinuxApi = contains(aksParams, 'containerLinuxApiSettings')
-
 var fortinetCA = loadFileAsBase64('../files/PAsubca.crt')
 
 resource userAssignedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2024-11-30' = {
@@ -38,7 +35,7 @@ module vnetNetworkContributor './vnet-role-assignment.bicep' = {
   }
 }
 
-var clusterConfig = {
+resource aksCluster 'Microsoft.ContainerService/managedClusters@2026-03-01' = {
   name: aksParams.name
   location: location
   tags: tags
@@ -58,6 +55,10 @@ var clusterConfig = {
     publicNetworkAccess: 'Disabled'
     enableRBAC: true
     supportPlan: 'KubernetesOfficial'
+
+    hostedSystemProfile: {
+      enabled: false
+    }
 
     serviceMeshProfile: {
       mode: 'Disabled'
@@ -94,7 +95,7 @@ var clusterConfig = {
         kubeletDiskType: 'OS'
         osDiskSizeGB: aksParams.nodePools.system.osDiskSizeGB
         osDiskType: 'Managed'
-        osSKU: aksParams.nodePools.system.?osSKU ?? 'Ubuntu'
+        osSKU: 'Ubuntu'
         scaleDownMode: 'Delete'
         minCount: aksParams.nodePools.system.minCount
         maxCount: aksParams.nodePools.system.maxCount
@@ -128,7 +129,7 @@ var clusterConfig = {
         kubeletDiskType: 'OS'
         osDiskSizeGB: aksParams.nodePools.user.osDiskSizeGB
         osDiskType: 'Managed'
-        osSKU: aksParams.nodePools.user.?osSKU ?? 'Ubuntu'
+        osSKU: 'AzureContainerLinux'
         scaleDownMode: 'Delete'
         minCount: aksParams.nodePools.user.minCount
         maxCount: aksParams.nodePools.user.maxCount
@@ -161,7 +162,7 @@ var clusterConfig = {
     }
 
     autoUpgradeProfile: {
-      nodeOSUpgradeChannel: aksParams.?nodeOSUpgradeChannel ?? 'SecurityPatch'
+      nodeOSUpgradeChannel: 'NodeImage'
       upgradeChannel: 'none'
     }
 
@@ -189,6 +190,11 @@ var clusterConfig = {
     ingressProfile: {
       webAppRouting: {
         enabled: true
+        gatewayAPIImplementations: {
+          appRoutingIstio: {
+            mode: 'Disabled'
+          }
+        }
         nginx: {
           defaultIngressControllerType: 'None'
         }
@@ -196,6 +202,7 @@ var clusterConfig = {
     }
 
     networkProfile: {
+      advancedNetworking: aksParams.?advancedNetworking
       dnsServiceIP: aksParams.dnsServiceIp
       ipFamilies: ['IPv4']
       loadBalancerSku: 'standard'
@@ -253,30 +260,6 @@ var clusterConfig = {
   }
 }
 
-// Environments opt in to the new API through their AKS parameters.
-resource ubuntuCluster 'Microsoft.ContainerService/managedClusters@2025-10-01' = if (!useContainerLinuxApi) {
-  name: aksParams.name
-  location: clusterConfig.location
-  tags: clusterConfig.tags
-  kind: clusterConfig.kind
-  identity: clusterConfig.identity
-  properties: clusterConfig.properties
-  sku: clusterConfig.sku
-}
-
-module containerLinuxCluster './aks-container-linux.bicep' = if (useContainerLinuxApi) {
-  name: 'aks-container-linux-${deploymentId}'
-  params: {
-    config: clusterConfig
-    apiSettings: aksParams.containerLinuxApiSettings
-  }
-}
-
-// Both deployment paths own the same cluster ID.
-resource aksCluster 'Microsoft.ContainerService/managedClusters@2025-10-01' existing = {
-  name: aksParams.name
-}
-
 // Container Insights data (container logs, pod and node inventory, perf) goes wherever the cluster's
 // data collection rule sends it; the omsAgent workspace above is not used for that with useAADAuth.
 // The name and association match what the portal creates, so an existing hand-made rule is taken over
@@ -323,7 +306,6 @@ resource containerInsightsRule 'Microsoft.Insights/dataCollectionRules@2023-03-1
 resource containerInsightsRuleAssociation 'Microsoft.Insights/dataCollectionRuleAssociations@2023-03-11' = if (aksParams.containerInsights) {
   name: 'ContainerInsightsExtension'
   scope: aksCluster
-  dependsOn: [ubuntuCluster, containerLinuxCluster]
   properties: {
     dataCollectionRuleId: containerInsightsRule.id
     description: 'Association of data collection rule. Deleting this association will break the data collection for this AKS Cluster.'
@@ -332,10 +314,6 @@ resource containerInsightsRuleAssociation 'Microsoft.Insights/dataCollectionRule
 
 output aksClusterName string = aksCluster.name
 output aksClusterResourceId string = aksCluster.id
-output kubeletPrincipalId string = useContainerLinuxApi
-  ? containerLinuxCluster!.outputs.kubeletPrincipalId
-  : ubuntuCluster!.properties.identityProfile.kubeletIdentity.objectId
-output oidcIssuerUrl string = useContainerLinuxApi
-  ? containerLinuxCluster!.outputs.oidcIssuerUrl
-  : ubuntuCluster!.properties.oidcIssuerProfile.issuerURL
+output kubeletPrincipalId string = aksCluster.properties.identityProfile.kubeletIdentity.objectId
+output oidcIssuerUrl string = aksCluster.properties.oidcIssuerProfile.issuerURL
 

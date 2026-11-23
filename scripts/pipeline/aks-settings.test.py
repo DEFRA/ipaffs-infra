@@ -38,19 +38,17 @@ class CompiledAksSettingsTests(unittest.TestCase):
         temporary = tempfile.TemporaryDirectory()
         cls.addClassCleanup(temporary.cleanup)
         cls.compiler_environment = {**os.environ, "DOTNET_BUNDLE_EXTRACT_BASE_DIR": temporary.name}
+        module = cls.compile("build", ROOT / "bicep/modules/aks.bicep")
+        cls.cluster, = [r for r in module["resources"] if r["type"] == "Microsoft.ContainerService/managedClusters"]
+        cls.properties = cls.cluster["properties"]
+        cls.pools = {pool["name"]: pool for pool in cls.properties["agentPoolProfiles"]}
         cls.parameters = {}
-        cls.aks_modules = {}
+        cls.root_templates = {}
         for environment in ("dev", "tst", "pre", "prd"):
             result = cls.compile("build-params", ROOT / f"bicep/envs/{environment}/40-infra.bicepparam")
             cls.parameters[environment] = {
                 name: entry["value"] for name, entry in json.loads(result["parametersJson"])["parameters"].items()}
-            root = json.loads(result["templateJson"])
-            cls.aks_modules[environment], = [r["properties"] for r in root["resources"]
-                                             if "aksParams" in r.get("properties", {}).get("parameters", {})]
-        cls.module = cls.aks_modules["dev"]["template"]
-        cls.config = cls.module["variables"]["clusterConfig"]
-        cls.properties = cls.config["properties"]
-        cls.pools = {pool["name"]: pool for pool in cls.properties["agentPoolProfiles"]}
+            cls.root_templates[environment] = json.loads(result["templateJson"])
 
     @classmethod
     def compile(cls, command, path):
@@ -96,6 +94,7 @@ class CompiledAksSettingsTests(unittest.TestCase):
                                      parameter_value(pool["osDiskSizeGB"], parameters))
                     self.assertEqual("Managed", pool["osDiskType"])
                     self.assertEqual("OS", pool["kubeletDiskType"])
+                    self.assertEqual("AzureContainerLinux" if name == "user" else "Ubuntu", pool["osSKU"])
                     self.assertFalse(pool["enableFIPS"])
                     self.assertEqual("Delete", pool["scaleDownMode"])
                     self.assertTrue(pool["securityProfile"]["enableSecureBoot"])
@@ -104,7 +103,8 @@ class CompiledAksSettingsTests(unittest.TestCase):
                     self.assertEqual({"maxSurge": "10%", "maxUnavailable": "0"}, pool["upgradeSettings"])
 
     def test_rbac_tenant_and_private_networking_are_explicit_without_disabling_existing_features(self):
-        self.assertEqual("Base", self.config["kind"])
+        self.assertEqual("2026-03-01", self.cluster["apiVersion"])
+        self.assertEqual("Base", self.cluster["kind"])
         self.assertTrue(self.properties["enableRBAC"])
         self.assertTrue(self.properties["aadProfile"]["managed"])
         self.assertTrue(self.properties["aadProfile"]["enableAzureRBAC"])
@@ -126,76 +126,33 @@ class CompiledAksSettingsTests(unittest.TestCase):
                 with self.subTest(environment=environment, field=plural):
                     self.assertEqual(1, len(parameter_value(network[plural], parameters)))
 
-    def test_every_entrypoint_deploys_the_same_module_and_forwards_its_inputs(self):
-        for environment, module in self.aks_modules.items():
-            with self.subTest(environment=environment):
-                self.assertEqual(self.module, module["template"])
-                for name in ("aksParams", "tenantId"):
-                    self.assertEqual(f"[parameters('{name}')]", module["parameters"][name]["value"])
-
-    def test_cluster_apis_share_configuration_and_only_dev_merges_its_api_settings(self):
-        resources = self.module["resources"]
-        cluster_type = "Microsoft.ContainerService/managedClusters"
-        ubuntu, = [r for r in resources if r["type"] == cluster_type]
-        nested, = [r for r in resources if r["type"] == "Microsoft.Resources/deployments"
-                   and "config" in r["properties"]["parameters"]]
-        acl, = nested["properties"]["template"]["resources"]
-        self.assertEqual(cluster_type, acl["type"])
-        self.assertEqual("2025-10-01", ubuntu["apiVersion"])
-        self.assertEqual("2026-03-01", acl["apiVersion"])
-        self.assertEqual("[not(variables('useContainerLinuxApi'))]", ubuntu["condition"])
-        self.assertEqual("[variables('useContainerLinuxApi')]", nested["condition"])
-        self.assertNotIn("condition", acl)
-        self.assertEqual({
-            "config": {"value": "[variables('clusterConfig')]"},
-            "apiSettings": {"value": "[parameters('aksParams').containerLinuxApiSettings]"},
-        }, nested["properties"]["parameters"])
-        self.assertEqual(self.config["name"], ubuntu["name"])
-        for key in self.config:
-            if key != "properties":
-                self.assertEqual(f"[parameters('config').{key}]", acl[key])
-            if key != "name":
-                self.assertEqual(f"[variables('clusterConfig').{key}]", ubuntu[key])
-        self.assertEqual("[union(parameters('config').properties, variables('additionalProperties'))]", acl["properties"])
-        overrides = nested["properties"]["template"]["variables"]["additionalProperties"]
-        self.assertEqual({
-            "hostedSystemProfile": "[parameters('apiSettings').hostedSystemProfile]",
-            "ingressProfile": {"webAppRouting": {
-                "gatewayAPIImplementations": "[parameters('apiSettings').gatewayAPIImplementations]",
-            }},
-            "networkProfile": {"advancedNetworking": "[parameters('apiSettings').advancedNetworking]"},
-        }, overrides)
-
-    def test_dev_api_preserves_observed_addons_and_the_shared_ingress_and_network(self):
-        self.assertNotIn("hostedSystemProfile", self.properties)
-        self.assertNotIn("advancedNetworking", self.properties["networkProfile"])
-        self.assertEqual({"webAppRouting": {"enabled": True, "nginx": {"defaultIngressControllerType": "None"}}},
-                         self.properties["ingressProfile"])
-        expected = {
-            "hostedSystemProfile": {"enabled": False},
-            "gatewayAPIImplementations": {"appRoutingIstio": {"mode": "Disabled"}},
-            "advancedNetworking": {
-                "enabled": True, "observability": {"enabled": True},
-                "performance": {"accelerationMode": "None"},
-                "security": {"advancedNetworkPolicies": "None", "enabled": False},
-            },
-        }
+    def test_api_preserves_existing_hosting_ingress_and_network_observability(self):
+        self.assertEqual({"enabled": False}, self.properties["hostedSystemProfile"])
+        routing = self.properties["ingressProfile"]["webAppRouting"]
+        self.assertEqual({"appRoutingIstio": {"mode": "Disabled"}}, routing["gatewayAPIImplementations"])
+        self.assertEqual("[tryGet(parameters('aksParams'), 'advancedNetworking')]",
+                         self.properties["networkProfile"]["advancedNetworking"])
         for environment, parameters in self.parameters.items():
             with self.subTest(environment=environment):
-                self.assertEqual(expected if environment == "dev" else None,
-                                 parameters["aksParams"].get("containerLinuxApiSettings"))
+                settings = parameters["aksParams"].get("advancedNetworking")
+                if environment == "dev":
+                    self.assertEqual({
+                        "enabled": True,
+                        "observability": {"enabled": True},
+                        "performance": {"accelerationMode": "None"},
+                        "security": {"enabled": False, "advancedNetworkPolicies": "None"},
+                    }, settings)
+                else:
+                    self.assertIsNone(settings)
 
-    def test_only_dev_user_pool_selects_container_linux(self):
-        self.assertEqual("[contains(parameters('aksParams'), 'containerLinuxApiSettings')]",
-                         self.module["variables"]["useContainerLinuxApi"])
-        for name, pool in self.pools.items():
-            self.assertEqual(f"[coalesce(tryGet(parameters('aksParams').nodePools.{name}, 'osSKU'), 'Ubuntu')]",
-                             pool["osSKU"])
-        for environment, parameters in self.parameters.items():
-            for name, pool in parameters["aksParams"]["nodePools"].items():
-                with self.subTest(environment=environment, pool=name):
-                    expected = "AzureContainerLinux" if environment == "dev" and name == "user" else "Ubuntu"
-                    self.assertEqual(expected, pool.get("osSKU", "Ubuntu"))
+    def test_existing_tenant_input_is_forwarded_from_every_real_entrypoint(self):
+        for environment, template in self.root_templates.items():
+            with self.subTest(environment=environment):
+                modules = [r for r in template["resources"]
+                           if "aksParams" in r.get("properties", {}).get("parameters", {})]
+                self.assertEqual(1, len(modules))
+                self.assertEqual("[parameters('tenantId')]",
+                                 modules[0]["properties"]["parameters"]["tenantId"]["value"])
 
     def test_autoscaler_settings_keep_boolean_and_string_api_types(self):
         self.assertEqual({
@@ -208,17 +165,7 @@ class CompiledAksSettingsTests(unittest.TestCase):
             "skip-nodes-with-local-storage": "false",
         }, self.properties["autoScalerProfile"])
 
-    def test_only_dev_uses_node_image_upgrades(self):
-        self.assertEqual({
-            "nodeOSUpgradeChannel": "[coalesce(tryGet(parameters('aksParams'), 'nodeOSUpgradeChannel'), 'SecurityPatch')]",
-            "upgradeChannel": "none",
-        }, self.properties["autoUpgradeProfile"])
-        for environment, parameters in self.parameters.items():
-            with self.subTest(environment=environment):
-                channel = parameters["aksParams"].get("nodeOSUpgradeChannel", "SecurityPatch")
-                self.assertEqual("NodeImage" if environment == "dev" else "SecurityPatch", channel)
-
-    def test_monitoring_storage_and_support_settings_are_explicit(self):
+    def test_monitoring_storage_support_and_node_image_upgrade_settings(self):
         self.assertEqual({"mode": "Manual", "defaultNodePools": "Auto"}, self.properties["nodeProvisioningProfile"])
         self.assertEqual("KubernetesOfficial", self.properties["supportPlan"])
         self.assertEqual({"costAnalysis": {"enabled": False}}, self.properties["metricsProfile"])
@@ -226,6 +173,8 @@ class CompiledAksSettingsTests(unittest.TestCase):
                           "snapshotController": {"enabled": True}}, self.properties["storageProfile"])
         self.assertTrue(self.properties["azureMonitorProfile"]["metrics"]["enabled"])
         self.assertTrue(self.properties["securityProfile"]["workloadIdentity"]["enabled"])
+        self.assertEqual({"nodeOSUpgradeChannel": "NodeImage", "upgradeChannel": "none"},
+                         self.properties["autoUpgradeProfile"])
         self.assertNotIn("defender", self.properties["securityProfile"])
         self.assertNotIn("aiToolchainOperatorProfile", self.properties)
         self.assertNotIn("extensionManager", self.properties["addonProfiles"])
