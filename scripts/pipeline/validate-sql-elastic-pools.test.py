@@ -180,6 +180,30 @@ class ValidatePoolTest(unittest.TestCase):
                            "notification-microservice",
                            self.check(pool(GP_POOL, maxSizeGiB=512), live(databases=large)))
 
+    def test_managed_database_increase_and_repeat_deployment_pass(self):
+        candidate = pool(maxSizeGiB=1024, databases=[{"name": "notification-microservice", "maxSizeGiB": 1024}])
+        for current_size in (750, 1024):
+            with self.subTest(current_size=current_size):
+                members = [{"name": "Notification-Microservice", "maxSizeBytes": current_size * GIB}]
+                self.assertEqual([], self.check(candidate, live(databases=members)))
+
+    def test_managed_database_must_already_be_in_the_pool(self):
+        candidate = pool(databases=[{"name": "different-database", "maxSizeGiB": 1024}])
+        self.assertProblem("database different-database is not an existing member", self.check(candidate))
+
+    def test_pool_and_database_limits_use_their_own_supported_sizes(self):
+        database = {"name": "notification-microservice", "maxSizeGiB": 1024}
+        self.assertEqual([], self.check(pool(maxSizeGiB=800, databases=[database])))
+        database["maxSizeGiB"] = 800
+        self.assertProblem("maxSizeGiB 800 is not offered", self.check(pool(maxSizeGiB=800, databases=[database])))
+
+    def test_managed_database_limit_cannot_be_reduced_or_unknown(self):
+        database = {"name": "notification-microservice", "maxSizeGiB": 64}
+        candidate = pool(GP_POOL, databases=[database])
+        self.assertProblem("would reduce its current limit of 100 GiB", self.check(candidate))
+        members = [{"name": "notification-microservice", "maxSizeBytes": None}]
+        self.assertProblem("did not return the current storage limit", self.check(candidate, live(databases=members)))
+
     def test_keep_live_capacity_checks_the_live_sku_instead_of_the_parameters(self):
         candidate = pool(keepLiveCapacity=True, sku={"name": "Nonsense", "tier": "Premium", "capacity": 1},
                          perDatabaseSettings={"minCapacity": 0, "maxCapacity": 999})
@@ -233,6 +257,8 @@ class MainTest(unittest.TestCase):
             result = POOLS.read_live(pool(resourceGroupName="OTHER"), "sub", "rg")
             POOLS.read_live(pool(), "sub", "rg")
         self.assertEqual(5, result["storageUsedBytes"])
+        for call in calls:
+            self.assertEqual("sub", call[call.index("--subscription") + 1])
         self.assertIn("OTHER", calls[0])
         self.assertIn("rg", calls[3])
 

@@ -12,6 +12,7 @@ checks each pool against the regional SQL capabilities API and the live pool:
 - zone redundancy, licence type and maintenance window are supported
 - the pool's used storage fits the new maximum size
 - the live database count and each database's maximum size fit the SKU
+- configured database limits are supported increases for existing pool members
 
 Pools with keepLiveCapacity check the live SKU and per-database limits, since those
 are what the deployment will send.
@@ -151,6 +152,25 @@ def validate_pool(pool, capabilities, live):
         if too_big:
             problems.append(f"{name}: these databases have a maximum size above the {largest / GIB:g} GiB "
                             f"{sku_label} allows per database: {', '.join(too_big)}.")
+
+    members = {database["name"].casefold(): database for database in live["databases"]}
+    for database in pool.get("databases", []):
+        database_name = database["name"]
+        member = members.get(database_name.casefold())
+        if member is None:
+            problems.append(f"{name}: database {database_name} is not an existing member of this pool.")
+            continue
+
+        size_gib = database["maxSizeGiB"]
+        size_bytes = size_gib * GIB
+        if not size_allowed(size_bytes, database_sizes):
+            problems.append(f"{name}: database {database_name} maxSizeGiB {size_gib} is not offered for {sku_label}.")
+        current_size = member.get("maxSizeBytes")
+        if current_size is None:
+            problems.append(f"{name}: Azure did not return the current storage limit for database {database_name}.")
+        elif size_bytes < current_size:
+            problems.append(f"{name}: database {database_name} maxSizeGiB {size_gib} would reduce "
+                            f"its current limit of {current_size / GIB:g} GiB.")
     return problems
 
 
@@ -194,7 +214,8 @@ def read_live(pool, subscription, default_resource_group):
                   f"Reading elastic pool {pool['name']}")
     databases = run_az(["sql", "elastic-pool", "list-dbs", *location, "--name", pool["name"]],
                        f"Listing databases in {pool['name']}")
-    metrics = run_az(["monitor", "metrics", "list", "--resource", live["id"], "--metric", "storage_used",
+    metrics = run_az(["monitor", "metrics", "list", "--subscription", subscription,
+                      "--resource", live["id"], "--metric", "storage_used",
                       "--offset", "1h", "--interval", "PT5M", "--aggregation", "Maximum"],
                      f"Reading storage used by {pool['name']}")
     used = [point.get("maximum") or 0 for metric in metrics.get("value", [])
@@ -229,7 +250,7 @@ def main():
             live = read_live(pool, arguments.subscription, arguments.resource_group)
             if live["location"] not in capabilities:
                 capabilities[live["location"]] = run_az(
-                    ["rest", "--method", "get", "--url",
+                    ["rest", "--subscription", arguments.subscription, "--method", "get", "--url",
                      f"https://management.azure.com/subscriptions/{arguments.subscription}/providers/Microsoft.Sql/"
                      f"locations/{live['location']}/capabilities?include=supportedElasticPoolEditions"
                      f"&api-version={CAPABILITIES_API_VERSION}"],
