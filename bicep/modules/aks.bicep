@@ -158,7 +158,7 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2025-10-01' = {
     }
 
     autoUpgradeProfile: {
-      nodeOSUpgradeChannel: aksParams.?nodeOSUpgradeChannel ?? 'SecurityPatch'
+      nodeOSUpgradeChannel: 'NodeImage'
       upgradeChannel: 'none'
     }
 
