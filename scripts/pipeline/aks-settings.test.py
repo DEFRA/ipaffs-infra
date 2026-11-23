@@ -146,7 +146,7 @@ class CompiledAksSettingsTests(unittest.TestCase):
             "skip-nodes-with-local-storage": "false",
         }, self.properties["autoScalerProfile"])
 
-    def test_monitoring_storage_and_support_settings_are_explicit_without_changing_patch_policy(self):
+    def test_monitoring_storage_support_and_node_image_upgrade_settings(self):
         self.assertEqual({"mode": "Manual", "defaultNodePools": "Auto"}, self.properties["nodeProvisioningProfile"])
         self.assertEqual("KubernetesOfficial", self.properties["supportPlan"])
         self.assertEqual({"costAnalysis": {"enabled": False}}, self.properties["metricsProfile"])
@@ -154,7 +154,7 @@ class CompiledAksSettingsTests(unittest.TestCase):
                           "snapshotController": {"enabled": True}}, self.properties["storageProfile"])
         self.assertTrue(self.properties["azureMonitorProfile"]["metrics"]["enabled"])
         self.assertTrue(self.properties["securityProfile"]["workloadIdentity"]["enabled"])
-        self.assertEqual({"nodeOSUpgradeChannel": "SecurityPatch", "upgradeChannel": "none"},
+        self.assertEqual({"nodeOSUpgradeChannel": "NodeImage", "upgradeChannel": "none"},
                          self.properties["autoUpgradeProfile"])
         self.assertNotIn("defender", self.properties["securityProfile"])
         self.assertNotIn("aiToolchainOperatorProfile", self.properties)
