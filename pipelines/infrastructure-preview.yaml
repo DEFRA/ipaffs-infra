@@ -1,7 +1,15 @@
 ---
-# A successful DEV apply previews DEV as a baseline and every promotion target.
+# Preview a successful DEV apply or an infrastructure release tag against every environment.
 # Register this YAML as the separate `infrastructure-preview` pipeline.
-trigger: none
+trigger:
+  branches:
+    exclude:
+      - '*'
+  tags:
+    include:
+      - '*' # Source validation checks the release tag format.
+    exclude:
+      - 'ipaffs-infra-pin-*'
 pr: none
 
 pool:

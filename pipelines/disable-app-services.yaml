@@ -23,8 +23,7 @@ stages:
         - ServiceGroup-disable-app-services
         - Action-${{ parameters.action }}
 
-  # Each stage waits for the one before it so lower environments go first
-  # SND starts straight away and every later stage needs a manual approval
+  # Selected environments run in order. TST, PRE and PRD still need approval.
   - template: stages/disable-app-services.yaml
     parameters:
       environmentName: SND

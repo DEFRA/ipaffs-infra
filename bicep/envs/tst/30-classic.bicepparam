@@ -2,7 +2,6 @@ using '../../30-classic.bicep'
 
 param entraGroups = {}
 param environment = 'TST'
-param roleAssignmentsType = 'permanent'
 param tenantId = ''
 
 param principalsNeedingContributor = [
@@ -38,8 +37,6 @@ param dbwParams = {
     tier: 'Standard'
     capacity: 2
   }
-  sqlServerElasticPoolName: 'TSTIMPEDPSQA001'
-  sqlServerResourceId: '/subscriptions/00f1225e-37c2-4c7b-bc71-634164b667c6/resourceGroups/TSTIMPINFRGP001/providers/Microsoft.Sql/servers/TSTIMPDBSSQA001'
 }
 
 param redisParams = {
@@ -71,4 +68,60 @@ param serviceBusParams = {
 param sqlParams = {
   serverName: 'tstimpdbssqa001'
 }
+
+param sqlPoolsParams = [
+  {
+    serverName: 'tstimpdbssqa001'
+    name: 'tstimpedpsqa001'
+    // Scaled to 1000 eDTU on weekday mornings outside this repo; keep the live SKU.
+    keepLiveCapacity: true
+    sku: {
+      name: 'PremiumPool'
+      tier: 'Premium'
+      capacity: 250
+    }
+    perDatabaseSettings: {
+      minCapacity: 0
+      maxCapacity: 250
+    }
+    maxSizeGiB: 800
+    databases: [
+      {
+        name: 'notification-microservice'
+        maxSizeGiB: 1024
+        collation: 'SQL_Latin1_General_CP1_CI_AS'
+        catalogCollation: 'SQL_Latin1_General_CP1_CI_AS'
+        readScale: 'Enabled'
+        zoneRedundant: true
+        requestedBackupStorageRedundancy: 'GeoZone'
+        maintenanceConfigurationName: 'SQL_Default'
+        availabilityZone: 'NoPreference'
+        isLedgerOn: false
+        tags: {
+          CreatedDate: '20260609  '
+          Environment: 'TST'
+          Location: 'North Europe'
+          Name: 'notification-microservice'
+          ServiceCode: 'IMP'
+          ServiceName: 'EUX Imports'
+          ServiceType: 'LOB'
+          Tier: 'Database'
+        }
+      }
+    ]
+    zoneRedundant: true
+    maintenanceConfigurationName: 'SQL_Default'
+    // The pool's own tags from the original ARM template, kept as they are live.
+    tags: {
+      CreatedDate: '20260609  '
+      Environment: 'TST'
+      Location: 'North Europe'
+      Name: 'tstimpedpsqa001'
+      ServiceCode: 'IMP'
+      ServiceName: 'EUX Imports'
+      ServiceType: 'LOB'
+      Tier: 'Database'
+    }
+  }
+]
 

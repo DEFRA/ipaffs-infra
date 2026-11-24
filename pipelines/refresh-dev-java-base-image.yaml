@@ -1,0 +1,46 @@
+---
+trigger: none
+pr: none
+
+schedules:
+  - cron: '0 4 * * *'
+    displayName: Refresh the DEV JRE daily
+    branches:
+      include: [main]
+    always: true
+
+pool:
+  name: DEFRA-COMMON-ubuntu2204-SSV5
+
+variables:
+  - group: Common
+  - group: LowerEnvs
+  - template: /pipelines/vars/dev.yaml
+
+jobs:
+  - job: RefreshDevJavaBaseImage
+    displayName: Refresh defradigital/java:jre-21 in DEV ACR
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+    steps:
+      - checkout: none
+      - task: AzureCLI@2
+        displayName: Import JRE 21 from Docker Hub
+        env:
+          ACR_NAME: $(acrName)
+          DOCKERHUB_USER: $(dockerHubUser)
+          DOCKERHUB_TOKEN: $(dockerHubToken)
+        inputs:
+          azureSubscription: ${{ variables.serviceConnection }}
+          scriptType: bash
+          scriptLocation: inlineScript
+          inlineScript: |
+            set -euo pipefail
+            image=defradigital/java:jre-21
+            az acr import \
+              --subscription "$(subscriptionName)" \
+              --name "$ACR_NAME" \
+              --source "docker.io/$image" \
+              --image "$image" \
+              --username "$DOCKERHUB_USER" \
+              --password "$DOCKERHUB_TOKEN" \
+              --force

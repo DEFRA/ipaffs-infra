@@ -24,7 +24,6 @@ module privateLink './modules/privatelink.bicep' = {
   name: 'privateLink-${deploymentId}'
   scope: resourceGroup()
   params: {
-    deploymentId: deploymentId
     loadBalancerFrontendIpConfigurations: loadBalancer.properties.frontendIPConfigurations
     location: location
     privateLinkParams: privateLinkParams

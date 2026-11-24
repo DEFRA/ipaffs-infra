@@ -1,11 +1,9 @@
 targetScope = 'resourceGroup'
 
-param deploymentId string
 param location string
 param redisParams object
 param subnets object
 param tags object
-param tenantId string
 
 resource redis 'Microsoft.Cache/redis@2024-11-01' = {
   name: redisParams.name

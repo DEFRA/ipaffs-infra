@@ -2,7 +2,6 @@ using '../../30-classic.bicep'
 
 param entraGroups = {}
 param environment = 'PRE'
-param roleAssignmentsType = 'permanent'
 param tenantId = ''
 
 param principalsNeedingContributor = [
@@ -38,8 +37,6 @@ param dbwParams = {
     tier: 'Standard'
     capacity: 2
   }
-  sqlServerElasticPoolName: 'PREIMPEDPSQA001'
-  sqlServerResourceId: '/subscriptions/81ca326e-6270-418a-b764-e02a4ca60457/resourceGroups/PREIMPINFRGP001/providers/Microsoft.Sql/servers/PREIMPDBSSQA001'
 }
 
 param redisParams = {
@@ -73,4 +70,63 @@ param serviceBusParams = {
 param sqlParams = {
   serverName: 'preimpdbssqa001'
 }
+
+param sqlPoolsParams = [
+  {
+    serverName: 'preimpdbssqa001'
+    name: 'preimpedpsqa001'
+    sku: {
+      name: 'PremiumPool'
+      tier: 'Premium'
+      capacity: 250
+    }
+    perDatabaseSettings: {
+      minCapacity: 0
+      maxCapacity: 250
+    }
+    maxSizeGiB: 750
+    zoneRedundant: true
+    maintenanceConfigurationName: 'SQL_Default'
+    // The pool's own tags from the original ARM template, kept as they are live.
+    tags: {
+      CreatedDate: '20260616  '
+      Environment: 'PRE'
+      Location: 'North Europe'
+      Name: 'preimpedpsqa001'
+      ServiceCode: 'IMP'
+      ServiceName: 'EUX Imports'
+      ServiceType: 'LOB'
+      Tier: 'Database'
+    }
+  }
+  {
+    // PRE-TRN, on its own server in a separate resource group.
+    resourceGroupName: 'PREIMPINFRGP002'
+    serverName: 'preimpdbssqa002'
+    name: 'preimpedpsqa002'
+    sku: {
+      name: 'PremiumPool'
+      tier: 'Premium'
+      capacity: 250
+    }
+    perDatabaseSettings: {
+      minCapacity: 0
+      maxCapacity: 250
+    }
+    maxSizeGiB: 750
+    zoneRedundant: true
+    maintenanceConfigurationName: 'SQL_Default'
+    // The pool's own tags from the original ARM template, kept as they are live.
+    tags: {
+      CreatedDate: '20260611  '
+      Environment: 'PRE'
+      Location: 'North Europe'
+      Name: 'preimpedpsqa002'
+      ServiceCode: 'IMP'
+      ServiceName: 'EUX Imports'
+      ServiceType: 'LOB'
+      Tier: 'Database'
+    }
+  }
+]
 

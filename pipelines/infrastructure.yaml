@@ -21,12 +21,14 @@ trigger:
       - pipelines/vars/snd.yaml
       - scripts/pipeline/validate-access-contract.py
       - scripts/pipeline/sync-deployment-outputs.py
+      - scripts/pipeline/approve-sql-elastic-job-private-endpoint.py
       - scripts/pipeline/infrastructure_parameters.py
       - scripts/pipeline/ensure-bicep-version.sh
       - scripts/pipeline/add-principal-to-group.sh
       - scripts/pipeline/run-hooks.sh
       - scripts/pipeline/trigger-peering-pipeline.sh
       - scripts/hooks/*.sh
+      - scripts/hooks/*.txt
       - scripts/hooks/dev/*.sh
     exclude:
       - bicep/envs/tst/**
@@ -162,10 +164,6 @@ stages:
           appGatewayForContainersSubnetName: $[ stageDependencies.DeployNetwork.RunBicep.outputs['RunBicep.NetworkOutputs.appGatewayForContainersSubnetName'] ]
           privateEndpointsSubnetId: $[ stageDependencies.DeployNetwork.RunBicep.outputs['RunBicep.NetworkOutputs.privateEndpointsSubnetId'] ]
           privateEndpointsSubnetName: $[ stageDependencies.DeployNetwork.RunBicep.outputs['RunBicep.NetworkOutputs.privateEndpointsSubnetName'] ]
-          classicRedisResourceId: $[ stageDependencies.DeployClassic.RunBicep.outputs['RunBicep.ClassicOutputs.classicRedisResourceId'] ]
-          classicSearchServiceResourceId: $[ stageDependencies.DeployClassic.RunBicep.outputs['RunBicep.ClassicOutputs.classicSearchServiceResourceId'] ]
-          classicServiceBusNamespaceResourceId: $[ stageDependencies.DeployClassic.RunBicep.outputs['RunBicep.ClassicOutputs.classicServiceBusNamespaceResourceId'] ]
-          classicSqlServerResourceId: $[ stageDependencies.DeployClassic.RunBicep.outputs['RunBicep.ClassicOutputs.classicSqlServerResourceId'] ]
 
   - template: stages/infra-permissions.yaml
     parameters:

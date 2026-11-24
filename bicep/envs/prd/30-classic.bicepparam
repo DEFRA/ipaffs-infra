@@ -2,7 +2,6 @@ using '../../30-classic.bicep'
 
 param entraGroups = {}
 param environment = 'PRD'
-param roleAssignmentsType = 'permanent'
 param tenantId = ''
 
 param principalsNeedingContributor = [
@@ -38,8 +37,6 @@ param dbwParams = {
     tier: 'Standard'
     capacity: 2
   }
-  sqlServerElasticPoolName: 'PRDIMPEDPSQA001'
-  sqlServerResourceId: '/subscriptions/79ee8c9c-33d7-4074-9f4c-a13f07c62a33/resourceGroups/PRDIMPINFRGP001/providers/Microsoft.Sql/servers/PRDIMPDBSSQA001'
 }
 
 param redisParams = {
@@ -73,4 +70,58 @@ param serviceBusParams = {
 param sqlParams = {
   serverName: 'prdimpdbssqa001'
 }
+
+param sqlPoolsParams = [
+  {
+    serverName: 'prdimpdbssqa001'
+    name: 'prdimpedpsqa001'
+    sku: {
+      name: 'PremiumPool'
+      tier: 'Premium'
+      capacity: 2000
+    }
+    perDatabaseSettings: {
+      minCapacity: 0
+      maxCapacity: 1000
+    }
+    maxSizeGiB: 1024
+    databases: [
+      {
+        name: 'notification-microservice'
+        maxSizeGiB: 1024
+        collation: 'SQL_Latin1_General_CP1_CI_AS'
+        catalogCollation: 'SQL_Latin1_General_CP1_CI_AS'
+        readScale: 'Enabled'
+        zoneRedundant: true
+        requestedBackupStorageRedundancy: 'GeoZone'
+        maintenanceConfigurationName: 'SQL_Default'
+        availabilityZone: 'NoPreference'
+        isLedgerOn: false
+        tags: {
+          CreatedDate: '20260602  '
+          Environment: 'PRD'
+          Location: 'North Europe'
+          Name: 'notification-microservice'
+          ServiceCode: 'IMP'
+          ServiceName: 'EUX Imports'
+          ServiceType: 'LOB'
+          Tier: 'Database'
+        }
+      }
+    ]
+    zoneRedundant: true
+    maintenanceConfigurationName: 'SQL_Default'
+    // The pool's own tags from the original ARM template, kept as they are live.
+    tags: {
+      CreatedDate: '20260602  '
+      Environment: 'PRD'
+      Location: 'North Europe'
+      Name: 'prdimpedpsqa001'
+      ServiceCode: 'IMP'
+      ServiceName: 'EUX Imports'
+      ServiceType: 'LOB'
+      Tier: 'Database'
+    }
+  }
+]
 

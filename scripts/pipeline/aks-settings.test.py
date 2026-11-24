@@ -71,6 +71,11 @@ class CompiledAksSettingsTests(unittest.TestCase):
                     expected = "Standard_E2as_" if name == "system" else "Standard_E16as_"
                     self.assertEqual(expected + generation, parameter_value(pool["vmSize"], parameters))
 
+    def test_only_the_system_pool_is_reserved_for_critical_addons(self):
+        taint = "CriticalAddonsOnly=true:NoSchedule"
+        self.assertIn(taint, self.pools["system"].get("nodeTaints", []))
+        self.assertNotIn(taint, self.pools["user"].get("nodeTaints", []))
+
     def test_autoscaled_counts_runtime_states_and_generated_node_metadata_are_not_pinned(self):
         for name, pool in self.pools.items():
             with self.subTest(pool=name):
@@ -115,6 +120,11 @@ class CompiledAksSettingsTests(unittest.TestCase):
                          tuple(network[key] for key in ("networkPlugin", "networkPluginMode", "networkPolicy")))
         self.assertEqual(["IPv4"], network["ipFamilies"])
         self.assertEqual("userDefinedRouting", network["outboundType"])
+        for singular, plural in (("podCidr", "podCidrs"), ("serviceCidr", "serviceCidrs")):
+            self.assertEqual(f"[parameters('aksParams').{plural}[0]]", network[singular])
+            for environment, parameters in self.parameters.items():
+                with self.subTest(environment=environment, field=plural):
+                    self.assertEqual(1, len(parameter_value(network[plural], parameters)))
 
     def test_existing_tenant_input_is_forwarded_from_every_real_entrypoint(self):
         for environment, template in self.root_templates.items():
@@ -136,7 +146,7 @@ class CompiledAksSettingsTests(unittest.TestCase):
             "skip-nodes-with-local-storage": "false",
         }, self.properties["autoScalerProfile"])
 
-    def test_monitoring_storage_and_support_settings_are_explicit_without_changing_patch_policy(self):
+    def test_monitoring_storage_support_and_node_image_upgrade_settings(self):
         self.assertEqual({"mode": "Manual", "defaultNodePools": "Auto"}, self.properties["nodeProvisioningProfile"])
         self.assertEqual("KubernetesOfficial", self.properties["supportPlan"])
         self.assertEqual({"costAnalysis": {"enabled": False}}, self.properties["metricsProfile"])
@@ -144,7 +154,7 @@ class CompiledAksSettingsTests(unittest.TestCase):
                           "snapshotController": {"enabled": True}}, self.properties["storageProfile"])
         self.assertTrue(self.properties["azureMonitorProfile"]["metrics"]["enabled"])
         self.assertTrue(self.properties["securityProfile"]["workloadIdentity"]["enabled"])
-        self.assertEqual({"nodeOSUpgradeChannel": "SecurityPatch", "upgradeChannel": "none"},
+        self.assertEqual({"nodeOSUpgradeChannel": "NodeImage", "upgradeChannel": "none"},
                          self.properties["autoUpgradeProfile"])
         self.assertNotIn("defender", self.properties["securityProfile"])
         self.assertNotIn("aiToolchainOperatorProfile", self.properties)

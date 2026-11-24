@@ -35,6 +35,7 @@ PROTECTED_PATHS = [
     "pipelines/stages/deploy-bicep-infra.yaml",
     "pipelines/stages/deploy-bicep-privatelink.yaml",
     "scripts/pipeline/infrastructure_parameters.py",
+    "scripts/pipeline/approve-sql-elastic-job-private-endpoint.py",
     "scripts/pipeline/ensure-bicep-version.sh",
 ]
 DEPLOYMENT_TASKS = {
@@ -99,15 +100,21 @@ def nested_keys(value):
 
 
 class InfrastructurePreviewPipelineTests(unittest.TestCase):
-    def test_owned_nsg_compilation_uses_the_verified_compiler_before_azure_operations(self):
-        network_stage, = load("pipelines/stages/deploy-bicep-network.yaml")["stages"]
-        steps = network_stage["jobs"][0]["strategy"]["runOnce"]["deploy"]["steps"]
-        for name in ("WhatIf - Network", "Deploy - Network"):
-            task, = [step for step in steps if step.get("displayName") == name]
-            self.assertEqual("false", task["env"]["AZURE_BICEP_USE_BINARY_FROM_PATH"])
-            script = task["inputs"]["inlineScript"]
-            self.assertTrue(script.startswith("set -euo pipefail\n"))
-            self.assertLess(script.index("ensure-bicep-version.sh"), script.index("az deployment"))
+    def test_bicep_compilation_uses_the_verified_compiler_before_azure_operations(self):
+        stage_files = sorted((ROOT / "pipelines/stages").glob("deploy-bicep-*.yaml"))
+        for stage_file in [*stage_files, ROOT / "pipelines/legacy.yml"]:
+            with self.subTest(stage=stage_file.name):
+                stage, = load(stage_file)["stages"]
+                deployment, = stage["jobs"]
+                steps = deployment["strategy"]["runOnce"]["deploy"]["steps"]
+                compile_tasks = [step for step in steps if step.get("task") == "AzureCLI@2"
+                                 and "--template-file" in step["inputs"].get("inlineScript", "")]
+                self.assertEqual(2, len(compile_tasks))
+                for task in compile_tasks:
+                    self.assertEqual("false", task["env"]["AZURE_BICEP_USE_BINARY_FROM_PATH"])
+                    script = task["inputs"]["inlineScript"]
+                    self.assertTrue(script.startswith("set -euo pipefail\n"))
+                    self.assertLess(script.index("ensure-bicep-version.sh"), script.index("az deployment"))
         for environment in ("DEV", "TST", "PRE", "PRD"):
             for task in environment_stage(environment)["jobs"][0]["steps"]:
                 if task.get("task") == "AzureCLI@2":
@@ -115,9 +122,20 @@ class InfrastructurePreviewPipelineTests(unittest.TestCase):
                     script = task["inputs"]["inlineScript"]
                     self.assertLess(script.index("ensure-bicep-version.sh"), script.index("plan-infrastructure.py"))
 
-    def test_only_successful_main_dev_completion_is_automatic(self):
+    def test_github_compilation_reuses_the_verified_compiler_and_shows_warnings(self):
+        job = load(".github/workflows/pipeline-syntax.yaml")["jobs"]["bicep"]
+        self.assertEqual("false", job["env"]["AZURE_BICEP_USE_BINARY_FROM_PATH"])
+        scripts = [step["run"] for step in job["steps"] if "run" in step]
+        setup, build_templates, build_params = scripts
+        self.assertIn("ensure-bicep-version.sh", setup)
+        self.assertIn('>> "$GITHUB_ENV"', setup)
+        for script, subcommand in ((build_templates, "build"), (build_params, "build-params")):
+            self.assertIn(f"az bicep {subcommand} ", script)
+            self.assertNotIn("--only-show-errors", script)
+
+    def test_tag_pushes_validate_sources_and_main_dev_completion_remains_automatic(self):
         pipeline = load(PIPELINE)
-        self.assertEqual("none", pipeline["trigger"])
+        self.assertEqual({"branches": {"exclude": ["*"]}, "tags": {"include": ["*"], "exclude": ["ipaffs-infra-pin-*"]}}, pipeline["trigger"])
         self.assertEqual("none", pipeline["pr"])
         resource, = pipeline["resources"]["pipelines"]
         self.assertEqual("infrastructure", resource["pipeline"])
@@ -210,6 +228,7 @@ class InfrastructurePreviewPipelineTests(unittest.TestCase):
                         'printf "%s\\n" "$FIXTURE_HEAD"\n'),
                 "python3": ('#!/bin/sh\n'
                             f'if [ "$1" = - ]; then exec {shlex.quote(sys.executable)} "$@"; fi\n'
+                            'printf "fixture-arg=%s\\n" "$@"\n'
                             'touch "$FIXTURE_INITIALISED"\nexit "${FIXTURE_INIT_STATUS:-0}"\n'),
             }.items():
                 executable = commands / name
@@ -254,6 +273,72 @@ class InfrastructurePreviewPipelineTests(unittest.TestCase):
         self.assertNotEqual(0, result.returncode)
         self.assertTrue(initialised)
         self.assertNotIn("task.setvariable variable=PreviewInputsReady", result.stdout)
+
+    def test_ci_release_tags_preview_the_tagged_commit_in_every_environment(self):
+        for reason in ("IndividualCI", "BatchedCI"):
+            for reference in ("refs/tags/1", "refs/tags/2", "refs/tags/42", "refs/tags/123456789",
+                              "refs/tags/1.0", "refs/tags/1.1", "refs/tags/1.10", "refs/tags/42.123456789",
+                              "refs/tags/99999999999999999999999999999999999999999999999999"):
+                for environment in ("DEV", "TST", "PRE", "PRD"):
+                    with self.subTest(reason=reason, reference=reference, environment=environment):
+                        result, initialised = self.source_validation({
+                            "BUILD_REASON": reason, "BUILD_SOURCEBRANCH": reference,
+                            "BUILD_SOURCEVERSION": "b" * 40, "FIXTURE_HEAD": "b" * 40,
+                            "SOURCE_PIPELINE_COMMIT": "a" * 40}, environment)
+                        self.assertEqual(0, result.returncode, result.stderr)
+                        self.assertTrue(initialised)
+                        self.assertIn("task.setvariable variable=PreviewInputsReady]true", result.stdout)
+                        arguments = [line.removeprefix("fixture-arg=") for line in result.stdout.splitlines()
+                                     if line.startswith("fixture-arg=")]
+                        self.assertEqual(reference, arguments[arguments.index("--source-ref") + 1])
+
+    def test_ci_branches_pr_refs_and_noncanonical_tags_fail_before_initialisation(self):
+        references = ("refs/heads/main", "refs/heads/RELEASE/42", "refs/pull/42/merge", "",
+                      "42", "refs/tags/ipaffs-infra-pin-abc", "refs/tags/0", "refs/tags/01", "refs/tags/00", "refs/tags/-1",
+                      "refs/tags/+1", "refs/tags/v1", "refs/tags/1.0.0", "refs/tags/26.5.1",
+                      "refs/tags/0.1", "refs/tags/01.1", "refs/tags/1.01", "refs/tags/1.00",
+                      "refs/tags/1.-1", "refs/tags/1.+1", "refs/tags/.1", "refs/tags/1.",
+                      "refs/tags/v1.1", "refs/tags/1. 1", "refs/tags/1.١", "refs/tags/1.1\n",
+                      "refs/tags/1e3", "refs/tags/１", "refs/tags/١",
+                      "refs/tags/1-rc.1", "refs/tags/1+build", "refs/tags/1/other",
+                      "refs/tags/nested/1", "refs/tags/ 1", "refs/tags/1 ", "refs/tags/1\n",
+                      "refs/tags/1\n2", "refs/tags/1\t")
+        for reason in ("IndividualCI", "BatchedCI"):
+            for reference in references:
+                with self.subTest(reason=reason, reference=reference):
+                    result, initialised = self.source_validation({"BUILD_REASON": reason, "BUILD_SOURCEBRANCH": reference})
+                    self.assertNotEqual(0, result.returncode)
+                    self.assertFalse(initialised)
+                    self.assertNotIn("task.setvariable variable=PreviewInputsReady", result.stdout)
+
+    def test_ci_tag_text_is_not_executed_and_all_automatic_sources_still_require_their_checkout(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            marker = Path(temporary) / "unexpected"
+            for reason in ("IndividualCI", "BatchedCI"):
+                for reference in (f"refs/tags/1.1$(touch '{marker}')", f"refs/tags/1.1`touch '{marker}'`"):
+                    result, initialised = self.source_validation({"BUILD_REASON": reason, "BUILD_SOURCEBRANCH": reference})
+                    self.assertNotEqual(0, result.returncode)
+                    self.assertFalse(initialised)
+                    self.assertFalse(marker.exists())
+                    self.assertNotIn("task.setvariable variable=PreviewInputsReady", result.stdout)
+                result, initialised = self.source_validation({"BUILD_REASON": reason,
+                    "BUILD_SOURCEBRANCH": "refs/tags/1.1", "FIXTURE_HEAD": "b" * 40})
+                self.assertNotEqual(0, result.returncode)
+                self.assertFalse(initialised)
+                self.assertNotIn("task.setvariable variable=PreviewInputsReady", result.stdout)
+        result, initialised = self.source_validation({"BUILD_SOURCEBRANCH": "refs/tags/42"})
+        self.assertNotEqual(0, result.returncode, "DEV completion triggers must still use main")
+        self.assertFalse(initialised)
+        self.assertNotIn("task.setvariable variable=PreviewInputsReady", result.stdout)
+
+    def test_manual_branch_and_tag_diagnostic_previews_keep_their_existing_source_behavior(self):
+        for reference in ("refs/heads/main", "refs/heads/feature/preview", "refs/tags/42",
+                          "refs/tags/26.5.1", "refs/tags/0", "refs/tags/diagnostic"):
+            with self.subTest(reference=reference):
+                result, initialised = self.source_validation({"BUILD_REASON": "Manual", "BUILD_SOURCEBRANCH": reference,
+                                                              "SOURCE_PIPELINE_COMMIT": "b" * 40})
+                self.assertEqual(0, result.returncode, result.stderr)
+                self.assertTrue(initialised)
 
     def test_both_scopes_share_environment_source_and_separate_authentication(self):
         for environment in ("DEV", "TST", "PRE", "PRD"):
@@ -374,6 +459,23 @@ class InfrastructurePreviewPipelineTests(unittest.TestCase):
         self.assertEqual("", warning)
         self.assertEqual([["git", "cat-file", "-e", "a" * 40 + "^{commit}"],
                           ["git", "diff", "--quiet", "a" * 40, "HEAD", "--", *PROTECTED_PATHS]], commands)
+
+    def test_tag_ci_keeps_the_existing_dev_deployment_input_proof(self):
+        for reason in ("IndividualCI", "BatchedCI"):
+            for statuses, expected in (((0, 0), "VERIFIED_SUCCESSFUL_DEV_APPLY"),
+                                       ((0, 1), "DEPLOYMENT_INPUTS_CHANGED")):
+                with self.subTest(reason=reason, statuses=statuses):
+                    evidence, warning, commands = self.baseline_evidence(environment_overrides={
+                        "BUILD_REASON": reason, "BUILD_SOURCEBRANCH": "refs/tags/1.1",
+                        "BUILD_SOURCEVERSION": "b" * 40}, git_statuses=statuses)
+                    self.assertEqual(expected, evidence["reasonCode"])
+                    self.assertEqual("b" * 40, evidence["previewCommit"])
+                    self.assertEqual("a" * 40, evidence["appliedCommit"])
+                    self.assertTrue(evidence["sourceVerified"])
+                    self.assertTrue(evidence["sourceDeploymentVerified"])
+                    self.assertEqual(statuses[-1] == 0, evidence["deploymentInputsUnchanged"])
+                    self.assertEqual("usable" if statuses[-1] == 0 else "unusable", evidence["status"])
+                    self.assertEqual(["git", "diff", "--quiet", "a" * 40, "HEAD", "--", *PROTECTED_PATHS], commands[-1])
 
     def test_unusable_source_provenance_is_published_without_stopping_any_plans(self):
         cases = [({"result": "failed"}, {}, "SOURCE_RUN_NOT_SUCCESSFUL"),
@@ -567,8 +669,7 @@ def load_tests(loader, standard_tests, pattern):
     # This existing CI entry point exercises the compiled ownership boundaries.
     # Install a local compiler only; no Azure login or subscription is involved.
     if not os.environ.get("BICEP_BIN"):
-        subprocess.run(["az", "bicep", "install", "--version", "v0.43.8", "--only-show-errors"],
-                       check=True, stdout=subprocess.DEVNULL, timeout=180)
+        subprocess.run(["bash", str(ROOT / "scripts/pipeline/ensure-bicep-version.sh")], check=True, timeout=180)
         config = Path(os.environ.get("AZURE_CONFIG_DIR", str(Path.home() / ".azure")))
         os.environ["BICEP_BIN"] = str(config / "bin/bicep")
     for stem in PARAMETERS.COMPONENTS.values():

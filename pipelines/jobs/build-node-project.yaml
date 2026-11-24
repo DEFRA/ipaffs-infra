@@ -12,10 +12,13 @@ jobs:
           addToPath: true
         displayName: Install Node and NPM and add to path
 
+      # ADO_FEED_TOKEN lets .npmrc read @defra packages from the Azure Artifacts feed
       - script: |
           npm --prefix ./service ci
           npm --prefix ./service run build
         displayName: 'Install dependencies and build'
+        env:
+          ADO_FEED_TOKEN: $(System.AccessToken)
 
       - script: |
           npm --prefix ./service run test-jenkins

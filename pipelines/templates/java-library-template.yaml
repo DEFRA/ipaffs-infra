@@ -25,6 +25,13 @@ parameters:
     type: string
     default: master
 
+  - name: mavenRegistry
+    displayName: Maven registry (only feed; kept so pipelines that set it still work)
+    type: string
+    default: feed
+    values:
+      - feed
+
 stages:
   - stage: BuildLibrary
     displayName: Build Library
@@ -49,6 +56,7 @@ stages:
           publishArtifact: false
           sonarAnalysis: ${{ parameters.sonarAnalysis }}
           sonarReferenceBranch: "${{ parameters.sonarReferenceBranch }}"
+          mavenRegistry: "${{ parameters.mavenRegistry }}"
 
   - stage: ReleaseLibrary
     displayName: Release Library
@@ -67,3 +75,5 @@ stages:
       not(failed()), not(canceled()))
     jobs:
       - template: /pipelines/jobs/release-java-project.yaml@ipaffs-infra
+        parameters:
+          mavenRegistry: "${{ parameters.mavenRegistry }}"

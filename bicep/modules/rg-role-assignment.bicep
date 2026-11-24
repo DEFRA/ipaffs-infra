@@ -14,7 +14,6 @@
 
 targetScope = 'resourceGroup'
 
-param deploymentId string
 param roleDefinitionId string
 param principalObjectId string
 

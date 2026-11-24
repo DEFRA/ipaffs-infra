@@ -3,9 +3,6 @@ targetScope = 'resourceGroup'
 @allowed(['SND', 'TST', 'PRE', 'PRD'])
 param environment string
 
-@allowed(['permanent', 'eligible'])
-param roleAssignmentsType string
-
 param entraGroups object
 
 param deploymentId string = uniqueString(utcNow())
@@ -13,51 +10,27 @@ param location string = resourceGroup().location
 param principalsNeedingContributor array
 param tenantId string
 
-var databaseNames = [
-  'notification-microservice'
-  'approvedestablishment-microservice-blue'
-  'approvedestablishment-microservice-green'
-  'bip-microservice'
-  'bordernotification-microservice'
-  'bordernotification-refdata-microservice-blue'
-  'bordernotification-refdata-microservice-green'
-  'checks-microservice'
-  'commoditycode-microservice-blue'
-  'commoditycode-microservice-green'
-  'countries-microservice-blue'
-  'countries-microservice-green'
-  'decision-microservice-blue'
-  'decision-microservice-green'
-  'economicoperator-microservice'
-  'economicoperator-microservice-public-blue'
-  'economicoperator-microservice-public-green'
-  'enotification-event-microservice'
-  'fieldconfig-microservice-blue'
-  'fieldconfig-microservice-green'
-  'in-service-messaging-microservice'
-  'laboratories-microservice-blue'
-  'laboratories-microservice-green'
-  'permissions-blue'
-  'permissions-green'
-  'referencedataloader-microservice-blue'
-  'referencedataloader-microservice-green'
-  'soaprequest-microservice'
-]
-
 var tags = union(loadJsonContent('default-tags.json'), {
   Environment: environment
   Location: location
 })
 
 param alertsParams object
-param dbwParams object
-param redisParams object
-param searchParams object
-param sejParams object
-param sqlParams object
+param dbwParams object?
+param redisParams object?
+param searchParams object?
+param sejParams object?
+param sqlParams object?
+// Optional: the elastic pools to manage. An entry may set resourceGroupName when its
+// pool is outside this resource group (PRE-TRN). SND manages none.
+param sqlPoolsParams array = []
 param serviceBusParams object
 
 var contributorRoleId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b24988ac-6180-42a0-ab88-20f7382dd24c')
+var deployRedis = redisParams != null
+var deploySearch = searchParams != null
+var deployElasticJobs = sejParams != null
+var deploySql = sqlParams != null
 
 module additionalContributors './modules/resource-group-role-assignment.bicep' = [for principalId in principalsNeedingContributor: {
   name: format('additionalContributors-{0}-{1}', deploymentId, substring(uniqueString(principalId), 0, 7))
@@ -75,91 +48,99 @@ module alerts './modules/alerts-classic.bicep' = {
   scope: resourceGroup()
   params: {
     alertsParams: alertsParams
-    deploymentId: deploymentId
-    location: location
     tags: tags
   }
 }
 
-module dbw './modules/database-watcher.bicep' = {
+module dbw './modules/database-watcher.bicep' = if (dbwParams != null) {
   name: 'dbw-${deploymentId}'
   scope: resourceGroup()
   params: {
-    databaseNames: databaseNames
-    deploymentId: deploymentId
     location: location
-    dbwParams: dbwParams
+    dbwParams: dbwParams!
     tags: tags
   }
 }
 
-module redis './modules/redis-classic.bicep' = {
+module redis './modules/redis-classic.bicep' = if (deployRedis) {
   name: 'redis-${deploymentId}'
   scope: resourceGroup()
   params: {
-    deploymentId: deploymentId
-    redisParams: redisParams
-    tags: tags
+    redisParams: redisParams!
   }
 }
 
-module search './modules/search-classic.bicep' = {
+module search './modules/search-classic.bicep' = if (deploySearch) {
   name: 'search-${deploymentId}'
   scope: resourceGroup()
   params: {
     deploymentId: deploymentId
     location: location
-    searchParams: searchParams
-    sqlServerName: sql.outputs.sqlServerName
+    searchParams: searchParams!
+    sqlServerName: deploySql ? sql!.outputs.sqlServerName : ''
     tags: tags
   }
 }
 
-module sej './modules/sql-elastic-jobs.bicep' = {
+module sej './modules/sql-elastic-jobs.bicep' = if (deployElasticJobs) {
   name: 'sej-${deploymentId}'
   scope: resourceGroup()
   params: {
-    alertsActionGroups: alerts.outputs.actionGroups
-    deploymentId: deploymentId
+    // Calculate the ID without a deployment output so what-if can resolve it.
+    alertsActionGroups: {
+      notifyDba: resourceId('Microsoft.Insights/actionGroups', alertsParams.actionGroups.notifyDba.name)
+    }
     location: location
-    sejParams: sejParams
+    sejParams: sejParams!
     tags: tags
   }
+  dependsOn: [alerts]
 }
 
 module serviceBus './modules/servicebus-classic.bicep' = {
   name: 'serviceBus-${deploymentId}'
   scope: resourceGroup()
   params: {
-    deploymentId: deploymentId
     serviceBusParams: serviceBusParams
-    tags: tags
   }
 }
 
-module sql './modules/sql-classic.bicep' = {
+module sql './modules/sql-classic.bicep' = if (deploySql) {
   name: 'sql-${deploymentId}'
   scope: resourceGroup()
   params: {
-    deploymentId: deploymentId
     entraGroups: entraGroups
-    location: location
-    sqlParams: sqlParams
-    tags: tags
+    sqlParams: sqlParams!
     tenantId: tenantId
   }
 }
 
-output redisName string = redis.outputs.redisName
-output redisResourceId string = redis.outputs.redisResourceId
-output searchServiceSubscriptionId string = search.outputs.searchServiceSubscriptionId
-output searchServiceResourceGroupName string = search.outputs.searchServiceResourceGroupName
-output searchServiceName string = search.outputs.searchServiceName
-output searchServiceManagedIdentityPrincipalName string = search.outputs.searchServiceManagedIdentityPrincipalName
-output searchServiceManagedIdentityPrincipalId string = search.outputs.searchServiceManagedIdentityPrincipalId
-output searchServiceResourceId string = search.outputs.searchServiceResourceId
+resource liveSqlPools 'Microsoft.Sql/servers/elasticPools@2023-08-01' existing = [for pool in sqlPoolsParams: if (pool.?keepLiveCapacity ?? false) {
+  name: '${pool.serverName}/${pool.name}'
+  scope: resourceGroup(pool.?resourceGroupName ?? resourceGroup().name)
+}]
+
+module sqlPools './modules/sql-pool-classic.bicep' = [for (pool, i) in sqlPoolsParams: {
+  name: 'sqlPool-${pool.name}-${deploymentId}'
+  scope: resourceGroup(pool.?resourceGroupName ?? resourceGroup().name)
+  params: {
+    livePerDatabaseSettings: (pool.?keepLiveCapacity ?? false) ? liveSqlPools[i]!.properties.perDatabaseSettings : {}
+    liveSku: (pool.?keepLiveCapacity ?? false) ? liveSqlPools[i]!.sku : {}
+    location: location
+    sqlPoolParams: pool
+  }
+}]
+
+output redisName string = deployRedis ? redis!.outputs.redisName : ''
+output redisResourceId string = deployRedis ? redis!.outputs.redisResourceId : ''
+output searchServiceSubscriptionId string = deploySearch ? search!.outputs.searchServiceSubscriptionId : ''
+output searchServiceResourceGroupName string = deploySearch ? search!.outputs.searchServiceResourceGroupName : ''
+output searchServiceName string = deploySearch ? search!.outputs.searchServiceName : ''
+output searchServiceManagedIdentityPrincipalName string = deploySearch ? search!.outputs.searchServiceManagedIdentityPrincipalName : ''
+output searchServiceManagedIdentityPrincipalId string = deploySearch ? search!.outputs.searchServiceManagedIdentityPrincipalId : ''
+output searchServiceResourceId string = deploySearch ? search!.outputs.searchServiceResourceId : ''
 output serviceBusNamespaceName string = serviceBus.outputs.serviceBusNamespaceName
 output serviceBusNamespaceResourceId string = serviceBus.outputs.serviceBusNamespaceResourceId
-output sqlServerName string = sql.outputs.sqlServerName
-output sqlServerResourceId string = sql.outputs.sqlServerResourceId
+output sqlServerName string = deploySql ? sql!.outputs.sqlServerName : ''
+output sqlServerResourceId string = deploySql ? sql!.outputs.sqlServerResourceId : ''
 

@@ -207,6 +207,30 @@ class ConsolidatedBicepJobTests(unittest.TestCase):
                     self.assertLess(preview, deploy)
                     self.assertNotIn("condition", tasks[preview])
                     self.assert_main_only(tasks[deploy]["condition"])
+                    if component == "classic":
+                        wait = task_names.index("Wait for Deployment - Classic")
+                        approval_name = "Approve SQL Elastic Jobs private endpoint"
+                        validate = task_names.index("Validate SQL elastic pools - Classic")
+                        self.assertLess(validate, preview)
+                        self.assertNotIn("condition", tasks[validate])
+                        self.assertIn("scripts/pipeline/validate-sql-elastic-pools.py",
+                                      tasks[validate]["inputs"]["inlineScript"])
+                        outputs = task_names.index("Classic outputs")
+                        self.assertLess(deploy, wait)
+                        self.assertLess(wait, outputs)
+                        self.assertIn("--no-wait", tasks[deploy]["inputs"]["inlineScript"])
+                        if environment == "DEV":
+                            self.assertNotIn(approval_name, task_names)
+                        else:
+                            approve = task_names.index(approval_name)
+                            self.assertLess(deploy, approve)
+                            self.assertLess(approve, wait)
+                            self.assertEqual(tasks[deploy]["condition"], tasks[approve]["condition"])
+                            approval_script = tasks[approve]["inputs"]["inlineScript"]
+                            self.assertIn("scripts/pipeline/approve-sql-elastic-job-private-endpoint.py", approval_script)
+                            self.assertIn('--deployment-name "$CLASSIC_DEPLOYMENT_NAME"', approval_script)
+                            self.assertIn('az deployment group cancel', approval_script)
+                        self.assertIn("--created", tasks[wait]["inputs"]["inlineScript"])
                     connection_environment = "SND" if component == "classic" and environment == "DEV" else environment
                     connection_variable = "classicServiceConnection" if component == "classic" else "serviceConnection"
                     connection = load(f"pipelines/vars/{connection_environment.lower()}.yaml")["variables"][connection_variable]
@@ -262,7 +286,7 @@ class ConsolidatedBicepJobTests(unittest.TestCase):
                                         expected_imports.update({
                                             "EstablishPeering": {"vnetName"},
                                             "DeployACR": {"privateEndpointsSubnetId", "privateEndpointsSubnetName"},
-                                            "DeployInfrastructure": subnet_names | {"classicRedisResourceId", "classicSearchServiceResourceId", "classicServiceBusNamespaceResourceId", "classicSqlServerResourceId"},
+                                            "DeployInfrastructure": subnet_names,
                                             "InfraPermissions": {"aksClusterResourceId", "aksKubeletPrincipalId", "externalSecretsPrincipalObjectId", "sqlServerManagedIdentityObjectId", "searchServiceManagedIdentityPrincipalId"},
                                             "PrivateLinkDNSRecords": {"keyVaultName", "redisName", "searchServiceName", "sqlServerName", "storageAccountName", "qaKeyVaultName" if environment == "TST" else "acrName"},
                                             "PrivateLink": {"privateEndpointsSubnetId", "privateEndpointsSubnetName"},
@@ -310,8 +334,17 @@ class ConsolidatedBicepJobTests(unittest.TestCase):
                                      values["parameterSqlAdminGroup" + suffix])
                 output_task, = [task for task in steps(classic) if task.get("name") == "ClassicOutputs"]
                 self.assertEqual("DEV", output_task["env"]["ADO_GROUP_NAME"])
+                self.assertEqual("SND", output_task["env"]["CLASSIC_ENVIRONMENT_NAME"])
                 self.assertEqual("$(classicSubscriptionId)", output_task["env"]["SUBSCRIPTION_ID"])
                 self.assertEqual("$(classicResourceGroupName)", output_task["env"]["RESOURCE_GROUP"])
+
+    def test_directory_readers_membership_for_each_environment(self):
+        for environment in ("DEV", "TST", "PRE", "PRD"):
+            with self.subTest(environment=environment):
+                stage, = expand_stages("pipelines/stages/infra-permissions.yaml", {"environmentName": environment})
+                names = [task.get("name") for task in steps(stage)]
+                self.assertIn("SQLServerDirectoryReaders", names)
+                self.assertEqual(environment != "DEV", "SQLClassicServerDirectoryReaders" in names)
 
     def test_access_contract_exports_modern_sql_group_only_after_successful_validation(self):
         stage, = expand_stages("pipelines/stages/validate-access-contract.yaml", {"environmentName": "DEV"})
@@ -387,7 +420,16 @@ class ConsolidatedBicepJobTests(unittest.TestCase):
                         if component == "classic":
                             self.assertIn("id: 'modern-sql-admin-id'", content)
                             self.assertIn("name: 'modern-sql-admin-name'", content)
+                        if component in ("classic", "infra"):
+                            self.assertIn("param tenantId = 'fixture-tenantId'", content)
+                            deployment_scripts = [step["inputs"]["inlineScript"] for step in steps(stage)
+                                                  if step.get("displayName", "").startswith(("WhatIf - ", "Deploy - "))]
+                            self.assertEqual(2, len(deployment_scripts))
+                            for deployment_script in deployment_scripts:
+                                _, *parameter_arguments = deployment_script.strip().split("--parameters ")
+                                self.assertEqual([f"bicep/{filename}-runtime.bicepparam"], parameter_arguments)
                         if component == "infra":
+                            self.assertIn("param deployServicePrincipalObjectId = 'fixture-serviceConnectionPrincipalId'", content)
                             self.assertIn("param qaAutomationPrincipalObjectId = '" + ("qa-id" if environment == "TST" else "") + "'", content)
                             for prefix in ("aksApiServer", "aksSystemNodes", "aksUserNodes", "appGatewayForContainers", "privateEndpoints"):
                                 self.assertRegex(content, prefix + r": \{\s+id: 'fixture-" + prefix + r"SubnetId'\s+name: 'fixture-" + prefix + r"SubnetName'")

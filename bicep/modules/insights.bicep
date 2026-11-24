@@ -1,7 +1,6 @@
 targetScope = 'resourceGroup'
 
 param insightsParams object
-param deploymentId string
 param logAnalyticsId string
 param location string
 param tags object

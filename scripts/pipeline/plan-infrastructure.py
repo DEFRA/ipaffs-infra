@@ -123,21 +123,6 @@ def desired_inputs(environment, values, environ, private_dir):
             updated[prefix + "SubnetId"] = vnet_id + "/subnets/" + name
     except (KeyError, TypeError):
         raise PlanError("PARAMETER_RESOLUTION_FAILED") from None
-    # Classic IDs are deterministic even when the named services do not yet
-    # exist. This also keeps renamed services aligned with the candidate commit.
-    classic, _, _ = compile_parameters("classic", environment, updated, private_dir)
-    classic_sub = required(environ, "PLATFORM_CLASSIC_SUBSCRIPTION_ID")
-    classic_group = required(environ, "PLATFORM_CLASSIC_RESOURCE_GROUP")
-    for target, parameter, field, kind in (
-        ("classicRedisResourceId", "redisParams", "name", "Microsoft.Cache/Redis"),
-        ("classicSearchServiceResourceId", "searchParams", "name", "Microsoft.Search/searchServices"),
-        ("classicServiceBusNamespaceResourceId", "serviceBusParams", "namespaceName", "Microsoft.ServiceBus/namespaces"),
-        ("classicSqlServerResourceId", "sqlParams", "serverName", "Microsoft.Sql/servers"),
-    ):
-        try:
-            updated[target] = resource_id(classic_sub, classic_group, kind, value(classic, parameter)[field])
-        except (KeyError, TypeError):
-            raise PlanError("PARAMETER_RESOLUTION_FAILED") from None
     return updated
 
 

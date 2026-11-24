@@ -1,15 +1,12 @@
 using '../../40-infra.bicep'
 
-param builtInGroups = {
+var builtInGroups = {
   contributors: '89d5f0bd-ba3d-4779-95b6-66bf7f0ef487' // AG-Azure-IMP_TST1-Contributors
   owners: '8c073ada-277c-4716-a666-fb7470806d58' // AG-Azure-IMP_TST1-Owners
 }
 
-param classicLocation = 'northeurope'
-param classicResourceIds = {}
 param entraGroups = {}
 param environment = 'TST'
-param roleAssignmentsType = 'permanent'
 param subnets = {}
 param tenantId = ''
 param deployServicePrincipalObjectId = ''
@@ -77,9 +74,7 @@ param asoParams = {
   managedIdentityName: 'TSTIMPINFMI1401-AzureServiceOperator'
 }
 
-param externalSecretsParams = {
-  managedIdentityName: 'TSTIMPINFMI1401-ExternalSecrets'
-}
+param externalIdentityName = 'TSTIMPINFMI1401-ExternalSecrets'
 
 param insightsParams = {
   name: 'TSTIMPINFIN1401'

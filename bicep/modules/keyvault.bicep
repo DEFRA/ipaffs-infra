@@ -63,7 +63,6 @@ module keyVaultRoleAssignment './keyvault-role-assignment.bicep' = [for assignme
   params: {
     keyVaultName: keyVaultParams.name
     deploymentId: deploymentId
-    location: location
     principalObjectId: assignment.principalObjectId
     principalType: assignment.principalType
     roleAssignmentType: assignment.roleAssignmentType

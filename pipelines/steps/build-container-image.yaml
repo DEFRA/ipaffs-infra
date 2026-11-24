@@ -20,6 +20,16 @@ parameters:
     type: string
     default: ' '
 
+  - name: useAcrBaseImage
+    type: boolean
+    default: false
+
+  # for Dockerfiles that install @defra packages: passes System.AccessToken as the build
+  # secret ado_feed_token, for reading the Azure Artifacts feed
+  - name: npmTokenSecret
+    type: boolean
+    default: false
+
 steps:
   - task: AzureCLI@2
     displayName: Build and Push Container Image
@@ -27,12 +37,15 @@ steps:
       ACR_NAME_PARAMETER: ${{ parameters.acrName }}
       ACR_SUBSCRIPTION_NAME_PARAMETER: ${{ parameters.acrSubscriptionName }}
       TAG_NAME_PARAMETER: ${{ parameters.tagName }}
+      ${{ if eq(parameters.npmTokenSecret, true) }}:
+        DOCKER_BUILDKIT: 1
+        ADO_FEED_TOKEN: $(System.AccessToken)
     inputs:
       azureSubscription: $(serviceConnection)
       scriptType: bash
       scriptLocation: inlineScript
       inlineScript: |
-        set -x
+        set -ex
         if [[ -n "${ACR_NAME_PARAMETER// /}" ]]; then
           ACR_NAME="${ACR_NAME_PARAMETER}"
         else
@@ -52,6 +65,13 @@ steps:
         fi
 
         az acr login --name "${ACR_NAME}" --subscription "${SUBSCRIPTION_NAME}"
-        docker build --platform=linux/amd64 --tag "${{ parameters.imageName }}:${TAG_NAME}" --file "${{ parameters.dockerFile }}" "${{ parameters.directory }}"
+        BUILD_ARGS=()
+        if [[ "${{ parameters.useAcrBaseImage }}" == "True" ]]; then
+          BUILD_ARGS+=(--pull --build-arg "IMAGE_ACR=$(acrLoginServer)")
+        fi
+        if [[ "${{ parameters.npmTokenSecret }}" == "True" ]]; then
+          BUILD_ARGS+=(--secret id=ado_feed_token,env=ADO_FEED_TOKEN)
+        fi
+        docker build --platform=linux/amd64 "${BUILD_ARGS[@]}" --tag "${{ parameters.imageName }}:${TAG_NAME}" --file "${{ parameters.dockerFile }}" "${{ parameters.directory }}"
         docker tag "${{ parameters.imageName }}:${TAG_NAME}" "${ACR_NAME}.azurecr.io/ipaffs/${{ parameters.imageName }}:${TAG_NAME}"
         docker push "${ACR_NAME}.azurecr.io/ipaffs/${{ parameters.imageName }}:${TAG_NAME}"

@@ -7,7 +7,6 @@ param environment string
 param location string
 
 param name string
-param entraGroups object = {}
 param principalsNeedingReader array
 
 param deploymentId string = uniqueString(utcNow())

@@ -188,6 +188,20 @@ def is_no_effect_only(resource):
                     for field in fields))
 
 
+def is_unresolved_only_update(resource):
+    """Identify updates whose effective fields all contain unresolved expressions."""
+    if resource.get("changeType") != "Modify" or resource.get("potential"):
+        return False
+    fields = resource.get("fields")
+    if not isinstance(fields, list) or not all(isinstance(field, dict) for field in fields):
+        return False
+    effective = [field for field in fields if field.get("changeType") != "NoEffect"
+                 and not is_metadata_field(resource.get("type"), field, resource.get("resourceId"))]
+    return bool(effective) and all(field.get("deploymentTimeExpression") is True
+                                   and field.get("unresolved") is True and field.get("after") == _UNRESOLVED
+                                   for field in effective)
+
+
 def _actionable(resource):
     return (resource.get("category") == "resource" and not is_metadata_only(resource)
             and resource.get("changeType") in _ACTIONS and not is_no_effect_only(resource))
@@ -309,6 +323,8 @@ def environment_markdown(report):
     metadata = report.get("metadata", {})
     resources = _resources(report)
     actions = [resource for resource in resources if _actionable(resource)]
+    unresolved_only = sum(is_unresolved_only_update(resource) for resource in actions)
+    actions = [resource for resource in actions if not is_unresolved_only_update(resource)]
     counts = Counter(resource["changeType"] for resource in actions if not resource.get("potential"))
     potential = sum(bool(resource.get("potential")) for resource in actions)
     execution = "succeeded" if report.get("executionStatus") == "succeeded" else "failed or incomplete"
@@ -318,7 +334,8 @@ def environment_markdown(report):
              f"Candidate: `{md(metadata.get('commit', 'unavailable'))}` · Build: {md(metadata.get('buildId', 'unavailable'))}", "",
              f"Preview started: {md(metadata.get('generatedAt', 'unavailable'))}.", "",
              ("Changes to review: " if execution == "succeeded" else "Partial results to review: ")
-             + f"**{counts['Create']} creates, {counts['Modify']} reported updates and {counts['Delete']} resource deletions**."
+             + f"**{counts['Create']} creates, {counts['Modify']} updates to review and {counts['Delete']} resource deletions**."
+             + (f" Updates Azure could not assess: **{unresolved_only}**. See Coverage gaps." if unresolved_only else "")
              + (f" There are also {potential} potential action entries, labelled below." if potential else ""), "",
              "Read the resource actions first, then the coverage gaps. An update is a prediction, not proof of a runtime change: provider defaults and omitted properties can create differences. A removed property is not a resource deletion.", "",
              ]
@@ -330,7 +347,8 @@ def environment_markdown(report):
         lines.extend(["No resource actions are listed for review."
                       + (" Coverage gaps below still require attention." if not report.get("complete") else ""), ""])
     for component in report.get("components", []):
-        selected = [resource for resource in component.get("resources", []) if _actionable(resource)]
+        selected = [resource for resource in component.get("resources", [])
+                    if _actionable(resource) and not is_unresolved_only_update(resource)]
         if not selected:
             continue
         lines.extend([f"### {md(component.get('label', component.get('name', 'Component')))}", "",

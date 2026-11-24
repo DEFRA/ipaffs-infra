@@ -1,15 +1,12 @@
 using '../../40-infra.bicep'
 
-param builtInGroups = {
+var builtInGroups = {
   contributors: '80a5fda0-7d36-4c3a-a5de-44a6a525fd2d' // AG-Azure-IMP_PRE1-Contributors
   owners: '400ebb88-9bab-427b-b282-86e9bcc010ab' // AG-Azure-IMP_PRE1-Owners
 }
 
-param classicLocation = 'northeurope'
-param classicResourceIds = {}
 param entraGroups = {}
 param environment = 'PRE'
-param roleAssignmentsType = 'permanent'
 param subnets = {}
 param tenantId = ''
 param deployServicePrincipalObjectId = ''
@@ -77,9 +74,7 @@ param asoParams = {
   managedIdentityName: 'PREIMPINFMI1401-AzureServiceOperator'
 }
 
-param externalSecretsParams = {
-  managedIdentityName: 'PREIMPINFMI1401-ExternalSecrets'
-}
+param externalIdentityName = 'PREIMPINFMI1401-ExternalSecrets'
 
 param insightsParams = {
   name: 'PREIMPINFIN1401'

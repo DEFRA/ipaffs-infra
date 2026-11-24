@@ -69,7 +69,6 @@ module configurationManager './rg-role-assignment.bicep' = {
   name: 'agc-config-manager-${deploymentId}'
   scope: resourceGroup()
   params: {
-    deploymentId: deploymentId
     principalObjectId: controllerIdentity.properties.principalId
     roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'fbc52c3f-28ad-4303-a892-8a056630b8f1')
   }
@@ -91,7 +90,6 @@ module nodeResourceGroupReader './rg-role-assignment.bicep' = {
   name: 'agc-node-rg-reader-${deploymentId}'
   scope: resourceGroup(aksNodeResourceGroupName)
   params: {
-    deploymentId: deploymentId
     principalObjectId: controllerIdentity.properties.principalId
     roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'acdd72a7-3385-48ef-bd42-f606fba81ae7')
   }

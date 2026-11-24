@@ -1,9 +1,7 @@
 targetScope = 'resourceGroup'
 
-param deploymentId string
 param dnsParams object
 param loadBalancerFrontendIpConfigurations array
-param tags object
 
 resource dnsZone 'Microsoft.Network/dnsZones@2018-05-01' existing = {
   name: dnsParams.zoneName

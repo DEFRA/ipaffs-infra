@@ -82,7 +82,10 @@ read_apps() {
   [[ -f "${APPS_FILE}" ]] || fail "App list '${APPS_FILE}' does not exist"
 
   sed -e 's/#.*//' -e 's/[[:space:]]*$//' -e 's/^[[:space:]]*//' "${APPS_FILE}" | grep -v '^$' > "${work_dir}/apps" || true
-  [[ -s "${work_dir}/apps" ]] || fail "No apps listed in '${APPS_FILE}'"
+  if [[ ! -s "${work_dir}/apps" ]]; then
+    grep -Fxq '# No apps to stop or recover' "${APPS_FILE}" || fail "No apps listed in '${APPS_FILE}'"
+    return
+  fi
 
   while IFS= read -r line; do
     [[ "${line}" =~ ^[^/[:space:]]+/[^/[:space:]]+$ ]] || fail "Line '${line}' in '${APPS_FILE}' is not resourceGroup/appName"
@@ -197,6 +200,10 @@ trap 'rm -rf "${work_dir}"' EXIT
 log "Action=${ACTION} Environment=${ENVIRONMENT_NAME} Subscription=${SUBSCRIPTION_NAME}"
 log "Reading apps from '${APPS_FILE}'"
 read_apps
+if [[ ! -s "${work_dir}/apps" ]]; then
+  log "No apps to stop or recover in ${ENVIRONMENT_NAME}"
+  exit 0
+fi
 log "Found $(wc -l < "${work_dir}/apps" | tr -d ' ') listed app(s)"
 
 # Nothing changes unless every listed app exists

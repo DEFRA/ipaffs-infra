@@ -16,16 +16,11 @@ resource networkSecurityGroup 'Microsoft.Network/networkSecurityGroups@2025-05-0
   properties: {}
 }
 
-resource existingNetworkSecurityGroup 'Microsoft.Network/networkSecurityGroups@2025-05-01' existing = {
-  name: name
-}
-
 // Removing an IPAFFS rule from this list requires an explicit child-rule cleanup.
 // The Network provider serialises writes to a group; avoid competing child PUTs.
 @batchSize(1)
 resource managedRules 'Microsoft.Network/networkSecurityGroups/securityRules@2025-05-01' = [for rule in securityRules: {
-  parent: existingNetworkSecurityGroup
+  parent: networkSecurityGroup
   name: rule.name
   properties: rule.properties
-  dependsOn: [networkSecurityGroup]
 }]

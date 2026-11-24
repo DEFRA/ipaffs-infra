@@ -54,3 +54,9 @@ Off `main` the stage always runs with `DRY_RUN=true`. The infrastructure pipelin
 has a `runHooksOnBranch` parameter that forces a real run from a branch so a new
 hook can be tested end to end. Use it sparingly and only against lower
 environments.
+
+## Hooks
+
+| Hook | What it does |
+|------|--------------|
+| `10-delete-decommissioned-secrets.sh` | Deletes the secrets named in `decommissioned-secrets.txt` from the environment's Key Vault (`<ENV>IMPINFKV1401`). Secrets already absent are skipped, and deletion is a soft delete that is never purged, so a secret can be recovered within the vault's retention period. The pipeline identity needs a Key Vault role that allows `secrets/delete`. Tests: `bash scripts/pipeline/delete-decommissioned-secrets.test.sh` |

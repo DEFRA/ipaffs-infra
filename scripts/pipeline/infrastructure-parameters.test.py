@@ -27,7 +27,7 @@ def fixtures(environment="TST"):
 
 
 def expected_overrides(component, environment, values):
-    """The existing deployment overlays, plus the existing CLI overrides."""
+    """The runtime values shared by deployments and previews."""
     result = {}
     if component == "acr":
         result["entraGroups"] = {"acrPull": {
@@ -38,11 +38,6 @@ def expected_overrides(component, environment, values):
     if component == "infra":
         result.update({
             "qaAutomationPrincipalObjectId": values["qaAutomationServiceConnectionPrincipalId"],
-            "classicResourceIds": {
-                "redis": values["classicRedisResourceId"],
-                "searchService": values["classicSearchServiceResourceId"],
-                "serviceBusNamespace": values["classicServiceBusNamespaceResourceId"],
-                "sqlServer": values["classicSqlServerResourceId"]},
             "entraGroups": {"sqlAdmins": {
                 "id": values["sqlAdminGroupId"], "name": values["sqlAdminGroupName"]}}})
     if component in ("acr", "infra", "privatelink"):
@@ -96,10 +91,15 @@ class InfrastructureParameterTests(unittest.TestCase):
     def network_task(self, script, names, status=0):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
+            bicep = root / "bicep"
+            bicep.mkdir()
             scripts = root / "scripts" / "pipeline"
             scripts.mkdir(parents=True)
             for filename in ("infrastructure_parameters.py", "ensure-bicep-version.sh"):
                 shutil.copyfile(ROOT / "scripts" / "pipeline" / filename, scripts / filename)
+            version_line = next(line for line in (scripts / "ensure-bicep-version.sh").read_text().splitlines()
+                                if line.startswith("required_bicep_version="))
+            version = version_line.split("=", 1)[1]
             executables = root / "bin"
             executables.mkdir()
             calls = root / "calls.jsonl"
@@ -108,7 +108,7 @@ class InfrastructureParameterTests(unittest.TestCase):
                 "import json,os,sys",
                 "args=sys.argv[1:]",
                 f"with open({str(calls)!r},'a') as stream: stream.write(json.dumps(args)+'\\n')",
-                "if args[:2] == ['bicep','version']: print('Bicep CLI version 0.43.8 (fixture)')",
+                f"if args[:2] == ['bicep','version']: print('Bicep CLI version {version} (fixture)')",
                 "elif args[:3] == ['network','nsg','list']:",
                 "    print(os.environ['FIXTURE_NAMES'])",
                 "    sys.exit(int(os.environ['FIXTURE_NSG_STATUS']))",
@@ -117,12 +117,15 @@ class InfrastructureParameterTests(unittest.TestCase):
             azure.chmod(0o700)
             script = (script.replace("$(subscriptionId)", "11111111-1111-4111-8111-111111111111")
                       .replace("$(resourceGroupName)", "fixture-group").replace("$(Build.BuildId)", "123")
-                      .replace("${{ lower(parameters.environmentName) }}", "pre"))
+                      .replace("$(Build.SourcesDirectory)", str(root))
+                      .replace("${{ parameters.environmentName }}", "PRE"))
             result = subprocess.run(["bash", "-c", script], cwd=root,
                                     env={**os.environ, "PATH": str(executables) + os.pathsep + os.environ["PATH"],
                                          "FIXTURE_NAMES": json.dumps(names), "FIXTURE_NSG_STATUS": str(status)},
                                     capture_output=True, text=True, timeout=10)
-            return result, [json.loads(line) for line in calls.read_text().splitlines()]
+            runtime_params = bicep / "20-network-runtime.bicepparam"
+            return (result, [json.loads(line) for line in calls.read_text().splitlines()],
+                    runtime_params.read_text() if runtime_params.exists() else None)
 
     def test_network_what_if_and_apply_each_discover_and_validate_their_own_names_before_deployment(self):
         document = yaml.safe_load((ROOT / "pipelines/stages/deploy-bicep-network.yaml").read_text())
@@ -135,7 +138,7 @@ class InfrastructureParameterTests(unittest.TestCase):
             for names, status, success in ((["Existing-AKS"], 0, True), ([], 0, True),
                                            (["private-value;unexpected"], 0, False), (None, 0, False), ([], 7, False)):
                 with self.subTest(task=task["displayName"], names=names, status=status):
-                    result, calls = self.network_task(script, names, status)
+                    result, calls, runtime_params = self.network_task(script, names, status)
                     self.assertEqual(success, result.returncode == 0, result.stderr)
                     reads = [call for call in calls if call[:3] == ["network", "nsg", "list"]]
                     self.assertEqual(1, len(reads))
@@ -143,9 +146,13 @@ class InfrastructureParameterTests(unittest.TestCase):
                     writes = [call for call in calls if call[:2] == ["deployment", "group"]]
                     self.assertEqual(int(success), len(writes))
                     if success:
-                        override, = [argument for argument in writes[0] if argument.startswith("existingNetworkSecurityGroupNames=")]
-                        self.assertEqual(names, json.loads(override.split("=", 1)[1]))
-                        self.assertLess(writes[0].index("bicep/envs/pre/20-network.bicepparam"), writes[0].index(override))
+                        self.assertEqual(["--parameters", "bicep/20-network-runtime.bicepparam"], writes[0][-2:])
+                        self.assertEqual(1, writes[0].count("--parameters"))
+                        self.assertIn("extends 'envs/pre/20-network.bicepparam'", runtime_params)
+                        names_lines = "".join(f"  '{name}'\n" for name in names)
+                        self.assertIn(f"param existingNetworkSecurityGroupNames = [\n{names_lines}]", runtime_params)
+                    else:
+                        self.assertIsNone(runtime_params)
                     self.assertNotIn("private-value", result.stdout + result.stderr)
 
     def test_missing_and_unresolved_required_values_fail_without_echoing_values(self):
@@ -175,14 +182,15 @@ class InfrastructureParameterTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "qaAutomationServiceConnectionPrincipalId"):
             PARAMETERS.render("infra", "PRD", values)
 
-    def test_cli_overrides_are_optional_in_shared_deployment_parameter_files(self):
-        values = fixtures()
-        del values["tenantId"]
-        del values["serviceConnectionPrincipalId"]
-        for component in ("classic", "infra"):
-            result = PARAMETERS.render(component, "TST", values)
-            self.assertNotIn("param tenantId", result)
-            self.assertNotIn("param deployServicePrincipalObjectId", result)
+    def test_tenant_and_principal_inputs_must_be_resolved_before_deployment(self):
+        for component, name in (("classic", "tenantId"), ("infra", "tenantId"),
+                                ("infra", "serviceConnectionPrincipalId")):
+            for value in (None, "", "$(unresolved)"):
+                with self.subTest(component=component, name=name, value=value):
+                    values = fixtures()
+                    values[name] = value
+                    with self.assertRaisesRegex(ValueError, name):
+                        PARAMETERS.render(component, "TST", values)
 
     def test_quotes_interpolation_and_shell_characters_are_data(self):
         values = fixtures()
@@ -213,6 +221,7 @@ class InfrastructureParameterTests(unittest.TestCase):
             environment = {"PATH": os.environ["PATH"], "HOME": os.environ.get("HOME", ""),
                            "BICEP_PARAMETER_SQL_ADMIN_GROUP_ID": values["parameterSqlAdminGroupId"],
                            "BICEP_PARAMETER_SQL_ADMIN_GROUP_NAME": values["parameterSqlAdminGroupName"],
+                           "BICEP_TENANT_ID": values["tenantId"],
                            "TENANTID": "must-not-be-used"}
             result = subprocess.run([sys.executable, str(Path(PARAMETERS.__file__)),
                                      "--component", "classic", "--environment", "DEV", "--output", str(output)],
@@ -220,15 +229,15 @@ class InfrastructureParameterTests(unittest.TestCase):
             self.assertEqual(0, result.returncode, result.stderr)
             self.assertEqual("", result.stdout + result.stderr)
             self.assertIn(values["parameterSqlAdminGroupName"], output.read_text())
+            self.assertIn(f"param tenantId = '{values['tenantId']}'", output.read_text())
             self.assertNotIn("must-not-be-used", output.read_text())
 
 
 @unittest.skipUnless(os.environ.get("BICEP_BIN"), "Set BICEP_BIN to enable actual Bicep compilation")
 class CompiledParameterParityTests(unittest.TestCase):
-    def compile(self, path, overrides=None):
+    def compile(self, path):
         result = subprocess.run([os.environ["BICEP_BIN"], "build-params", str(path), "--stdout", "--no-restore"],
-                                text=True, capture_output=True, timeout=60,
-                                env=None if overrides is None else {**os.environ, "BICEP_PARAMETERS_OVERRIDES": json.dumps(overrides)})
+                                text=True, capture_output=True, timeout=60)
         self.assertEqual(0, result.returncode, result.stderr)
         return json.loads(json.loads(result.stdout)["parametersJson"])["parameters"]
 
@@ -259,16 +268,6 @@ class CompiledParameterParityTests(unittest.TestCase):
                         output = root / "20-network-runtime.bicepparam"
                         PARAMETERS.write_parameters("network", environment, {"existingNetworkSecurityGroupNames": names}, output)
                         self.assertEqual({"value": names}, self.compile(output)["existingNetworkSecurityGroupNames"])
-
-    def test_cli_supplemental_parameter_route_adds_new_default_parameter_missing_from_base_file(self):
-        # Azure CLI 2.75's supplemental .bicepparam path uses this Bicep override
-        # environment after resolving types from the compiled template itself.
-        base = ROOT / "bicep/envs/pre/20-network.bicepparam"
-        self.assertNotIn("existingNetworkSecurityGroupNames", base.read_text())
-        for names in ([], ["Existing-AKS"]):
-            with self.subTest(names=names):
-                result = self.compile(base, {"existingNetworkSecurityGroupNames": names})
-                self.assertEqual({"value": names}, result["existingNetworkSecurityGroupNames"])
 
     def test_escaped_bicep_string_compiles_to_original_value(self):
         value = "O'Brien \\ ${injected}\r\nsecond\t`touch /tmp/nope`"

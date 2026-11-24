@@ -70,11 +70,6 @@ class RunnerTests(unittest.TestCase):
                 "vnetParams": parameter({"name": "candidate-vnet", "subnets": [
                     {"name": "candidate-" + prefix} for prefix in RUNNER.SUBNETS]}),
                 "subnetNames": parameter({prefix: "candidate-" + prefix for prefix in RUNNER.SUBNETS})},
-            "classic": {
-                "redisParams": parameter({"name": "candidate-redis"}),
-                "searchParams": parameter({"name": "candidate-search"}),
-                "serviceBusParams": parameter({"namespaceName": "candidate-servicebus"}),
-                "sqlParams": parameter({"serverName": "candidate-sql"})},
         }.get(component, {})
         template_path = private_dir / f"{component}.template.json"
         parameters_path = private_dir / f"{component}.parameters.json"
@@ -197,7 +192,7 @@ class RunnerTests(unittest.TestCase):
                 with self.assertRaisesRegex(RUNNER.PlanError, "PRIVATE_STATE_OVERLAPS_REPORT"):
                     RUNNER.run(self.args, {})
 
-    def test_desired_subnets_and_classic_ids_come_from_candidate_names_not_library_ids(self):
+    def test_desired_subnets_come_from_candidate_names(self):
         self.args.state_dir.mkdir()
         old = {name: "stale-library-id" for name in RUNNER.ENVIRONMENT_VARIABLES}
         with mock.patch.object(RUNNER, "compile_parameters", side_effect=self.compile):
@@ -205,12 +200,6 @@ class RunnerTests(unittest.TestCase):
         for prefix in RUNNER.SUBNETS:
             self.assertEqual("candidate-" + prefix, result[prefix + "SubnetName"])
             self.assertEqual(f"/subscriptions/{MODERN_SUBSCRIPTION}/resourceGroups/proposed-modern-group/providers/Microsoft.Network/virtualNetworks/candidate-vnet/subnets/candidate-{prefix}", result[prefix + "SubnetId"])
-        for target, kind, name in (
-            ("classicRedisResourceId", "Microsoft.Cache/Redis", "candidate-redis"),
-            ("classicSearchServiceResourceId", "Microsoft.Search/searchServices", "candidate-search"),
-            ("classicServiceBusNamespaceResourceId", "Microsoft.ServiceBus/namespaces", "candidate-servicebus"),
-            ("classicSqlServerResourceId", "Microsoft.Sql/servers", "candidate-sql")):
-            self.assertEqual(f"/subscriptions/{CLASSIC_SUBSCRIPTION}/resourceGroups/proposed-classic-group/providers/{kind}/{name}", result[target])
         self.assertEqual("stale-library-id", old["privateEndpointsSubnetId"])
 
     def test_generated_raw_parameters_and_responses_stay_outside_artifacts(self):

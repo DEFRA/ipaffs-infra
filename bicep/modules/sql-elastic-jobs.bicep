@@ -1,7 +1,6 @@
 targetScope = 'resourceGroup'
 
 param alertsActionGroups object
-param deploymentId string
 param location string
 param sejParams object
 param tags object
@@ -63,6 +62,14 @@ resource jobAgent 'Microsoft.Sql/servers/jobAgents@2023-08-01' = {
   }
   properties: {
     databaseId: database.id
+  }
+}
+
+resource jobAgentPrivateEndpoint 'Microsoft.Sql/servers/jobAgents/privateEndpoints@2025-01-01' = {
+  parent: jobAgent
+  name: toLower(jobAgent.name)
+  properties: {
+    targetServerAzureResourceId: sqlServer.id
   }
 }
 

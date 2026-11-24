@@ -1,7 +1,5 @@
 using '../../60-dns.bicep'
 
-param environment = 'PRE'
-
 param loadBalancer = {
   name: 'kubernetes-internal'
   resourceGroup: 'PREIMPINFRG1402'

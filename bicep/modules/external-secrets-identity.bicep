@@ -1,6 +1,6 @@
 targetScope = 'resourceGroup'
 
-param externalSecretsParams object
+param managedIdentityName string
 param deploymentId string
 param keyVaultName string
 param location string
@@ -11,7 +11,7 @@ var namespace = 'external-secrets'
 var serviceAccount = 'external-secrets'
 
 resource managedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2024-11-30' = {
-  name: externalSecretsParams.managedIdentityName
+  name: managedIdentityName
   location: location
   tags: tags
 }
@@ -34,7 +34,6 @@ module keyVaultSecretsReader './keyvault-role-assignment.bicep' = {
   params: {
     keyVaultName: keyVaultName
     deploymentId: deploymentId
-    location: location
     principalObjectId: managedIdentity.properties.principalId
     principalType: 'ServicePrincipal'
     roleAssignmentType: 'permanent'

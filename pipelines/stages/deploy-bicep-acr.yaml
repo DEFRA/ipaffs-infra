@@ -78,11 +78,15 @@ stages:
 
                 - task: AzureCLI@2
                   displayName: WhatIf - ACR
+                  env:
+                    AZURE_BICEP_USE_BINARY_FROM_PATH: 'false'
                   inputs:
                     azureSubscription: ${{ variables.serviceConnection }}
                     scriptType: bash
                     scriptLocation: inlineScript
                     inlineScript: |
+                      set -euo pipefail
+                      bash scripts/pipeline/ensure-bicep-version.sh
                       set -x
                       az deployment group what-if \
                         --name "ACR-$(Build.BuildId)" \
@@ -94,11 +98,15 @@ stages:
                 - task: AzureCLI@2
                   displayName: Deploy - ACR
                   condition: and(not(failed()), not(canceled()), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), and(${{ parameters.allowTaggedDeployments }}, startsWith(variables['Build.SourceBranch'], 'refs/tags/'))))
+                  env:
+                    AZURE_BICEP_USE_BINARY_FROM_PATH: 'false'
                   inputs:
                     azureSubscription: ${{ variables.serviceConnection }}
                     scriptType: bash
                     scriptLocation: inlineScript
                     inlineScript: |
+                      set -euo pipefail
+                      bash scripts/pipeline/ensure-bicep-version.sh
                       set -x
                       az deployment group create \
                         --name "ACR-$(Build.BuildId)" \

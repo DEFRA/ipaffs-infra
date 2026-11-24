@@ -26,6 +26,12 @@ parameters:
   - name: sonarReferenceBranch
     type: string
     default: master
+  - name: mavenRegistry
+    displayName: Maven registry (only feed; kept so pipelines that set it still work)
+    type: string
+    default: feed
+    values:
+      - feed
 
 jobs:
   - job: BuildJavaProject
@@ -40,11 +46,9 @@ jobs:
         - checkout: self
           fetchDepth: 0
 
-      - task: DownloadSecureFile@1
-        name: mavenSettings
-        displayName: 'Download Maven Settings'
-        inputs:
-          secureFile: 'maven-settings.xml'
+      - template: /pipelines/steps/maven-settings.yaml
+        parameters:
+          mavenRegistry: "${{ parameters.mavenRegistry }}"
 
       - task: Cache@2
         inputs:
@@ -57,6 +61,8 @@ jobs:
 
       - task: Maven@4
         displayName: 'Build and Test'
+        env:
+          SYSTEM_ACCESSTOKEN: $(System.AccessToken)
         inputs:
           mavenPomFile: ${{ parameters.mavenPomFile }}
           mavenOptions: '-Xmx3072m $(MAVEN_OPTS)'
@@ -65,7 +71,7 @@ jobs:
           jdkArchitectureOption: 'x64'
           publishJUnitResults: true
           testResultsFiles: '**/surefire-reports/TEST-*.xml'
-          options: '--settings $(mavenSettings.secureFilePath)'
+          options: '--settings $(mavenSettingsFile)'
           goals: ${{ parameters.mvnGoals }}
 
       - task: PublishCodeCoverageResults@2

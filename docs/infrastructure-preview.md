@@ -3,8 +3,9 @@
 `pipelines/infrastructure-preview.yaml` previews the candidate infrastructure commit
 against live DEV, TST, PRE and PRD. DEV supplies a post-apply comparison baseline.
 The pipeline does not apply deployments, run hooks, update
-Library groups or change access-group memberships. Tag-triggered promotion is a
-separate follow-up; the current DEV deployment pipeline remains unchanged.
+Library groups or change access-group memberships. Tagged deployments run
+separately through `release-pipeline.yaml`; the preview is advisory and is not
+an approval gate or dependency of that release pipeline.
 
 ## Release workflow
 
@@ -18,6 +19,15 @@ separate follow-up; the current DEV deployment pipeline remains unchanged.
    downloadable `infrastructure-preview` artifact before choosing a release tag.
    Record the full candidate commit; a tag created later must point at that commit
    for this report to describe its inputs.
+4. Creating a release tag such as `1` or `1.1` also starts a fresh
+   preview of that tagged commit across the same four environments in parallel.
+   The release pipeline starts independently from the tag and does not wait for
+   this preview. The successful DEV completion preview remains available before
+   choosing a tag.
+
+Only tags whose commits contain this tag-trigger configuration can start the
+preview automatically. Existing tags and tags of older pipeline code do not gain
+the new trigger when this change is merged to `main`.
 
 A failed or unresolved preview is incomplete, rather than evidence of no changes.
 When every environment's what-if executes successfully but ARM cannot assess all
@@ -30,9 +40,16 @@ these ordinary agent jobs; service-connection checks and authorisation still app
 
 For a manual preview, select `main` in the Azure DevOps **Run pipeline** dialog
 and verify the queued commit in the report. The default source resource selects
-a successful main infrastructure run tagged `Environment-DEV`. Automatic runs verify both the
-checked-out commit and the completed DEV run's commit and branch before any
-authenticated preview work.
+a successful main infrastructure run tagged `Environment-DEV`. Every run verifies
+that the checkout matches its queued commit. DEV completion runs also require
+the exact completed main DEV commit. Tag CI runs validate the full tag ref before
+authenticated preview work. The tag name must match `^[1-9][0-9]*(\.(0|[1-9][0-9]*))?$`.
+The release number is positive and the optional patch can be zero. Both use
+ASCII digits without leading zeroes. The pipeline validates the identifier as
+text, so `1.1` and `1.10` are separate tags. Manual diagnostic previews can
+select any branch or tag, including older three-component tags.
+The selected DEV source run remains
+baseline evidence and does not replace the tagged candidate commit.
 The report records the commit, source ref, run ID and generation time. Changes to
 the live environment after that time can invalidate the prediction.
 
@@ -96,8 +113,10 @@ for a release decision:
   recur in DEV. Repeated NSG or access changes may reflect another controller
   reapplying its intended configuration.
 - Coverage gaps for unsupported resources, unresolved deployment-time values
-  and potential actions. Check the intended Bicep configuration where these
-  gaps matter; the comparison does not turn them into no-change predictions.
+  and potential actions. The headline counts updates separately when each
+  effective field has an unresolved expression as its entire proposed value.
+  Mixed updates stay visible in the review list and the coverage gaps,
+  including when Azure reports a whole object with an unresolved field.
 
 The **Unresolved predictions** table retains a known resource type even when
 Azure's sanitized result has no usable resource identity. Repeated unidentified
@@ -214,9 +233,47 @@ with its owner rather than enable the bootstrap definitions without review. A
 newly rebuilt PRE/PRD job agent requires its maintenance definitions to be restored
 or provisioned by that owner.
 
-Network deployment tasks and previews use Bicep 0.43.8 because the create-only
-resource decorator requires Bicep 0.38.3 or later. Compiler preparation fails
-before compilation or deployment if that version cannot be installed and verified.
+TST, PRE and PRD list their existing elastic pools in `sqlPoolsParams`, and the
+Classic deployment manages each one with `modules/sql-pool-classic.bicep`. PRE also
+lists the PRE-TRN pool, which is in `PREIMPINFRGP002`, so its entry sets
+`resourceGroupName`. The parameters pin the live SKU, per-database limits, maximum
+size, zone redundancy, maintenance window and tags, so What-If shows no change until
+a parameter is edited. TST sets `keepLiveCapacity: true` because something outside
+this repo scales its pool from 250 to 1000 eDTU on weekday mornings. It keeps
+whatever SKU and per-database limits are live, and What-If shows those two
+properties as unresolved `reference()` changes. SND is unused and lists no pools.
+
+An optional `databases` list declares individual databases in a pool. The Classic
+deployment manages each named database's storage limit, pool membership,
+availability and backup settings, collation, read scale and tags. The preflight
+checks membership and validates pool and database limits against their respective
+regional SKU limits. A database can grow only into space available in its pool.
+
+What-If does not ask Azure whether a pool's SKU, maximum size and per-database
+limits can be combined, so the Classic deployment runs
+`scripts/pipeline/validate-sql-elastic-pools.py` first. It checks each
+`sqlPoolsParams` entry against the regional SQL capabilities API (SKU, maximum size,
+per-database min/max, zone redundancy, licence type and maintenance window) and
+against the live pool (used storage, database count and each database's maximum
+size). Any problem fails the stage before What-If. Pools with `keepLiveCapacity`
+are checked with their live SKU.
+
+The Classic deployment requests one service-managed private endpoint per Elastic
+Job Agent in SND, TST, PRE and PRD. Azure waits for approval before completing the
+endpoint deployment. The pipeline submits ARM asynchronously, uses the Classic
+service connection to approve the exact SQL connection, and waits for ARM to
+succeed before publishing outputs. The existing deployment gates apply to the
+whole sequence. ARM WhatIf previews the endpoint resource. Check per-database
+results of a test or scheduled job execution to verify connectivity.
+
+Microsoft blocked changes to Database Watcher resources from 9 November 2026.
+The incremental Classic deployment reads the existing watcher identity for the
+Kusto data store role assignment and preserves its targets and private link.
+[Microsoft retirement notice](https://techcommunity.microsoft.com/blog/AzureSQLBlog/database-watcher-for-azure-sql-is-retiring-simplify-your-monitoring-with-databas/4567864)
+
+Deployment tasks, previews and CI use the compiler pinned in
+`scripts/pipeline/ensure-bicep-version.sh`. Each Azure CLI task selects the
+verified Azure CLI-managed binary and stops before compilation if verification fails.
 
 ## Azure DevOps setup
 
@@ -240,14 +297,21 @@ Missing authorisation can block the run before jobs start. Authentication failur
 after initialisation leave pending/incomplete component records visible in the
 report; they must not be treated as a successful plan.
 
-The YAML has no CI or PR trigger. Its automatic trigger requires a successful
-source-pipeline completion on `refs/heads/main` with `Environment-DEV`. It does not
-react to release tags and does not alter the manifest-style batching of DEV.
+The YAML excludes branch CI and PR triggers. Its native tag CI filter is `*`,
+excluding the separate `ipaffs-infra-pin-*` manifest-pinning tags. Azure DevOps
+tag filters do not express the release-tag format, so another tag push
+can queue validation even when it is not a valid infrastructure release tag.
+The source-validation step rejects every noncanonical tag before authenticated
+preview work. The release pipeline applies the same format guard
+before its deployment stages. The existing successful main `Environment-DEV` pipeline-completion
+trigger is retained. Neither trigger changes DEV deployment batching or the
+baseline's source-run, deployment-task and deployment-input verification.
 
 Repository tests and Azure DevOps YAML preview compilation validate structure;
-the first live what-if run still needs checking after registration. A pre-tag
-preview is advisory and does not yet enforce that a future promotion uses the
-reviewed commit.
+a manual read-only run can validate live execution. These checks do not establish
+that a real tag push started a preview; verify the source ref, tagged commit and
+reports on the first future release-tag run. A pre-tag preview remains advisory
+and does not enforce that a future promotion uses the reviewed commit.
 
 References: [pipeline completion triggers](https://learn.microsoft.com/en-us/azure/devops/pipelines/process/pipeline-triggers?view=azure-devops)
 and [Bicep what-if limitations](https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/deploy-what-if#limitations).

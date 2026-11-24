@@ -12,9 +12,12 @@ jobs:
           versionSpec: ${{ parameters.nodeVersion }}
           addToPath: true
 
+      # ADO_FEED_TOKEN lets .npmrc read @defra packages from the Azure Artifacts feed
       - script: npm ci
         displayName: Install dependencies
         workingDirectory: service
+        env:
+          ADO_FEED_TOKEN: $(System.AccessToken)
 
       - script: npx playwright install --with-deps chromium
         displayName: Install Playwright browsers

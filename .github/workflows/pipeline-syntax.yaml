@@ -13,14 +13,20 @@ on:
       - "scripts/**/*.sh"
       - "scripts/**/*.test.py"
       - "scripts/pipeline/validate-access-contract.py"
+      - "scripts/pipeline/decommission-classic.py"
+      - "scripts/pipeline/decommission-classic/lists/*.txt"
+      - "scripts/hooks/*.txt"
       - "scripts/pipeline/create-release-refs.py"
       - "scripts/pipeline/sync-deployment-outputs.py"
+      - "scripts/pipeline/approve-sql-elastic-job-private-endpoint.py"
+      - "scripts/pipeline/validate-sql-elastic-pools.py"
       - "scripts/pipeline/infrastructure_*.py"
       - "scripts/pipeline/plan-infrastructure.py"
       - "bicep/*.bicep"
       - "bicep/*.bicepparam"
       - "bicep/**/*.bicep"
       - "bicep/**/*.bicepparam"
+      - "bicep/bicepconfig.json"
   push:
     branches:
       - main
@@ -35,14 +41,20 @@ on:
       - "scripts/**/*.sh"
       - "scripts/**/*.test.py"
       - "scripts/pipeline/validate-access-contract.py"
+      - "scripts/pipeline/decommission-classic.py"
+      - "scripts/pipeline/decommission-classic/lists/*.txt"
+      - "scripts/hooks/*.txt"
       - "scripts/pipeline/create-release-refs.py"
       - "scripts/pipeline/sync-deployment-outputs.py"
+      - "scripts/pipeline/approve-sql-elastic-job-private-endpoint.py"
+      - "scripts/pipeline/validate-sql-elastic-pools.py"
       - "scripts/pipeline/infrastructure_*.py"
       - "scripts/pipeline/plan-infrastructure.py"
       - "bicep/*.bicep"
       - "bicep/*.bicepparam"
       - "bicep/**/*.bicep"
       - "bicep/**/*.bicepparam"
+      - "bicep/bicepconfig.json"
 
 jobs:
   ado-pipeline-yaml:
@@ -104,22 +116,32 @@ jobs:
         shell: bash
         run: bash scripts/pipeline/update-manifest-service-values.test.sh
 
+      - name: Test decommissioned secret deletion hook
+        shell: bash
+        run: bash scripts/pipeline/delete-decommissioned-secrets.test.sh
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
+      - name: Install Python test dependencies
+        run: python -m pip install PyYAML==6.0.3
+
       - name: Test operations access-group contract
         run: python scripts/pipeline/validate-access-contract.test.py
 
-      - name: Test manifest infra pin retirement
-        shell: bash
-        run: |
-          python -m pip install PyYAML==6.0.3
-          python scripts/pipeline/update-manifest-infra-ref.test.py
+      - name: Test Classic resource decommissioning
+        run: python scripts/pipeline/decommission-classic.test.py
 
       - name: Test deployment output synchronisation
         run: python scripts/pipeline/sync-deployment-outputs.test.py
+
+      - name: Test SQL Elastic Jobs private endpoint approval
+        run: python scripts/pipeline/approve-sql-elastic-job-private-endpoint.test.py
+
+      - name: Test SQL elastic pool validation
+        run: python scripts/pipeline/validate-sql-elastic-pools.test.py
 
       - name: Test consolidated Bicep jobs
         run: python scripts/pipeline/consolidated-bicep-jobs.test.py
@@ -139,16 +161,24 @@ jobs:
   bicep:
     name: Bicep
     runs-on: ubuntu-latest
+    env:
+      AZURE_BICEP_USE_BINARY_FROM_PATH: 'false'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Install and verify pinned Bicep compiler
+        shell: bash
+        run: |
+          set -euo pipefail
+          export AZURE_CONFIG_DIR="${RUNNER_TEMP}/azure"
+          bash scripts/pipeline/ensure-bicep-version.sh
+          printf 'AZURE_CONFIG_DIR=%s\n' "$AZURE_CONFIG_DIR" >> "$GITHUB_ENV"
 
       - name: Build Bicep files
         shell: bash
         run: |
           set -euo pipefail
-
-          export AZURE_CONFIG_DIR="${RUNNER_TEMP}/azure"
 
           files=()
           while IFS= read -r file; do
@@ -162,15 +192,13 @@ jobs:
 
           for file in "${files[@]}"; do
             echo "Building ${file}"
-            az bicep build --file "${file}" --stdout --only-show-errors > /dev/null
+            az bicep build --file "${file}" --stdout > /dev/null
           done
 
       - name: Build Bicep parameter files
         shell: bash
         run: |
           set -euo pipefail
-
-          export AZURE_CONFIG_DIR="${RUNNER_TEMP}/azure"
 
           files=()
           while IFS= read -r file; do
@@ -184,5 +212,5 @@ jobs:
 
           for file in "${files[@]}"; do
             echo "Building ${file}"
-            az bicep build-params --file "${file}" --stdout --only-show-errors > /dev/null
+            az bicep build-params --file "${file}" --stdout > /dev/null
           done

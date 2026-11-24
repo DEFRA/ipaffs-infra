@@ -63,6 +63,7 @@ stages:
                   env:
                     BICEP_PARAMETER_SQL_ADMIN_GROUP_ID: $(parameterSqlAdminGroupId)
                     BICEP_PARAMETER_SQL_ADMIN_GROUP_NAME: $(parameterSqlAdminGroupName)
+                    BICEP_TENANT_ID: $(tenantId)
                   inputs:
                     targetType: inline
                     script: |
@@ -79,38 +80,89 @@ stages:
                     artifactName: ${{ parameters.stagePrefix }}bicepparam-classic
                     targetPath: $(Build.SourcesDirectory)/bicep/30-classic-runtime.bicepparam
 
+                # What-If does not check SQL SKU, size and per-database combinations.
                 - task: AzureCLI@2
-                  displayName: WhatIf - Classic
+                  displayName: Validate SQL elastic pools - Classic
+                  env:
+                    AZURE_BICEP_USE_BINARY_FROM_PATH: 'false'
+                    CLASSIC_RESOURCE_GROUP: $(classicResourceGroupName)
+                    CLASSIC_SUBSCRIPTION_ID: $(classicSubscriptionId)
                   inputs:
                     azureSubscription: ${{ variables.classicServiceConnection }}
                     scriptType: bash
                     scriptLocation: inlineScript
                     inlineScript: |
+                      set -euo pipefail
+                      bash scripts/pipeline/ensure-bicep-version.sh
+                      python3 scripts/pipeline/validate-sql-elastic-pools.py \
+                        --parameters bicep/30-classic-runtime.bicepparam \
+                        --subscription "$CLASSIC_SUBSCRIPTION_ID" \
+                        --resource-group "$CLASSIC_RESOURCE_GROUP"
+
+                - task: AzureCLI@2
+                  displayName: WhatIf - Classic
+                  env:
+                    AZURE_BICEP_USE_BINARY_FROM_PATH: 'false'
+                  inputs:
+                    azureSubscription: ${{ variables.classicServiceConnection }}
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      set -euo pipefail
+                      bash scripts/pipeline/ensure-bicep-version.sh
                       set -x
                       az deployment group what-if \
                         --name "Classic-$(Build.BuildId)" \
                         --subscription $(classicSubscriptionId) \
                         --resource-group $(classicResourceGroupName) \
                         --template-file bicep/30-classic.bicep \
-                        --parameters bicep/30-classic-runtime.bicepparam \
-                        --parameters tenantId="$(tenantId)"
+                        --parameters bicep/30-classic-runtime.bicepparam
 
                 - task: AzureCLI@2
                   displayName: Deploy - Classic
                   condition: and(not(failed()), not(canceled()), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), and(${{ parameters.allowTaggedDeployments }}, startsWith(variables['Build.SourceBranch'], 'refs/tags/'))))
+                  env:
+                    AZURE_BICEP_USE_BINARY_FROM_PATH: 'false'
                   inputs:
                     azureSubscription: ${{ variables.classicServiceConnection }}
                     scriptType: bash
                     scriptLocation: inlineScript
                     inlineScript: |
+                      set -euo pipefail
+                      bash scripts/pipeline/ensure-bicep-version.sh
                       set -x
                       az deployment group create \
+                        --no-wait \
                         --name "Classic-$(Build.BuildId)" \
                         --subscription $(classicSubscriptionId) \
                         --resource-group $(classicResourceGroupName) \
                         --template-file bicep/30-classic.bicep \
-                        --parameters bicep/30-classic-runtime.bicepparam \
-                        --parameters tenantId="$(tenantId)"
+                        --parameters bicep/30-classic-runtime.bicepparam
+
+                - ${{ if ne(parameters.classicEnvironmentName, 'SND') }}:
+                  - task: AzureCLI@2
+                    displayName: Approve SQL Elastic Jobs private endpoint
+                    condition: and(not(failed()), not(canceled()), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), and(${{ parameters.allowTaggedDeployments }}, startsWith(variables['Build.SourceBranch'], 'refs/tags/'))))
+                    env:
+                      CLASSIC_DEPLOYMENT_NAME: Classic-$(Build.BuildId)
+                      CLASSIC_RESOURCE_GROUP: $(classicResourceGroupName)
+                      CLASSIC_SUBSCRIPTION_ID: $(classicSubscriptionId)
+                    inputs:
+                      azureSubscription: ${{ variables.classicServiceConnection }}
+                      scriptType: bash
+                      scriptLocation: inlineScript
+                      inlineScript: |
+                        set -euo pipefail
+                        if ! python3 scripts/pipeline/approve-sql-elastic-job-private-endpoint.py \
+                          --deployment-name "$CLASSIC_DEPLOYMENT_NAME" \
+                          --resource-group "$CLASSIC_RESOURCE_GROUP" \
+                          --subscription "$CLASSIC_SUBSCRIPTION_ID"; then
+                          az deployment group cancel \
+                            --name "$CLASSIC_DEPLOYMENT_NAME" \
+                            --resource-group "$CLASSIC_RESOURCE_GROUP" \
+                            --subscription "$CLASSIC_SUBSCRIPTION_ID" --only-show-errors || true
+                          exit 1
+                        fi
 
                 - task: AzureCLI@2
                   displayName: Wait for Deployment - Classic
@@ -135,6 +187,7 @@ stages:
                     ADO_ORG_URL: $(System.CollectionUri)
                     ADO_PROJECT: $(System.TeamProject)
                     ADO_GROUP_NAME: ${{ parameters.environmentName }}
+                    CLASSIC_ENVIRONMENT_NAME: ${{ parameters.classicEnvironmentName }}
                     AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
                     DEPLOYMENT_NAME: Classic-$(Build.BuildId)
                     RESOURCE_GROUP: $(classicResourceGroupName)
@@ -145,20 +198,26 @@ stages:
                     scriptLocation: inlineScript
                     inlineScript: |
                       set -euo pipefail
-                      python3 scripts/pipeline/sync-deployment-outputs.py \
-                        --emit-output=classicRedisResourceId \
-                        --emit-output=classicSearchServiceResourceId \
-                        --emit-output=classicServiceBusNamespaceResourceId \
-                        --emit-output=classicSqlServerResourceId \
-                        classicRedisName=redisName \
-                        classicRedisResourceId=redisResourceId \
-                        classicSearchServiceSubscriptionId=searchServiceSubscriptionId \
-                        classicSearchServiceResourceGroupName=searchServiceResourceGroupName \
-                        classicSearchServiceName=searchServiceName \
-                        classicSearchServiceManagedIdentityPrincipalId=searchServiceManagedIdentityPrincipalId \
-                        classicSearchServiceManagedIdentityPrincipalName=searchServiceManagedIdentityPrincipalName \
-                        classicSearchServiceResourceId=searchServiceResourceId \
-                        classicServiceBusNamespaceName=serviceBusNamespaceName \
-                        classicServiceBusNamespaceResourceId=serviceBusNamespaceResourceId \
-                        classicSqlServerName=sqlServerName \
-                        classicSqlServerResourceId=sqlServerResourceId
+                      mappings=(
+                        --emit-output=classicServiceBusNamespaceResourceId
+                        classicServiceBusNamespaceName=serviceBusNamespaceName
+                        classicServiceBusNamespaceResourceId=serviceBusNamespaceResourceId
+                      )
+                      if [[ "$CLASSIC_ENVIRONMENT_NAME" != SND ]]; then
+                        mappings+=(
+                          --emit-output=classicRedisResourceId
+                          --emit-output=classicSqlServerResourceId
+                          --emit-output=classicSearchServiceResourceId
+                          classicRedisName=redisName
+                          classicRedisResourceId=redisResourceId
+                          classicSqlServerName=sqlServerName
+                          classicSqlServerResourceId=sqlServerResourceId
+                          classicSearchServiceSubscriptionId=searchServiceSubscriptionId
+                          classicSearchServiceResourceGroupName=searchServiceResourceGroupName
+                          classicSearchServiceName=searchServiceName
+                          classicSearchServiceManagedIdentityPrincipalId=searchServiceManagedIdentityPrincipalId
+                          classicSearchServiceManagedIdentityPrincipalName=searchServiceManagedIdentityPrincipalName
+                          classicSearchServiceResourceId=searchServiceResourceId
+                        )
+                      fi
+                      python3 scripts/pipeline/sync-deployment-outputs.py "${mappings[@]}"

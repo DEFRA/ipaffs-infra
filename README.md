@@ -94,23 +94,25 @@ Things are moving along quickly. At the time of writing, migration of ipaffs-imp
 
 [`release-pipeline.yaml`](release-pipeline.yaml) promotes the same tagged commit
 through **TST → approval → PRE → approval → PRD**, following the manifest release
-pipeline. Only numeric `major.minor.patch` tags (for example `18.9.0`) are accepted.
-Branch pushes and pull requests do not trigger it; manually queued runs must also
-select a release tag.
+pipeline. Use a positive release number such as `1`, with an optional patch
+number such as `1.1`. The patch can be zero, as in `1.0`. Write both components
+with ASCII digits and without leading zeroes. Tag pushes trigger source validation.
+Manually queued deployments also require a valid release tag.
 
 Use **Create Infrastructure Release** in Azure DevOps's `Infrastructure/Releasing`
 folder ([`release-refs-pipeline.yaml`](release-refs-pipeline.yaml)) to create those
-tags. Queue it from `main` with a major/minor `version`, for example `18.9`, to
-create `RELEASE/18.9.x` and the annotated tag `18.9.0` from the latest remote
-`main`. If that release branch already exists, the initial tag uses its current
-commit. Existing tags are never moved or overwritten.
+tags. Queue it manually from `main` with an explicit `version` such as `1` or
+`1.1`. The job reads the latest remote `main`, which can be newer than the commit
+checked out when the run was queued, and creates the annotated tag. Choose an
+unused tag for each release, even when tagging the same commit again.
 
-Subsequent commits to `RELEASE/18.9.x` automatically receive the next patch tag
-(`18.9.1`, `18.9.2`, and so on). Retrying an already tagged release-branch commit
-reuses its tag. Each successful run publishes `release-metadata/release.json`
-with the exact infrastructure version, commit and pipeline run identifiers.
-The resulting tag starts **Infrastructure Release Pipeline** for TST, PRE and
-PRD. Merge the YAML and its script into `main` before using the new definition.
+Each successful run publishes `release-metadata/release.json` with the exact chosen
+tag, tagged infrastructure commit and pipeline run identifiers. Its
+`releaseBranch` field identifies `main`. Check that commit against the preview you
+reviewed. The tag starts **Infrastructure Release Pipeline** for TST, PRE and PRD
+and an independent read-only infrastructure preview. Merge the YAML and its script
+into `main` before using the new definition. The release and preview pipelines
+load their configuration from the tagged commit.
 
 Each environment runs the full infrastructure sequence: access-contract validation,
 hooks, resource group, network, optional hub peering, ACR (PRE/PRD), classic resources,
@@ -164,6 +166,35 @@ installers. Retire ADO definitions `import-acr-artifacts` (10054) and
 **Fresh environment:** core infrastructure (`includePlatform: false`) → manifest
 platform stage → Private Link → applications.
 
+### Service manifest updates
+
+The shared Java and Node pipelines use the `ipaffs-manifest-write` Azure DevOps
+environment for `UpdateManifest`. Its **Exclusive lock** check serializes the
+manifest checkout, file generation, commit and push across pipelines. The stage
+uses `lockBehavior: sequential` so each queued service update gets a turn.
+Build, test and image packaging run before the lock is acquired.
+
+When registering a service pipeline that writes to the manifest, authorize it
+under **Pipelines → Environments → ipaffs-manifest-write → Security → Pipeline permissions**.
+
+### DEV Java build image
+
+The shared Java service build passes the DEV registry hostname as `IMAGE_ACR`
+and pulls the current base images when building. The
+[`refresh-dev-java-base-image`](pipelines/refresh-dev-java-base-image.yaml)
+pipeline imports `docker.io/defradigital/java:jre-21` into DEV ACR daily at
+04:00 UTC. Queue it manually on `main` for an immediate refresh.
+
+After merge, register the schedule once in the `DEFRA-EUTD-IPAFFS` Azure DevOps project.
+
+1. Open **Pipelines → New pipeline → GitHub** and select `DEFRA/ipaffs-infra`.
+2. Choose **Existing Azure Pipelines YAML file**, branch `main`, and
+   `/pipelines/refresh-dev-java-base-image.yaml`. Save the pipeline and name it
+   `refresh-dev-java-base-image`.
+3. Give the pipeline access to the `Common` and `LowerEnvs` variable groups,
+   the `DEFRA-COMMON-ubuntu2204-SSV5` pool, and the `ADO-DefraGovUK-AZR-IMP-DEV1`
+   Azure service connection. The Docker Hub credentials come from `Common`.
+
 ### Operational tooling ownership
 
 Grafana dashboards, their deployment pipeline and datasource helpers, and the
@@ -205,21 +236,84 @@ state, retries throttled calls and fails unless every listed app ends in the
 target state. Unlisted apps are never touched. Tests:
 `bash scripts/pipeline/decommission-legacy-apps/disable.test.sh`.
 
-**Stages and gates:** one run goes SND → TST → PRE → PRD. SND starts straight
-away. TST, PRE and PRD each start with a `ManualValidation` approval in the
-pipeline itself, which rejects after 24 hours, so a gate never depends on how
-an ADO Environment is configured. Their deployment jobs still target the ADO
-Environment of the same name, so any checks configured there apply as well. A
+**Stages and gates:** use **Run pipeline → Stages to run** to untick any
+environment you want to skip. The selected environments run in SND → TST → PRE
+→ PRD order. SND runs without manual approval. TST, PRE and PRD each start with
+a `ManualValidation` approval in the pipeline itself, which rejects after
+43,199 minutes (one minute short of 30 days), matching the
+[infrastructure release pipeline](release-pipeline.yaml). Their deployment
+jobs also require any checks configured on the matching ADO Environment. A
 rejected approval or a failure stops the run there. A stage whose list is
 empty fails.
 
-**Rollback:** queue a new run with `action=recover` and approve up to the
-environment that needs it. Lower environments run again first, which keeps
-them consistent with higher ones.
+**Rollback:** queue a new run with `action=recover`, select the environments
+that need recovery, and approve each selected stage that requires it.
 
 **Approvers:** anyone who can queue the pipeline can approve, including the
 person who queued it. Set `approvers` on the `ManualValidation` task to restrict
 this.
+
+### Classic Azure resource decommissioning
+
+[`pipelines/decommission-classic.yaml`](pipelines/decommission-classic.yaml)
+implements [IMTA-21888](https://eaflood.atlassian.net/browse/IMTA-21888) using
+the agent pool, Classic service connections and manual validation pattern from
+[`disable-app-services`](https://dev.azure.com/defragovuk/DEFRA-EUTD-IPAFFS/_build?definitionId=12566).
+The SND and TST plans run in parallel in both modes. The `delete` action requires
+`main`. SND deletion follows its plan. The TST delete stage waits for both the
+TST plan and SND deletion to succeed. At the “Review the TST plan” prompt,
+review the TST plan and the SND deletion result together before approving TST
+deletion. Each delete stage checks its Azure DevOps environment and pauses for
+manual validation of its own plan before the deployment job starts.
+Someone other than the requester with permission to queue the pipeline must approve
+each manual validation. Rejection, timeout or failure blocks dependent stages.
+
+The [Decommission Classic definition](https://dev.azure.com/defragovuk/DEFRA-EUTD-IPAFFS/_build?definitionId=12638)
+is in the Azure DevOps `Infrastructure` folder. It uses the Classic service
+connections. The `SND-Classic-Decommission` and `TST-Classic-Decommission`
+environments each need an Approval check with the designated approvers, an
+Exclusive lock check, and permission for the pipeline to use them. Configure
+the approval instructions to point reviewers to the matching Plan stage.
+Environment checks are [configured in Azure DevOps](https://learn.microsoft.com/en-us/azure/devops/pipelines/process/approvals?view=azure-devops).
+
+Use the reviewed Classic inventory to populate
+[`snd.txt`](scripts/pipeline/decommission-classic/lists/snd.txt) and
+[`tst.txt`](scripts/pipeline/decommission-classic/lists/tst.txt). Enter one full
+resource-group-scoped ARM resource ID per line. Group IDs by type with comments
+and keep them in deletion order. Blank lines and lines starting with `#` are
+ignored. Put private endpoints before targets, slots before apps, apps before
+their plans, and databases before servers. Review the children and side effects
+of any parent resource deletion. Exclude retained resources and unresolved
+owner questions. For resources managed by `30-classic.bicep`, first retire the
+declarations and references that would recreate them or break later deployments.
+
+Review the plan log for each resource's ID, type and current existence, plus the
+totals. The deployment compares the list with the plan artifact from the same
+run and rechecks only resources marked present as deletion targets. Entries
+marked absent require a fresh plan before they can be deleted. The runner still
+checks any listed absent child before deleting its parent and verifies that an
+autoscale rule's target is gone before removing the rule. A rerun also skips
+resources that were present in the plan and have since been deleted.
+After a failed delete, check the logged resource ID and Azure error before
+retrying. An autoscale setting whose target plan is outside the list must
+already be disabled and its target absent. To retire an enabled setting with
+its plan, list the setting after its target. The plan records the exact target
+and the proposed disable. After approval, the runner confirms the target is
+gone, disables the setting if needed, and verifies both conditions before
+deleting it.
+
+When moving an approved app to the deletion list, check its live state, slots,
+network integration, routing and deployment references. Remove the exact app
+from the stop and recover list in the same change. Run that pipeline from the
+updated `main` branch after retirement so it uses the updated list. Use
+`# No apps to stop or recover` for an intentionally empty stop and recover list.
+
+The plan records each listed app's subnet where regional VNet integration is
+configured. Approval covers disconnecting that app from the recorded subnet.
+The runner checks the app is stopped and has no remaining integration before
+deleting it. Shared subnets are outside this action. List hosting plans after
+their member apps. The runner checks membership during planning and requires the
+plan to be empty immediately before deleting it.
 
 ### Human access ownership
 

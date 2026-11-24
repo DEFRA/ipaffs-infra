@@ -10,7 +10,7 @@ param tenantId string
 param vnetName string
 
 // Shared pin for the control plane and both node pools in every environment.
-var kubernetesVersion = '1.34.7'
+var kubernetesVersion = '1.35.9'
 
 var fortinetCA = loadFileAsBase64('../files/PAsubca.crt')
 
@@ -97,6 +97,9 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2025-10-01' = {
         maxCount: aksParams.nodePools.system.maxCount
         maxPods: aksParams.nodePools.system.maxPods
         mode: 'System'
+        nodeTaints: [
+          'CriticalAddonsOnly=true:NoSchedule'
+        ]
         osType: 'Linux'
         type: 'VirtualMachineScaleSets'
         vmSize: aksParams.nodePools.system.vmSize
@@ -155,7 +158,7 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2025-10-01' = {
     }
 
     autoUpgradeProfile: {
-      nodeOSUpgradeChannel: 'SecurityPatch'
+      nodeOSUpgradeChannel: 'NodeImage'
       upgradeChannel: 'none'
     }
 
@@ -198,7 +201,10 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2025-10-01' = {
       networkDataplane: 'azure'
       networkPolicy: 'calico'
       outboundType: 'userDefinedRouting'
+      // Keep the single-stack aliases aligned with the arrays so what-if does not inject defaults.
+      podCidr: aksParams.podCidrs[0]
       podCidrs: aksParams.podCidrs
+      serviceCidr: aksParams.serviceCidrs[0]
       serviceCidrs: aksParams.serviceCidrs
     }
 

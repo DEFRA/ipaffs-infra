@@ -1,8 +1,6 @@
 targetScope = 'resourceGroup'
 
 param alertsParams object
-param deploymentId string
-param location string
 param tags object
 
 // Note: Resource-specific alerts should be configured in the same module as the resource

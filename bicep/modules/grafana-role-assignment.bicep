@@ -1,7 +1,6 @@
 targetScope = 'resourceGroup'
 
 param grafanaName string
-param deploymentId string
 param principalObjectId string
 param principalType string
 param roleDefinitionId string

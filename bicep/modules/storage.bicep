@@ -1,6 +1,5 @@
 targetScope = 'resourceGroup'
 
-param deploymentId string
 param location string
 param storageParams object
 param subnets object
@@ -17,7 +16,6 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2025-01-01' = {
 
   sku: {
     name: 'Standard_GRS'
-    tier: 'Standard'
   }
 
   kind: 'StorageV2'
@@ -79,10 +77,6 @@ resource storagePrivateEndpoint 'Microsoft.Network/privateEndpoints@2025-03-01' 
 resource blobService 'Microsoft.Storage/storageAccounts/blobServices@2025-01-01' = {
   parent: storageAccount
   name: 'default'
-  sku: {
-    name: 'Standard_GRS'
-    tier: 'Standard'
-  }
   properties: {
     changeFeed: {
       enabled: true

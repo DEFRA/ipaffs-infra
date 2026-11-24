@@ -6,7 +6,9 @@ trigger:
       - "*"
   tags:
     include:
-      - "*.*.*"
+      - "*" # Source validation checks the release tag format.
+    exclude:
+      - "ipaffs-infra-pin-*"
 
 pr: none
 
@@ -64,9 +66,9 @@ stages:
                 fi
 
                 release_version="${SOURCE_REF#refs/tags/}"
-                release_version_regex='^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$'
+                release_version_regex='^[1-9][0-9]*(\.(0|[1-9][0-9]*))?$'
                 if [[ ! "${release_version}" =~ ${release_version_regex} ]]; then
-                  echo "Release tag '${release_version}' must be a numeric major.minor.patch version." >&2
+                  echo "Release tag '${release_version}' must use x or x.x format without leading zeroes, such as 1 or 1.1." >&2
                   exit 1
                 fi
 
