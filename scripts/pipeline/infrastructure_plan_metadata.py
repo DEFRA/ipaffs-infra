@@ -6,16 +6,19 @@ from infrastructure_plan_identity import (
 )
 from infrastructure_plan_aks import aks_metadata_reason, has_aks_resource_id
 from infrastructure_plan_insights import insights_metadata_reason
+from infrastructure_plan_vnet import vnet_peering_reason
 
 
 def metadata_reason(resource_type, field, resource_id=None):
     return (identity_metadata_reason(resource_type, field) or aks_metadata_reason(resource_type, field)
-            or insights_metadata_reason(resource_type, field, resource_id))
+            or insights_metadata_reason(resource_type, field, resource_id)
+            or vnet_peering_reason(resource_type, field, resource_id))
 
 
 def is_metadata_field(resource_type, field, resource_id=None):
     return (is_identity_metadata_field(resource_type, field) or bool(aks_metadata_reason(resource_type, field))
-            or bool(insights_metadata_reason(resource_type, field, resource_id)))
+            or bool(insights_metadata_reason(resource_type, field, resource_id))
+            or bool(vnet_peering_reason(resource_type, field, resource_id)))
 
 
 def is_metadata_only(resource):
