@@ -134,6 +134,14 @@ also belong here. Inventory can repeat across component previews and is not list
 as individual actions. Ignore can mean outside-template inventory or an expansion
 limit, so coverage may still be marked incomplete.
 
+ARM can report a whole-list deletion of `properties.virtualNetworkPeerings` on
+the parent VNet because its live representation includes separately managed peerings.
+The report counts this as background only when the compiled network template omits
+the list on that VNet and the what-if confirms the whole-property removal.
+An explicitly configured list (including `[]` or `null`), changes to named peerings,
+and other VNet configuration changes still appear for review. The detail report
+retains the original ARM operation.
+
 Managed-identity updates also count as background when the only differences are
 omitted Azure-generated `clientId`, `principalId` or `tenantId` fields, or an omitted
 `isolationScope` whose current value is exactly `None`. Microsoft documents that

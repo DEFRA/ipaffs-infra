@@ -20,6 +20,7 @@ import uuid
 from infrastructure_parameters import (COMPONENTS, ENVIRONMENT_VARIABLES, SUBNETS, render,
                                        validate_existing_network_security_group_names)
 from infrastructure_plan_report import write_environment_report
+from infrastructure_plan_vnet import template_omits_vnet_peerings
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -153,7 +154,7 @@ def preview(component, environment, values, environ, private_dir, build_id):
         except ValueError:
             raise PlanError("INVALID_EXISTING_NETWORK_SECURITY_GROUP_NAMES") from None
         values = {**values, "existingNetworkSecurityGroupNames": names}
-    _, template, parameters = compile_parameters(component, environment, values, private_dir)
+    inputs, template, parameters = compile_parameters(component, environment, values, private_dir)
     arguments = ["deployment", "sub" if scope["kind"] == "subscription" else "group", "what-if",
                  "--subscription", scope["subscriptionId"], "--name", f"Preview-{component}-{build_id}",
                  "--template-file", str(template), "--parameters", "@" + str(parameters),
@@ -165,9 +166,14 @@ def preview(component, environment, values, environ, private_dir, build_id):
             or not isinstance(result.get("changes"), list)
             or not all(isinstance(change, dict) for change in result["changes"])):
         raise PlanError("WHAT_IF_INCOMPLETE")
-    digest = hashlib.sha256(template.read_bytes() + parameters.read_bytes()).hexdigest()
-    return {"name": component, "label": LABELS[component], "scope": scope,
-            "status": "complete", "result": result, "inputDigest": digest}
+    compiled_template = template.read_bytes()
+    digest = hashlib.sha256(compiled_template + parameters.read_bytes()).hexdigest()
+    assessment = {"name": component, "label": LABELS[component], "scope": scope,
+                  "status": "complete", "result": result, "inputDigest": digest}
+    if component == "network" and template_omits_vnet_peerings(json.loads(compiled_template)):
+        assessment["omittedVnetPeeringResourceId"] = resource_id(
+            scope["subscriptionId"], scope["resourceGroup"], "Microsoft.Network/virtualNetworks", value(inputs, "vnetParams")["name"])
+    return assessment
 
 
 def initial_state(args):

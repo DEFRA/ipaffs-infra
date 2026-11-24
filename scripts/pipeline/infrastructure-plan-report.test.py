@@ -39,6 +39,21 @@ def component(changes=None, **overrides):
             "status": "complete", "result": {"status": "Succeeded", "changes": changes or []}, **overrides}
 
 
+def vnet_with_external_peering(name):
+    item = resource("Microsoft.Network/virtualNetworks", name)
+    for snapshot in (item["before"], item["after"]):
+        snapshot.update(name=name, id=item["resourceId"], apiVersion="2025-05-01")
+    peer = {
+        "name": "private-hub-peering",
+        "properties": {"remoteVirtualNetwork": {"id": RID + "Microsoft.Network/virtualNetworks/private-remote-vnet"}},
+    }
+    dns = {"dhcpOptions": {"dnsServers": ["10.0.0.4"]}}
+    item["before"]["properties"] = {**dns, "virtualNetworkPeerings": [peer]}
+    item["after"]["properties"] = copy.deepcopy(dns)
+    item["delta"] = [field("properties.virtualNetworkPeerings", [peer], None, propertyChangeType="Delete")]
+    return item
+
+
 class InfrastructurePlanReportTests(unittest.TestCase):
     def setUp(self):
         temporary = tempfile.TemporaryDirectory()
@@ -109,6 +124,120 @@ class InfrastructurePlanReportTests(unittest.TestCase):
         self.assertNotIn("onlydate", self.markdown)
         self.assertIn("realchange", self.markdown)
         self.assertNotIn("yesterday", self.serialized + self.markdown)
+
+    def test_omitted_vnet_peering_collection_remains_auditable_without_masking_other_changes(self):
+        omitted = vnet_with_external_peering("peering-only")
+        mixed = vnet_with_external_peering("dns-change")
+        del mixed["delta"][0]["after"]
+        dns = mixed["after"]["properties"]["dhcpOptions"]
+        dns["dnsServers"] = ["10.0.0.5"]
+        mixed["delta"].append(field("properties.dhcpOptions.dnsServers", ["10.0.0.4"], dns["dnsServers"]))
+        inputs = []
+        for environment in REPORT.PREVIEW_ENVIRONMENTS:
+            change = mixed if environment == "PRE" else omitted
+            parts = [component(name=name) for name in sorted(COMPARISON.COMPONENTS - {"network"})]
+            parts.append(component([change], name="network", omittedVnetPeeringResourceId=change["resourceId"]))
+            plan = self.report(parts, environment)
+            network = next(part for part in plan["components"] if part["name"] == "network")
+            peering = network["resources"][0]["fields"][0]
+            self.assertEqual("OMITTED_VNET_PEERING_COLLECTION", peering.get("metadataReason"))
+            self.assertEqual("Delete", peering["changeType"])
+            self.assertEqual("[withheld]", peering["before"])
+            self.assertEqual("[not present]", peering["after"])
+            self.assertNotIn("peering-only", self.markdown)
+            if environment == "PRE":
+                self.assertEqual(1, plan["resourceTotals"]["Modify"])
+                self.assertEqual(0, plan["metadataOnlyTotals"]["Modify"])
+                self.assertIn("dns-change", self.markdown)
+            else:
+                self.assertEqual(0, plan["resourceTotals"]["Modify"])
+                self.assertEqual(1, plan["metadataOnlyTotals"]["Modify"])
+                self.assertIn("peering-only", self.detail_markdown)
+            self.assertIn("properties.virtualNetworkPeerings", self.detail_markdown)
+            for private_value in ("private-hub-peering", "private-remote-vnet", "10.0.0.4"):
+                self.assertNotIn(private_value, self.serialized + self.markdown + self.detail_markdown)
+            inputs.append(self.directory / environment / "plan.json")
+        combined = REPORT.combine_reports(inputs, self.directory / "combined")
+        for comparison in combined["devComparison"]:
+            if comparison["environment"] == "PRE":
+                self.assertEqual(["dns-change"], [item["name"] for item in comparison["resources"]])
+                reviewed = [f["path"] for f in comparison["resources"][0]["fields"] if f["classification"] != "background"]
+                self.assertEqual(["properties.dhcpOptions.dnsServers"], reviewed)
+            else:
+                self.assertEqual(1, comparison["counts"]["backgroundResources"])
+                self.assertEqual([], comparison["resources"])
+        summary = (self.directory / "combined" / "summary.md").read_text()
+        self.assertNotIn("Remove property from config: VNet peerings", summary)
+        self.assertIn("dns-change", summary)
+
+    def test_explicit_or_unproven_peering_changes_stay_visible(self):
+        changes = []
+        for name, desired in (("explicit-null", None), ("explicit-empty", []),
+                              ("explicit-peers", [{"name": "some-peer"}])):
+            item = vnet_with_external_peering(name)
+            item["after"]["properties"]["virtualNetworkPeerings"] = desired
+            changes.append(item)
+        missing_desired = vnet_with_external_peering("missing-snapshot")
+        del missing_desired["after"]
+        changes.append(missing_desired)
+        incomplete_delta = vnet_with_external_peering("unreported-dns-change")
+        incomplete_delta["after"]["properties"]["dhcpOptions"]["dnsServers"] = ["10.0.0.5"]
+        changes.append(incomplete_delta)
+        missing_live_list = vnet_with_external_peering("missing-live-list")
+        del missing_live_list["before"]["properties"]["virtualNetworkPeerings"]
+        changes.append(missing_live_list)
+        indexed = vnet_with_external_peering("indexed-peering-change")
+        indexed["delta"][0]["path"] = "properties.virtualNetworkPeerings[0]"
+        changes.append(indexed)
+        child = resource("Microsoft.Network/virtualNetworks/virtualNetworkPeerings", "child-peering",
+                         change_type="Delete")
+        child["resourceId"] = RID + "Microsoft.Network/virtualNetworks/vnet/virtualNetworkPeerings/child-peering"
+        changes.append(child)
+        possible = vnet_with_external_peering("potential-vnet-change")
+        for change in [*changes, possible]:
+            with self.subTest(resource=change["resourceId"]):
+                parent_id = change["resourceId"].split("/virtualNetworkPeerings/")[0]
+                plan = self.report([component(name="network", omittedVnetPeeringResourceId=parent_id, result={
+                    "status": "Succeeded", "changes": [] if change is possible else [change],
+                    "potentialChanges": [change] if change is possible else []})])
+                item = plan["components"][0]["resources"][0]
+                self.assertFalse(item["metadataOnly"])
+                self.assertFalse(any(f.get("metadataReason") == "OMITTED_VNET_PEERING_COLLECTION"
+                                     for f in item["fields"]))
+                self.assertIn(item["name"], self.markdown)
+
+    def test_normalized_peering_removal_needs_template_evidence_for_this_network(self):
+        # ARM can normalize an explicitly empty or null desired property to an absent key.
+        change = vnet_with_external_peering("normalized-peering")
+        other = RID + "Microsoft.Network/virtualNetworks/different-vnet"
+        for name, evidence in (("network", {}), ("network", {"omittedVnetPeeringResourceId": other}),
+                               ("infra", {"omittedVnetPeeringResourceId": change["resourceId"]})):
+            with self.subTest(component=name, evidence=evidence):
+                plan = self.report([component([change], name=name, **evidence)])
+                self.assertFalse(plan["components"][0]["resources"][0]["metadataOnly"])
+                self.assertIn("normalized-peering", self.markdown)
+
+    def test_combining_older_redacted_peering_report_retains_review(self):
+        inputs = []
+        for environment in REPORT.PREVIEW_ENVIRONMENTS:
+            # Earlier artifacts kept both peering values withheld and no proof of omission.
+            item = vnet_with_external_peering("legacy-vnet")
+            del item["after"]
+            parts = [component([item] if name == "network" else [], name=name)
+                     for name in sorted(COMPARISON.COMPONENTS)]
+            plan = self.report(parts, environment)
+            network = next(part for part in plan["components"] if part["name"] == "network")
+            entry = network["resources"][0]["fields"][0]
+            entry.update(before="[withheld]", after="[withheld]", metadataOnly=False, unresolved=False)
+            entry.pop("metadataReason", None)
+            target = self.directory / environment / "plan.json"
+            target.write_text(json.dumps(plan))
+            inputs.append(target)
+        combined = REPORT.combine_reports(inputs, self.directory / "combined")
+        for comparison in combined["devComparison"]:
+            self.assertEqual(1, comparison["counts"]["reviewResources"])
+        self.assertIn("Remove property from config: VNet peerings",
+                      (self.directory / "combined" / "summary.md").read_text())
 
     def test_known_created_date_expression_keeps_details_without_invalidating_assessment(self):
         timestamp = resource(delta=[field("tags.CreatedDate", "yesterday", "[utcNow()]")])

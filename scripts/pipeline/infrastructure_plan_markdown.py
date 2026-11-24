@@ -14,6 +14,7 @@ from infrastructure_plan_identity import identity_metadata_reason
 from infrastructure_plan_metadata import metadata_reason, is_metadata_field, is_metadata_only
 from infrastructure_plan_aks import validated_aks_health_warnings
 from infrastructure_plan_insights import insights_metadata_reason
+from infrastructure_plan_vnet import vnet_peering_reason
 
 
 TYPE_LABELS = {
@@ -418,6 +419,9 @@ def change_details_markdown(report):
                     and any(insights_metadata_reason(resource.get("type"), field, resource.get("resourceId"))
                             for field in resource.get("fields", []))):
                 lines.extend(["The API's `Bluefield`/`rest` creation-origin additions are background metadata. ARM operations remain below for audit; workspace, access and other configuration fields still require review.", ""])
+            if any(vnet_peering_reason(resource.get("type"), field, resource.get("resourceId"))
+                   for field in resource.get("fields", [])):
+                lines.extend(["The VNet template omits the peering list. ARM includes separately managed peerings on the live VNet, so the whole-list removal below is informational.", ""])
             if resource.get("unresolved"):
                 lines.extend(["Some aspects were not fully assessed; consult the summary coverage gaps.", ""])
             fields = resource.get("fields", [])
