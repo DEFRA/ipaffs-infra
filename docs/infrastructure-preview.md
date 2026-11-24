@@ -143,6 +143,14 @@ Later deployments no longer generate date changes from this tag. Use the Azure
 provider's creation metadata, such as `systemData.createdAt`, where available;
 the old tag recorded the latest deployment date rather than resource creation.
 
+ARM can report a whole-list deletion of `properties.virtualNetworkPeerings` on
+the parent VNet because its live representation includes separately managed peerings.
+The report counts this as background only when the compiled network template omits
+the list on that VNet and the what-if confirms the whole-property removal.
+An explicitly configured list (including `[]` or `null`), changes to named peerings,
+and other VNet configuration changes still appear for review. The detail report
+retains the original ARM operation.
+
 Managed-identity updates also count as background when the only differences are
 omitted Azure-generated `clientId`, `principalId` or `tenantId` fields, or an omitted
 `isolationScope` whose current value is exactly `None`. Microsoft documents that

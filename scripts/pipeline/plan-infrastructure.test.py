@@ -54,6 +54,7 @@ class RunnerTests(unittest.TestCase):
         self.cli_version = "2.75.0"
         self.nsg_names = ["Existing-PrivateEndpoint", "Existing-AKS"]
         self.results = {}
+        self.templates = {}
         self.compilations = []
         self.patches = ExitStack()
         self.addCleanup(self.patches.close)
@@ -73,7 +74,7 @@ class RunnerTests(unittest.TestCase):
         }.get(component, {})
         template_path = private_dir / f"{component}.template.json"
         parameters_path = private_dir / f"{component}.parameters.json"
-        template_path.write_text(json.dumps({"raw": RAW_VALUE}))
+        template_path.write_text(json.dumps(self.templates.get(component, {"raw": RAW_VALUE})))
         parameters_path.write_text(json.dumps({"parameters": params, "raw": RAW_VALUE}))
         return params, template_path, parameters_path
 
@@ -239,6 +240,53 @@ class RunnerTests(unittest.TestCase):
             RUNNER.preview("network", "TST", {"existingNetworkSecurityGroupNames": ["Stale-Supplied"]},
                            self.environment, self.args.state_dir, "123")
         self.assertEqual(["Newly-Observed"], self.compilations[-1][1]["existingNetworkSecurityGroupNames"])
+
+    def test_network_evidence_tracks_the_compiled_module_and_concrete_vnet_id(self):
+        vnet = {"type": "Microsoft.Network/virtualNetworks", "name": "[parameters('vnetParams').name]",
+                "properties": {"copy": [{"name": "subnets", "count": 1}], "addressSpace": {}}}
+        module = {"type": "Microsoft.Resources/deployments", "properties": {
+            "parameters": {"vnetParams": parameter("[parameters('vnetParams')]")},
+            "template": {"resources": {"virtualNetwork": vnet}}}}
+        self.templates["network"] = {"resources": [module]}
+        self.assertEqual(0, self.run_preview())
+        private = json.loads((self.args.state_dir / "state.json").read_text())
+        evidence = {c["name"]: c["omittedVnetPeeringResourceId"] for c in private["components"]
+                    if "omittedVnetPeeringResourceId" in c}
+        self.assertEqual({"network": f"/subscriptions/{MODERN_SUBSCRIPTION}/resourceGroups/proposed-modern-group"
+                          "/providers/Microsoft.Network/virtualNetworks/candidate-vnet"}, evidence)
+        self.assertNotIn("omittedVnetPeeringResourceId", self.component("network"))
+
+        # These explicit configurations produce the same ARM Delete as omission.
+        for configured in (None, [], [{"name": "peer"}]):
+            with self.subTest(configured=configured):
+                vnet["properties"]["virtualNetworkPeerings"] = configured
+                self.assertFalse(RUNNER.template_omits_vnet_peerings(self.templates["network"]))
+        self.assertEqual(0, self.run_preview())
+        private = json.loads((self.args.state_dir / "state.json").read_text())
+        self.assertFalse(any("omittedVnetPeeringResourceId" in c for c in private["components"]))
+
+    def test_ambiguous_template_shapes_do_not_establish_peering_omission(self):
+        vnet = {"type": "Microsoft.Network/virtualNetworks", "name": "[parameters('vnetParams').name]",
+                "properties": {"addressSpace": {}}}
+        for props in ("[variables('settings')]", {"[variables('field')]": []},
+                      {"copy": [{"name": "[variables('field')]"}]}, {"copy": [{"name": "VirtualNetworkPeerings"}]},
+                      {"Copy": [{"name": "virtualNetworkPeerings"}]}):
+            with self.subTest(props=props):
+                self.assertFalse(RUNNER.template_omits_vnet_peerings({"resources": [{**vnet, "properties": props}]}))
+        resources = {"resources": [vnet]}
+        declined = [
+            [vnet, vnet],
+            [vnet, {"type": "Microsoft.Resources/deployments", "properties": {"templateLink": {"uri": "linked"}}}],
+            [vnet, {"type": "[parameters('kind')]"}],
+            [{**vnet, "name": "[parameters('anotherVnet').name]"}],
+            [{"type": "Microsoft.Resources/deployments", "properties": {"template": resources,
+                "parameters": {"vnetParams": parameter("[parameters('otherVnet')]")}}}],
+            [{"type": "Microsoft.Resources/deployments", "resourceGroup": "another-group",
+                "properties": {"template": resources, "parameters": {"vnetParams": parameter("[parameters('vnetParams')]")}}}],
+        ]
+        for entries in declined:
+            with self.subTest(entries=entries):
+                self.assertFalse(RUNNER.template_omits_vnet_peerings({"resources": entries}))
 
     def test_empty_network_name_read_is_an_explicit_new_resource_case(self):
         self.nsg_names = []

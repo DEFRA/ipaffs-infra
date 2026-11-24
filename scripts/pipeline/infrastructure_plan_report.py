@@ -22,6 +22,7 @@ from infrastructure_plan_identity import has_identity_resource_id, identity_meta
 from infrastructure_plan_metadata import is_metadata_only
 from infrastructure_plan_aks import annotate_aks_omissions, aks_health_warnings, validated_aks_health_warnings
 from infrastructure_plan_insights import annotate_insights_origin
+from infrastructure_plan_vnet import annotate_vnet_peering_omission
 
 
 CHANGE_TYPES = ("Create", "Modify", "Delete", "NoChange", "Deploy", "Ignore", "Unsupported", "Unknown")
@@ -312,7 +313,7 @@ def _resource_type(change, resource_id):
     return "unavailable"
 
 
-def _resource(change, potential=False):
+def _resource(change, potential=False, template_vnet_id=None):
     resource_id = _identifier(change.get("resourceId"))
     resource_type = _resource_type(change, resource_id)
     change_type = change.get("changeType") if change.get("changeType") in CHANGE_TYPES else "Unknown"
@@ -322,6 +323,8 @@ def _resource(change, potential=False):
         fields = _snapshot_fields(change.get("after" if change_type == "Create" else "before"), change_type, resource_type)
     fields = annotate_aks_omissions(change, fields, potential=potential)
     fields = annotate_insights_origin(change, fields, potential=potential)
+    if template_vnet_id and not potential:
+        annotate_vnet_peering_omission(change, fields, template_vnet_id)
     if resource_type.lower() == _IDENTITY_TYPE and not has_identity_resource_id(resource_id):
         # Without a valid identity resource reference these otherwise harmless
         # leaves cannot establish which resource ARM assessed. Keep the gap in
@@ -374,7 +377,8 @@ def _component(component):
     valid = isinstance(changes, list) and all(isinstance(item, dict) for item in changes)
     if status == "complete" and (not successful or not valid or raw.get("error") or body.get("error")):
         status = "failed"
-    resources = [_resource(change) for change in changes] if valid else []
+    template_vnet_id = component.get("omittedVnetPeeringResourceId") if component.get("name") == "network" else None
+    resources = [_resource(change, template_vnet_id=template_vnet_id) for change in changes] if valid else []
     potential_changes = body.get("potentialChanges", [])
     if isinstance(potential_changes, list):
         resources.extend(_resource(change, potential=True) for change in potential_changes if isinstance(change, dict))
