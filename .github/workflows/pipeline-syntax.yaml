@@ -120,6 +120,10 @@ jobs:
         shell: bash
         run: bash scripts/pipeline/delete-decommissioned-secrets.test.sh
 
+      - name: Test unused SQL elastic pool deletion hook
+        shell: bash
+        run: bash scripts/pipeline/delete-unused-elastic-pools.test.sh
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:

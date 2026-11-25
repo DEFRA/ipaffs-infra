@@ -108,9 +108,6 @@ param searchParams = {
 
 param sqlParams = {
   serverName: 'TSTIMPDBSSQ1401'
-  elasticPoolName: 'TSTIMPDBSEP1401'
-  maxSizeGiB: 10
-  vCores: 2
 }
 
 param storageParams = {
