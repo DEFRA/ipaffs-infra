@@ -5,14 +5,12 @@ param environment string
 
 param entraGroups object
 
-param createdDate string = utcNow('yyyy-MM-dd')
 param deploymentId string = uniqueString(utcNow())
 param location string = resourceGroup().location
 param principalsNeedingContributor array
 param tenantId string
 
 var tags = union(loadJsonContent('default-tags.json'), {
-  CreatedDate: createdDate
   Environment: environment
   Location: location
 })
