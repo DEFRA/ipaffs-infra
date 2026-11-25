@@ -104,9 +104,6 @@ param searchParams = {
 
 param sqlParams = {
   serverName: 'PREIMPDBSSQ1401'
-  elasticPoolName: 'PREIMPDBSEP1401'
-  maxSizeGiB: 10
-  vCores: 2
 }
 
 param storageParams = {

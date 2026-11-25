@@ -60,3 +60,4 @@ environments.
 | Hook | What it does |
 |------|--------------|
 | `10-delete-decommissioned-secrets.sh` | Deletes the secrets named in `decommissioned-secrets.txt` from the environment's Key Vault (`<ENV>IMPINFKV1401`). Secrets already absent are skipped, and deletion is a soft delete that is never purged, so a secret can be recovered within the vault's retention period. The pipeline identity needs a Key Vault role that allows `secrets/delete`. Tests: `bash scripts/pipeline/delete-decommissioned-secrets.test.sh` |
+| `20-delete-unused-elastic-pools.sh` | Removes `<ENV>IMPDBSEP1401` in TST, PRE and PRD (IMTA-21420). Missing pools are skipped. The hook fails if the pool contains databases or if Azure cannot confirm it is empty. |

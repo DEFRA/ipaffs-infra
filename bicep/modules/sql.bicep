@@ -31,9 +31,11 @@ resource sqlServer 'Microsoft.Sql/servers@2023-08-01' = {
   }
 }
 
-resource elasticPool 'Microsoft.Sql/servers/elasticPools@2023-08-01' = {
+var elasticPoolName = sqlParams.?elasticPoolName ?? ''
+
+resource elasticPool 'Microsoft.Sql/servers/elasticPools@2023-08-01' = if (!empty(elasticPoolName)) {
   parent: sqlServer
-  name: sqlParams.elasticPoolName
+  name: elasticPoolName
   location: location
   tags: tags
 
