@@ -418,8 +418,6 @@ sys.exit(int(os.environ["COLLECTOR_EXIT"]))
                     self.assertNotIn("set -x", task["inputs"]["inlineScript"])
                     script = task["inputs"]["inlineScript"].replace("${{ parameters.environmentName }}", environment)
                     actual_expected = list(expected)
-                    if component == "infra" and environment == "DEV":
-                        actual_expected.append("redisName=redisName")
                     if component == "infra" and environment == "TST":
                         actual_expected += QA_MAPPINGS
                     sync_classic_data = component == "classic" and classic_environment != "SND"
@@ -444,15 +442,13 @@ sys.exit(int(os.environ["COLLECTOR_EXIT"]))
                                        if arg.startswith("--emit-output=")]
                             self.assertEqual(len(set(emitted)), len(emitted))
                             self.assertLessEqual(set(emitted), {mapping.split("=")[0] for mapping in actual_expected})
-                            if component == "infra":
-                                self.assertEqual(environment == "DEV", "redisName" in emitted)
                             if component == "classic":
                                 expected_outputs = {"classicServiceBusNamespaceResourceId"}
                                 if sync_classic_data:
                                     expected_outputs.update({"classicRedisResourceId", "classicSqlServerResourceId",
                                                              "classicSearchServiceResourceId"})
                                 self.assertEqual(expected_outputs, set(emitted))
-                self.assertEqual({"DEV": 44, "TST": 52, "PRE": 53, "PRD": 53}[environment], count)
+                self.assertEqual({"DEV": 43, "TST": 52, "PRE": 53, "PRD": 53}[environment], count)
 
 
 if __name__ == "__main__":

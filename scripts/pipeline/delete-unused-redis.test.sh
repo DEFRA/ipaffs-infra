@@ -113,19 +113,27 @@ expect_calls() {
 }
 
 lookups=$'show cache\nshow endpoint'
-select_target tst TST '0022ef8e-d44e-49c5-8cfd-5e8e9c6e913e'
+select_target dev DEV 'f27f4f47-2766-40c8-8450-f585675f76a2'
 touch "${CACHE_PRESENT}" "${ENDPOINT_PRESENT}"
 
-run_hook dev false '' '' ''
+expect_failure 'subscription or resource group' dev false '' '0022ef8e-d44e-49c5-8cfd-5e8e9c6e913e'
 expect_calls ''
-expect_failure 'subscription or resource group' tst false '' '3978eb4f-add1-415d-839b-db398e65a7d9'
-expect_calls ''
-expect_failure 'subscription or resource group' tst false '' "${EXPECTED_SUBSCRIPTION}" 'PREIMPINFRG1401'
+expect_failure 'subscription or resource group' dev false '' "${EXPECTED_SUBSCRIPTION}" 'TSTIMPINFRG1401'
 expect_calls ''
 
-dry_run_output="$(run_hook tst '')"
-[[ "${dry_run_output}" == *"Would delete"* && -f "${CACHE_PRESENT}" && -f "${ENDPOINT_PRESENT}" ]]
+dry_run_output="$(run_hook dev '')"
+[[ "${dry_run_output}" == *"Would delete ${CACHE_ID}"* && "${dry_run_output}" == *"Would delete ${ENDPOINT_ID}"* ]]
+[[ -f "${CACHE_PRESENT}" && -f "${ENDPOINT_PRESENT}" ]]
 expect_calls "${lookups}"
+
+run_hook dev false
+expect_calls "${lookups}"$'\ndelete endpoint\ndelete cache'
+[[ ! -f "${CACHE_PRESENT}" && ! -f "${ENDPOINT_PRESENT}" ]]
+run_hook dev false
+expect_calls "${lookups}"
+
+select_target tst TST '0022ef8e-d44e-49c5-8cfd-5e8e9c6e913e'
+touch "${CACHE_PRESENT}" "${ENDPOINT_PRESENT}"
 
 expect_failure 'AuthorizationFailed' tst false forbidden
 expect_calls "${lookups}"

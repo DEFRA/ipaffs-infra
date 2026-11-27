@@ -26,7 +26,6 @@ param keyVaultParams object
 param monitoringParams object
 param qaKeyVaultParams object = {}
 param qaAutomationPrincipalObjectId string = ''
-param redisParams object = {}
 param searchParams object
 param sqlParams object
 param insightsParams object
@@ -142,19 +141,6 @@ module qaKeyVault './modules/keyvault.bicep' = if (deployQaKeyVault) {
   }
 }
 
-var deployRedis = environment == 'DEV' && !empty(redisParams)
-
-module redis './modules/redis.bicep' = if (deployRedis) {
-  name: 'redis-${deploymentId}'
-  scope: resourceGroup()
-  params: {
-    redisParams: redisParams
-    location: location
-    subnets: subnets
-    tags: tags
-  }
-}
-
 module search './modules/search.bicep' = {
   name: 'search-${deploymentId}'
   scope: resourceGroup()
@@ -231,7 +217,6 @@ output keyVaultName string = keyVault.outputs.keyVaultName
 output keyVaultUri string = keyVault.outputs.keyVaultUri
 output qaKeyVaultName string = deployQaKeyVault ? qaKeyVault!.outputs.keyVaultName : ''
 output qaKeyVaultUri string = deployQaKeyVault ? qaKeyVault!.outputs.keyVaultUri : ''
-output redisName string = deployRedis ? redis!.outputs.redisName : ''
 output searchServiceSubscriptionId string = search.outputs.searchServiceSubscriptionId
 output searchServiceResourceGroupName string = search.outputs.searchServiceResourceGroupName
 output searchServiceName string = search.outputs.searchServiceName

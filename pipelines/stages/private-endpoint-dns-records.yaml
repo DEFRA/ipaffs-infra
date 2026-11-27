@@ -113,35 +113,6 @@ stages:
                           scriptArguments: >
                             -UpdateAllDnsZones $true
 
-      - ${{ if eq(parameters.environmentName, 'DEV') }}:
-        - deployment: Redis
-          displayName: Redis
-          environment:
-            name: "${{ parameters.environmentName }}"
-          strategy:
-            runOnce:
-              deploy:
-                steps:
-                  - template: /templates/steps/powershell.yaml@PipelineCommon
-                    parameters:
-                      azureResourceManagerConnection: AZR-MST-PrivateLinkDNS
-                      variables:
-                        projectServiceConnection: ${{ variables.serviceConnection }}
-                      scriptsList:
-                        - displayName: "Resolve Private Endpoint IPs"
-                          serviceConnectionVariableName: projectServiceConnection
-                          scriptPath: 'Get-ResourcePrivateEndPointsDnsRecordsAsJson.ps1@PipelineCommon'
-                          scriptArguments: >
-                            -ResourceGroupName '$(resourceGroupName)'
-                            -ResourceName '$(redisName)'
-                            -Subscription '$(subscriptionName)'
-
-                        - displayName: "Set DNS records"
-                          condition: and(not(failed()), not(canceled()), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), and(${{ parameters.allowTaggedDeployments }}, startsWith(variables['Build.SourceBranch'], 'refs/tags/'))))
-                          scriptPath: 'Set-PrivateDnsRecordSet.ps1@PipelineCommon'
-                          scriptArguments: >
-                            -UpdateAllDnsZones $true
-
       # TODO: enable this when we're able to switch to on-vnet private endpoint for classic resources
       #- deployment: RedisClassic
       #  displayName: Redis (Classic)

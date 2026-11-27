@@ -9,7 +9,11 @@ fail() {
 }
 
 case "${ENVIRONMENT:-}" in
-  dev) exit 0 ;;
+  dev)
+    allowed_scope='/subscriptions/f27f4f47-2766-40c8-8450-f585675f76a2/resourceGroups/DEVIMPINFRG1401'
+    cache_name='devimpinfrd1401'
+    endpoint_name='devimpinfrd1401-DEVIMPNETSU4404'
+    ;;
   tst)
     allowed_scope='/subscriptions/0022ef8e-d44e-49c5-8cfd-5e8e9c6e913e/resourceGroups/TSTIMPINFRG1401'
     cache_name='tstimpinfrd1401'

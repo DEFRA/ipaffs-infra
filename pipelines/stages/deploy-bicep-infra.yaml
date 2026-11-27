@@ -217,8 +217,5 @@ stages:
                           qaKeyVaultName=qaKeyVaultName
                           qaKeyVaultUrl=qaKeyVaultUri
                         )
-                      elif [[ '${{ parameters.environmentName }}' == DEV ]]; then
-                        emit_outputs+=(--emit-output=redisName)
-                        outputs+=(redisName=redisName)
                       fi
                       python3 scripts/pipeline/sync-deployment-outputs.py "${emit_outputs[@]}" "${outputs[@]}"
