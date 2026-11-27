@@ -288,9 +288,11 @@ class ConsolidatedBicepJobTests(unittest.TestCase):
                                             "DeployACR": {"privateEndpointsSubnetId", "privateEndpointsSubnetName"},
                                             "DeployInfrastructure": subnet_names,
                                             "InfraPermissions": {"aksClusterResourceId", "aksKubeletPrincipalId", "externalSecretsPrincipalObjectId", "sqlServerManagedIdentityObjectId", "searchServiceManagedIdentityPrincipalId"},
-                                            "PrivateLinkDNSRecords": {"keyVaultName", "redisName", "searchServiceName", "sqlServerName", "storageAccountName", "qaKeyVaultName" if environment == "TST" else "acrName"},
+                                            "PrivateLinkDNSRecords": {"keyVaultName", "searchServiceName", "sqlServerName", "storageAccountName", "qaKeyVaultName" if environment == "TST" else "acrName"},
                                             "PrivateLink": {"privateEndpointsSubnetId", "privateEndpointsSubnetName"},
                                         })
+                                        if environment == "DEV":
+                                            expected_imports["PrivateLinkDNSRecords"].add("redisName")
                                     self.assertEqual(expected_imports.get(name, set()), set(imports), name)
                                     for variable in stage.get("variables", []):
                                         expression = variable.get("value", "")
@@ -318,6 +320,17 @@ class ConsolidatedBicepJobTests(unittest.TestCase):
                                 components = [stage for stage in stages if stage["stage"] in COMPONENTS.values()]
                                 self.assertEqual(6 - (environment == "TST") - (pipeline == "infrastructure" and not platform),
                                                  sum(len(stage["jobs"]) for stage in components))
+
+    def test_only_dev_registers_new_redis_dns(self):
+        for pipeline in ("infrastructure", "private-endpoint-dns-records"):
+            for environment in ("DEV", "TST", "PRE", "PRD"):
+                with self.subTest(pipeline=pipeline, environment=environment):
+                    stages = expand_stages(f"pipelines/{pipeline}.yaml", {"environmentName": environment})
+                    stage, = [item for item in stages if item["stage"] == "PrivateLinkDNSRecords"]
+                    expected_jobs = {"ContainerRegistry", "KeyVault", "Search", "Storage", "SQLServer"}
+                    if environment == "DEV":
+                        expected_jobs.add("Redis")
+                    self.assertEqual(expected_jobs, {job["deployment"] for job in stage["jobs"]})
 
     def test_classic_preserves_snd_deployment_scope_and_modern_sql_group_on_both_branches(self):
         for branch in ("refs/heads/main", "refs/heads/consolidate"):

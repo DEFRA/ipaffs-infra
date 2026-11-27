@@ -91,10 +91,6 @@ param monitoringParams = {
   principalObjectId: builtInGroups.contributors
 }
 
-param redisParams = {
-  name: 'prdimpinfrd1401' // note: must be lowercase
-}
-
 param searchParams = {
   name: 'prdimpinfas1401' // note: must be lowercase
   partitionCount: 1

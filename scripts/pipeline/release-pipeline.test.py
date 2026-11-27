@@ -135,6 +135,10 @@ class ReleasePipelineTests(unittest.TestCase):
                         expected.append("Complete")
                         self.assertEqual([prefix + suffix for suffix in expected],
                                          [name for name in names if name.startswith(prefix)])
+                        dns_stage, = [stage for stage in stages
+                                      if stage["stage"] == prefix + "PrivateLinkDNSRecords"]
+                        self.assertNotIn("Redis", {job["deployment"] for job in dns_stage["jobs"]})
+                        self.assertNotIn("redisName", {variable.get("name") for variable in dns_stage["variables"]})
                         previous = gate
                         for name in [prefix + suffix for suffix in expected]:
                             self.assertIn(gate, ancestors[name], name)

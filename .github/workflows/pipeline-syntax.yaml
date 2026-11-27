@@ -124,6 +124,10 @@ jobs:
         shell: bash
         run: bash scripts/pipeline/delete-unused-elastic-pools.test.sh
 
+      - name: Test unused Redis cleanup hook
+        shell: bash
+        run: bash scripts/pipeline/delete-unused-redis.test.sh
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:

@@ -95,10 +95,6 @@ param monitoringParams = {
   principalObjectId: builtInGroups.contributors
 }
 
-param redisParams = {
-  name: 'tstimpinfrd1401' // note: must be lowercase
-}
-
 param searchParams = {
   name: 'tstimpinfas1401' // note: must be lowercase
   partitionCount: 1

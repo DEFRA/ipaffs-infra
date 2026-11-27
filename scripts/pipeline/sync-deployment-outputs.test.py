@@ -346,7 +346,7 @@ EXPECTED_MAPPINGS = {
         appGatewayForContainersFrontendFqdn=appGatewayForContainersFrontendFqdn
         azureServiceOperatorClientId=azureServiceOperatorClientId externalSecretsClientId=externalSecretsClientId
         externalSecretsPrincipalObjectId=externalSecretsPrincipalObjectId aksOidcIssuer=aksOidcIssuer
-        keyVaultName=keyVaultName keyVaultUrl=keyVaultUri kubernetesCluster=aksClusterName redisName=redisName
+        keyVaultName=keyVaultName keyVaultUrl=keyVaultUri kubernetesCluster=aksClusterName
         searchServiceSubscriptionId=searchServiceSubscriptionId
         searchServiceResourceGroupName=searchServiceResourceGroupName searchServiceName=searchServiceName
         searchServiceManagedIdentityPrincipalId=searchServiceManagedIdentityPrincipalId
@@ -417,7 +417,11 @@ sys.exit(int(os.environ["COLLECTOR_EXIT"]))
                     self.assertEqual(set(ENVIRONMENT) | set(extra_env), set(task["env"]))
                     self.assertNotIn("set -x", task["inputs"]["inlineScript"])
                     script = task["inputs"]["inlineScript"].replace("${{ parameters.environmentName }}", environment)
-                    actual_expected = expected + (QA_MAPPINGS if component == "infra" and environment == "TST" else [])
+                    actual_expected = list(expected)
+                    if component == "infra" and environment == "DEV":
+                        actual_expected.append("redisName=redisName")
+                    if component == "infra" and environment == "TST":
+                        actual_expected += QA_MAPPINGS
                     sync_classic_data = component == "classic" and classic_environment != "SND"
                     if sync_classic_data:
                         actual_expected += CLASSIC_DATA_MAPPINGS
@@ -440,13 +444,15 @@ sys.exit(int(os.environ["COLLECTOR_EXIT"]))
                                        if arg.startswith("--emit-output=")]
                             self.assertEqual(len(set(emitted)), len(emitted))
                             self.assertLessEqual(set(emitted), {mapping.split("=")[0] for mapping in actual_expected})
+                            if component == "infra":
+                                self.assertEqual(environment == "DEV", "redisName" in emitted)
                             if component == "classic":
                                 expected_outputs = {"classicServiceBusNamespaceResourceId"}
                                 if sync_classic_data:
                                     expected_outputs.update({"classicRedisResourceId", "classicSqlServerResourceId",
                                                              "classicSearchServiceResourceId"})
                                 self.assertEqual(expected_outputs, set(emitted))
-                self.assertEqual({"DEV": 44, "TST": 53, "PRE": 54, "PRD": 54}[environment], count)
+                self.assertEqual({"DEV": 44, "TST": 52, "PRE": 53, "PRD": 53}[environment], count)
 
 
 if __name__ == "__main__":
