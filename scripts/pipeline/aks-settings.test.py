@@ -94,7 +94,7 @@ class CompiledAksSettingsTests(unittest.TestCase):
                                      parameter_value(pool["osDiskSizeGB"], parameters))
                     self.assertEqual("Managed", pool["osDiskType"])
                     self.assertEqual("OS", pool["kubeletDiskType"])
-                    self.assertEqual("Ubuntu", pool["osSKU"])
+                    self.assertEqual("AzureContainerLinux" if name == "user" else "Ubuntu", pool["osSKU"])
                     self.assertFalse(pool["enableFIPS"])
                     self.assertEqual("Delete", pool["scaleDownMode"])
                     self.assertTrue(pool["securityProfile"]["enableSecureBoot"])
@@ -103,7 +103,7 @@ class CompiledAksSettingsTests(unittest.TestCase):
                     self.assertEqual({"maxSurge": "10%", "maxUnavailable": "0"}, pool["upgradeSettings"])
 
     def test_rbac_tenant_and_private_networking_are_explicit_without_disabling_existing_features(self):
-        self.assertEqual("2025-10-01", self.cluster["apiVersion"])
+        self.assertEqual("2026-03-01", self.cluster["apiVersion"])
         self.assertEqual("Base", self.cluster["kind"])
         self.assertTrue(self.properties["enableRBAC"])
         self.assertTrue(self.properties["aadProfile"]["managed"])
@@ -125,6 +125,25 @@ class CompiledAksSettingsTests(unittest.TestCase):
             for environment, parameters in self.parameters.items():
                 with self.subTest(environment=environment, field=plural):
                     self.assertEqual(1, len(parameter_value(network[plural], parameters)))
+
+    def test_api_preserves_existing_hosting_ingress_and_network_observability(self):
+        self.assertEqual({"enabled": False}, self.properties["hostedSystemProfile"])
+        routing = self.properties["ingressProfile"]["webAppRouting"]
+        self.assertEqual({"appRoutingIstio": {"mode": "Disabled"}}, routing["gatewayAPIImplementations"])
+        self.assertEqual("[tryGet(parameters('aksParams'), 'advancedNetworking')]",
+                         self.properties["networkProfile"]["advancedNetworking"])
+        for environment, parameters in self.parameters.items():
+            with self.subTest(environment=environment):
+                settings = parameters["aksParams"].get("advancedNetworking")
+                if environment == "dev":
+                    self.assertEqual({
+                        "enabled": True,
+                        "observability": {"enabled": True},
+                        "performance": {"accelerationMode": "None"},
+                        "security": {"enabled": False, "advancedNetworkPolicies": "None"},
+                    }, settings)
+                else:
+                    self.assertIsNone(settings)
 
     def test_existing_tenant_input_is_forwarded_from_every_real_entrypoint(self):
         for environment, template in self.root_templates.items():

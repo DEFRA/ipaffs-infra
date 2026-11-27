@@ -35,7 +35,7 @@ module vnetNetworkContributor './vnet-role-assignment.bicep' = {
   }
 }
 
-resource aksCluster 'Microsoft.ContainerService/managedClusters@2025-10-01' = {
+resource aksCluster 'Microsoft.ContainerService/managedClusters@2026-03-01' = {
   name: aksParams.name
   location: location
   tags: tags
@@ -55,6 +55,10 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2025-10-01' = {
     publicNetworkAccess: 'Disabled'
     enableRBAC: true
     supportPlan: 'KubernetesOfficial'
+
+    hostedSystemProfile: {
+      enabled: false
+    }
 
     serviceMeshProfile: {
       mode: 'Disabled'
@@ -125,7 +129,7 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2025-10-01' = {
         kubeletDiskType: 'OS'
         osDiskSizeGB: aksParams.nodePools.user.osDiskSizeGB
         osDiskType: 'Managed'
-        osSKU: 'Ubuntu'
+        osSKU: 'AzureContainerLinux'
         scaleDownMode: 'Delete'
         minCount: aksParams.nodePools.user.minCount
         maxCount: aksParams.nodePools.user.maxCount
@@ -186,6 +190,11 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2025-10-01' = {
     ingressProfile: {
       webAppRouting: {
         enabled: true
+        gatewayAPIImplementations: {
+          appRoutingIstio: {
+            mode: 'Disabled'
+          }
+        }
         nginx: {
           defaultIngressControllerType: 'None'
         }
@@ -193,6 +202,7 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2025-10-01' = {
     }
 
     networkProfile: {
+      advancedNetworking: aksParams.?advancedNetworking
       dnsServiceIP: aksParams.dnsServiceIp
       ipFamilies: ['IPv4']
       loadBalancerSku: 'standard'

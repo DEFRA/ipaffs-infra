@@ -34,6 +34,17 @@ param aksParams = {
   podCidrs: ['172.16.0.0/16']
   serviceCidrs: ['172.18.0.0/16']
 
+  // Preserve this cluster's existing AKS network observability settings.
+  advancedNetworking: {
+    enabled: true
+    observability: { enabled: true }
+    performance: { accelerationMode: 'None' }
+    security: {
+      enabled: false
+      advancedNetworkPolicies: 'None'
+    }
+  }
+
   nodePools: {
     system: {
       minCount: 3
