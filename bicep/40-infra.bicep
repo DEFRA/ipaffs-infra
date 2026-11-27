@@ -26,7 +26,7 @@ param keyVaultParams object
 param monitoringParams object
 param qaKeyVaultParams object = {}
 param qaAutomationPrincipalObjectId string = ''
-param redisParams object?
+param redisParams object = {}
 param searchParams object
 param sqlParams object
 param insightsParams object
@@ -142,13 +142,13 @@ module qaKeyVault './modules/keyvault.bicep' = if (deployQaKeyVault) {
   }
 }
 
-var deployRedis = environment == 'DEV' && redisParams != null
+var deployRedis = environment == 'DEV' && !empty(redisParams)
 
 module redis './modules/redis.bicep' = if (deployRedis) {
   name: 'redis-${deploymentId}'
   scope: resourceGroup()
   params: {
-    redisParams: redisParams!
+    redisParams: redisParams
     location: location
     subnets: subnets
     tags: tags
