@@ -188,7 +188,6 @@ stages:
       ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/main') }}:
         deploymentVariables:
           keyVaultName: $[ stageDependencies.DeployInfrastructure.RunBicep.outputs['RunBicep.InfrastructureOutputs.keyVaultName'] ]
-          redisName: $[ stageDependencies.DeployInfrastructure.RunBicep.outputs['RunBicep.InfrastructureOutputs.redisName'] ]
           searchServiceName: $[ stageDependencies.DeployInfrastructure.RunBicep.outputs['RunBicep.InfrastructureOutputs.searchServiceName'] ]
           sqlServerName: $[ stageDependencies.DeployInfrastructure.RunBicep.outputs['RunBicep.InfrastructureOutputs.sqlServerName'] ]
           storageAccountName: $[ stageDependencies.DeployInfrastructure.RunBicep.outputs['RunBicep.InfrastructureOutputs.storageAccountName'] ]

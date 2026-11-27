@@ -91,10 +91,6 @@ param monitoringParams = {
   principalObjectId: builtInGroups.contributors
 }
 
-param redisParams = {
-  name: 'devimpinfrd1401' // note: must be lowercase
-}
-
 param searchParams = {
   name: 'devimpinfas1401' // note: must be lowercase
   partitionCount: 1

@@ -179,7 +179,6 @@ stages:
                         --emit-output=searchServiceManagedIdentityPrincipalId
                         --emit-output=grafanaManagedIdentityPrincipalId
                         --emit-output=keyVaultName
-                        --emit-output=redisName
                         --emit-output=searchServiceName
                         --emit-output=sqlServerName
                         --emit-output=storageAccountName
@@ -198,7 +197,6 @@ stages:
                         keyVaultName=keyVaultName
                         keyVaultUrl=keyVaultUri
                         kubernetesCluster=aksClusterName
-                        redisName=redisName
                         searchServiceSubscriptionId=searchServiceSubscriptionId
                         searchServiceResourceGroupName=searchServiceResourceGroupName
                         searchServiceName=searchServiceName

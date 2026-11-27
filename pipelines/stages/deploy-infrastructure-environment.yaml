@@ -137,7 +137,6 @@ stages:
           - ${{ parameters.stagePrefix }}DeployACR
       deploymentVariables:
         keyVaultName: $[ stageDependencies.${{ parameters.stagePrefix }}DeployInfrastructure.RunBicep.outputs['RunBicep.InfrastructureOutputs.keyVaultName'] ]
-        redisName: $[ stageDependencies.${{ parameters.stagePrefix }}DeployInfrastructure.RunBicep.outputs['RunBicep.InfrastructureOutputs.redisName'] ]
         searchServiceName: $[ stageDependencies.${{ parameters.stagePrefix }}DeployInfrastructure.RunBicep.outputs['RunBicep.InfrastructureOutputs.searchServiceName'] ]
         sqlServerName: $[ stageDependencies.${{ parameters.stagePrefix }}DeployInfrastructure.RunBicep.outputs['RunBicep.InfrastructureOutputs.sqlServerName'] ]
         storageAccountName: $[ stageDependencies.${{ parameters.stagePrefix }}DeployInfrastructure.RunBicep.outputs['RunBicep.InfrastructureOutputs.storageAccountName'] ]
