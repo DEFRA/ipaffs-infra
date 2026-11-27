@@ -82,7 +82,7 @@ select_target() {
   group="${upper}IMPINFRG1401"
   local base="/subscriptions/${EXPECTED_SUBSCRIPTION}/resourceGroups/${group}/providers"
   local name="${environment}impinfrd1401"
-  export CACHE_ID="${base}/Microsoft.Cache/redis/${name}"
+  export CACHE_ID="${base}/Microsoft.Cache/Redis/${name}"
   export ENDPOINT_ID="${base}/Microsoft.Network/privateEndpoints/${name}-${upper}IMPNETSU4404"
 }
 
@@ -122,7 +122,11 @@ expect_failure 'subscription or resource group' dev false '' "${EXPECTED_SUBSCRI
 expect_calls ''
 
 dry_run_output="$(run_hook dev '')"
-[[ "${dry_run_output}" == *"Would delete ${CACHE_ID}"* && "${dry_run_output}" == *"Would delete ${ENDPOINT_ID}"* ]]
+if ! grep -Fxq -- "Would delete ${CACHE_ID}" <<<"${dry_run_output}" ||
+  ! grep -Fxq -- "Would delete ${ENDPOINT_ID}" <<<"${dry_run_output}"; then
+  printf 'Expected DEV dry-run to report both resources\n%s\n' "${dry_run_output}" >&2
+  exit 1
+fi
 [[ -f "${CACHE_PRESENT}" && -f "${ENDPOINT_PRESENT}" ]]
 expect_calls "${lookups}"
 
